@@ -103,12 +103,19 @@ class Japlish(str):
 
     @property
     def encoding(self) -> JaplishEncoding:
+        """The base string payload's active language (JP or EN).
+
+        Reassigning `encoding` is destructive: both `.jp` and `.en` slots are
+        cleared and the active one is re-derived from the current base str.
+        This is the "relabel the underlying payload" operation, not a smart
+        translation set. To attach a translation without disturbing the base,
+        assign to `.jp` or `.en` directly — those setters leave the other slot
+        alone.
+        """
         return self._encoding
 
     @encoding.setter
     def encoding(self, value: Union[JaplishEncoding, str]) -> None:
-        # Encoding represents the base string payload language, not translation availability.
-        # Re-applying encoding resets derived jp/en slots based on the current base text.
         self._encoding = self._normalize_encoding(value)
         self._apply_encoding()
 

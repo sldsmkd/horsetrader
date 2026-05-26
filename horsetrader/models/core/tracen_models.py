@@ -53,8 +53,8 @@ class TracenModels(Generic[TEntity]):
             TracenModels._registry.append(cls)
 
     def __init__(self) -> None:
-        self._cache: list[TEntity] | None = None
-        self._cache_by_key: dict[str, TEntity] = {}
+        self._cache: dict[str, TEntity] = {}
+        self._loaded: bool = False
         self.references: References = References()
         load_start = perf_counter()
         self._fetch()
@@ -71,14 +71,14 @@ class TracenModels(Generic[TEntity]):
         """
         return {
             "load_order": self._load_order,
-            "count": len(self._cache or ()),
+            "count": len(self._cache),
             "elapsed_s": self._load_elapsed_s,
         }
 
     def get(self, key: str) -> TEntity | None:
-        if self._cache is None:
+        if not self._loaded:
             self._fetch()
-        return self._cache_by_key.get(key)
+        return self._cache.get(key)
 
     def search(self, query) -> list[TEntity]:
         """Return all items matching ``query``.
@@ -88,48 +88,48 @@ class TracenModels(Generic[TEntity]):
         dispatch and call ``super().search(query)`` for the str path.
         """
         if isinstance(query, str):
-            if self._cache is None:
+            if not self._loaded:
                 self._fetch()
-            return [item for item in self._cache_by_key.values() if item.match(query)]
+            return [item for item in self._cache.values() if item.match(query)]
         raise TypeError(
             f"{type(self).__name__}.search does not support query type "
             f"{type(query).__name__!r}"
         )
 
     def __getitem__(self, key: str) -> TEntity:
-        if self._cache is None:
+        if not self._loaded:
             self._fetch()
-        return self._cache_by_key[key]
+        return self._cache[key]
 
     def __contains__(self, key: object) -> bool:
-        if self._cache is None:
+        if not self._loaded:
             self._fetch()
-        return key in self._cache_by_key
+        return key in self._cache
 
     def __len__(self) -> int:
-        if self._cache is None:
+        if not self._loaded:
             self._fetch()
-        return len(self._cache_by_key)
+        return len(self._cache)
 
     def __iter__(self):
-        if self._cache is None:
+        if not self._loaded:
             self._fetch()
-        return iter(self._cache_by_key)
+        return iter(self._cache)
 
     def keys(self):
-        if self._cache is None:
+        if not self._loaded:
             self._fetch()
-        return self._cache_by_key.keys()
+        return self._cache.keys()
 
     def values(self):
-        if self._cache is None:
+        if not self._loaded:
             self._fetch()
-        return self._cache_by_key.values()
+        return self._cache.values()
 
     def items(self):
-        if self._cache is None:
+        if not self._loaded:
             self._fetch()
-        return self._cache_by_key.items()
+        return self._cache.items()
 
     def _collection_sources(self) -> Iterable[str]:
         """Override for sources only known at fetch time. Defaults to SOURCES."""
@@ -172,9 +172,9 @@ class TracenModels(Generic[TEntity]):
             f"{entity.key}: {error}"
         )
 
-    def _fetch(self) -> list[TEntity]:
-        if self._cache is not None:
-            return list(self._cache)
+    def _fetch(self) -> None:
+        if self._loaded:
+            return
 
         for url in self._collection_sources():
             self.references.add(url)
@@ -191,7 +191,25 @@ class TracenModels(Generic[TEntity]):
         for item in entities:
             self._validate_item(item)
 
-        self._cache = entities
-        self._cache_by_key = {item.key: item for item in entities if item.key}
-        logger.info(f"Fetched {len(entities)} {type(self).__name__.lower()}")
-        return list(self._cache)
+        # Key-indexed access is the contract for the collection; unkeyed items
+        # would be silently invisible to every accessor, so drop them at load
+        # with a warning rather than letting them inflate stats counts.
+        # Duplicate keys are unlikely but a real bug-class — warn if seen.
+        self._cache = {}
+        dropped = 0
+        for item in entities:
+            if not item.key:
+                dropped += 1
+                continue
+            if item.key in self._cache:
+                logger.warning(
+                    f"Duplicate key {item.key!r} in {type(self).__name__.lower()}; "
+                    f"later item overwrites earlier"
+                )
+            self._cache[item.key] = item
+        if dropped:
+            logger.warning(
+                f"Dropped {dropped} unkeyed {type(self).__name__.lower()}"
+            )
+        self._loaded = True
+        logger.info(f"Fetched {len(self._cache)} {type(self).__name__.lower()}")

@@ -8,6 +8,19 @@ from horsetrader.semantics import shakur
 from .uma_client_cache import UmaClientCache
 
 
+class HttpError(RuntimeError):
+    """Transport-layer HTTP failure carrying the response status code.
+
+    Subclass of RuntimeError so existing callers that just propagate transport
+    errors keep working; callers that need to distinguish (e.g. treat 404 as
+    "missing" rather than "error") read `status_code`.
+    """
+
+    def __init__(self, message: str, status_code: int) -> None:
+        super().__init__(message)
+        self.status_code = status_code
+
+
 @shakur
 class UmaClient(metaclass=SingletonMeta):
     def __init__(self):
@@ -88,8 +101,9 @@ class UmaClient(metaclass=SingletonMeta):
                 raise
 
         if response.status_code != 200:
-            raise RuntimeError(
-                f"Failed to fetch {resource.url}: {response.status_code}"
+            raise HttpError(
+                f"Failed to fetch {resource.url}: {response.status_code}",
+                status_code=response.status_code,
             )
 
         _headers = response.headers or {}
@@ -100,6 +114,38 @@ class UmaClient(metaclass=SingletonMeta):
 
         UmaClientCache.write(resource.url, response.content, mime_type=_content_type)
         return response.content if _is_binary_response else response.text
+
+    def try_get(
+        self,
+        resource: str | Url | Resource,
+        cache: CacheTime | timedelta | None = None,
+    ) -> str | bytes | None:
+        """Like `get`, but treats 404 as "missing" rather than an error.
+
+        Returns `None` if the resource is unavailable (either previously sentineled
+        or returns 404 on this attempt). The sentinel short-circuits future calls
+        until `CacheTime.SENTINEL` elapses, so we don't keep re-hitting URLs that
+        don't exist. Other non-200 statuses still raise `HttpError`.
+        """
+        if isinstance(resource, str):
+            resource = Url(resource)
+        if isinstance(resource, Url):
+            resource = Resource(resource)
+        if not isinstance(resource, Resource):
+            raise TypeError(
+                f"resource must be a str, Url, or Resource, got {type(resource)}"
+            )
+
+        if UmaClientCache.is_sentinel(resource.url, max_age=CacheTime.SENTINEL.value):
+            return None
+
+        try:
+            return self.get(resource, cache=cache)
+        except HttpError as exc:
+            if exc.status_code == 404:
+                UmaClientCache.write_sentinel(resource.url)
+                return None
+            raise
 
     def flush(self, resource: str | Url | Resource) -> bool:
         if isinstance(resource, str):

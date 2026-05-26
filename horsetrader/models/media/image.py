@@ -7,7 +7,7 @@ from PIL import Image as PillowImage
 from horsetrader.enums import CacheTime
 from horsetrader.models.core import References
 from horsetrader.semantics import currenchan
-from horsetrader.transport import UmaClient, UmaClientCache
+from horsetrader.transport import UmaClient
 
 
 @currenchan
@@ -16,12 +16,15 @@ class Image:
     """A picture, identified by where it currently lives.
 
     `url` is the canonical "current location" — it starts as the web URL Transcend
-    extracted, and on a successful `process(outfile=...)` is reassigned to the
-    on-disk Path Curren Chan wrote. Downstream (Digitan's entities, the web side)
-    only ever cares about the final location, not the network source, so the
-    field deliberately carries one role: "where do I find this image right now?".
-    The original source URL could be folded into entity-level `References` for
-    provenance if a future feature needs it; today we don't.
+    extracted, then becomes the published umastagram link once Curren Chan posts.
+    Image itself does not decide what that link is: `process(outfile=...)` writes
+    pixels to disk and records dimensions, but leaves `url` untouched. The
+    publisher (`CurrenChan.process`) finalises `url` to the site-relative path
+    (e.g. `/img/characters/foo.webp`) so downstream serialisation doesn't need
+    to strip a filesystem prefix.
+
+    The original source URL is recorded on `references` before publish, so it
+    survives the rewrite and can be folded into entity-level provenance.
     """
 
     url: Url | Path
@@ -58,7 +61,6 @@ class Image:
             with PillowImage.open(outfile) as img:
                 self._width, self._height = img.size
             self._processed = True
-            self.url = outfile
             return True
 
         content = self._fetch_content()
@@ -78,30 +80,24 @@ class Image:
     def _fetch_content(self) -> bytes | None:
         """Resolve `self.url` to raw bytes, or None if the source is unavailable.
 
-        Path source reads from disk; URL source fetches via UmaClient with a
-        sentinel-cached 404 short-circuit so we don't re-hit missing URLs.
+        Path source reads from disk; URL source delegates to Shakur's
+        `UmaClient.try_get`, which owns the cache, the 404→sentinel write, and
+        the sentinel short-circuit so we don't re-hit missing URLs.
         """
         if isinstance(self.url, Path):
             return self.url.read_bytes()
 
-        if UmaClientCache.is_sentinel(self.url, max_age=CacheTime.SENTINEL.value):
+        content = UmaClient().try_get(self.url, cache=CacheTime.BINARY)
+        if content is None:
             return None
-
-        try:
-            content = UmaClient().get(self.url, cache=CacheTime.BINARY)
-        except RuntimeError as exc:
-            if ": 404" in str(exc):
-                UmaClientCache.write_sentinel(self.url)
-                return None
-            raise
-
         if not isinstance(content, bytes):
             raise RuntimeError(f"Expected binary content for image {self.url}")
         return content
 
     def _save(self, content: bytes, outfile: Path, width: int | None) -> None:
         """Write `content` to `outfile` (with optional rescale), capturing the
-        final on-disk dimensions and flipping `self.url` to the written path.
+        final on-disk dimensions. Does not touch `self.url` — the publisher
+        decides what URL the image is presented as (see class docstring).
         """
         outfile.parent.mkdir(parents=True, exist_ok=True)
         with PillowImage.open(BytesIO(content)) as img:
@@ -109,7 +105,6 @@ class Image:
                 img = self._rescale(img, width)
             self._width, self._height = img.size
             img.save(outfile, format=self._pillow_format(outfile.suffix))
-        self.url = outfile
 
     def _capture_dims(self, content: bytes, width: int | None) -> None:
         with PillowImage.open(BytesIO(content)) as img:

@@ -137,3 +137,6 @@ class CostumeVariants(Enum):
 
 
 _JP_TO_VARIANT = {jp: CostumeVariants[name] for name, jp in _COSTUME_VARIANT_JP_MAP.items()}
+assert len(_JP_TO_VARIANT) == len(_COSTUME_VARIANT_JP_MAP), (
+    "Duplicate JP value in _COSTUME_VARIANT_JP_MAP — last definition silently wins"
+)

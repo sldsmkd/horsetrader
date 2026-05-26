@@ -4,6 +4,7 @@ from pathlib import Path
 
 from ethicrawl import Resource, ResourceList
 
+from horsetrader.core import Config
 from horsetrader.info import Logger
 from horsetrader.semantics import currenchan
 
@@ -40,6 +41,7 @@ class CurrenChan:
         for req in requests:
             groups[req.url.hostname or ""].append(req)
 
+        site_root = Config().site
         results: dict[str, Image | None] = {}
         for host, group in groups.items():
             logger.info(f"Processing {len(group)} image(s) from {host}")
@@ -47,7 +49,7 @@ class CurrenChan:
                 image = Image(req.url)
                 # Curren Chan: "I got this from here!" — stamp the source on the
                 # Image so the owning entity can fold it into provenance once
-                # `image.url` mutates to the on-disk outfile.
+                # `image.url` is finalised to the published umastagram link.
                 image.references.add(str(req.url))
                 try:
                     ok = image.process(outfile=req.outfile)
@@ -55,5 +57,13 @@ class CurrenChan:
                     logger.warning(f"Failed to process {req.url}: {exc}")
                     results[str(req.url)] = None
                     continue
-                results[str(req.url)] = image if ok else None
+                if ok:
+                    # Publish: rewrite the url to the site-relative path the web
+                    # side will serve (e.g. `/img/characters/foo.webp`), so
+                    # downstream serialisers don't have to strip a filesystem
+                    # prefix.
+                    image.url = Path("/") / req.outfile.relative_to(site_root)
+                    results[str(req.url)] = image
+                else:
+                    results[str(req.url)] = None
         return results
