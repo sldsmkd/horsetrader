@@ -18,7 +18,7 @@ class Support(Entity):
 
 
 @digitan
-class Supports(Entities[Support, Support, Support], metaclass=SingletonMeta):
+class Supports(Entities[Support], metaclass=SingletonMeta):
     """Stub Supports collection — exercises the Characters dependency for
     pipeline shape testing. No scraping; synthesises one Support per Character.
     """
@@ -30,12 +30,6 @@ class Supports(Entities[Support, Support, Support], metaclass=SingletonMeta):
             Support(key=StableKey(f"support-{c.key}"), character=c)
             for c in Characters().values()
         ]
-
-    def _enrich_one(self, primary_item: Support) -> Support:
-        return primary_item
-
-    def _merge_one(self, primary_item: Support, secondary_item: Support) -> Support:
-        return primary_item
 
     def _validate_item(self, item: Support) -> None:
         return

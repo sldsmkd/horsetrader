@@ -54,7 +54,7 @@ class Trainee(Entity):
 
 
 @digitan
-class Trainees(Entities[Trainee, Trainee, Trainee], metaclass=SingletonMeta):
+class Trainees(Entities[Trainee], metaclass=SingletonMeta):
     SOURCES = ("https://gametora.com/ja/umamusume/characters",)
 
     def __init__(self) -> None:
@@ -108,6 +108,15 @@ class Trainees(Entities[Trainee, Trainee, Trainee], metaclass=SingletonMeta):
             character = characters_by_gametora_id[record["character_gametora_id"]]
             thumbnail_url = record.get("thumbnail_url")
             portrait_url = record.get("portrait_url")
+            thumbnail = images.get(thumbnail_url) if thumbnail_url else None
+            portrait = images.get(portrait_url) if portrait_url else None
+
+            references = References(record.get("references", []))
+            if thumbnail is not None:
+                references.add(thumbnail.references)
+            if portrait is not None:
+                references.add(portrait.references)
+
             trainees.append(
                 Trainee(
                     key=StableKey(record["key"]),
@@ -118,10 +127,10 @@ class Trainees(Entities[Trainee, Trainee, Trainee], metaclass=SingletonMeta):
                         title=record["title"],
                         rarity=record["rarity"],
                     ),
-                    thumbnail=images.get(thumbnail_url) if thumbnail_url else None,
-                    portrait=images.get(portrait_url) if portrait_url else None,
+                    thumbnail=thumbnail,
+                    portrait=portrait,
                     correlations=dict(record.get("correlations", {})),
-                    references=References(record.get("references", [])),
+                    references=references,
                 )
             )
         return trainees
@@ -164,63 +173,27 @@ class Trainees(Entities[Trainee, Trainee, Trainee], metaclass=SingletonMeta):
             return {}
         return CurrenChan().process(requests)
 
-    def _enrich_one(self, primary_item: Trainee) -> Trainee:
-        trainee_id = primary_item.correlations.get(Sources.GAMETORA.value)
-        gametora_id = primary_item.character.correlations.get(Sources.GAMETORA.value)
+    def _enrichers(self):
+        return (self._enrich_with_umapyoi,)
+
+    def _enrich_with_umapyoi(self, t: Trainee) -> None:
+        """Backfill the EN slot on the trainee's outfit title from Umapyoi.
+
+        Umapyoi contributes the EN title text only; everything else is
+        Gametora-sourced and already on the trainee. Skips silently if either
+        side of the (trainee_id, gametora_id) correlation is missing.
+        """
+        trainee_id = t.correlations.get(Sources.GAMETORA.value)
+        gametora_id = t.character.correlations.get(Sources.GAMETORA.value)
         if not trainee_id or not gametora_id:
-            return primary_item
+            return
 
         record = Umapyoi().trainee(int(trainee_id), int(gametora_id))
         en_title = record.get("title")
-
-        title = Japlish(
-            str(primary_item.variant.title),
-            encoding=primary_item.variant.title.encoding,
-        )
         if en_title is not None and en_title.encoding.value == "en":
             try:
-                title.en  # already has EN
+                t.variant.title.en  # already has EN
             except ValueError:
-                title.en = str(en_title)
+                t.variant.title.en = str(en_title)
 
-        return Trainee(
-            key=primary_item.key,
-            character=primary_item.character,
-            release=primary_item.release,
-            variant=TraineeVariant(
-                variant=primary_item.variant.variant,
-                title=title,
-                rarity=primary_item.variant.rarity,
-            ),
-            thumbnail=primary_item.thumbnail,
-            portrait=primary_item.portrait,
-            correlations=dict(primary_item.correlations),
-            references=References(record.get("references", [])),
-        )
-
-    def _on_enrich_error(self, primary_item: Trainee, error: Exception) -> Trainee:
-        logger.warning(
-            f"Failed to enrich trainee {primary_item.key} from umapyoi; "
-            f"using Gametora-only data: {error}"
-        )
-        return primary_item
-
-    def _merge_one(self, primary_item: Trainee, secondary_item: Trainee) -> Trainee:
-        merged_references = References(primary_item.references)
-        merged_references.add(secondary_item.references)
-
-        merged_correlations = {
-            **primary_item.correlations,
-            **secondary_item.correlations,
-        }
-
-        return Trainee(
-            key=primary_item.key,
-            character=primary_item.character,
-            release=primary_item.release,
-            variant=secondary_item.variant,
-            thumbnail=primary_item.thumbnail,
-            portrait=primary_item.portrait,
-            correlations=merged_correlations,
-            references=merged_references,
-        )
+        t.references.extend(record.get("references", []))

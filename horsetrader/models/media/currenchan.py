@@ -45,6 +45,10 @@ class CurrenChan:
             logger.info(f"Processing {len(group)} image(s) from {host}")
             for req in group:
                 image = Image(req.url)
+                # Curren Chan: "I got this from here!" — stamp the source on the
+                # Image so the owning entity can fold it into provenance once
+                # `image.url` mutates to the on-disk outfile.
+                image.references.add(str(req.url))
                 try:
                     ok = image.process(outfile=req.outfile)
                 except Exception as exc:

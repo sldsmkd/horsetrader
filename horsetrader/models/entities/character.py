@@ -43,7 +43,7 @@ class Character(Entity):
 
 
 @digitan
-class Characters(Entities[Character, Character, Character], metaclass=SingletonMeta):
+class Characters(Entities[Character], metaclass=SingletonMeta):
     SOURCES = (
         "https://gametora.com/ja/umamusume/characters/profiles",
         "https://umapyoi.net/api/v1/character/list",
@@ -85,51 +85,6 @@ class Characters(Entities[Character, Character, Character], metaclass=SingletonM
                 f"Character {item.key} is incomplete; missing: {', '.join(missing)}"
             )
 
-    def _merge_one(
-        self, primary_item: Character, secondary_item: Character
-    ) -> Character:
-        # Keep Gametora key and image URL as source-of-truth.
-        # Use Umapyoi as source-of-truth for name and three_sizes.
-        secondary_has_pull_quote = self._has_text(secondary_item.quote)
-
-        merged_references = References(primary_item.references)
-        merged_references.add(secondary_item.references)
-
-        merged_correlations = {
-            **primary_item.correlations,
-            **secondary_item.correlations,
-        }
-
-        # Prefer primary (Gametora) pull_quote as it may be bilingual (JP tagline + EN).
-        # If Umapyoi has EN text and primary has no EN slot yet, backfill it.
-        _quote = (
-            primary_item.quote
-            if self._has_text(primary_item.quote)
-            else secondary_item.quote
-        )
-        if (
-            _quote is not None
-            and secondary_item.quote is not None
-            and secondary_has_pull_quote
-            and _quote is primary_item.quote
-            and secondary_item.quote.encoding.value == "en"
-        ):
-            try:
-                _quote.en  # already has EN
-            except ValueError:
-                _quote.en = str(secondary_item.quote)
-
-        return Character(
-            key=primary_item.key,
-            correlations=merged_correlations,
-            references=merged_references,
-            name=secondary_item.name,
-            three_sizes=secondary_item.three_sizes,
-            icon=primary_item.icon,
-            portrait=primary_item.portrait,
-            quote=_quote,
-        )
-
     def _fetch_primary(self) -> list[Character]:
         records = list(Gametora().characters())
         images = self._process_images(records)
@@ -137,16 +92,25 @@ class Characters(Entities[Character, Character, Character], metaclass=SingletonM
         for record in records:
             icon_url = record.get("icon_url")
             portrait_url = record.get("portrait_url")
+            icon = images.get(icon_url) if icon_url else None
+            portrait = images.get(portrait_url) if portrait_url else None
+
+            references = References(record.get("references", []))
+            if icon is not None:
+                references.add(icon.references)
+            if portrait is not None:
+                references.add(portrait.references)
+
             characters.append(
                 Character(
                     key=StableKey(record["key"]),
                     name=record["name"],
                     three_sizes=ThreeSizes(),
-                    icon=images.get(icon_url) if icon_url else None,
-                    portrait=images.get(portrait_url) if portrait_url else None,
+                    icon=icon,
+                    portrait=portrait,
                     quote=record.get("quote"),
                     correlations=dict(record.get("correlations", {})),
-                    references=References(record.get("references", [])),
+                    references=references,
                 )
             )
         return characters
@@ -177,29 +141,39 @@ class Characters(Entities[Character, Character, Character], metaclass=SingletonM
             return {}
         return CurrenChan().process(requests)
 
-    def _enrich_one(self, primary_item: Character) -> Character:
-        record = Umapyoi().character(primary_item.key)
-        sizes = record.get("three_sizes", {})
-        return Character(
-            key=primary_item.key,
-            name=record.get("name", primary_item.name),
-            three_sizes=ThreeSizes(
-                bust=sizes.get("bust"),
-                waist=sizes.get("waist"),
-                hips=sizes.get("hips"),
-            ),
-            icon=record.get("icon"),
-            portrait=record.get("portrait"),
-            quote=record.get("quote"),
-            correlations=dict(record.get("correlations", {})),
-            references=References(record.get("references", [])),
-        )
+    def _enrichers(self):
+        return (self._enrich_with_umapyoi,)
 
-    def _on_enrich_error(self, primary_item: Character, error: Exception) -> Character:
-        logger.warning(
-            f"Failed to enrich character {primary_item.key} from umapyoi; using Gametora-only data: {error}"
-        )
-        return primary_item
+    def _enrich_with_umapyoi(self, c: Character) -> None:
+        """Fold Umapyoi data into the character's fields.
+
+        Umapyoi is source-of-truth for `name` and `three_sizes`. For `quote`,
+        Gametora's bilingual payload is preferred; only the EN slot is backfilled
+        if Umapyoi has EN text that Gametora's Japlish doesn't carry yet.
+        """
+        record = Umapyoi().character(c.key)
+        sizes = record.get("three_sizes", {})
+
+        c.name = record.get("name", c.name)
+        c.three_sizes.bust = sizes.get("bust", c.three_sizes.bust)
+        c.three_sizes.waist = sizes.get("waist", c.three_sizes.waist)
+        c.three_sizes.hips = sizes.get("hips", c.three_sizes.hips)
+
+        umapyoi_quote = record.get("quote")
+        if not self._has_text(c.quote):
+            c.quote = umapyoi_quote
+        elif (
+            c.quote is not None
+            and umapyoi_quote is not None
+            and umapyoi_quote.encoding.value == "en"
+        ):
+            try:
+                c.quote.en  # already has EN
+            except ValueError:
+                c.quote.en = str(umapyoi_quote)
+
+        c.correlations.update(record.get("correlations", {}))
+        c.references.extend(record.get("references", []))
 
 
 if __name__ == "__main__":

@@ -1,15 +1,13 @@
 from typing import TypeVar
 
-from horsetrader.models.core import TracenModels
+from horsetrader.models.core import TracenModel, TracenModels
 from horsetrader.semantics import digitan
 
-TPrimary = TypeVar("TPrimary")
-TSecondary = TypeVar("TSecondary")
-TMerged = TypeVar("TMerged")
+TEntity = TypeVar("TEntity", bound=TracenModel)
 
 
 @digitan
-class Entities(TracenModels[TPrimary, TSecondary, TMerged]):
+class Entities(TracenModels[TEntity]):
     """Semantic wrapper around `TracenModels`, claimed by Digitan.
 
     DO NOT ADD CODE HERE. This class exists only to give entity-collection

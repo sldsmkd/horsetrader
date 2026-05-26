@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from time import perf_counter
 from typing import Any, ClassVar, Generic, TypeVar
 
@@ -11,20 +11,25 @@ from .tracen_model import TracenModel
 
 logger = Logger.get(__name__)
 
-TPrimary = TypeVar("TPrimary")
-TSecondary = TypeVar("TSecondary")
-TMerged = TypeVar("TMerged", bound=TracenModel)
+TEntity = TypeVar("TEntity", bound=TracenModel)
 
 
 @tazuna
-class TracenModels(Generic[TPrimary, TSecondary, TMerged]):
-    """Cached, key-indexed collection over a two-source merge pipeline.
+class TracenModels(Generic[TEntity]):
+    """Cached, key-indexed collection over a seed + optional-enrichment pipeline.
 
     Subclasses provide:
-      - source wiring: `_fetch_primary`, `_enrich_one`, `_merge_one`,
-        and (optionally) `_on_enrich_error`
+      - source wiring: `_fetch_primary` builds the initial entities; `_enrichers`
+        returns an ordered tuple of methods that mutate each entity in place
+        with field-level ternaries (candidate-beats-existing per field).
       - per-item validation: `_validate_item`
       - reference URLs: set `SOURCES` or override `_collection_sources()`
+
+    Enrichment is targeted at fields, not the whole entity. Each enricher knows
+    which fields its source can contribute to and folds in via assignment with
+    a ternary (e.g. `c.name = record.get("name", c.name)`). Fields the enricher
+    doesn't know about are untouched. `key` is the only immutable field by
+    convention.
 
     Eager-load by design: `__init__` calls `_fetch()` so the scraper context
     stays warm across the ETL load-order graph.
@@ -48,8 +53,8 @@ class TracenModels(Generic[TPrimary, TSecondary, TMerged]):
             TracenModels._registry.append(cls)
 
     def __init__(self) -> None:
-        self._cache: list[TMerged] | None = None
-        self._cache_by_key: dict[str, TMerged] = {}
+        self._cache: list[TEntity] | None = None
+        self._cache_by_key: dict[str, TEntity] = {}
         self.references: References = References()
         load_start = perf_counter()
         self._fetch()
@@ -70,12 +75,12 @@ class TracenModels(Generic[TPrimary, TSecondary, TMerged]):
             "elapsed_s": self._load_elapsed_s,
         }
 
-    def get(self, key: str) -> TMerged | None:
+    def get(self, key: str) -> TEntity | None:
         if self._cache is None:
             self._fetch()
         return self._cache_by_key.get(key)
 
-    def search(self, query) -> list[TMerged]:
+    def search(self, query) -> list[TEntity]:
         """Return all items matching ``query``.
 
         Delegates per-item to ``TracenModel.match`` (override there to extend
@@ -91,7 +96,7 @@ class TracenModels(Generic[TPrimary, TSecondary, TMerged]):
             f"{type(query).__name__!r}"
         )
 
-    def __getitem__(self, key: str) -> TMerged:
+    def __getitem__(self, key: str) -> TEntity:
         if self._cache is None:
             self._fetch()
         return self._cache_by_key[key]
@@ -131,44 +136,62 @@ class TracenModels(Generic[TPrimary, TSecondary, TMerged]):
         return self.SOURCES
 
     @abstractmethod
-    def _fetch_primary(self) -> Iterable[TPrimary]:
+    def _fetch_primary(self) -> Iterable[TEntity]:
+        """Build initial entities from the primary source. Required."""
         ...
 
-    @abstractmethod
-    def _enrich_one(self, primary_item: TPrimary) -> TSecondary:
-        ...
+    def _enrichers(self) -> Iterable[Callable[[TEntity], None]]:
+        """Override to declare ordered enrichment stages. Default: none.
+
+        Each enricher mutates the entity in place, folding in candidate field
+        values via ternary (last enricher wins per field unless the enricher
+        itself checks for an existing value). Enrichers should not raise on
+        missing data — return silently and let the entity keep its existing
+        field values.
+        """
+        return ()
 
     @abstractmethod
-    def _merge_one(self, primary_item: TPrimary, secondary_item: TSecondary) -> TMerged:
-        ...
-
-    @abstractmethod
-    def _validate_item(self, item: TMerged) -> None:
+    def _validate_item(self, item: TEntity) -> None:
         """Per-item validation, called once per merged item during `_fetch()`."""
         ...
 
-    def _on_enrich_error(self, primary_item: TPrimary, error: Exception) -> TMerged:
-        raise error
+    def _on_enrich_error(
+        self,
+        entity: TEntity,
+        enricher: Callable[[TEntity], None],
+        error: Exception,
+    ) -> None:
+        """Default: log and leave the entity in whatever partial state it's in.
 
-    def _fetch(self) -> list[TMerged]:
+        Override to raise, to roll back partial mutations, or to record a
+        per-source enrichment failure count in `stats()`.
+        """
+        logger.warning(
+            f"Enricher {enricher.__name__} failed for {type(entity).__name__} "
+            f"{entity.key}: {error}"
+        )
+
+    def _fetch(self) -> list[TEntity]:
         if self._cache is not None:
             return list(self._cache)
 
         for url in self._collection_sources():
             self.references.add(url)
 
-        merged: list[TMerged] = []
-        for primary in self._fetch_primary():
-            try:
-                secondary = self._enrich_one(primary)
-                merged.append(self._merge_one(primary, secondary))
-            except Exception as error:
-                merged.append(self._on_enrich_error(primary, error))
+        entities = list(self._fetch_primary())
+        enrichers = tuple(self._enrichers())
+        for entity in entities:
+            for enricher in enrichers:
+                try:
+                    enricher(entity)
+                except Exception as error:
+                    self._on_enrich_error(entity, enricher, error)
 
-        for item in merged:
+        for item in entities:
             self._validate_item(item)
 
-        self._cache = merged
-        self._cache_by_key = {item.key: item for item in merged if item.key}
-        logger.info(f"Fetched {len(merged)} {type(self).__name__.lower()}")
+        self._cache = entities
+        self._cache_by_key = {item.key: item for item in entities if item.key}
+        logger.info(f"Fetched {len(entities)} {type(self).__name__.lower()}")
         return list(self._cache)
