@@ -1,0 +1,132 @@
+from enum import Enum
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from horsetrader.core import Japlish
+
+_COSTUME_VARIANT_EN_MAP = {
+    "DEFAULT": "Default",
+    "NEW_YEAR": "New Year",
+    "HALLOWEEN": "Halloween",
+    "MASQUERADE": "Masquerade",
+    "VALENTINE": "Valentine",
+    "CHRISTMAS": "Christmas",
+    "WEDDING": "Wedding",
+    "SUMMER": "Summer",
+    "AUTUMN_FESTIVAL": "Autumn Festival",
+    "CHEER_SQUAD": "Cheer Squad",
+    "ANIME_COLLAB": "Anime Collab",
+    "NEW_OUTFIT": "New Outfit",
+    "SUMMER_WALK": "Summer Walk",
+    "HOT_SPRING": "Hot Spring",
+    "DESERTED_ISLAND": "Deserted Island",
+    "PARADE": "Parade",
+    "MECHA": "Mecha",
+    "AUTUMN": "Autumn",
+    "CHAMBARA": "Chambara",
+    "PROJECT_LARC": "Project L'Arc",
+    "SPORTS_FESTIVAL": "Sports Festival",
+    "STEAMPUNK": "Steampunk",
+    "CAMP": "Camp",
+    "FANTASY": "Fantasy",
+    "BEYOND_DREAMS": "Beyond Dreams",
+    "THE_TWINKLE_LEGENDS": "The Twinkle Legends",
+    "GREAT_HARVEST_FESTIVAL": "Great Harvest Festival",
+    "UAF": "U.A.F.",
+    "BLAZE": "Blaze",
+    "GRAND_LIVE": "Grand Live",
+    "SUPREME_COMMANDER": "Supreme Commander",
+    "FULL_ARMOR": "Full Armor",
+}
+
+_COSTUME_VARIANT_JP_MAP = {
+    "DEFAULT": "デフォルト",
+    "NEW_YEAR": "新年",
+    "HALLOWEEN": "ハロウィン",
+    "MASQUERADE": "舞踏会",
+    "VALENTINE": "バレンタイン",
+    "CHRISTMAS": "クリスマス",
+    "WEDDING": "ウエディング",
+    "SUMMER": "夏",
+    "AUTUMN_FESTIVAL": "秋祭り",
+    "CHEER_SQUAD": "応援団",
+    "ANIME_COLLAB": "アニメコラボ",
+    "NEW_OUTFIT": "新衣装",
+    "SUMMER_WALK": "サマーウォーク",
+    "HOT_SPRING": "温泉",
+    "DESERTED_ISLAND": "無人島へ",
+    "PARADE": "パレード",
+    "MECHA": "メカ",
+    "AUTUMN": "秋",
+    "CHAMBARA": "チャンバラ",
+    "PROJECT_LARC": "プロジェクトL'Arc",
+    "SPORTS_FESTIVAL": "体育祭",
+    "STEAMPUNK": "スチームパンク",
+    "CAMP": "キャンプ",
+    "FANTASY": "ファンタジー",
+    "BEYOND_DREAMS": "Beyond Dreams",
+    "THE_TWINKLE_LEGENDS": "The Twinkle Legends",
+    "GREAT_HARVEST_FESTIVAL": "大豊食祭",
+    "UAF": "U.A.F.",
+    "BLAZE": "Blaze",
+    "GRAND_LIVE": "グランドライブ",
+    "SUPREME_COMMANDER": "総大将",
+    "FULL_ARMOR": "フルアーマー",
+}
+
+
+class CostumeVariants(Enum):
+    DEFAULT = "default"
+    NEW_YEAR = "new-year"
+    HALLOWEEN = "halloween"
+    MASQUERADE = "masquerade"
+    VALENTINE = "valentine"
+    CHRISTMAS = "christmas"
+    WEDDING = "wedding"
+    SUMMER = "summer"
+    AUTUMN_FESTIVAL = "autumn-festival"
+    CHEER_SQUAD = "cheer-squad"
+    ANIME_COLLAB = "anime-collab"
+    NEW_OUTFIT = "new-outfit"
+    SUMMER_WALK = "summer-walk"
+    HOT_SPRING = "hot-spring"
+    DESERTED_ISLAND = "deserted-island"
+    PARADE = "parade"
+    MECHA = "mecha"
+    AUTUMN = "autumn"
+    CHAMBARA = "chambara"
+    PROJECT_LARC = "project-larc"
+    SPORTS_FESTIVAL = "sports-festival"
+    STEAMPUNK = "steampunk"
+    CAMP = "camp"
+    FANTASY = "fantasy"
+    BEYOND_DREAMS = "beyond-dreams"
+    THE_TWINKLE_LEGENDS = "the-twinkle-legends"
+    GREAT_HARVEST_FESTIVAL = "great-harvest-festival"
+    UAF = "uaf"
+    BLAZE = "blaze"
+    GRAND_LIVE = "grand-live"
+    SUPREME_COMMANDER = "supreme-commander"
+    FULL_ARMOR = "full-armor"
+
+    @property
+    def en(self) -> "Japlish":
+        from horsetrader.core import Japlish
+
+        mapped = _COSTUME_VARIANT_EN_MAP.get(self.name, self.value)
+        return Japlish(mapped, encoding="en")
+
+    @property
+    def jp(self) -> "Japlish":
+        from horsetrader.core import Japlish
+
+        mapped = _COSTUME_VARIANT_JP_MAP.get(self.name, self.value)
+        return Japlish(mapped, encoding="jp")
+
+    @classmethod
+    def from_jp(cls, text: str) -> "CostumeVariants | None":
+        """Resolve a JP badge string (e.g. "クリスマス") to its variant."""
+        return _JP_TO_VARIANT.get(text)
+
+
+_JP_TO_VARIANT = {jp: CostumeVariants[name] for name, jp in _COSTUME_VARIANT_JP_MAP.items()}
