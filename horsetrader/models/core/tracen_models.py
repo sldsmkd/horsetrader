@@ -1,0 +1,103 @@
+from abc import abstractmethod
+from collections.abc import Iterable
+from typing import Generic, TypeVar
+
+from horsetrader.info import Logger
+from horsetrader.semantics import tazuna
+
+from .references import References
+from .tracen_model import TracenModel
+
+logger = Logger.get(__name__)
+
+TPrimary = TypeVar("TPrimary")
+TSecondary = TypeVar("TSecondary")
+TMerged = TypeVar("TMerged", bound=TracenModel)
+
+
+@tazuna
+class TracenModels(Generic[TPrimary, TSecondary, TMerged]):
+    """Cached, key-indexed collection over a two-source merge pipeline.
+
+    Subclasses provide:
+      - source wiring: `_fetch_primary`, `_enrich_one`, `_merge_one`,
+        and (optionally) `_on_enrich_error`
+      - per-item validation: `_validate_item`
+      - reference URLs: set `SOURCES` or override `_collection_sources()`
+
+    Eager-load by design: `__init__` calls `_fetch()` so the scraper context
+    stays warm across the ETL load-order graph.
+
+    Consumers subclass `Entity`/`Entities` from `horsetrader.models.entities`,
+    which are semantic wrappers around `TracenModel`/`TracenModels`.
+    """
+
+    SOURCES: tuple[str, ...] = ()
+
+    def __init__(self) -> None:
+        self._cache: list[TMerged] | None = None
+        self._cache_by_key: dict[str, TMerged] = {}
+        self.references: References = References()
+        self._fetch()
+
+    def get(self, key: str) -> TMerged | None:
+        if self._cache is None:
+            self._fetch()
+        return self._cache_by_key.get(key)
+
+    def all(self, contains: str | None = None) -> list[TMerged]:
+        items = list(self._cache) if self._cache is not None else self._fetch()
+        if contains is None:
+            return items
+        needle = contains.lower()
+        return [item for item in items if needle in item.key.lower()]
+
+    def __iter__(self):
+        return iter(self._fetch())
+
+    def _collection_sources(self) -> Iterable[str]:
+        """Override for sources only known at fetch time. Defaults to SOURCES."""
+        return self.SOURCES
+
+    @abstractmethod
+    def _fetch_primary(self) -> Iterable[TPrimary]:
+        ...
+
+    @abstractmethod
+    def _enrich_one(self, primary_item: TPrimary) -> TSecondary:
+        ...
+
+    @abstractmethod
+    def _merge_one(self, primary_item: TPrimary, secondary_item: TSecondary) -> TMerged:
+        ...
+
+    @abstractmethod
+    def _validate_item(self, item: TMerged) -> None:
+        """Per-item validation, called once per merged item during `_fetch()`."""
+        ...
+
+    def _on_enrich_error(self, primary_item: TPrimary, error: Exception) -> TMerged:
+        raise error
+
+    def _fetch(self) -> list[TMerged]:
+        if self._cache is not None:
+            return list(self._cache)
+
+        for url in self._collection_sources():
+            self.references.add(url)
+
+        merged: list[TMerged] = []
+        for primary in self._fetch_primary():
+            try:
+                secondary = self._enrich_one(primary)
+                merged.append(self._merge_one(primary, secondary))
+            except Exception as error:
+                merged.append(self._on_enrich_error(primary, error))
+
+        for item in merged:
+            self._validate_item(item)
+
+        self._cache = merged
+        self._cache_by_key = {item.key: item for item in merged if item.key}
+        logger.info(f"Fetched {len(merged)} {type(self).__name__.lower()}")
+        return list(self._cache)

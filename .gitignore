@@ -1,0 +1,17 @@
+# Tooling
+.claude/
+
+# Python
+venv/
+__pycache__/
+*.py[cod]
+
+# Local config
+.env
+
+# Legacy tree being ported from
+horsetrader.old/
+
+# Old porting documents - remove when no longer needed
+agent.MD
+CLAUDE.md

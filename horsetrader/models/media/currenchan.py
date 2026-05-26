@@ -1,0 +1,55 @@
+from collections import defaultdict
+from dataclasses import dataclass
+from pathlib import Path
+
+from ethicrawl import Resource, ResourceList
+
+from horsetrader.info import Logger
+from horsetrader.semantics import currenchan
+
+from .image import Image
+
+logger = Logger.get(__name__)
+
+
+@currenchan
+@dataclass
+class ImageRequest(Resource):
+    """A URL plus the on-disk destination Digitan wants Curren Chan to write to."""
+
+    outfile: Path
+
+
+@currenchan
+class CurrenChan:
+    """Curren Chan turns URLs into "nice things to post on Umstagram".
+
+    Digitan hands her a ResourceList of ImageRequests, and she sorts them by
+    hostname (so ethicrawl doesn't have to rebind robots.txt / session state
+    mid-batch) then dispatches each one to ``Image.process``.
+
+    Returns a dict keyed by the original URL string so the caller can look up
+    the processed (or failed-to-process) Image by URL.
+    """
+
+    def process(
+        self,
+        requests: ResourceList[ImageRequest],
+    ) -> dict[str, Image | None]:
+        groups: dict[str, list[ImageRequest]] = defaultdict(list)
+        for req in requests:
+            groups[req.url.hostname or ""].append(req)
+
+        results: dict[str, Image | None] = {}
+        for host, group in groups.items():
+            logger.info(f"Processing {len(group)} image(s) from {host}")
+            for req in group:
+                image = Image(req.url)
+                try:
+                    ok = image.process(outfile=req.outfile)
+                except Exception as exc:
+                    logger.warning(f"Failed to process {req.url}: {exc}")
+                    results[str(req.url)] = None
+                    continue
+                results[str(req.url)] = image if ok else None
+        return results
