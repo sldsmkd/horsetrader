@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional
+from typing import Any, Optional
 
 from ethicrawl import ResourceList
 
@@ -44,11 +44,25 @@ class Characters(Entities[Character, Character, Character], metaclass=SingletonM
         "https://umapyoi.net/api/v1/character/list",
     )
 
+    def __init__(self) -> None:
+        self._incomplete_count = 0
+        self._missing_portrait_count = 0
+        self._missing_name_count = 0
+        super().__init__()
+
     def character(self, key: str) -> Character | None:
         return self.get(key)
 
     def characters(self, contains: str | None = None) -> list[Character]:
         return self.all(contains)
+
+    def stats(self) -> dict[str, Any]:
+        return {
+            **super().stats(),
+            "incomplete": self._incomplete_count,
+            "missing_portrait": self._missing_portrait_count,
+            "missing_name": self._missing_name_count,
+        }
 
     @staticmethod
     def _has_text(value: Optional[Japlish]) -> bool:
@@ -59,12 +73,15 @@ class Characters(Entities[Character, Character, Character], metaclass=SingletonM
         missing = []
         if not self._has_text(item.name):
             missing.append("name")
+            self._missing_name_count += 1
         if not item.key:
             missing.append("key")
         if item.portrait is None:
             missing.append("portrait")
+            self._missing_portrait_count += 1
 
         if missing:
+            self._incomplete_count += 1
             logger.warning(
                 f"Character {item.key} is incomplete; missing: {', '.join(missing)}"
             )

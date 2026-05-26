@@ -1,7 +1,6 @@
-from horsetrader.models.entities import Characters
+from json import dumps as json_dumps
+
+from horsetrader.pipeline import Pipeline
 
 if __name__ == "__main__":
-
-    characters = Characters()
-    print(len(characters.characters()))
-    print(characters.character("agnes-digital"))
+    print(json_dumps(Pipeline().metrics, indent=2))

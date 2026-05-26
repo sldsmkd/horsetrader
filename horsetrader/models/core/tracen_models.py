@@ -1,6 +1,7 @@
 from abc import abstractmethod
 from collections.abc import Iterable
-from typing import Generic, TypeVar
+from time import perf_counter
+from typing import Any, ClassVar, Generic, TypeVar
 
 from horsetrader.info import Logger
 from horsetrader.semantics import tazuna
@@ -33,12 +34,41 @@ class TracenModels(Generic[TPrimary, TSecondary, TMerged]):
     """
 
     SOURCES: tuple[str, ...] = ()
+    _registry: ClassVar[list[type]] = []
+    _load_counter: ClassVar[int] = 0
+
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        super().__init_subclass__(**kwargs)
+        # Register only fully-concrete subclasses — intermediates like
+        # `Entities` still inherit `_fetch_primary` as abstract.
+        fetch_primary = getattr(cls, "_fetch_primary", None)
+        if fetch_primary is not None and not getattr(
+            fetch_primary, "__isabstractmethod__", False
+        ):
+            TracenModels._registry.append(cls)
 
     def __init__(self) -> None:
         self._cache: list[TMerged] | None = None
         self._cache_by_key: dict[str, TMerged] = {}
         self.references: References = References()
+        load_start = perf_counter()
         self._fetch()
+        self._load_elapsed_s = perf_counter() - load_start
+        TracenModels._load_counter += 1
+        self._load_order = TracenModels._load_counter
+
+    def stats(self) -> dict[str, Any]:
+        """Per-collection metrics for the pipeline record.
+
+        Default: count + load wall-clock. Subclasses override to add fields
+        the model is uniquely positioned to know (per-source counts, enrich
+        failures, validation drops, sub-timings).
+        """
+        return {
+            "load_order": self._load_order,
+            "count": len(self._cache or ()),
+            "elapsed_s": self._load_elapsed_s,
+        }
 
     def get(self, key: str) -> TMerged | None:
         if self._cache is None:
