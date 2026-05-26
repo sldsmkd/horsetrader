@@ -166,6 +166,19 @@ class Japlish(str):
         if en_text == str(self):
             self._encoding = JaplishEncoding.EN
 
+    def match(self, query: str) -> bool:
+        """True if any encoded form of this text contains ``query`` (case-insensitive)."""
+        needle = query.lower()
+        if needle in str(self).lower():
+            return True
+        for attr in ("jp", "en"):
+            try:
+                if needle in getattr(self, attr).lower():
+                    return True
+            except ValueError:
+                pass
+        return False
+
 
 if __name__ == "__main__":
     # Lightweight smoke tests.

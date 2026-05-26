@@ -13,6 +13,9 @@ from .entity import Entity
 class Support(Entity):
     character: Character
 
+    def match(self, query: str) -> bool:
+        return super().match(query) or self.character.match(query)
+
 
 @digitan
 class Supports(Entities[Support, Support, Support], metaclass=SingletonMeta):
@@ -22,17 +25,10 @@ class Supports(Entities[Support, Support, Support], metaclass=SingletonMeta):
 
     SOURCES = ()
 
-    def supports(self) -> list[Support]:
-        return self.all()
-
-    def support(self, key: str) -> Support | None:
-        return self.get(key)
-
     def _fetch_primary(self) -> list[Support]:
-        characters = Characters().characters()
         return [
             Support(key=StableKey(f"support-{c.key}"), character=c)
-            for c in characters
+            for c in Characters().values()
         ]
 
     def _enrich_one(self, primary_item: Support) -> Support:

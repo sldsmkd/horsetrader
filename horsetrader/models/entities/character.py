@@ -36,6 +36,11 @@ class Character(Entity):
     portrait: Image | None = None
     quote: Optional[Japlish] = None
 
+    def match(self, query: str) -> bool:
+        if super().match(query):
+            return True
+        return bool(self.name) and self.name.match(query)
+
 
 @digitan
 class Characters(Entities[Character, Character, Character], metaclass=SingletonMeta):
@@ -49,12 +54,6 @@ class Characters(Entities[Character, Character, Character], metaclass=SingletonM
         self._missing_portrait_count = 0
         self._missing_name_count = 0
         super().__init__()
-
-    def character(self, key: str) -> Character | None:
-        return self.get(key)
-
-    def characters(self, contains: str | None = None) -> list[Character]:
-        return self.all(contains)
 
     def stats(self) -> dict[str, Any]:
         return {

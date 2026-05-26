@@ -32,6 +32,9 @@ class TraineeVariant:
         if self.variant != CostumeVariants.DEFAULT and self.rarity != 3:
             raise ValueError("Non-default costumes must have rarity 3")
 
+    def match(self, query: str) -> bool:
+        return self.title.match(query) or self.variant.match(query)
+
 
 @digitan
 @dataclass
@@ -41,6 +44,13 @@ class Trainee(Entity):
     variant: TraineeVariant
     thumbnail: Image | None = None
     portrait: Image | None = None
+
+    def match(self, query: str) -> bool:
+        return (
+            super().match(query)
+            or self.character.match(query)
+            or self.variant.match(query)
+        )
 
 
 @digitan
@@ -52,45 +62,6 @@ class Trainees(Entities[Trainee, Trainee, Trainee], metaclass=SingletonMeta):
         self._missing_portrait_count = 0
         self._missing_character_count = 0
         super().__init__()
-
-    def trainee(
-        self,
-        character_key: str,
-        variant: CostumeVariants | None = None,
-    ) -> Trainee | None:
-        """Find a trainee by character key and optional variant.
-
-        When ``variant`` is ``None``, returns the default costume
-        (``CostumeVariants.DEFAULT``) when available.
-        """
-        direct = self.get(character_key)
-        if direct is not None:
-            return direct
-
-        candidates = self.trainees(character_key)
-        if not candidates:
-            return None
-
-        if variant is None:
-            for trainee in candidates:
-                if trainee.variant.variant == CostumeVariants.DEFAULT:
-                    return trainee
-            return candidates[0]
-
-        for trainee in candidates:
-            if trainee.variant.variant == variant:
-                return trainee
-        return None
-
-    def trainees(self, character_key: str | None = None) -> list[Trainee]:
-        """Return trainees, optionally filtered by character key."""
-        items = self.all()
-        if character_key is None:
-            return items
-        return sorted(
-            [t for t in items if t.character.key == character_key],
-            key=lambda t: t.key,
-        )
 
     def stats(self) -> dict[str, Any]:
         return {
@@ -121,7 +92,7 @@ class Trainees(Entities[Trainee, Trainee, Trainee], metaclass=SingletonMeta):
         records = list(Gametora().trainees())
         characters_by_gametora_id = {
             c.correlations[Sources.GAMETORA.value]: c
-            for c in Characters()
+            for c in Characters().values()
             if Sources.GAMETORA.value in c.correlations
         }
 

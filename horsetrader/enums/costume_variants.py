@@ -128,5 +128,12 @@ class CostumeVariants(Enum):
         """Resolve a JP badge string (e.g. "クリスマス") to its variant."""
         return _JP_TO_VARIANT.get(text)
 
+    def match(self, query: str) -> bool:
+        """True if query matches this variant's slug, enum name, or localized text."""
+        needle = query.lower()
+        if needle in self.value.lower() or needle in self.name.lower():
+            return True
+        return needle in str(self.jp).lower() or needle in str(self.en).lower()
+
 
 _JP_TO_VARIANT = {jp: CostumeVariants[name] for name, jp in _COSTUME_VARIANT_JP_MAP.items()}

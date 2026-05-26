@@ -75,15 +75,56 @@ class TracenModels(Generic[TPrimary, TSecondary, TMerged]):
             self._fetch()
         return self._cache_by_key.get(key)
 
-    def all(self, contains: str | None = None) -> list[TMerged]:
-        items = list(self._cache) if self._cache is not None else self._fetch()
-        if contains is None:
-            return items
-        needle = contains.lower()
-        return [item for item in items if needle in item.key.lower()]
+    def search(self, query) -> list[TMerged]:
+        """Return all items matching ``query``.
+
+        Delegates per-item to ``TracenModel.match`` (override there to extend
+        the searchable surface). Subclasses may override to add type-based
+        dispatch and call ``super().search(query)`` for the str path.
+        """
+        if isinstance(query, str):
+            if self._cache is None:
+                self._fetch()
+            return [item for item in self._cache_by_key.values() if item.match(query)]
+        raise TypeError(
+            f"{type(self).__name__}.search does not support query type "
+            f"{type(query).__name__!r}"
+        )
+
+    def __getitem__(self, key: str) -> TMerged:
+        if self._cache is None:
+            self._fetch()
+        return self._cache_by_key[key]
+
+    def __contains__(self, key: object) -> bool:
+        if self._cache is None:
+            self._fetch()
+        return key in self._cache_by_key
+
+    def __len__(self) -> int:
+        if self._cache is None:
+            self._fetch()
+        return len(self._cache_by_key)
 
     def __iter__(self):
-        return iter(self._fetch())
+        if self._cache is None:
+            self._fetch()
+        return iter(self._cache_by_key)
+
+    def keys(self):
+        if self._cache is None:
+            self._fetch()
+        return self._cache_by_key.keys()
+
+    def values(self):
+        if self._cache is None:
+            self._fetch()
+        return self._cache_by_key.values()
+
+    def items(self):
+        if self._cache is None:
+            self._fetch()
+        return self._cache_by_key.items()
 
     def _collection_sources(self) -> Iterable[str]:
         """Override for sources only known at fetch time. Defaults to SOURCES."""
