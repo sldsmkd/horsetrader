@@ -3,7 +3,7 @@ from datetime import datetime
 
 from lxml import html
 
-from horsetrader.core import Period, SingletonMeta
+from horsetrader.core import JST, Period, SingletonMeta
 from horsetrader.enums import CacheTime
 from horsetrader.extractors.helpers import xpath_first
 from horsetrader.info import Logger
@@ -51,8 +51,15 @@ class GametoraTrainee(metaclass=SingletonMeta):
                 continue
             match = _RELEASE_DATE_PATTERN.search(text)
             if match:
-                date_str = f"{match.group(1)}-{match.group(2):0>2}-{match.group(3):0>2}"
-                return Period(datetime.strptime(date_str, "%Y-%m-%d"))
+                return Period(
+                    datetime(
+                        year=int(match.group(1)),
+                        month=int(match.group(2)),
+                        day=int(match.group(3)),
+                        hour=12,
+                        tzinfo=JST,
+                    )
+                )
         raise ValueError("Could not extract release date from trainee page")
 
     def trainee(self, record: dict) -> dict:

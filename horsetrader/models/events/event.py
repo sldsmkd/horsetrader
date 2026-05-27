@@ -16,7 +16,8 @@ class Event(TracenModel):
     `TracenModel`; per-event behavior belongs in concrete subclasses.
 
     Unlike `Entity` (Digitan — who/what), `Event` is Daitaku — the *when*.
-    Every concrete event carries a `period` representing when it runs.
+    Every concrete event carries `periods` — one or more `Period` runs in
+    the event's native timezone.
     """
 
-    period: Period
+    periods: list[Period]

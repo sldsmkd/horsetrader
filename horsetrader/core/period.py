@@ -1,25 +1,26 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone, tzinfo
 
 from horsetrader.semantics import daitaku
+
+JST = timezone(timedelta(hours=9))
 
 
 @daitaku
 class Period:
     def __init__(self, start: datetime, span: timedelta | None = None):
-        """A date period representing a specific date and an optional span of days.
+        """A date period anchored at a specific instant with an optional span.
         Args:
-            start (datetime): The specific date for the period. Time components will be ignored.
-            span (timedelta | None): The span of days for the period. Defaults to None, which is treated as 0 days for calculations.
-        span is truncated to whole days, so any time component will be ignored. For example, a span of 1 day means the period includes the date itself and the next day.
+            start (datetime): The anchor instant for the period. Stored verbatim — time components are preserved. The tzinfo on ``start`` is locked in at construction and the Period cannot be mixed with Periods of a different tzinfo afterwards.
+            span (timedelta | None): The span for the period. Defaults to None, which is treated as 0.
+        Accuracy is preserved end-to-end; date-level truncation belongs at the presentation layer (see ``isoformat``).
         """
         if not isinstance(start, datetime):
             raise ValueError("start must be a datetime object")
         if span is not None and not isinstance(span, timedelta):
             raise ValueError("span must be a timedelta object or None")
         if span is None:
-            span = timedelta(days=0)
-        span = timedelta(days=span.days)
-        self._date = start.replace(hour=0, minute=0, second=0, microsecond=0)
+            span = timedelta(0)
+        self._date = start
         self._span = span
 
     @property
@@ -34,12 +35,23 @@ class Period:
     def span(self) -> timedelta:
         return self._span
 
+    @property
+    def tzinfo(self) -> tzinfo | None:
+        return self._date.tzinfo
+
+    def _require_same_tz(self, other: "Period") -> None:
+        if self.tzinfo != other.tzinfo:
+            raise ValueError(
+                f"Cannot mix Periods with different tzinfo: {self.tzinfo!r} vs {other.tzinfo!r}"
+            )
+
     def isoformat(self) -> str:
         return self._date.date().isoformat()
 
     def __eq__(self, other):
         if not isinstance(other, Period):
             return NotImplemented
+        self._require_same_tz(other)
         return self.start == other.start and self.span == other.span
 
     def __hash__(self):
@@ -48,6 +60,7 @@ class Period:
     def __lt__(self, other):
         if not isinstance(other, Period):
             return NotImplemented
+        self._require_same_tz(other)
         return self.start < other.start
 
     def __repr__(self):

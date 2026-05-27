@@ -48,11 +48,12 @@ def _map_trainee(t: Trainee) -> dict:
 
 
 def _map_banner(b: Banner) -> dict:
+    period = b.periods[0]
     return {
         "type": b.type.name.lower(),
         "predicted": b.predicted,
-        "start": b.period.start.date().isoformat(),
-        "end": b.period.end.date().isoformat(),
+        "start": period.start.date().isoformat(),
+        "end": period.end.date().isoformat(),
         "contents": [c.key for c in b.contents],
     }
 

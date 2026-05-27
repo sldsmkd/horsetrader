@@ -1,11 +1,18 @@
 import re
 from datetime import datetime
 
-from horsetrader.core import Period
+from horsetrader.core import JST, Period
 
 # Gametora renders dates as English prose ("1 Jan 2021 – 15 Jan 2021") rather
 # than a machine-readable format. These helpers centralise the parsing so every
 # banner/event extractor can import them instead of duplicating the month dict.
+#
+# Current callers (banner pages) source JP-side schedule data, so dates are
+# stamped as the JP-server content-drop instant: 12:00 JST on the listed
+# calendar day (= reset 00:00 JST + 12h drop interval). Not every Gametora
+# surface is JST — notably missions are sourced in both JP and EN flavors —
+# so when those land, factor the tz/hour stamping out of `parse_date` rather
+# than assuming JST.
 
 _MONTHS: dict[str, int] = {
     "jan": 1, "january": 1,
@@ -30,7 +37,7 @@ _DATE_RANGE_PATTERN = re.compile(
 
 
 def parse_date(value: str) -> datetime:
-    """Parse a Gametora prose date like "1 Jan 2021" into a datetime."""
+    """Parse a Gametora prose date like "1 Jan 2021" into the JST content-drop instant."""
     parts = value.strip().split()
     if len(parts) != 3:
         raise ValueError(f"Cannot parse Gametora date: {value!r}")
@@ -38,7 +45,13 @@ def parse_date(value: str) -> datetime:
     month = _MONTHS.get(parts[1].lower().rstrip("."))
     if month is None:
         raise ValueError(f"Unknown month token in Gametora date: {parts[1]!r}")
-    return datetime(year=int(parts[2]), month=month, day=day)
+    return datetime(
+        year=int(parts[2]),
+        month=month,
+        day=day,
+        hour=12,
+        tzinfo=JST,
+    )
 
 
 def parse_period(raw_text: str) -> Period:

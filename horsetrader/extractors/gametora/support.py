@@ -3,7 +3,7 @@ from datetime import datetime
 
 from lxml import html
 
-from horsetrader.core import Japlish, Period, SingletonMeta
+from horsetrader.core import JST, Japlish, Period, SingletonMeta
 from horsetrader.enums import CacheTime
 from horsetrader.extractors.helpers import xpath_first
 from horsetrader.info import Logger
@@ -62,9 +62,11 @@ class GametoraSupport(metaclass=SingletonMeta):
             if match:
                 return Period(
                     datetime(
-                        int(match.group("year")),
-                        int(match.group("month")),
-                        int(match.group("day")),
+                        year=int(match.group("year")),
+                        month=int(match.group("month")),
+                        day=int(match.group("day")),
+                        hour=12,
+                        tzinfo=JST,
                     )
                 )
 
@@ -76,9 +78,11 @@ class GametoraSupport(metaclass=SingletonMeta):
             if match:
                 return Period(
                     datetime(
-                        int(match.group("year")),
-                        int(match.group("month")),
-                        int(match.group("day")),
+                        year=int(match.group("year")),
+                        month=int(match.group("month")),
+                        day=int(match.group("day")),
+                        hour=12,
+                        tzinfo=JST,
                     )
                 )
 

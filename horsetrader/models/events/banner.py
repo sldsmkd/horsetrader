@@ -134,7 +134,7 @@ class Banners(Events[Banner], metaclass=SingletonMeta):
             banners.append(
                 Banner(
                     key=StableKey(record["key"]),
-                    period=record["period"],
+                    periods=[record["period"]],
                     type=record["banner_type"],
                     contents=contents,
                     correlations=dict(record.get("correlations", {})),
