@@ -51,7 +51,17 @@ class Config(metaclass=SingletonMeta):
     def __init__(self):
         self._root: Path | None = None
         self._dotenv_path: Path | None = None
+        self._repo_root: Path = self._find_repo_root()
         self._load_dotenv()
+
+    @staticmethod
+    def _find_repo_root() -> Path:
+        current = Path(__file__).resolve().parent
+        while current != current.parent:
+            if (current / ".git").exists() or (current / ".env").exists():
+                return current
+            current = current.parent
+        raise RuntimeError("Could not find repo root (.git or .env)")
 
     def _load_dotenv(self) -> None:
         found = find_dotenv(usecwd=True)
@@ -109,3 +119,8 @@ class Config(metaclass=SingletonMeta):
     def exit_on_error(self) -> bool:
         """True if Logger.error should escalate to SystemExit. Re-read on each access."""
         return environ.get(_EXIT_ON_ERROR, "").strip().lower() in _TRUTHY
+
+    @property
+    def global_dir(self) -> Path:
+        """Path to the global/ data directory in the ETL repo (hand-curated YAML files)."""
+        return self._repo_root / "global"
