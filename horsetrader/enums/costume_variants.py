@@ -5,33 +5,33 @@ if TYPE_CHECKING:
     from horsetrader.core import Japlish
 
 _COSTUME_VARIANT_EN_MAP = {
-    "DEFAULT": "Default",
+    "DEFAULT": "Original",
     "NEW_YEAR": "New Year",
     "HALLOWEEN": "Halloween",
-    "MASQUERADE": "Masquerade",
+    "MASQUERADE": "Ballroom",
     "VALENTINE": "Valentine",
     "CHRISTMAS": "Christmas",
     "WEDDING": "Wedding",
     "SUMMER": "Summer",
-    "AUTUMN_FESTIVAL": "Autumn Festival",
-    "CHEER_SQUAD": "Cheer Squad",
+    "AUTUMN_FESTIVAL": "Festival",
+    "CHEERLEADER": "Cheerleader",
     "ANIME_COLLAB": "Anime Collab",
-    "NEW_OUTFIT": "New Outfit",
-    "SUMMER_WALK": "Summer Walk",
-    "HOT_SPRING": "Hot Spring",
+    "NEW_OUTFIT": "Alt Version",
+    "SUMMER_WALK": "Summer Trip",
+    "HOT_SPRING": "Onsen",
     "DESERTED_ISLAND": "Deserted Island",
     "PARADE": "Parade",
     "MECHA": "Mecha",
     "AUTUMN": "Autumn",
-    "CHAMBARA": "Chambara",
+    "CHAMBARA": "Warfare",
     "PROJECT_LARC": "Project L'Arc",
     "SPORTS_FESTIVAL": "Sports Festival",
     "STEAMPUNK": "Steampunk",
-    "CAMP": "Camp",
+    "CAMP": "Camping",
     "FANTASY": "Fantasy",
     "BEYOND_DREAMS": "Beyond Dreams",
     "THE_TWINKLE_LEGENDS": "The Twinkle Legends",
-    "GREAT_HARVEST_FESTIVAL": "Great Harvest Festival",
+    "GREAT_HARVEST_FESTIVAL": "Great Food Festival",
     "UAF": "U.A.F.",
     "BLAZE": "Blaze",
     "GRAND_LIVE": "Grand Live",
@@ -49,7 +49,7 @@ _COSTUME_VARIANT_JP_MAP = {
     "WEDDING": "ウエディング",
     "SUMMER": "夏",
     "AUTUMN_FESTIVAL": "秋祭り",
-    "CHEER_SQUAD": "応援団",
+    "CHEERLEADER": "応援団",
     "ANIME_COLLAB": "アニメコラボ",
     "NEW_OUTFIT": "新衣装",
     "SUMMER_WALK": "サマーウォーク",
@@ -85,7 +85,7 @@ class CostumeVariants(Enum):
     WEDDING = "wedding"
     SUMMER = "summer"
     AUTUMN_FESTIVAL = "autumn-festival"
-    CHEER_SQUAD = "cheer-squad"
+    CHEERLEADER = "cheerleader"
     ANIME_COLLAB = "anime-collab"
     NEW_OUTFIT = "new-outfit"
     SUMMER_WALK = "summer-walk"

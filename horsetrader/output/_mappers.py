@@ -1,5 +1,6 @@
 from horsetrader.core import Japlish
 from horsetrader.models.entities import Character, Support, Trainee
+from horsetrader.models.events import Banner
 
 
 def _japlish(j: Japlish | None) -> str | None:
@@ -46,8 +47,19 @@ def _map_trainee(t: Trainee) -> dict:
     }
 
 
+def _map_banner(b: Banner) -> dict:
+    return {
+        "type": b.type.name.lower(),
+        "predicted": b.predicted,
+        "start": b.period.start.date().isoformat(),
+        "end": b.period.end.date().isoformat(),
+        "contents": [c.key for c in b.contents],
+    }
+
+
 MAPPERS = {
     Character: _map_character,
     Support: _map_support,
     Trainee: _map_trainee,
+    Banner: _map_banner,
 }

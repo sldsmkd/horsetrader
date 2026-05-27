@@ -5,6 +5,7 @@ from horsetrader.core import Config
 
 from horsetrader.models.core import TracenModel, TracenModels
 from horsetrader.models.entities.entities import Entities
+from horsetrader.models.events.events import Events
 from horsetrader.semantics import eishin
 
 from ._mappers import MAPPERS
@@ -32,6 +33,14 @@ class Bake:
         """The orchestrator just gives us the world, we decide what needs baking and how to bake it."""
         return Bake._bake(
             [m for m in models if isinstance(m, Entities)], "academy.json"
+        )
+
+    @staticmethod
+    def events(models: list[TracenModels]) -> bool:
+        return Bake._bake(
+            [m for m in models if isinstance(m, Events)],
+            "events.json",
+            sortkey="start",
         )
 
     @staticmethod

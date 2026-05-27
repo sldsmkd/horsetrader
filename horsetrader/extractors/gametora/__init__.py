@@ -3,6 +3,7 @@ from collections.abc import Sequence
 from horsetrader.core import SingletonMeta
 from horsetrader.semantics import transcend
 
+from .banners import GametoraBanners
 from .character import GametoraCharacter
 from .characters import GametoraCharacters
 from .support import GametoraSupport
@@ -20,12 +21,17 @@ class Gametora(metaclass=SingletonMeta):
     """
 
     def __init__(self):
+        self._banners_scraper = GametoraBanners()
         self._characters_scraper = GametoraCharacters()
         self._character_scraper = GametoraCharacter()
         self._supports_scraper = GametoraSupports()
         self._support_scraper = GametoraSupport()
         self._trainees_scraper = GametoraTrainees()
         self._trainee_scraper = GametoraTrainee()
+
+    def banners(self) -> Sequence[dict]:
+        """Fetch JP gacha banner history (support and trainee banners)."""
+        return self._banners_scraper.banners()
 
     def character(self, char_id: str, slug: str) -> dict:
         """Fetch data for a single character detail page."""

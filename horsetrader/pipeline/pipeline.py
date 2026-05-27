@@ -40,7 +40,8 @@ class Pipeline(metaclass=SingletonMeta):
     def write(self) -> bool:
         """Write out the baked data. Returns True if successful."""
         self._ensure_loaded()
-        return Bake.academy(list(self._stages.values()))
+        stages = list(self._stages.values())
+        return Bake.academy(stages) and Bake.events(stages)
 
     def _ensure_loaded(self) -> None:
         if self._loaded:

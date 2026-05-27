@@ -2,11 +2,11 @@
 
 Importing this package brings the core types into scope and triggers
 class-definition of every concrete `TracenModels` collection in
-`entities/`. Each collection auto-registers via `TracenModels.__init_subclass__`
-at definition time — that registration is the contract of how a model
-becomes discoverable to `Pipeline`.
+`entities/` and `events/`. Each collection auto-registers via
+`TracenModels.__init_subclass__` at definition time — that registration
+is the contract of how a model becomes discoverable to `Pipeline`.
 
-If you add a new entity collection, exporting it from this `__init__`
+If you add a new collection, exporting it from this `__init__`
 is what makes it part of the discoverable set.
 """
 
@@ -22,13 +22,19 @@ from .entities import (
     Trainee,
     Trainees,
 )
+from .events import (
+    Banner,
+    Banners,
+    Event,
+    Events,
+)
 
 __all__ = [
     # Core
     "References",
     "TracenModel",
     "TracenModels",
-    # Wrappers
+    # Entity wrappers
     "Entities",
     "Entity",
     # Characters
@@ -41,4 +47,10 @@ __all__ = [
     # Trainees
     "Trainee",
     "Trainees",
+    # Event wrappers
+    "Event",
+    "Events",
+    # Banners
+    "Banner",
+    "Banners",
 ]
