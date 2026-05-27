@@ -27,7 +27,7 @@ _SUPPORT_HREF_PREFIX = "/ja/umamusume/supports/"
 _SUPPORT_ANCHOR_EXPR = f'.//a[starts-with(@href, "{_SUPPORT_HREF_PREFIX}")]'
 _SUPPORT_TYPE_ICON_PREFIX = "/images/umamusume/icons/utx_ico_obtain_"
 _SUPPORT_TYPE_ICON_SUFFIX = ".png"
-_SUPPORT_ID_PATTERN = re.compile(r"^(?P<support_id>\d+)-")
+_SUPPORT_SLUG_PATTERN = re.compile(r"^(?P<support_id>\d+)-(?P<character_key>.+)$")
 
 _ICON_TO_SUPPORT_TYPE = {
     "00": SupportType.SPEED,
@@ -49,12 +49,14 @@ class GametoraSupports(metaclass=SingletonMeta):
         self._support_scraper = GametoraSupport()
 
     @staticmethod
-    def _support_id_from_slug(slug: str) -> int | None:
-        match = _SUPPORT_ID_PATTERN.match(slug)
+    def _parse_slug(slug: str) -> tuple[int, str] | None:
+        match = _SUPPORT_SLUG_PATTERN.match(slug)
         if match is None:
             return None
         support_id = match.group("support_id")
-        return int(support_id) if support_id.isdigit() else None
+        if not support_id.isdigit():
+            return None
+        return int(support_id), match.group("character_key")
 
     @staticmethod
     def _support_type_from_anchor(anchor) -> SupportType:
@@ -99,14 +101,19 @@ class GametoraSupports(metaclass=SingletonMeta):
             if not slug:
                 continue
 
-            support_id = self._support_id_from_slug(slug)
-            if support_id is None:
+            parsed = self._parse_slug(slug)
+            if parsed is None:
                 continue
+            support_id, character_key = parsed
+            support_type = self._support_type_from_anchor(anchor)
 
             record: dict = {
                 "slug": slug,
                 "support_id": support_id,
-                "support_type": self._support_type_from_anchor(anchor),
+                "character_key": (
+                    character_key if support_type != SupportType.GROUP else None
+                ),
+                "support_type": support_type,
                 "thumbnail_url": (
                     f"{_GAMETORA_BASE_URL}/images/umamusume/supports/"
                     f"support_card_s_{support_id}.png"
@@ -139,6 +146,7 @@ class GametoraSupports(metaclass=SingletonMeta):
                 {
                     "key": slug,
                     "support_id": support_id,
+                    "character_key": record["character_key"],
                     "character_name": record.get("character_name"),
                     "support_type": record["support_type"],
                     "title": record.get("title"),

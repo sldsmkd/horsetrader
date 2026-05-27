@@ -31,12 +31,6 @@ class Support(Entity):
     thumbnail: Image | None = None
     art: Image | None = None
 
-    def __post_init__(self) -> None:
-        if self.character is not None and self.display is not None:
-            raise ValueError(
-                f"Support {self.key}: character and display are mutually exclusive"
-            )
-
     def match(self, query: str) -> bool:
         return (
             super().match(query)
@@ -70,6 +64,9 @@ class Supports(Entities[Support], metaclass=SingletonMeta):
         if item.thumbnail is None:
             missing.append("thumbnail")
             self._missing_thumbnail_count += 1
+        if item.type != SupportType.GROUP and item.character is None:
+            missing.append("character")
+            self._missing_character_count += 1
 
         if missing:
             self._incomplete_count += 1
@@ -84,15 +81,9 @@ class Supports(Entities[Support], metaclass=SingletonMeta):
         matched: list[tuple[dict, Character | None]] = []
         for record in records:
             character: Character | None = None
-            if not record.get("support_type") == SupportType.GROUP:
-                key = str(record.get("key", ""))
-                char_key = StableKey(key.split("-", 1)[1]) if "-" in key else None
-                character = characters.get(char_key) if char_key else None
-                if character is None:
-                    self._missing_character_count += 1
-                    logger.error(
-                        f"Support {key}: no character found for key '{char_key}'"
-                    )
+            char_key = record.get("character_key")
+            if char_key is not None:
+                character = characters.get(StableKey(char_key))
             matched.append((record, character))
 
         images = self._process_images([r for r, _ in matched])
@@ -113,7 +104,7 @@ class Supports(Entities[Support], metaclass=SingletonMeta):
                 Support(
                     key=StableKey(record["key"]),
                     character=character,
-                    display=record.get("character_name") if record.get("support_type") == SupportType.GROUP else None,
+                    display=record.get("character_name"),
                     release=record["release"],
                     title=record.get("title"),
                     type=record.get("support_type"),
@@ -167,7 +158,3 @@ class Supports(Entities[Support], metaclass=SingletonMeta):
         if len(requests) == 0:
             return {}
         return CurrenChan().process(requests)
-
-
-# 2026-05-27 10:45:34,490 - horsetrader.models.entities.support - ERROR - Support 10109-yayoi-akikawa: no character matched '秋川理事長'
-# "display": "The Throne's Assemblage"

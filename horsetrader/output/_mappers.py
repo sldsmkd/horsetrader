@@ -35,17 +35,6 @@ def _map_support(s: Support) -> dict:
     }
 
 
-#  3782     "30211-copano-rickey": {
-#  3783       "title": "[Lucky☆Summertime]",
-#  3784       "type": "wit",
-#  3785       "rarity": "ssr",
-#  3786       "release": "2024-07-29",
-#  3787       "thumb": "/img/supports/30211-copano-rickey_thumb.webp",
-#  3788       "art": "/img/supports/30211-copano-rickey_art.webp",
-#  3789       "character": "copano-rickey"
-#  3790     },
-
-
 def _map_trainee(t: Trainee) -> dict:
     return {
         "character": t.character.key,
