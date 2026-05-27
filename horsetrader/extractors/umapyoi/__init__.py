@@ -5,6 +5,7 @@ from horsetrader.semantics import transcend
 
 from .character import UmapyoiCharacter
 from .characters import UmapyoiCharacters
+from .supports import UmapyoiSupports
 from .trainees import UmapyoiTrainees
 
 
@@ -19,6 +20,7 @@ class Umapyoi(metaclass=SingletonMeta):
     def __init__(self):
         self._characters_scraper = UmapyoiCharacters()
         self._character_scraper = UmapyoiCharacter()
+        self._supports_scraper = UmapyoiSupports()
         self._trainees_scraper = UmapyoiTrainees()
 
     def character(self, key: str) -> dict:
@@ -28,6 +30,10 @@ class Umapyoi(metaclass=SingletonMeta):
     def characters(self) -> Sequence[dict]:
         """Fetch all characters from the umapyoi list endpoint."""
         return self._characters_scraper.characters()
+
+    def support(self, support_id: int) -> dict:
+        """Fetch rarity and reference data for one support card by Gametora ID."""
+        return self._supports_scraper.support(support_id)
 
     def trainee(self, trainee_id: int, gametora_id: int) -> dict:
         """Fetch the outfit record for one trainee by (trainee_id, gametora_id)."""

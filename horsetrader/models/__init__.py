@@ -16,8 +16,8 @@ from .entities import (
     Characters,
     Entities,
     Entity,
-    # Support,
-    # Supports,
+    Support,
+    Supports,
     ThreeSizes,
     Trainee,
     Trainees,
@@ -36,8 +36,8 @@ __all__ = [
     "Characters",
     "ThreeSizes",
     # Supports
-    # "Support",
-    # "Supports",
+    "Support",
+    "Supports",
     # Trainees
     "Trainee",
     "Trainees",

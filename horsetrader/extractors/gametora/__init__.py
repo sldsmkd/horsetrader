@@ -5,6 +5,8 @@ from horsetrader.semantics import transcend
 
 from .character import GametoraCharacter
 from .characters import GametoraCharacters
+from .support import GametoraSupport
+from .supports import GametoraSupports
 from .trainee import GametoraTrainee
 from .trainees import GametoraTrainees
 
@@ -20,6 +22,8 @@ class Gametora(metaclass=SingletonMeta):
     def __init__(self):
         self._characters_scraper = GametoraCharacters()
         self._character_scraper = GametoraCharacter()
+        self._supports_scraper = GametoraSupports()
+        self._support_scraper = GametoraSupport()
         self._trainees_scraper = GametoraTrainees()
         self._trainee_scraper = GametoraTrainee()
 
@@ -30,6 +34,14 @@ class Gametora(metaclass=SingletonMeta):
     def characters(self) -> Sequence[dict]:
         """Fetch list of all characters from index page (with detail enrichment)."""
         return self._characters_scraper.characters()
+
+    def support(self, slug: str) -> dict:
+        """Fetch data for a single support card detail page."""
+        return self._support_scraper.support({"slug": slug})
+
+    def supports(self) -> Sequence[dict]:
+        """Fetch list of all support cards from index page (with detail enrichment)."""
+        return self._supports_scraper.supports()
 
     def trainee(self, slug: str) -> dict:
         """Fetch data for a single trainee detail page."""
