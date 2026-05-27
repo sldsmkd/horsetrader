@@ -128,6 +128,11 @@ class CostumeVariants(Enum):
         """Resolve a JP badge string (e.g. "クリスマス") to its variant."""
         return _JP_TO_VARIANT.get(text)
 
+    @classmethod
+    def from_en(cls, text: str) -> "CostumeVariants | None":
+        """Resolve an EN descriptor string (e.g. "Christmas") to its variant."""
+        return _EN_TO_VARIANT.get(text)
+
     def match(self, query: str) -> bool:
         """True if query matches this variant's slug, enum name, or localized text."""
         needle = query.lower()
@@ -139,4 +144,9 @@ class CostumeVariants(Enum):
 _JP_TO_VARIANT = {jp: CostumeVariants[name] for name, jp in _COSTUME_VARIANT_JP_MAP.items()}
 assert len(_JP_TO_VARIANT) == len(_COSTUME_VARIANT_JP_MAP), (
     "Duplicate JP value in _COSTUME_VARIANT_JP_MAP — last definition silently wins"
+)
+
+_EN_TO_VARIANT = {en: CostumeVariants[name] for name, en in _COSTUME_VARIANT_EN_MAP.items()}
+assert len(_EN_TO_VARIANT) == len(_COSTUME_VARIANT_EN_MAP), (
+    "Duplicate EN value in _COSTUME_VARIANT_EN_MAP — last definition silently wins"
 )

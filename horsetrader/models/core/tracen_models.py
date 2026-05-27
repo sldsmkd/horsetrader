@@ -1,4 +1,4 @@
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from collections.abc import Callable, Iterable
 from time import perf_counter
 from typing import Any, ClassVar, Generic, TypeVar
@@ -15,7 +15,7 @@ TEntity = TypeVar("TEntity", bound=TracenModel)
 
 
 @tazuna
-class TracenModels(Generic[TEntity]):
+class TracenModels(ABC, Generic[TEntity]):
     """Cached, key-indexed collection over a seed + optional-enrichment pipeline.
 
     Subclasses provide:
@@ -80,12 +80,16 @@ class TracenModels(Generic[TEntity]):
             self._fetch()
         return self._cache.get(key)
 
+    @abstractmethod
     def search(self, query) -> list[TEntity]:
         """Return all items matching ``query``.
 
-        Delegates per-item to ``TracenModel.match`` (override there to extend
-        the searchable surface). Subclasses may override to add type-based
-        dispatch and call ``super().search(query)`` for the str path.
+        Abstract by contract — every concrete collection declares its own
+        search surface explicitly. The body here is the str path (per-item
+        ``TracenModel.match``) and remains callable via ``super().search(query)``;
+        subclasses extend by adding type-based dispatch (e.g. ``Banners.search``
+        accepting ``Trainee``/``Support`` to find banners containing them) and
+        falling back to ``super().search(query)`` for strings.
         """
         if isinstance(query, str):
             if not self._loaded:

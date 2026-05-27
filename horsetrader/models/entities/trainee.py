@@ -71,6 +71,9 @@ class Trainees(Entities[Trainee], metaclass=SingletonMeta):
             "missing_character": self._missing_character_count,
         }
 
+    def search(self, query) -> list[Trainee]:
+        return super().search(query)
+
     def _validate_item(self, item: Trainee) -> None:
         missing = []
         if not item.key:

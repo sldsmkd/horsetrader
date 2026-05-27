@@ -57,6 +57,9 @@ class Supports(Entities[Support], metaclass=SingletonMeta):
             "missing_character": self._missing_character_count,
         }
 
+    def search(self, query) -> list[Support]:
+        return super().search(query)
+
     def _validate_item(self, item: Support) -> None:
         missing = []
         if not item.key:

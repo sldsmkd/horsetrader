@@ -63,6 +63,9 @@ class Characters(Entities[Character], metaclass=SingletonMeta):
             "missing_name": self._missing_name_count,
         }
 
+    def search(self, query) -> list[Character]:
+        return super().search(query)
+
     @staticmethod
     def _has_text(value: Optional[Japlish]) -> bool:
         return bool(value and str(value).strip())

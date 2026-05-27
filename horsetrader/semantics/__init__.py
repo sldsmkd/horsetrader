@@ -6,6 +6,7 @@ from .matikanefukukitaru import matikanefukukitaru
 from .rudolf import rudolf
 from .shakur import shakur
 from .spechan import spechan
+from .tachyon import tachyon
 from .tazuna import tazuna
 from .transcend import transcend
 
@@ -18,6 +19,7 @@ __all__ = [
     "rudolf",
     "shakur",
     "spechan",
+    "tachyon",
     "tazuna",
     "transcend",
 ]
