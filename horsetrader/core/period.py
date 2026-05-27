@@ -54,4 +54,6 @@ class Period:
         return f"Period(start={self._date}, span={self._span})"
 
     def __str__(self):
-        return self.__repr__()
+        if self._span.days > 0:
+            return self.start.isoformat() + f" (span: {self._span.days} days)"
+        return self.isoformat()

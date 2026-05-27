@@ -68,22 +68,22 @@ class Characters(Entities[Character], metaclass=SingletonMeta):
         return bool(value and str(value).strip())
 
     def _validate_item(self, item: Character) -> None:
-        """Warn if a character record is missing critical fields."""
         missing = []
         if not self._has_text(item.name):
             missing.append("name")
             self._missing_name_count += 1
         if not item.key:
             missing.append("key")
-        if item.portrait is None:
-            missing.append("portrait")
-            self._missing_portrait_count += 1
 
         if missing:
             self._incomplete_count += 1
             logger.warning(
                 f"Character {item.key} is incomplete; missing: {', '.join(missing)}"
             )
+
+        if item.portrait is None:
+            self._missing_portrait_count += 1
+            logger.debug(f"Character {item.key} has no portrait (NPC or unreleased)")
 
     def _fetch_primary(self) -> list[Character]:
         records = list(Gametora().characters())

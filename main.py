@@ -4,9 +4,6 @@ from horsetrader.pipeline import Pipeline
 from horsetrader.models.entities import Trainees, Trainees  # , Support, Supports
 
 if __name__ == "__main__":
-    print(json_dumps(Pipeline().metrics, indent=2))
+    # print(json_dumps(Pipeline().metrics, indent=2))
 
-    trainees = Trainees()
-
-    xmas_trainees = trainees.search("Christmas")
-    print(f"Found {len(xmas_trainees)} trainees matching 'christmas':")
+    Pipeline().write()

@@ -12,7 +12,7 @@ class Japlish(str):
     def _normalize_text(text: str) -> str:
         if not isinstance(text, str):
             raise ValueError("text must be a string")
-        _normalized = text.replace("\u3000", " ")
+        _normalized = text.replace("\u3000", " ").replace("\u200b", "")
         _normalized = re_sub(r"\s+", " ", _normalized)
         return _normalized.strip()
 

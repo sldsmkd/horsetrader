@@ -3,7 +3,7 @@ from typing import Sequence
 
 from lxml import html
 
-from horsetrader.core import Japlish, SingletonMeta
+from horsetrader.core import SingletonMeta
 from horsetrader.enums import CacheTime, CostumeVariants, Sources
 from horsetrader.extractors.helpers import (
     strip_affixes,
@@ -132,8 +132,6 @@ class GametoraTrainees(metaclass=SingletonMeta):
             if isinstance(detail_url, str) and detail_url:
                 references.append(detail_url)
 
-            badge_text = record.get("badge") or "default"
-
             out.append(
                 {
                     "key": slug,
@@ -142,7 +140,7 @@ class GametoraTrainees(metaclass=SingletonMeta):
                     "release": record["release"],
                     "variant_name": record["variant_name"],
                     "rarity": record["rarity"],
-                    "title": Japlish(badge_text),
+                    "title": CostumeVariants[record["variant_name"]].jp,
                     "thumbnail_url": record["thumbnail_url"],
                     "portrait_url": record["portrait_url"],
                     "correlations": correlations,

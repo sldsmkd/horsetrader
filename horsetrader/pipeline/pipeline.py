@@ -3,6 +3,7 @@ from typing import Any
 
 from horsetrader.core import SingletonMeta
 from horsetrader.models import TracenModels
+from horsetrader.output import Bake
 from horsetrader.semantics import rudolf
 
 
@@ -35,6 +36,11 @@ class Pipeline(metaclass=SingletonMeta):
         """Pipeline-execution metrics. Triggers load if needed."""
         self._ensure_loaded()
         return self._metrics
+
+    def write(self) -> bool:
+        """Write out the baked data. Returns True if successful."""
+        self._ensure_loaded()
+        return Bake.academy(list(self._stages.values()))
 
     def _ensure_loaded(self) -> None:
         if self._loaded:
