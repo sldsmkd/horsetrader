@@ -35,7 +35,7 @@ and passes the resulting **UTC-bearing timeline** to `Bake`, which writes
                   │                                 │
                   ▼                                 ▼
         models/entities/ (Digitan)         models/events/ (Daitaku-decorated)
-          • Character / Trainee / Support     • Banner / Scenario / Event
+          • Character / Trainee / Support     • Banner / Scenario / Story / Event
                   │                                 │
                   └─────────────────┬───────────────┘
                                     ▼

@@ -107,6 +107,39 @@ Implications for prediction:
   user research — they need context (track, banner type, format) to
   decide if they're true exceptions to the rule.
 
+## Story Events
+
+Time-limited narrative events featuring a themed group of trainees (up to
+four 4⭐ characters) and associated support cards. They aren't competitive
+events — no race registration, no CM overlap concerns — but they matter to
+the pipeline for two reasons:
+
+1. **Banner anchoring.** A story event always co-releases with at least one
+   costume banner for the featured trainees. Once Story events are added to
+   `BannerPredictor._ANCHOR_TYPES`, story EN dates can anchor those
+   costume-banner predictions the same way Anniversary and Scenario dates
+   do today.
+
+2. **Stable key scheme.** Gametora assigns its own integer IDs
+   (`story-event-1`, `story-event-2`, …) which are stored in
+   `correlations["gametora"]`. The pipeline uses the **release-order
+   ordinal** `story-001`, `story-002`, … as the stable key, because
+   Gametora's `story-event-N` string caused substring collisions in
+   `search()`.
+
+**Images.** Three per story: `story-NNN.webp` (art — reconstructed from the
+`thumb_title` URL), `story-NNN-thumb.webp` (icon from the event block), and
+`story-NNN-banner.webp` (banner matched by date-sort ordinal against
+`references/stories/story_NN_banner.png` reference files).
+
+**Trainee resolution.** The character slug from the Gametora href *is* the
+character's stable key. `Trainees().search(char_slug)` hits via
+`character.match()`; the first result is used.
+
+**Support resolution.** The support slug (`30297-agnes-digital`) *is* the
+support stable key. `Supports().get(sup_slug)` is a direct lookup; no fuzzy
+matching.
+
 ## Banners
 
 Banner identity and media conventions:

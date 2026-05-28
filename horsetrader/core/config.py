@@ -114,3 +114,8 @@ class Config(metaclass=SingletonMeta):
     def static(self) -> Path:
         """Path to the static / data directory in the ETL repo (hand-curated YAML files)."""
         return self._repo_root / "static"
+
+    @property
+    def references(self) -> Path:
+        """Path to the references directory in the ETL repo (hand-curated source assets)."""
+        return self._repo_root / "references"

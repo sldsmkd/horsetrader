@@ -150,12 +150,20 @@ anchor at all (not scenario, anniversary, or holiday). Will likely mirror
 `ScenarioPredictor` but using a banner-specific weekday signal. 214 banners
 currently slip through here.
 
-### Story ingest pipeline (planned)
+### StoryPredictor (planned)
 
-Stories always bundle thematic costume variants (e.g. Halloween story →
-Halloween trainee). Once `Story` events are ingested, `Story` can be added
-to `BannerPredictor._ANCHOR_TYPES` and story EN dates will anchor the
-matching costume banner predictions.
+`Story` events are now ingested (`models/events/story.py`). The predictor
+module exists as an empty placeholder (`timeline/predictors/story.py`) but
+is not yet implemented or slotted into the chain.
+
+Once implemented, `Story` should be added to `BannerPredictor._ANCHOR_TYPES`
+— stories always co-release with thematic costume banners (e.g. Halloween
+story → Halloween trainee), so confirmed or predicted story EN dates can
+anchor those banner predictions the same way Anniversary / Scenario dates do.
+
+The weekday signal for story EN dates may differ from scenarios (stories
+appear to drop mid-week more often), so don't blindly reuse the scenario
+weekday histogram — collect confirmed story JP+UTC pairs first.
 
 ### Confidence intervals
 

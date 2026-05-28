@@ -9,10 +9,11 @@ place that talks to the network — everything else routes through `UmaClient`.
 
 | Source | Protocol | Feeds | Owned by |
 | --- | --- | --- | --- |
-| Gametora | HTTP + Selenium (some pages are JS-rendered) | Characters, Trainees, Supports, Banners, JP event dates | `@transcend` (uses `@shakur`) |
+| Gametora | HTTP + Selenium (some pages are JS-rendered) | Characters, Trainees, Supports, Banners, Stories, JP event dates | `@transcend` (uses `@shakur`) |
 | Umapyoi | HTTP | Character / Trainee enrichment | `@transcend` (uses `@shakur`) |
 | `static/*.yaml` | Local YAML | EN confirmed dates, JP scenarios corpus | `@transcend` (`extractors/static/`) |
 | `references/*.jpg` | Local images | Human-eye source for `static/en.*.yaml` updates | (manual) |
+| `references/stories/*.png` | Local images | Story event banners, consumed by ETL via `extractors/static/story.py` | (manual) |
 
 Cache lives at `$HORSETRADER_TARGET/.cache/`. Binary assets and index pages
 have separate TTLs (see [`horsetrader/enums/CacheTime`](../horsetrader/enums/)).
@@ -34,6 +35,14 @@ Extractors live in [`horsetrader/extractors/gametora/`](../horsetrader/extractor
   - art: `…/supports/tex_support_card_{id}.png`
 - `banners.py` — banner records, JP dates parsed into `Period`s, mixed
   trainee/support typing under the same gacha-history page.
+- `story.py` — story-event index + detail pages (`GametoraStories` and
+  `GametoraStory` in one file). Both are JS-rendered and require
+  `chrome=True`. The index (`/ja/umamusume/events/story-events`) yields
+  `title_jp` and `art_url` (hero image reconstructed from the
+  `thumb_title` URL). Each detail page is fetched twice — once at `/ja/…`
+  for the JST period timestamps, `icon_url`, `trainee_ids`, and
+  `support_ids`; once at `/umamusume/…` (EN locale) for `title_en` (with
+  the `" Story Event"` suffix stripped).
 - `dates.py` — Gametora-specific date parsing helpers (timestamps stamped
   12:00 JST — see [domain.md](domain.md) for why).
 
@@ -91,6 +100,16 @@ Naming convention: `YYYY_MM.jpg`, with named variants for special posts
 (e.g. `2025_06_extra_banners.jpg`, `2026_04_golshi_week.jpg`). Don't
 delete them after a YAML update — having the source-of-truth screenshot
 saves a future "where did this date come from?" investigation.
+
+### `references/stories/`
+
+Story event banner images, named `story_NN_banner.png` (1-based integer
+ordinal, no zero-pad requirement). **Consumed by the ETL** via
+`extractors/static/story.py`. `Stories._assign_banners()` date-sorts all
+story events and pairs them with the reference files in ordinal order, then
+publishes each via `CurrenChan` as `story-NNN-banner.webp`. When a new
+story event is added to the game, drop its banner PNG here — the ordinal
+drives the stable-key match, so filename order must match release order.
 
 ## The transport boundary
 

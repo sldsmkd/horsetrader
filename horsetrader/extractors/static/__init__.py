@@ -5,6 +5,7 @@ from . import anniversaries as _anniversaries
 from . import banners as _banners
 from . import holidays as _holidays
 from . import scenarios as _scenarios
+from . import story as _story
 
 
 @transcend
@@ -34,6 +35,13 @@ class Static(metaclass=SingletonMeta):
         with the EN period, name, and source when present.
         """
         return _holidays.load()
+
+    def story_banners(self) -> list[dict]:
+        """Banner image records from references/stories/, sorted by ordinal.
+
+        Each record has ``n`` (1-based ordinal) and ``banner_path`` (Path).
+        """
+        return _story.load()
 
     def banner_period(self, key: str) -> Period | None:
         """UTC Period for the EN banner with this key, or None if not in en.banners.yaml."""
