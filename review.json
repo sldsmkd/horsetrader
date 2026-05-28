@@ -1,12 +1,5 @@
 [
     {
-        "file": "horsetrader/timeline/concrete.py",
-        "line": 25,
-        "summary": "yaml.safe_load returns None for an empty schedule.yaml; the dict comprehension then crashes on None.items().",
-        "failure_scenario": "If global/schedule.yaml is truncated, empty, or comment-only (very plausible for the hand-curated file when starting a new season), Concrete() raises AttributeError on import in Pipeline.run, breaking the whole ETL.",
-        "todo": "raise on error, build a file transport to mirror gametora etc"
-    },
-    {
         "file": "horsetrader/output/bake.py",
         "line": 53,
         "summary": "Bake.events silently drops Banners that lack a UTC period (no matching schedule.yaml entry).",
@@ -19,12 +12,5 @@
         "summary": "Bake.events filters to `isinstance(event, Banner)` only; any non-Banner Event in the Timeline is silently dropped.",
         "failure_scenario": "Bake.timeline collects from every Events collection, but the writer hard-codes Banner. The moment another Events subclass lands (scenarios, CMs as first-class events), it will be loaded into the timeline but never written. Either drop the filter and dispatch on type, or assert that the timeline only contains Banners.",
         "todo": "we'll fix this when we add another event type"
-    },
-    {
-        "file": "horsetrader/timeline/concrete.py",
-        "line": 24,
-        "summary": "Concrete re-reads and re-parses schedule.yaml on every construction; no caching, not a singleton.",
-        "failure_scenario": "Cheap today (one Pipeline.run call), but the class is presented as a lookup table — any test/REPL pattern that constructs it per-call pays file I/O + yaml parse every time. Easy fix: cache the parsed dict on the class or make it a SingletonMeta like the rest of the data layer.",
-        "wontfix": "this is getting replaced by the file transport - which is part of the data layer"
     }
 ]

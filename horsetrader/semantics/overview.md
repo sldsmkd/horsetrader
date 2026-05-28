@@ -29,18 +29,17 @@ The horsetrader ETL doesn't use functional module names (`scrapers/`, `predictor
 | Character | Role |
 | --- | --- |
 | **Rudolf** | Orchestration — the conductor at the top of the call stack |
-| **Transcend** | Ingest / scraping — the informant who knows what to gather and parses it |
+| **Transcend** | Ingest / scraping — the informant who knows what to gather and parses it (stamps both JP and confirmed-UTC Periods) |
 | **Shakur** | Transit / web transport — actual HTTP, cache I/O, robots.txt, headless sessions |
 | **Digitan** | Domain knowledge — the *who* and *what* (characters, supports, trainees) |
-| **Daitaku** | Calendar — the *when* (events, banners, periods, JST↔UTC) |
-| **Agnes Tachyon** | EN corpus + regression engine — the science behind the prediction |
-| **Matikanefukukitaru** (Fuku-chan) | Prediction oracle — interprets Tachyon's model into actual Global dates |
+| **Daitaku** | Calendar primitives — Period, Periods, date math (timezone-agnostic; doesn't reason about JST↔UTC) |
+| **Matikanefukukitaru** (Fuku-chan) | Prediction oracle — vibes-based heuristics that fill in Global dates for unscheduled events |
 | **Eishin** | Bake — tidies and serialises the final JSON outputs |
 | **Curren Chan** | Image processing — resizes source images and re-encodes to WebP |
 | **Tazuna** | Early-load + grab-bag utilities (cross-cutting) |
 | **Spechan** | Logging — writes letters home about what's happening (cross-cutting) |
 
-Dataflow: **Rudolf** conducts → **Transcend** scrapes (using **Shakur** for the wire/cache) → **Digitan** + **Daitaku** supply facts → **Tachyon** assembles the EN corpus and fits the regression → **Matikanefukukitaru** applies outlier rules and divines final Global dates → **Eishin** bakes the JSON, **Curren Chan** polishes the media. **Tazuna** and **Spechan** sit alongside, called from anywhere.
+Dataflow: **Rudolf** conducts → **Transcend** scrapes (using **Shakur** for the wire/cache) and stamps both JP and any confirmed UTC Periods at extraction time → **Digitan** + **Daitaku** supply entity facts and date primitives → **Matikanefukukitaru** fills in predicted Global dates for what's still unscheduled → **Eishin** bakes the JSON, **Curren Chan** polishes the media. **Tazuna** and **Spechan** sit alongside, called from anywhere.
 
 ---
 
@@ -51,10 +50,9 @@ Role text lives in each decorator's docstring (see `<character>.py`); the per-ch
 | Decorator | Role | Bio |
 | --- | --- | --- |
 | [`@currenchan`](currenchan.py) | Image processing | [currenchan.md](currenchan.md) |
-| [`@daitaku`](daitaku.py) | The *when* — calendar | [daitaku.md](daitaku.md) |
+| [`@daitaku`](daitaku.py) | Calendar primitives — Period / Periods / date math | [daitaku.md](daitaku.md) |
 | [`@digitan`](digitan.py) | The *who* and *what* — domain knowledge | [digitan.md](digitan.md) |
 | [`@eishin`](eishin.py) | Final output bake | [eishin.md](eishin.md) |
-| [`@tachyon`](tachyon.py) | EN corpus + regression engine | [tachyon.md](tachyon.md) |
 | [`@matikanefukukitaru`](matikanefukukitaru.py) | Prediction oracle | [matikanefukukitaru.md](matikanefukukitaru.md) |
 | [`@rudolf`](rudolf.py) | Pipeline orchestration | [rudolf.md](rudolf.md) |
 | [`@shakur`](shakur.py) | Transit / web transport | [shakur.md](shakur.md) |

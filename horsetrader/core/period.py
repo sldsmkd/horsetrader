@@ -5,11 +5,14 @@ from typing import SupportsIndex
 from horsetrader.semantics import daitaku
 
 JST = timezone(timedelta(hours=9))
+UTC = timezone.utc
 
 
 @daitaku
 class Period:
-    def __init__(self, start: datetime, span: timedelta | None = None, *, predicted: bool = False):
+    def __init__(
+        self, start: datetime, span: timedelta | None = None, *, predicted: bool = False
+    ):
         """A date period anchored at a specific instant with an optional span.
         Args:
             start (datetime): The anchor instant for the period. Stored verbatim — time components are preserved. The tzinfo on ``start`` is locked in at construction and the Period cannot be mixed with Periods of a different tzinfo afterwards.
@@ -78,7 +81,9 @@ class Period:
     def __str__(self):
         predicted = " [predicted]" if self._predicted else ""
         if self._span.days > 0:
-            return self.start.isoformat() + f" (span: {self._span.days} days){predicted}"
+            return (
+                self.start.isoformat() + f" (span: {self._span.days} days){predicted}"
+            )
         return self.isoformat() + predicted
 
 

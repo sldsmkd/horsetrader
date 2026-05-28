@@ -2,20 +2,26 @@ def matikanefukukitaru(cls):
     """Matikanefukukitaru — prediction oracle.
 
     Matikane Fukukitaru is the fortune-telling fanatic. Her module
-    divines what Global's future schedule will look like. She consumes
-    the regression model that Agnes Tachyon assembles from the confirmed
-    JP↔EN corpus, applies the deferred outlier rules hook (CLAUDE.md §4
-    "Prediction outlier rules") as a post-processing pass, and emits
-    final EN predicted dates with ``predicted=True``.
+    divines what Global's future schedule will look like — vibes-based
+    heuristics over the in-memory Timeline, not a fitted statistical
+    model. Each predictor reads JP Periods (and any confirmed UTC ones
+    Transcend already stamped) and appends a predicted UTC ``Period``
+    with ``predicted=True`` for events that need one.
 
-    The raw statistical machinery (corpus assembly, kernel weighting,
-    model fitting) belongs to ``@tachyon``. Mati's job is interpretation:
-    she takes Tachyon's numbers, applies oracle knowledge about
-    scheduling exceptions, and produces the answer a player can act on.
+    Current heuristics in ``timeline/predictors/``:
+
+    - ``ScenarioPredictor`` — projects unscheduled scenarios via a global
+      JP→UTC acceleration on the Timeline, then snaps to the nearest
+      weekday with historical EN releases.
+    - ``BannerPredictor`` — snaps a banner to its co-released scenario's
+      EN date when one exists.
+
+    A deferred outlier-rules hook is planned (e.g. banners following a
+    Champions Meeting in JP get pushed back to avoid EN-side CM overlap)
+    — see ``docs/prediction.md``.
 
     If code answers "*when will this specific event appear on Global?*",
-    it's Matikanefukukitaru's. If it answers "*what is the local
-    acceleration model for JP day D?*", it's Tachyon's.
+    it's Matikanefukukitaru's.
 
     Character bio: see ``matikanefukukitaru.md`` alongside this file.
     """

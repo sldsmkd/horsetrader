@@ -1,0 +1,77 @@
+scenario-1:
+  en: "URA Finale"
+  jp: "URAファイナルズ"
+  start: "2021-02-24"
+  art: https://media.gametora.com/umamusume/scenarios/hero/thumb/1.png
+
+scenario-2:
+  en: "Aoharu Hai"
+  jp: "アオハル杯"
+  start: "2021-08-30"
+  art: https://media.gametora.com/umamusume/scenarios/hero/thumb/2.png
+
+scenario-3:
+  en: "Make a new track!!"
+  jp: "Make a new track!!"
+  start: "2022-02-24"
+  art: https://media.gametora.com/umamusume/scenarios/hero/thumb/4.png
+
+scenario-4:
+  en: "Grand Live"
+  jp: "グランドライブ"
+  start: "2022-08-24"
+  art: https://media.gametora.com/umamusume/scenarios/hero/thumb/3.png
+
+scenario-5:
+  en: "Grand Masters"
+  jp: "グランドマスターズ"
+  start: "2023-02-24"
+  art: https://media.gametora.com/umamusume/scenarios/hero/thumb/5.png
+
+scenario-6:
+  en: "Project L'Arc"
+  jp: "プロジェクトL'Arc"
+  start: "2023-08-24"
+  art: https://media.gametora.com/umamusume/scenarios/hero/thumb/6.png
+
+scenario-7:
+  en: "U.A.F. Ready GO!"
+  jp: "U.A.F. Ready GO!"
+  start: "2024-02-24"
+  art: https://media.gametora.com/umamusume/scenarios/hero/thumb/7.png
+
+scenario-8:
+  en: "Great Food Festival"
+  jp: "大豊食祭"
+  start: "2024-06-26"
+  art: https://media.gametora.com/umamusume/scenarios/hero/thumb/8.png
+
+scenario-9:
+  en: "Run, Mecha Umamusume!"
+  jp: "走れ！メカウマ娘"
+  start: "2024-08-29"
+  art: https://media.gametora.com/umamusume/scenarios/hero/thumb/9.png
+
+scenario-10:
+  en: "The Twinkle Legends"
+  jp: "The Twinkle Legends"
+  start: "2025-02-24"
+  art: https://media.gametora.com/umamusume/scenarios/hero/thumb/10.png
+
+scenario-11:
+  en: "Design Your Island"
+  jp: "無人島へようこそ"
+  start: "2025-06-27"
+  art: https://media.gametora.com/umamusume/scenarios/hero/thumb/11.png
+
+scenario-12:
+  en: "Yukoma Hot Springs"
+  jp: "ゆこま温泉郷"
+  start: "2025-10-29"
+  art: https://media.gametora.com/umamusume/scenarios/hero/thumb/12.png
+
+scenario-13:
+  en: "Beyond Dreams"
+  jp: "Beyond Dreams"
+  start: "2026-02-24"
+  art: https://media.gametora.com/umamusume/scenarios/hero/thumb/13.png

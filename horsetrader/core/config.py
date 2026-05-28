@@ -111,6 +111,6 @@ class Config(metaclass=SingletonMeta):
         return bool(environ.get(_SKIP_CACHE_REFRESH))
 
     @property
-    def global_dir(self) -> Path:
-        """Path to the global/ data directory in the ETL repo (hand-curated YAML files)."""
-        return self._repo_root / "global"
+    def static(self) -> Path:
+        """Path to the static / data directory in the ETL repo (hand-curated YAML files)."""
+        return self._repo_root / "static"

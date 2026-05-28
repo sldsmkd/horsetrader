@@ -4,7 +4,7 @@ from typing import Sequence
 from lxml import html
 
 from horsetrader.core import SingletonMeta
-from horsetrader.enums import BannerType, CacheTime, Sources
+from horsetrader.enums import BannerType, CacheTime, Sources, SupportRarity, SupportType
 from horsetrader.extractors.helpers import xpath_all, xpath_attr, xpath_first
 from horsetrader.info import Logger
 from horsetrader.semantics import transcend
@@ -13,6 +13,29 @@ from horsetrader.transport import UmaClient
 from .dates import parse_period
 
 logger = Logger.get(__name__)
+
+# Gametora uses "Friend" for what we call PAL
+_SUPPORT_TYPE_ALIAS: dict[str, SupportType] = {"friend": SupportType.PAL}
+
+
+def _parse_support_rarity(raw: str | None) -> SupportRarity | None:
+    if raw is None:
+        return None
+    try:
+        return SupportRarity[raw.upper()]
+    except KeyError:
+        return None
+
+
+def _parse_support_type(raw: str | None) -> SupportType | None:
+    if raw is None:
+        return None
+    normed = raw.lower()
+    try:
+        return SupportType(normed)
+    except ValueError:
+        return _SUPPORT_TYPE_ALIAS.get(normed)
+
 
 _GAMETORA_BASE_URL = "https://gametora.com"
 BANNER_INDEX_URL = (
@@ -56,8 +79,8 @@ def parse_pickups(node: html.HtmlElement) -> list[dict]:
 
         name = raw_name
         descriptor: str | None = None
-        support_rarity: str | None = None
-        support_type: str | None = None
+        support_rarity: SupportRarity | None = None
+        support_type: SupportType | None = None
 
         m = _DESCRIPTOR_PATTERN.match(raw_name)
         if m is not None:
@@ -66,8 +89,8 @@ def parse_pickups(node: html.HtmlElement) -> list[dict]:
             if descriptor is not None:
                 sm = _SUPPORT_DESCRIPTOR_PATTERN.match(descriptor)
                 if sm is not None:
-                    support_rarity = sm.group("rarity").upper()
-                    support_type = sm.group("type").lower()
+                    support_rarity = _parse_support_rarity(sm.group("rarity"))
+                    support_type = _parse_support_type(sm.group("type"))
 
         pickups.append(
             {

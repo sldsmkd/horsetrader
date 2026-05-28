@@ -1,9 +1,9 @@
+import functools
 from datetime import date, datetime, timezone
-from pathlib import Path
 
 import yaml
 
-from horsetrader.core import Period
+from horsetrader.core import Config, Period
 
 # Banners go live at 22:00 UTC and close at 21:59 UTC on the stated end date.
 # Model end as 22:00 UTC on that date — the 1-minute gap is display rounding,
@@ -11,7 +11,9 @@ from horsetrader.core import Period
 _BANNER_HOUR = 22
 
 
-def parse(path: Path) -> dict[str, tuple[date, date]]:
+@functools.cache
+def load() -> dict[str, tuple[date, date]]:
+    path = Config().static / "en.banners.yaml"
     with path.open() as f:
         raw = yaml.safe_load(f)
     if not isinstance(raw, dict):

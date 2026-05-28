@@ -1,22 +1,21 @@
 def daitaku(cls):
-    """Daitaku — the *when*, in JST only.
+    """Daitaku — the *when*.
 
     Daitaku Helios is the party girl whose phone is buried under
     notifications — never missing an invite, always knows what's
-    happening, where, and when. Her module owns the JP-side event
-    calendar: when banners run, when events drop, when campaigns are on
-    (CLAUDE.md §3 "Game day = JST"), and any other "when does this
-    happen / what's on right now" lookup.
+    happening, where, and when. Her module owns the calendar primitives:
+    ``Period``, ``Periods``, and the event-time math that every other
+    character leans on.
 
-    Helios is a consummate gyaru and utterly unaware of the existence
-    of anything outside JST — to her, London is a theme park in Chiba.
-    JST↔UTC translation and Global-side scheduling are *not* her
-    problem: the EN corpus and regression belong to ``@tachyon``,
-    final Global predicted dates belong to ``@matikanefukukitaru``.
-    Anything Daitaku touches is JST-native end-to-end.
+    Helios doesn't reason about timezones — she just stores whatever
+    ``tzinfo`` lives on a Period's start datetime, and ``Periods``
+    enforces at most one Period per tzinfo so callers can ask "do I
+    have a UTC one?" without scanning. JST↔UTC interpretation,
+    cross-zone scheduling, and Global-side predictions are
+    ``@matikanefukukitaru``'s problem, not hers.
 
-    If code is answering a JP-side date/period/calendar question,
-    it's Daitaku's.
+    If code is answering "*when does this happen?*" or doing date
+    arithmetic on a Period, it's Daitaku's.
 
     Character bio: see ``daitaku.md`` alongside this file.
     """

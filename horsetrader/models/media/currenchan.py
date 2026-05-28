@@ -19,6 +19,7 @@ class ImageRequest(Resource):
     """A URL plus the on-disk destination Digitan wants Curren Chan to write to."""
 
     outfile: Path
+    width: int | None = None
 
 
 @currenchan
@@ -52,7 +53,7 @@ class CurrenChan:
                 # `image.url` is finalised to the published umastagram link.
                 image.references.add(str(req.url))
                 try:
-                    ok = image.process(outfile=req.outfile)
+                    ok = image.process(outfile=req.outfile, width=req.width)
                 except Exception as exc:
                     logger.warning(f"Failed to process {req.url}: {exc}")
                     results[str(req.url)] = None

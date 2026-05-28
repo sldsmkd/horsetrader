@@ -1,24 +1,41 @@
+from datetime import timezone
+
 from horsetrader.semantics import matikanefukukitaru
 
+from .predictors import BannerPredictor, ScenarioPredictor
 from .timeline import Timeline
 
 
 @matikanefukukitaru
 class Predict:
-    """Extend a UTC Timeline with predicted EN periods for unscheduled JP events.
+    """Extend a JST Timeline with predicted UTC periods for unscheduled EN events.
 
-    Takes the full JST Timeline (all known JP events) and the confirmed UTC
-    Timeline (events carrying concrete EN periods from enrichment), then
-    adds ``predicted=True`` UTC Periods for any JP event not yet represented
-    in the UTC Timeline.
+    Runs an ordered chain of predictors — most authoritative first (external marketing
+    anchors, then internal dev milestones, then fill-in). Each predictor mutates events
+    in place (appends a predicted UTC Period to events missing one) and returns the count
+    of new predictions made.
 
-    Currently a passthrough — returns ``utc_timeline`` unchanged. Implementation
-    target: LOESS-style local weighted regression (K=20 Gaussian-kernel-weighted
-    nearest confirmed JP↔EN pairs). Full spec in CLAUDE.md §4 "Prediction engine
-    upgrade". Outlier rules (e.g. CM-overlap avoidance) go in a post-processing
-    hook layered on top of the regression, per CLAUDE.md §4 "Prediction outlier
-    rules".
+    Returns a UTC Timeline built from all events carrying a UTC period (confirmed and
+    predicted).
     """
 
-    def predict(self, jst_timeline: Timeline, utc_timeline: Timeline) -> Timeline:
-        return utc_timeline
+    def __init__(self) -> None:
+        self._stats: dict[str, int] = {}
+
+    def stats(self) -> dict[str, int]:
+        return self._stats
+
+    def predict(self, timeline: Timeline) -> Timeline:
+        for predictor in (
+            ScenarioPredictor(timeline),
+            BannerPredictor(timeline),
+        ):
+            key = type(predictor).__name__.lower().removesuffix("predictor")
+            self._stats[key] = predictor.predict(timeline)
+
+        utc = Timeline(
+            timezone.utc,
+            [e for e in timeline if any(p.tzinfo == timezone.utc for p in e.periods)],
+        )
+        self._stats["unpredicted"] = len(timeline) - len(utc)
+        return utc

@@ -12,9 +12,5 @@ __pycache__/
 # Legacy tree being ported from
 horsetrader.old/
 
-# Old porting documents - remove when no longer needed
-agent.MD
-CLAUDE.md
-
 # VSCode workspace settings
 *.code-workspace

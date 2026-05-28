@@ -4,7 +4,9 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
-from horsetrader.core import Periods, SingletonMeta, StableKey
+from ethicrawl import ResourceList
+
+from horsetrader.core import Config, Periods, SingletonMeta, StableKey
 from horsetrader.enums import BannerType, CostumeVariants, SupportRarity, SupportType
 from horsetrader.extractors.gametora import Gametora
 from horsetrader.extractors.gametora.banners import BANNER_INDEX_URL
@@ -12,6 +14,7 @@ from horsetrader.extractors.static import Static
 from horsetrader.info import Logger
 from horsetrader.models.core import References
 from horsetrader.models.entities import Support, Supports, Trainee, Trainees
+from horsetrader.models.media import CurrenChan, Image, ImageRequest
 from horsetrader.semantics import daitaku
 
 from .event import Event
@@ -22,9 +25,6 @@ logger = Logger.get(__name__)
 _NON_ALNUM = re.compile(r"[^a-z0-9]+")
 _NON_ALNUM_STRICT = re.compile(r"[^a-z0-9]")
 
-# Gametora uses "Friend" for what we call PAL
-_SUPPORT_TYPE_ALIAS: dict[str, SupportType] = {"friend": SupportType.PAL}
-
 
 def _slugify(value: str) -> str:
     return _NON_ALNUM.sub("-", value.lower()).strip("-")
@@ -34,25 +34,6 @@ def _canonical(value: str) -> str:
     return _NON_ALNUM_STRICT.sub("", value.lower())
 
 
-def _parse_support_rarity(raw: str | None) -> SupportRarity | None:
-    if raw is None:
-        return None
-    try:
-        return SupportRarity[raw.upper()]
-    except KeyError:
-        return None
-
-
-def _parse_support_type(raw: str | None) -> SupportType | None:
-    if raw is None:
-        return None
-    normed = raw.lower()
-    try:
-        return SupportType(normed)
-    except ValueError:
-        return _SUPPORT_TYPE_ALIAS.get(normed)
-
-
 @daitaku
 @dataclass
 class Banner(Event):
@@ -60,6 +41,7 @@ class Banner(Event):
 
     type: BannerType = field(default=BannerType.SUPPORT, kw_only=True)
     contents: list[Trainee | Support] = field(default_factory=list, kw_only=True)
+    art: Image | None = field(default=None, kw_only=True)
 
     def match(self, query: str) -> bool:
         needle = query.lower()
@@ -120,35 +102,56 @@ class Banners(Events[Banner], metaclass=SingletonMeta):
                 logger.warning(f"Support banner {item.key} has no resolvable contents")
 
     def _enrichers(self):
-        static = Static()
 
         def _add_utc_period(banner: Banner) -> None:
-            period = static.banner_period(banner.key)
+            period = Static().banner_period(banner.key)
             if period is not None:
                 banner.periods.append(period)
-                banner.references.add(static.en_banners_path)
+                banner.references.add(str(Config().static / "en.banners.yaml"))
 
         return (_add_utc_period,)
 
     def _fetch_primary(self) -> list[Banner]:
         records = list(Gametora().banners())
+        images = self._process_images(records)
         trainee_idx = self._build_trainee_indexes()
         support_idx = self._build_support_indexes()
 
         banners: list[Banner] = []
         for record in records:
             contents = self._resolve_contents(record, trainee_idx, support_idx)
+            art = images.get(record["image_url"])
+            references = References(record.get("references", []))
+            if art is not None:
+                references.add(art.references)
             banners.append(
                 Banner(
                     key=StableKey(record["key"]),
                     periods=Periods([record["period"]]),
                     type=record["banner_type"],
                     contents=contents,
+                    art=art,
                     correlations=dict(record.get("correlations", {})),
-                    references=References(record.get("references", [])),
+                    references=references,
                 )
             )
         return banners
+
+    @staticmethod
+    def _process_images(records: list[dict]) -> dict[str, Image | None]:
+        outdir = Config().site / "img" / "banners"
+        requests: ResourceList[ImageRequest] = ResourceList()
+        for record in records:
+            if image_url := record.get("image_url"):
+                requests.append(
+                    ImageRequest(
+                        url=image_url,
+                        outfile=outdir / f"{record['key']}.webp",
+                    )
+                )
+        if not requests:
+            return {}
+        return CurrenChan().process(requests)
 
     def _resolve_contents(
         self,
@@ -245,8 +248,8 @@ class Banners(Events[Banner], metaclass=SingletonMeta):
         indexes: _SupportIndexes,
     ) -> Support | None:
         name = pickup["name"]
-        rarity = _parse_support_rarity(pickup["support_rarity"])
-        sup_type = _parse_support_type(pickup["support_type"])
+        rarity = pickup["support_rarity"]
+        sup_type = pickup["support_type"]
 
         if rarity is None or sup_type is None:
             logger.warning(

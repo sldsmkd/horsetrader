@@ -1,4 +1,3 @@
-from datetime import timezone
 from time import perf_counter
 from typing import Any
 
@@ -7,7 +6,7 @@ from horsetrader.info import Logger
 from horsetrader.models import TracenModels
 from horsetrader.output import Bake
 from horsetrader.semantics import rudolf
-from horsetrader.timeline import Predict, Timeline
+from horsetrader.timeline import Predict
 
 logger = Logger.get(__name__)
 
@@ -62,11 +61,9 @@ class Pipeline(metaclass=SingletonMeta):
         self._ensure_loaded()
         stages = list(self._stages.values())
         jst_timeline = Bake.timeline(stages)
-        utc_timeline = Timeline(
-            timezone.utc,
-            [e for e in jst_timeline if any(p.tzinfo == timezone.utc for p in e.periods)],
-        )
-        self._timeline = Predict().predict(jst_timeline, utc_timeline)
+        predict = Predict()
+        self._timeline = predict.predict(jst_timeline)
+        self._metrics["_predict"] = predict.stats()
         return Bake.academy(stages) and Bake.events(self._timeline)
 
     def _ensure_loaded(self) -> None:
