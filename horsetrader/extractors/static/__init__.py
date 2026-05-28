@@ -1,8 +1,9 @@
 from horsetrader.core import Period, SingletonMeta
 from horsetrader.semantics import transcend
 
+from . import anniversaries as _anniversaries
 from . import banners as _banners
-from . import en_scenarios as _en_scenarios
+from . import holidays as _holidays
 from . import scenarios as _scenarios
 
 
@@ -14,10 +15,25 @@ class Static(metaclass=SingletonMeta):
     Digitan's responsibility (see [[project-transcend-digitan-boundary]]).
     """
 
+    def anniversaries(self) -> list[dict]:
+        """Records from jp.anniversaries.yaml merged with en.anniversaries.yaml."""
+        return _anniversaries.load()
+
     def scenarios(self) -> list[dict]:
-        """Records from jp.scenarios.yaml, each with an 'en' key (dict | None) for EN data."""
-        en = _en_scenarios.load()
-        return [{**r, "en": en.get(r["key"])} for r in _scenarios.load()]
+        """Records from jp.scenarios.yaml merged with en.scenarios.yaml.
+
+        Each record has key, title_en, title_jp, art_url, period, source,
+        and an 'en' key (dict | None) with the EN period, title, and source.
+        """
+        return _scenarios.load()
+
+    def holidays(self) -> list[dict]:
+        """Records from jp.holidays.yaml merged with en.holidays.yaml.
+
+        Each record has key, name, period, source, and an 'en' key (dict | None)
+        with the EN period, name, and source when present.
+        """
+        return _holidays.load()
 
     def banner_period(self, key: str) -> Period | None:
         """UTC Period for the EN banner with this key, or None if not in en.banners.yaml."""

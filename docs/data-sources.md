@@ -57,6 +57,10 @@ Hand-curated and scraper-immune. All live under
 | [`static/en.banners.yaml`](../static/en.banners.yaml) | **Manually curated.** | EN confirmed banner periods, keyed by `<id>-banner`. Read by `extractors/static/banners.py`; stamps a UTC `Period` onto the matching `Banner` at extraction time. |
 | [`static/jp.scenarios.yaml`](../static/jp.scenarios.yaml) | **Manually curated.** | Full JP scenarios corpus, keyed by `scenario-N` (release-order integer). Carries `en` title, `jp` title, JP `start`, and `art` URL. Used directly because Gametora's scenarios page is JS-rendered, brittle, and not worth scraping. |
 | [`static/en.scenarios.yaml`](../static/en.scenarios.yaml) | **Manually curated.** | EN scenario titles and confirmed EN `start`. Joined onto `jp.scenarios.yaml` via the `scenario-N` key by `Static.scenarios()`. |
+| [`static/jp.holidays.yaml`](../static/jp.holidays.yaml) | **Manually curated.** | JP holiday corpus: `new-year-YYYY` and `golden-week-YYYY` entries with `start` date and optional `name`. New Year drops at 05:00 JST (early release for temple visits); all others at 12:00 JST. |
+| [`static/en.holidays.yaml`](../static/en.holidays.yaml) | **Manually curated.** | EN confirmed holiday `start` dates, keyed to match `jp.holidays.yaml`. Joined by `Static.holidays()`. |
+| [`static/jp.anniversaries.yaml`](../static/jp.anniversaries.yaml) | **Manually curated.** | JP anniversary corpus, keyed `anni-N_M` (e.g. `anni-1_0`, `anni-0_5`). Drops at 12:00 JST. |
+| [`static/en.anniversaries.yaml`](../static/en.anniversaries.yaml) | **Manually curated.** | EN confirmed anniversary `start` dates. Joined by `Static.anniversaries()`. |
 | [`static/en.schedule.yaml`](../static/en.schedule.yaml) | **Manually curated; not yet wired in the active tree.** | Mainline EN event + CM dates from the Cygames monthly announcements (image archive in [`references/`](../references/)). Queued for porting; today's pipeline does not read it. |
 
 ### Key conventions in the YAML

@@ -8,14 +8,14 @@ from horsetrader.info import Logger
 
 logger = Logger.get(__name__)
 
-_SCENARIO_HOUR = 12   # JP content drop: 12:00 JST
+_ANNI_HOUR = 12       # JP content drop: 12:00 JST
 _EN_HOUR_UTC = 22     # EN content drop: 22:00 UTC
 
 
 @functools.cache
 def load() -> list[dict]:
-    jp_path = Config().static / "jp.scenarios.yaml"
-    en_path = Config().static / "en.scenarios.yaml"
+    jp_path = Config().static / "jp.anniversaries.yaml"
+    en_path = Config().static / "en.anniversaries.yaml"
 
     with jp_path.open() as f:
         jp_raw = yaml.safe_load(f)
@@ -36,13 +36,7 @@ def load() -> list[dict]:
         try:
             d = datetime.strptime(str(entry["start"]), "%Y-%m-%d")
         except (KeyError, ValueError) as exc:
-            logger.warning("Skipping scenario %s: bad date — %s", key, exc)
-            continue
-        title_en = str(entry.get("en", "")).strip()
-        title_jp = str(entry.get("jp", "")).strip()
-        art_url = str(entry.get("art", "")).strip() or None
-        if not title_en and not title_jp:
-            logger.warning("Skipping scenario %s: no title", key)
+            logger.warning("Skipping anniversary %s: bad date — %s", key, exc)
             continue
 
         en: dict | None = None
@@ -50,10 +44,9 @@ def load() -> list[dict]:
             try:
                 en_d = datetime.strptime(str(en_entry["start"]), "%Y-%m-%d")
             except (KeyError, ValueError) as exc:
-                logger.warning("Skipping EN scenario %s: bad date — %s", key, exc)
+                logger.warning("Skipping EN anniversary %s: bad date — %s", key, exc)
             else:
                 en = {
-                    "title_en": str(en_entry.get("en", "")).strip(),
                     "period": Period(
                         start=datetime(en_d.year, en_d.month, en_d.day, _EN_HOUR_UTC, tzinfo=timezone.utc)
                     ),
@@ -62,14 +55,11 @@ def load() -> list[dict]:
 
         records.append({
             "key": str(key),
-            "title_en": title_en,
-            "title_jp": title_jp,
-            "art_url": art_url,
             "period": Period(
-                start=datetime(d.year, d.month, d.day, _SCENARIO_HOUR, tzinfo=JST)
+                start=datetime(d.year, d.month, d.day, _ANNI_HOUR, tzinfo=JST)
             ),
             "source": jp_source,
             "en": en,
         })
-    logger.info("Loaded %d scenarios from %s", len(records), jp_path.name)
+    logger.info("Loaded %d anniversaries from %s", len(records), jp_path.name)
     return records

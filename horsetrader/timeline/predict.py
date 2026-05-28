@@ -2,7 +2,7 @@ from datetime import timezone
 
 from horsetrader.semantics import matikanefukukitaru
 
-from .predictors import BannerPredictor, ScenarioPredictor
+from .predictors import AnniversaryPredictor, BannerPredictor, HolidayPredictor, ScenarioPredictor
 from .timeline import Timeline
 
 
@@ -27,6 +27,8 @@ class Predict:
 
     def predict(self, timeline: Timeline) -> Timeline:
         for predictor in (
+            AnniversaryPredictor(timeline),
+            HolidayPredictor(timeline),
             ScenarioPredictor(timeline),
             BannerPredictor(timeline),
         ):

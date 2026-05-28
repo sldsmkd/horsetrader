@@ -1,0 +1,43 @@
+## JP Holiday events
+## New Year drops at 05:00 JST; Golden Week drops at 12:00 JST.
+
+## New Year
+new-year-2022:
+  start: 2022-01-01
+
+new-year-2023:
+  start: 2023-01-01
+
+new-year-2024:
+  start: 2024-01-01
+
+new-year-2025:
+  start: 2025-01-01
+
+new-year-2026:
+  start: 2026-01-01
+
+## Golden Week
+golden-week-2021:
+  name: Golshi Week
+  start: 2021-04-30
+
+golden-week-2022:
+  name: Golshi Week
+  start: 2022-04-28
+
+golden-week-2023:
+  name: Gyaru Week
+  start: 2023-04-28
+
+golden-week-2024:
+  name: GOCHI Week
+  start: 2024-04-30
+
+golden-week-2025:
+  name: Gray Week
+  start: 2025-04-30
+
+golden-week-2026:
+  name: GOLD WEEK
+  start: 2026-04-30

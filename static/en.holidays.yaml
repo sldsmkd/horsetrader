@@ -1,0 +1,16 @@
+## EN Holiday events
+## Always drop at content release time (10:00 PM UTC) on the specified date
+
+## New Year
+new-year-2022:
+  start: 2026-01-27
+
+## Golden Week
+golden-week-2021:
+  name: Golshi Week
+  start: 2025-08-07
+
+golden-week-2022:
+  name: Golshi Week
+  start: 2022-04-26
+

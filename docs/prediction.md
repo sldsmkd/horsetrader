@@ -47,19 +47,43 @@ in turn sees the mutations the previous one made, so a later predictor
 can use an earlier one's `predicted=True` periods as if they were
 confirmed for routing purposes.
 
+### `AnniversaryPredictor`
+
+Predicts EN dates for `Anniversary` events with no confirmed UTC period.
+
+1. Collect confirmed JP+UTC pairs from `Anniversary` events. If none exist, return 0.
+2. Build a **weekday signal** from those same confirmed pairs.
+3. Compute the global `Timeline.acceleration(JST, UTC)` slope. If it can't
+   fit, return 0.
+4. For each unscheduled anniversary: project through the acceleration and
+   snap to the nearest valid weekday at 22:00 UTC, `predicted=True`.
+
+### `HolidayPredictor`
+
+Covers `GoldenWeek` and `NewYear` specifically — the two concrete subtypes
+of `Holiday`. Base `Holiday` is not targeted directly.
+
+Same acceleration + weekday-snap structure as `AnniversaryPredictor`, with
+the weekday signal merged across both subtypes. Confirmed JP+UTC pairs are
+drawn from `GoldenWeek` and `NewYear` events only.
+
 ### `ScenarioPredictor`
 
 Predicts EN dates for scenarios with no confirmed UTC period.
 
-1. Build a **weekday signal**: histogram of weekdays from confirmed-EN
+1. **Anniversary lock-in (pass 0):** build a JP-date → EN-period map from
+   all `Anniversary` events that already carry a UTC period (confirmed or
+   just predicted by `AnniversaryPredictor`). If a scenario's JP date
+   exactly matches an anniversary's JP date, snap the scenario to that
+   anniversary's EN date and skip the acceleration model for that event.
+2. Build a **weekday signal**: histogram of weekdays from confirmed-EN
    scenario releases, kept as the set of weekdays with count > 0.
    Monthday is *not* used (under compressed acceleration, day-of-month
    isn't a stable signal).
-2. Compute the global `Timeline.acceleration(JST, UTC)` slope from all
-   confirmed pairs across the timeline (scenarios, banners, anything
-   with both periods). `JST` and `UTC` anchors are the earliest start in
-   each zone.
-3. For each unscheduled scenario:
+3. Compute the global `Timeline.acceleration(JST, UTC)` slope from all
+   confirmed pairs across the timeline. `JST` and `UTC` anchors are the
+   earliest start in each zone.
+4. For each remaining unscheduled scenario:
    - Project its JP start through the acceleration: `rough = utc_anchor + slope * jp_elapsed`.
    - Snap `rough` to the nearest valid weekday via
      [`nearest_weekday`](../horsetrader/timeline/predictors/base.py).
@@ -71,13 +95,15 @@ extrapolate from nothing.
 
 ### `BannerPredictor`
 
-Pass 1 (live): if a JP banner co-released with a scenario, snap the
-banner's EN start to that scenario's EN date — confirmed or already
-predicted by `ScenarioPredictor`. The banner's JP `span` carries over;
-the start is the scenario's EN start at 22:00 UTC.
+Pass 1 (live): if a JP banner co-released with any of `Anniversary`,
+`GoldenWeek`, `NewYear`, or `Scenario`, snap the banner's EN start to that
+event's EN date — confirmed or already predicted by an earlier predictor.
+Anchor types are tried in dict-lookup order; the scenario anchor wins if
+multiple types share a JP date. The banner's JP `span` carries over; the
+start is 22:00 UTC on the anchor's EN date.
 
 Pass 2 (planned, not implemented): general banner acceleration for
-banners that *don't* co-release with a scenario. Currently those slip
+banners that *don't* co-release with any anchor event. Currently those slip
 through and stay unpredicted, surfacing in `metrics["_predict"]["unpredicted"]`.
 
 ## Stats
@@ -89,9 +115,11 @@ period after the chain:
 
 ```json
 "_predict": {
+  "anniversary": 8,
+  "holiday": 3,
   "scenario": 3,
-  "banner": 12,
-  "unpredicted": 4
+  "banner": 24,
+  "unpredicted": 214
 }
 ```
 
@@ -118,9 +146,16 @@ any until the user formalises one.
 ### BannerPredictor pass 2 (planned)
 
 General acceleration-based projection for banners with no co-release
-scenario anchor. Will likely mirror `ScenarioPredictor` but using a
-banner-specific weekday signal (the EN CM-day clustering pattern looks
-different from scenario release-day patterns).
+anchor at all (not scenario, anniversary, or holiday). Will likely mirror
+`ScenarioPredictor` but using a banner-specific weekday signal. 214 banners
+currently slip through here.
+
+### Story ingest pipeline (planned)
+
+Stories always bundle thematic costume variants (e.g. Halloween story →
+Halloween trainee). Once `Story` events are ingested, `Story` can be added
+to `BannerPredictor._ANCHOR_TYPES` and story EN dates will anchor the
+matching costume banner predictions.
 
 ### Confidence intervals
 
