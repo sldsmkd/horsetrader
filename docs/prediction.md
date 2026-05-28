@@ -11,7 +11,9 @@ Every `Event` carries a `Periods` collection — at most one `Period` per
 
 - a **JP `Period`** for the event's JP run, and
 - a **UTC `Period`** for events whose EN release has already happened or
-  been announced (sourced from `static/en.banners.yaml`).
+  been announced (sourced per type from `static/en.banners.yaml`,
+  `en.stories.yaml`, `en.anniversaries.yaml`, `en.holidays.yaml`, and
+  `en.scenarios.yaml`).
 
 `Predict.predict(timeline)` runs an ordered chain of predictors. Each
 predictor walks the timeline, looks for events that need a UTC `Period`
@@ -26,15 +28,20 @@ to tag the output — it's not a field on the `Banner` / `Scenario` itself.
 
 This is heuristics over the in-memory timeline, not a fitted model:
 
-- No corpus assembly, no kernel weighting, no regression.
-- The single quantitative input is
-  [`Timeline.acceleration(from_tz, to_tz)`](../horsetrader/timeline/timeline.py) —
-  a least-squares slope of `to_elapsed ≈ slope · from_elapsed` through the
-  origin, fitted across all events carrying confirmed periods in both
-  zones. Predicted periods are excluded.
+- No corpus assembly, no kernel weighting, no regression beyond a single slope.
+- The quantitative inputs are three helpers on `Timeline`
+  ([`timeline.py`](../horsetrader/timeline/timeline.py)):
+  - `origin(tz)` — earliest non-predicted event start in `tz`, treated as
+    that server's launch anchor.
+  - `acceleration(from_tz, to_tz)` — least-squares slope of
+    `to_elapsed ≈ slope · from_elapsed` through the origin, with elapsed
+    measured from each tz's `origin()`. Fitted across every event carrying
+    non-predicted periods in both zones; predicted periods excluded.
+  - `predict(dt, to_tz)` — convenience composition:
+    `origin(to_tz) + acceleration · (dt - origin(dt.tzinfo))`.
 - Everything else is "match-by-shape" — same JP date, snap to the nearest
   weekday EN has used historically, lean on the latest co-released
-  scenario, etc.
+  scenario, match a banner's casts against the nearest story's casts, etc.
 
 If at any point the heuristics start mis-predicting in systematic ways,
 the next step is a proper regression — but Mati only switches techniques
@@ -63,9 +70,12 @@ Predicts EN dates for `Anniversary` events with no confirmed UTC period.
 Covers `GoldenWeek` and `NewYear` specifically — the two concrete subtypes
 of `Holiday`. Base `Holiday` is not targeted directly.
 
-Same acceleration + weekday-snap structure as `AnniversaryPredictor`, with
-the weekday signal merged across both subtypes. Confirmed JP+UTC pairs are
-drawn from `GoldenWeek` and `NewYear` events only.
+Weekday signal is merged across both subtypes (any weekday with a confirmed
+EN drop counts as valid). For each unscheduled holiday, project its JP
+start via `Timeline.predict(jp_start, UTC)`, snap to the nearest valid
+weekday, and stamp `Period(start=<snapped at 22:00 UTC>, predicted=True)`.
+If the regression can't fit (< 2 correlated pairs anywhere on the timeline)
+the predictor returns however many it managed before the fit failed.
 
 ### `ScenarioPredictor`
 
@@ -93,18 +103,53 @@ If no confirmed scenarios exist in the timeline, or `acceleration()`
 can't fit (< 2 correlated pairs), the predictor returns 0 — Mati doesn't
 extrapolate from nothing.
 
+### `StoryPredictor`
+
+Confirmed story EN dates come from
+[`static/en.stories.yaml`](../static/en.stories.yaml) at enrichment time
+(see `Stories._enrichers` in [`models/events/story.py`](../horsetrader/models/events/story.py)).
+The predictor fills the rest in two passes.
+
+Pass 1 (anchor snap): same shape as `BannerPredictor` pass 1. If a JP
+story shares a JP drop date with an `Anniversary`, `GoldenWeek`, `NewYear`,
+or `Scenario` whose EN date is known (confirmed or predicted upstream),
+snap the story to that EN date at 22:00 UTC.
+
+Pass 2 (ordinal interpolation): for the remaining unscheduled stories,
+walk the stable-key-sorted list, bisect between the two nearest scheduled
+neighbours, and place each unscheduled story at the matching JP-time
+fraction of the EN window:
+
+```
+frac = (jp - left_jp) / (right_jp - left_jp)
+rough_en = left_en + frac · (right_en - left_en)
+```
+
+The result is snapped to the weekday distribution of confirmed EN stories
+(any weekday with > 0 confirmed drops — naturally excludes Fri/Sat since
+the JP-side dev team treats Friday GMT (= Saturday JST) as outside working
+hours), then stamped at 22:00 UTC. Stories with no left or right
+bracketing neighbour are left alone — extrapolation is `BannerPredictor`'s
+problem, not Story's.
+
 ### `BannerPredictor`
 
-Pass 1 (live): if a JP banner co-released with any of `Anniversary`,
+Pass 1 (anchor snap): if a JP banner co-released with any of `Anniversary`,
 `GoldenWeek`, `NewYear`, or `Scenario`, snap the banner's EN start to that
 event's EN date — confirmed or already predicted by an earlier predictor.
 Anchor types are tried in dict-lookup order; the scenario anchor wins if
 multiple types share a JP date. The banner's JP `span` carries over; the
 start is 22:00 UTC on the anchor's EN date.
 
-Pass 2 (planned, not implemented): general banner acceleration for
-banners that *don't* co-release with any anchor event. Currently those slip
-through and stay unpredicted, surfacing in `metrics["_predict"]["unpredicted"]`.
+Pass 2 (story tie-in): banners that don't share a JP date with an anchor
+event are often promotional banners for a story — e.g. Halloween costume
+banners drop alongside the Halloween story. For each remaining
+unscheduled banner with non-empty `contents`, scan stories whose JP start
+is within ±7 days, and if any story's `trainees` and `supports` are a
+superset of the banner's trainee and support contents (matched by stable
+key), snap the banner to that story's EN date at 22:00 UTC. First match
+wins. This catches roughly half the otherwise-orphaned banners — see the
+`_predict` stats for the running tally.
 
 ## Stats
 
@@ -116,16 +161,17 @@ period after the chain:
 ```json
 "_predict": {
   "anniversary": 8,
-  "holiday": 3,
-  "scenario": 3,
-  "banner": 24,
-  "unpredicted": 214
+  "holiday": 8,
+  "scenario": 10,
+  "story": 39,
+  "banner": 72,
+  "unpredicted": 180
 }
 ```
 
-`unpredicted > 0` is informational, not a failure — it usually means
-non-scenario banners that need pass-2 acceleration, or scenarios with no
-JP-side anchor history.
+`unpredicted > 0` is informational, not a failure — it's mostly banners
+with no anchor co-release and no story tie-in within the ±7-day window
+(orphan SR/SSR support banners between story drops).
 
 ## Deferred / future work
 
@@ -143,27 +189,24 @@ the predictor chain runs. Rules are individual, named, and toggleable
 — don't bake them into the predictors themselves, and don't pre-implement
 any until the user formalises one.
 
-### BannerPredictor pass 2 (planned)
+### BannerPredictor pass 3 (planned)
 
-General acceleration-based projection for banners with no co-release
-anchor at all (not scenario, anniversary, or holiday). Will likely mirror
-`ScenarioPredictor` but using a banner-specific weekday signal. 214 banners
-currently slip through here.
+Banners that share no JP date with an anchor and whose contents don't
+fall inside any story's cast still slip through — typically standalone
+SR/SSR support promos between story windows. A general acceleration-based
+projection (mirroring `HolidayPredictor`'s use of `Timeline.predict()`)
+would catch these but produces lower-confidence dates; defer until a
+consumer needs them.
 
-### StoryPredictor (planned)
+### Cross-predictor anchor unification
 
-`Story` events are now ingested (`models/events/story.py`). The predictor
-module exists as an empty placeholder (`timeline/predictors/story.py`) but
-is not yet implemented or slotted into the chain.
-
-Once implemented, `Story` should be added to `BannerPredictor._ANCHOR_TYPES`
-— stories always co-release with thematic costume banners (e.g. Halloween
-story → Halloween trainee), so confirmed or predicted story EN dates can
-anchor those banner predictions the same way Anniversary / Scenario dates do.
-
-The weekday signal for story EN dates may differ from scenarios (stories
-appear to drop mid-week more often), so don't blindly reuse the scenario
-weekday histogram — collect confirmed story JP+UTC pairs first.
+`AnniversaryPredictor` and `ScenarioPredictor` still compute their own
+JP/UTC anchors locally from confirmed pairs (`min(p[0] for p in confirmed)`),
+while `HolidayPredictor` uses `Timeline.predict()` which goes through
+`Timeline.origin()`. Functionally close — the global origin is usually the
+earliest event in either tz regardless — but the two approaches can drift
+if a tz has an event with no correlated counterpart that's earlier than
+any correlated pair. Unify when convenient.
 
 ### Confidence intervals
 

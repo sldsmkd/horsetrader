@@ -5,7 +5,7 @@ from . import anniversaries as _anniversaries
 from . import banners as _banners
 from . import holidays as _holidays
 from . import scenarios as _scenarios
-from . import story as _story
+from . import stories as _stories
 
 
 @transcend
@@ -41,7 +41,7 @@ class Static(metaclass=SingletonMeta):
 
         Each record has ``n`` (1-based ordinal) and ``banner_path`` (Path).
         """
-        return _story.load()
+        return _stories.load()
 
     def banner_period(self, key: str) -> Period | None:
         """UTC Period for the EN banner with this key, or None if not in en.banners.yaml."""
@@ -49,3 +49,7 @@ class Static(metaclass=SingletonMeta):
         if entry is None:
             return None
         return _banners.to_period(*entry)
+
+    def story_period(self, key: str) -> Period | None:
+        """UTC Period for the EN story with this stable key, or None if not in en.stories.yaml."""
+        return _stories.load_en().get(key)

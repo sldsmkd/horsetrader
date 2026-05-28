@@ -1,6 +1,6 @@
 from bisect import bisect_right
 from collections.abc import Iterable
-from datetime import datetime, tzinfo
+from datetime import datetime, timedelta, tzinfo
 from typing import SupportsIndex
 
 import numpy as np
@@ -60,14 +60,31 @@ class Timeline(list[Event]):
         # requested position can't be honoured. Equivalent to ``append``.
         self.append(event)
 
+    def origin(self, tz: tzinfo) -> datetime:
+        """Earliest event start in ``tz`` — treated as that server's launch anchor.
+
+        Considers every event carrying a non-predicted period in ``tz``, regardless
+        of whether it also has a period in any other tz.
+        """
+        candidates = [
+            p.start
+            for event in self
+            for p in event.periods
+            if p.tzinfo == tz and not p.predicted
+        ]
+        if not candidates:
+            raise ValueError(f"Timeline has no non-predicted events in tz {tz!r}")
+        return min(candidates)
+
     def acceleration(self, from_tz: tzinfo, to_tz: tzinfo, *, bust: bool = False) -> float:
         """Linear speedup of ``to_tz`` events relative to ``from_tz`` events.
 
-        Works in elapsed days from each tz's earliest correlated anchor, then fits
-        ``to_elapsed ≈ slope * from_elapsed`` through the origin via least squares.
-        Requires at least 2 correlated events (events carrying periods in both tzs).
-        Result is cached per ``(from_tz, to_tz)`` pair and cleared on any mutation.
-        Pass ``bust=True`` to force recomputation without mutating.
+        Works in elapsed days from each tz's earliest non-predicted event (server
+        origin), then fits ``to_elapsed ≈ slope * from_elapsed`` through the origin
+        via least squares across every correlated event (event carrying a period in
+        both tzs). Requires at least 2 correlated events. Result is cached per
+        ``(from_tz, to_tz)`` pair and cleared on any mutation. Pass ``bust=True``
+        to force recomputation without mutating.
         """
         key = (from_tz, to_tz)
         if not bust and key in self._accel_cache:
@@ -82,8 +99,8 @@ class Timeline(list[Event]):
             raise ValueError(
                 f"acceleration() needs at least 2 correlated events; found {len(pairs)}"
             )
-        from_anchor = min(p[0] for p in pairs)
-        to_anchor = min(p[1] for p in pairs)
+        from_anchor = self.origin(from_tz)
+        to_anchor = self.origin(to_tz)
         x = np.array(
             [(from_dt - from_anchor).total_seconds() / 86400 for from_dt, _ in pairs],
             dtype=float,
@@ -95,6 +112,17 @@ class Timeline(list[Event]):
         slope = float(np.linalg.lstsq(x, y, rcond=None)[0][0])
         self._accel_cache[key] = slope
         return slope
+
+    def predict(self, dt: datetime, to_tz: tzinfo) -> datetime:
+        """Predict a ``to_tz`` datetime for an event whose ``dt.tzinfo`` datetime is ``dt``.
+
+        ``to_dt = origin(to_tz) + acceleration * (dt - origin(dt.tzinfo))``
+        """
+        if dt.tzinfo is None:
+            raise ValueError("predict() requires a tz-aware datetime")
+        slope = self.acceleration(dt.tzinfo, to_tz)
+        elapsed = (dt - self.origin(dt.tzinfo)).total_seconds() / 86400
+        return self.origin(to_tz) + timedelta(days=slope * elapsed)
 
     def __setitem__(self, index: int | slice, event: Event | Iterable[Event]) -> None:  # type: ignore[override]
         if isinstance(index, slice):

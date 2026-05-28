@@ -2,7 +2,13 @@ from datetime import timezone
 
 from horsetrader.semantics import matikanefukukitaru
 
-from .predictors import AnniversaryPredictor, BannerPredictor, HolidayPredictor, ScenarioPredictor
+from .predictors import (
+    AnniversaryPredictor,
+    BannerPredictor,
+    HolidayPredictor,
+    ScenarioPredictor,
+    StoryPredictor,
+)
 from .timeline import Timeline
 
 
@@ -30,6 +36,7 @@ class Predict:
             AnniversaryPredictor(timeline),
             HolidayPredictor(timeline),
             ScenarioPredictor(timeline),
+            StoryPredictor(timeline),
             BannerPredictor(timeline),
         ):
             key = type(predictor).__name__.lower().removesuffix("predictor")

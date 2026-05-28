@@ -51,6 +51,16 @@ class Stories(Events[Story], metaclass=SingletonMeta):
         if not item.periods:
             logger.warning("Story %s has no periods", item.key)
 
+    def _enrichers(self):
+
+        def _add_utc_period(story: Story) -> None:
+            period = Static().story_period(str(story.key))
+            if period is not None:
+                story.periods.append(period)
+                story.references.add(str(Config().static / "en.stories.yaml"))
+
+        return (_add_utc_period,)
+
     def _fetch_primary(self) -> list[Story]:
         records = list(Gametora().stories())
         art_images = self._process_images(records, "art_url", "")
