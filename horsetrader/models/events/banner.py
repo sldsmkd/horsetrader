@@ -8,6 +8,7 @@ from horsetrader.core import Periods, SingletonMeta, StableKey
 from horsetrader.enums import BannerType, CostumeVariants, SupportRarity, SupportType
 from horsetrader.extractors.gametora import Gametora
 from horsetrader.extractors.gametora.banners import BANNER_INDEX_URL
+from horsetrader.extractors.static import Static
 from horsetrader.info import Logger
 from horsetrader.models.core import References
 from horsetrader.models.entities import Support, Supports, Trainee, Trainees
@@ -117,6 +118,17 @@ class Banners(Events[Banner], metaclass=SingletonMeta):
             if not item.contents:
                 self._support_empty_count += 1
                 logger.warning(f"Support banner {item.key} has no resolvable contents")
+
+    def _enrichers(self):
+        static = Static()
+
+        def _add_utc_period(banner: Banner) -> None:
+            period = static.banner_period(banner.key)
+            if period is not None:
+                banner.periods.append(period)
+                banner.references.add(static.en_banners_path)
+
+        return (_add_utc_period,)
 
     def _fetch_primary(self) -> list[Banner]:
         records = list(Gametora().banners())

@@ -1,3 +1,4 @@
+from datetime import timezone
 from time import perf_counter
 from typing import Any
 
@@ -6,7 +7,7 @@ from horsetrader.info import Logger
 from horsetrader.models import TracenModels
 from horsetrader.output import Bake
 from horsetrader.semantics import rudolf
-from horsetrader.timeline import Concrete, Predict, Timeline
+from horsetrader.timeline import Predict, Timeline
 
 logger = Logger.get(__name__)
 
@@ -25,9 +26,10 @@ class Pipeline(metaclass=SingletonMeta):
     the in-flight singleton.
 
     ``run()`` is the write step: builds the JST Timeline from loaded stages,
-    projects it through ``Concrete`` (confirmed EN dates) then ``Predict``
-    (future: LOESS regression for unscheduled events), and hands the result
-    to ``Bake``. One-shot — a second call logs an error and exits.
+    collects events that already carry a UTC period (confirmed EN dates baked
+    in at enrichment time) then passes them through ``Predict`` (future: LOESS
+    regression for unscheduled events), and hands the result to ``Bake``.
+    One-shot — a second call logs an error and exits.
     """
 
     def __init__(self) -> None:
@@ -60,7 +62,10 @@ class Pipeline(metaclass=SingletonMeta):
         self._ensure_loaded()
         stages = list(self._stages.values())
         jst_timeline = Bake.timeline(stages)
-        utc_timeline = Concrete().project(jst_timeline)
+        utc_timeline = Timeline(
+            timezone.utc,
+            [e for e in jst_timeline if any(p.tzinfo == timezone.utc for p in e.periods)],
+        )
         self._timeline = Predict().predict(jst_timeline, utc_timeline)
         return Bake.academy(stages) and Bake.events(self._timeline)
 

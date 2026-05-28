@@ -8,7 +8,7 @@ class Predict:
     """Extend a UTC Timeline with predicted EN periods for unscheduled JP events.
 
     Takes the full JST Timeline (all known JP events) and the confirmed UTC
-    Timeline (events with concrete EN dates from ``Concrete.project``), then
+    Timeline (events carrying concrete EN periods from enrichment), then
     adds ``predicted=True`` UTC Periods for any JP event not yet represented
     in the UTC Timeline.
 

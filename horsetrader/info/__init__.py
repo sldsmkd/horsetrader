@@ -1,4 +1,5 @@
-from .logger import Logger, DEBUG, INFO, WARNING, ERROR, CRITICAL
+from .logger import Logger
+from logging import DEBUG, INFO, WARNING, ERROR, CRITICAL
 
 __all__ = [
     "DEBUG",

@@ -17,7 +17,7 @@ class Event(TracenModel):
 
     Unlike `Entity` (Digitan — who/what), `Event` is Daitaku — the *when*.
     Every concrete event carries `periods` — at most one `Period` per tzinfo
-    (JST from extraction, UTC added by `Concrete.project`, etc.), enforced
+    (JST from extraction, UTC added at enrichment time, etc.), enforced
     by the `Periods` container. Re-runs are modeled as distinct events with
     their own stable keys, never as multiple periods on the same event.
     """

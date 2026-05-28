@@ -26,9 +26,7 @@ _BANNER_TYPE_EXPR = (
     './/div[normalize-space(text())="Support Card Gacha"'
     ' or normalize-space(text())="Character Gacha"][1]'
 )
-_BANNER_IMG_EXPR = (
-    './/img[contains(@src, "/images/umamusume/gacha/img_bnr_gacha_")][1]'
-)
+_BANNER_IMG_EXPR = './/img[contains(@src, "/images/umamusume/gacha/img_bnr_gacha_")][1]'
 _PICKUP_ROW_EXPR = ".//ul//li"
 _PICKUP_NAME_EXPR = './/span[contains(@class, "gacha_link_alt")][1]'
 _DESCRIPTOR_PATTERN = re.compile(r"^(?P<name>.+?)\s*\((?P<descriptor>[^)]+)\)\s*$")
@@ -65,10 +63,11 @@ def parse_pickups(node: html.HtmlElement) -> list[dict]:
         if m is not None:
             name = m.group("name").strip()
             descriptor = m.group("descriptor").strip()
-            sm = _SUPPORT_DESCRIPTOR_PATTERN.match(descriptor)
-            if sm is not None:
-                support_rarity = sm.group("rarity").upper()
-                support_type = sm.group("type").lower()
+            if descriptor is not None:
+                sm = _SUPPORT_DESCRIPTOR_PATTERN.match(descriptor)
+                if sm is not None:
+                    support_rarity = sm.group("rarity").upper()
+                    support_type = sm.group("type").lower()
 
         pickups.append(
             {

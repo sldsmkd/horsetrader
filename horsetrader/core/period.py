@@ -72,12 +72,14 @@ class Period:
         return self.start < other.start
 
     def __repr__(self):
-        return f"Period(start={self._date}, span={self._span})"
+        predicted = f", predicted={self._predicted}" if self._predicted else ""
+        return f"Period(start={self._date}, span={self._span}{predicted})"
 
     def __str__(self):
+        predicted = " [predicted]" if self._predicted else ""
         if self._span.days > 0:
-            return self.start.isoformat() + f" (span: {self._span.days} days)"
-        return self.isoformat()
+            return self.start.isoformat() + f" (span: {self._span.days} days){predicted}"
+        return self.isoformat() + predicted
 
 
 @daitaku
