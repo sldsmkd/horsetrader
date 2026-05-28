@@ -1,5 +1,6 @@
 from collections.abc import Iterable
 from datetime import datetime, timedelta, timezone, tzinfo
+from typing import SupportsIndex
 
 from horsetrader.semantics import daitaku
 
@@ -115,6 +116,6 @@ class Periods(list[Period]):
             seen.add(p.tzinfo)
         super().extend(new)
 
-    def insert(self, index: int, period: Period) -> None:
+    def insert(self, index: SupportsIndex, period: Period) -> None:
         self._reject_duplicate(period)
         super().insert(index, period)
