@@ -10,7 +10,7 @@ from horsetrader.models.events.events import Events
 from horsetrader.semantics import eishin
 from horsetrader.timeline import Timeline
 
-from ._mappers import MAPPERS, map_event
+from ._mappers import MAPPERS, _map_event
 
 
 @eishin
@@ -47,12 +47,15 @@ class Bake:
         """
         records = []
         for event in timeline:
+            # TODO: drop the Banner-only filter once major event anchors land
+            # (scenarios / CMs as first-class events for mati's predictions).
+            # Will need a type-dispatched mapper instead of `map_event`.
             if not isinstance(event, Banner):
                 continue
             period = next((p for p in event.periods if p.tzinfo == timeline.tz), None)
             if period is None:
                 continue
-            records.append(map_event(event, period))
+            records.append(_map_event(event, period))
         path = Config().site / "static" / "events.json"
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps({"events": records}, ensure_ascii=False, indent=2))

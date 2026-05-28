@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from horsetrader.core import Period
+from horsetrader.core import Periods
 from horsetrader.models.core import TracenModel
 from horsetrader.semantics import daitaku
 
@@ -16,8 +16,10 @@ class Event(TracenModel):
     `TracenModel`; per-event behavior belongs in concrete subclasses.
 
     Unlike `Entity` (Digitan — who/what), `Event` is Daitaku — the *when*.
-    Every concrete event carries `periods` — one or more `Period` runs in
-    the event's native timezone.
+    Every concrete event carries `periods` — at most one `Period` per tzinfo
+    (JST from extraction, UTC added by `Concrete.project`, etc.), enforced
+    by the `Periods` container. Re-runs are modeled as distinct events with
+    their own stable keys, never as multiple periods on the same event.
     """
 
-    periods: list[Period]
+    periods: Periods

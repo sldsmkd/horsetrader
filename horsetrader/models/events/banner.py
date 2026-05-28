@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
-from horsetrader.core import SingletonMeta, StableKey
+from horsetrader.core import Periods, SingletonMeta, StableKey
 from horsetrader.enums import BannerType, CostumeVariants, SupportRarity, SupportType
 from horsetrader.extractors.gametora import Gametora
 from horsetrader.extractors.gametora.banners import BANNER_INDEX_URL
@@ -55,10 +55,9 @@ def _parse_support_type(raw: str | None) -> SupportType | None:
 @daitaku
 @dataclass
 class Banner(Event):
-    """A gacha banner event with a start/end date, type, prediction flag, and guest list."""
+    """A gacha banner event with a start/end date, type and guest list."""
 
     type: BannerType = field(default=BannerType.SUPPORT, kw_only=True)
-    predicted: bool = field(default=False, kw_only=True)
     contents: list[Trainee | Support] = field(default_factory=list, kw_only=True)
 
     def match(self, query: str) -> bool:
@@ -112,16 +111,12 @@ class Banners(Events[Banner], metaclass=SingletonMeta):
             self._trainee_count += 1
             if not item.contents:
                 self._trainee_empty_count += 1
-                logger.warning(
-                    f"Trainee banner {item.key} has no resolvable contents"
-                )
+                logger.warning(f"Trainee banner {item.key} has no resolvable contents")
         elif item.type == BannerType.SUPPORT:
             self._support_count += 1
             if not item.contents:
                 self._support_empty_count += 1
-                logger.warning(
-                    f"Support banner {item.key} has no resolvable contents"
-                )
+                logger.warning(f"Support banner {item.key} has no resolvable contents")
 
     def _fetch_primary(self) -> list[Banner]:
         records = list(Gametora().banners())
@@ -134,7 +129,7 @@ class Banners(Events[Banner], metaclass=SingletonMeta):
             banners.append(
                 Banner(
                     key=StableKey(record["key"]),
-                    periods=[record["period"]],
+                    periods=Periods([record["period"]]),
                     type=record["banner_type"],
                     contents=contents,
                     correlations=dict(record.get("correlations", {})),
@@ -185,7 +180,11 @@ class Banners(Events[Banner], metaclass=SingletonMeta):
         by_slug: dict[_SupportKey, list[Support]] = defaultdict(list)
         by_canonical: dict[_SupportKey, list[Support]] = defaultdict(list)
         for s in Supports().values():
-            if s.character is None or s.type is None or s.rarity == SupportRarity.UNKNOWN:
+            if (
+                s.character is None
+                or s.type is None
+                or s.rarity == SupportRarity.UNKNOWN
+            ):
                 continue
             by_slug[(s.character.key, s.rarity, s.type)].append(s)
             by_canonical[(_canonical(s.character.key), s.rarity, s.type)].append(s)
@@ -246,9 +245,9 @@ class Banners(Events[Banner], metaclass=SingletonMeta):
             return None
 
         by_slug, by_canonical = indexes
-        candidates = by_slug.get((_slugify(name), rarity, sup_type)) or by_canonical.get(
-            (_canonical(name), rarity, sup_type), []
-        )
+        candidates = by_slug.get(
+            (_slugify(name), rarity, sup_type)
+        ) or by_canonical.get((_canonical(name), rarity, sup_type), [])
         if not candidates:
             logger.warning(
                 "No support match for %s pickup %r (%s %s)",

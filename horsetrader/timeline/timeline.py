@@ -1,3 +1,4 @@
+from bisect import bisect_right
 from collections.abc import Iterable
 from datetime import datetime, tzinfo
 from typing import SupportsIndex
@@ -29,7 +30,7 @@ class Timeline(list[Event]):
         return self._tz
 
     def _sort_key(self, event: Event) -> datetime:
-        return min(p.start for p in event.periods if p.tzinfo == self._tz)
+        return next(p.start for p in event.periods if p.tzinfo == self._tz)
 
     def _validate(self, event: Event) -> None:
         if not any(p.tzinfo == self._tz for p in event.periods):
@@ -42,8 +43,8 @@ class Timeline(list[Event]):
 
     def append(self, event: Event) -> None:
         self._validate(event)
-        super().append(event)
-        self.sort(key=self._sort_key)
+        idx = bisect_right(self, self._sort_key(event), key=self._sort_key)
+        list.insert(self, idx, event)
         self._bust()
 
     def extend(self, events: Iterable[Event]) -> None:
@@ -55,10 +56,9 @@ class Timeline(list[Event]):
         self._bust()
 
     def insert(self, index: SupportsIndex, event: Event) -> None:
-        self._validate(event)
-        super().insert(index, event)
-        self.sort(key=self._sort_key)
-        self._bust()
+        # ``index`` is ignored — the timeline is always sorted, so the caller's
+        # requested position can't be honoured. Equivalent to ``append``.
+        self.append(event)
 
     def acceleration(self, from_tz: tzinfo, to_tz: tzinfo, *, bust: bool = False) -> float:
         """Linear speedup of ``to_tz`` events relative to ``from_tz`` events.
@@ -85,9 +85,13 @@ class Timeline(list[Event]):
         from_anchor = min(p[0] for p in pairs)
         to_anchor = min(p[1] for p in pairs)
         x = np.array(
-            [(from_dt - from_anchor).days for from_dt, _ in pairs], dtype=float
+            [(from_dt - from_anchor).total_seconds() / 86400 for from_dt, _ in pairs],
+            dtype=float,
         ).reshape(-1, 1)
-        y = np.array([(to_dt - to_anchor).days for _, to_dt in pairs], dtype=float)
+        y = np.array(
+            [(to_dt - to_anchor).total_seconds() / 86400 for _, to_dt in pairs],
+            dtype=float,
+        )
         slope = float(np.linalg.lstsq(x, y, rcond=None)[0][0])
         self._accel_cache[key] = slope
         return slope

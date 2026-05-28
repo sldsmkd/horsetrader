@@ -10,9 +10,6 @@ from .singleton_meta import SingletonMeta
 
 _TARGET = "HORSETRADER_TARGET"
 _SKIP_CACHE_REFRESH = "HORSETRADER_SKIP_CACHE_REFRESH"
-_EXIT_ON_ERROR = "HORSETRADER_EXIT_ON_ERROR"
-
-_TRUTHY = {"1", "true", "yes", "on"}
 
 _SKELETON = f"""\
 # Horsetrader runtime configuration.
@@ -23,7 +20,6 @@ _SKELETON = f"""\
 
 # Optional flags (uncomment to enable):
 # {_SKIP_CACHE_REFRESH}=1
-# {_EXIT_ON_ERROR}=1
 """
 
 
@@ -45,7 +41,6 @@ class Config(metaclass=SingletonMeta):
     Recognised env vars:
       - ``HORSETRADER_TARGET`` — output root. Required; lazily validated.
       - ``HORSETRADER_SKIP_CACHE_REFRESH`` — bypass cache TTL checks. Truthy = any non-empty string.
-      - ``HORSETRADER_EXIT_ON_ERROR`` — escalate Logger.error to SystemExit. Truthy = ``1`` / ``true`` / ``yes`` / ``on``.
     """
 
     def __init__(self):
@@ -114,11 +109,6 @@ class Config(metaclass=SingletonMeta):
     def skip_cache_refresh(self) -> bool:
         """True if cache TTL checks should be bypassed. Re-read on each access."""
         return bool(environ.get(_SKIP_CACHE_REFRESH))
-
-    @property
-    def exit_on_error(self) -> bool:
-        """True if Logger.error should escalate to SystemExit. Re-read on each access."""
-        return environ.get(_EXIT_ON_ERROR, "").strip().lower() in _TRUTHY
 
     @property
     def global_dir(self) -> Path:

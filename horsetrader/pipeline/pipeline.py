@@ -2,10 +2,13 @@ from time import perf_counter
 from typing import Any
 
 from horsetrader.core import SingletonMeta
+from horsetrader.info import Logger
 from horsetrader.models import TracenModels
 from horsetrader.output import Bake
 from horsetrader.semantics import rudolf
 from horsetrader.timeline import Concrete, Predict, Timeline
+
+logger = Logger.get(__name__)
 
 
 @rudolf
@@ -24,7 +27,7 @@ class Pipeline(metaclass=SingletonMeta):
     ``run()`` is the write step: builds the JST Timeline from loaded stages,
     projects it through ``Concrete`` (confirmed EN dates) then ``Predict``
     (future: LOESS regression for unscheduled events), and hands the result
-    to ``Bake``. One-shot — subsequent calls return ``False`` immediately.
+    to ``Bake``. One-shot — a second call logs an error and exits.
     """
 
     def __init__(self) -> None:
@@ -50,9 +53,9 @@ class Pipeline(metaclass=SingletonMeta):
         return self._timeline
 
     def run(self) -> bool:
-        """Build timelines and write output. No-op if already run; returns False on repeat call."""
+        """Build timelines and write output. One-shot — calling twice is a programming bug."""
         if self._ran:
-            return False
+            logger.error("Pipeline.run() called more than once")
         self._ran = True
         self._ensure_loaded()
         stages = list(self._stages.values())

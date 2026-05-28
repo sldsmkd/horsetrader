@@ -47,14 +47,14 @@ def _map_trainee(t: Trainee) -> dict:
     }
 
 
-def map_event(b: Banner, period: Period) -> dict:
+def _map_event(b: Banner, period: Period) -> dict:
     return {
         "start": period.start.date().isoformat(),
         "end": period.end.date().isoformat(),
         "predicted": period.predicted,
         "type": b.type.name.lower(),
-        "key": str(b.key),
-        "contents": [str(c.key) for c in b.contents],
+        "key": b.key,
+        "contents": [c.key for c in b.contents],
         "image": f"/img/banners/{b.key}.webp",
     }
 

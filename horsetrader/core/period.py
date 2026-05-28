@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from datetime import datetime, timedelta, timezone, tzinfo
 
 from horsetrader.semantics import daitaku
@@ -76,3 +77,44 @@ class Period:
         if self._span.days > 0:
             return self.start.isoformat() + f" (span: {self._span.days} days)"
         return self.isoformat()
+
+
+@daitaku
+class Periods(list[Period]):
+    """A list of Periods with at most one Period per tzinfo.
+
+    Enforced on every mutation (append, extend, insert) — adding a second
+    Period whose tzinfo already exists raises ValueError. Reads stay plain
+    list semantics, so callers can iterate as normal and use
+    ``next(p for p in periods if p.tzinfo == tz)`` instead of ``min(...)``.
+    """
+
+    def __init__(self, periods: Iterable[Period] | None = None) -> None:
+        super().__init__()
+        if periods is not None:
+            self.extend(periods)
+
+    def _reject_duplicate(self, period: Period) -> None:
+        if any(p.tzinfo == period.tzinfo for p in self):
+            raise ValueError(
+                f"Periods already contains a Period with tzinfo {period.tzinfo!r}"
+            )
+
+    def append(self, period: Period) -> None:
+        self._reject_duplicate(period)
+        super().append(period)
+
+    def extend(self, periods: Iterable[Period]) -> None:
+        new = list(periods)
+        seen: set[tzinfo | None] = {p.tzinfo for p in self}
+        for p in new:
+            if p.tzinfo in seen:
+                raise ValueError(
+                    f"Periods already contains a Period with tzinfo {p.tzinfo!r}"
+                )
+            seen.add(p.tzinfo)
+        super().extend(new)
+
+    def insert(self, index: int, period: Period) -> None:
+        self._reject_duplicate(period)
+        super().insert(index, period)

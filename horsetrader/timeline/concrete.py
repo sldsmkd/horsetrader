@@ -7,7 +7,8 @@ from horsetrader.semantics import tachyon
 
 from .timeline import Timeline
 
-_LAUNCH_HOUR = 22
+# Global server reset hour — the soft-launch instant for the listed date in UTC
+_LAUNCH_HOUR = 15
 
 
 @tachyon
@@ -21,8 +22,14 @@ class Concrete:
     """
 
     def __init__(self) -> None:
-        with (Config().global_dir / "schedule.yaml").open() as f:
-            raw: dict = yaml.safe_load(f)
+        # TODO: replace direct YAML load with a file extractor alongside
+        # `horsetrader.extractors.gametora` so callers don't see schedule.yaml
+        # as YAML at all — same shape as the existing extractors.
+        path = Config().global_dir / "schedule.yaml"
+        with path.open() as f:
+            raw = yaml.safe_load(f)
+        if not isinstance(raw, dict):
+            raise ValueError(f"{path} is empty or not a mapping")
         self._data: dict[str, tuple[date, date]] = {
             key: (entry["start"], entry["end"])
             for key, entry in raw.items()
@@ -44,17 +51,23 @@ class Concrete:
         """
         utc_timeline = Timeline(timezone.utc)
         for event in timeline:
-            scheduled = self._data.get(str(event.key))
+            scheduled = self._data.get(event.key)
             if scheduled is None:
                 continue
             start_date, end_date = scheduled
             utc_start = datetime(
-                start_date.year, start_date.month, start_date.day,
-                _LAUNCH_HOUR, tzinfo=timezone.utc,
+                start_date.year,
+                start_date.month,
+                start_date.day,
+                _LAUNCH_HOUR,
+                tzinfo=timezone.utc,
             )
             utc_end = datetime(
-                end_date.year, end_date.month, end_date.day,
-                _LAUNCH_HOUR, tzinfo=timezone.utc,
+                end_date.year,
+                end_date.month,
+                end_date.day,
+                _LAUNCH_HOUR,
+                tzinfo=timezone.utc,
             )
             utc_period = Period(utc_start, span=utc_end - utc_start)
             event.periods.append(utc_period)
