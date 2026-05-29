@@ -1,6 +1,7 @@
 from horsetrader.core import Period, SingletonMeta
 from horsetrader.semantics import transcend
 
+from . import anchored as _anchored
 from . import anniversaries as _anniversaries
 from . import banners as _banners
 from . import holidays as _holidays
@@ -19,6 +20,16 @@ class Static(metaclass=SingletonMeta):
     def anniversaries(self) -> list[dict]:
         """Records from jp.anniversaries.yaml merged with en.anniversaries.yaml."""
         return _anniversaries.load()
+
+    def anchored_events(self) -> list[dict]:
+        """Records from anchored.yaml (curated lead-ins / extensions).
+
+        Each record has key, relation ('before'|'after'), anchor (stable key),
+        name, duration (timedelta), a 'rewards' key (baked-shape mapping | None),
+        and source. The anchor is resolved against other event collections at
+        model-build time, so no period is computed here.
+        """
+        return _anchored.load()
 
     def scenarios(self) -> list[dict]:
         """Records from jp.scenarios.yaml merged with en.scenarios.yaml.

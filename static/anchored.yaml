@@ -1,0 +1,36 @@
+## Anchored events (curated lead-ins / extensions around a tentpole)
+##
+## Each entry pins itself to one *edge* of another event (the `anchor`) and
+## runs for `duration` (ISO-8601, e.g. P7D, PT12H — weeks/days/hours/min/sec;
+## years/months are rejected since they don't map to a fixed span). The key
+## prefix is load-bearing and sets the direction:
+##
+##   before-*  ends   AT the anchor's start, running `duration` *before*  it
+##   after-*   starts AT the anchor's end,   running `duration` *after*   it
+##   during-*  synonym for after- — reads better for a part that runs *during*
+##             a multi-part celebration; resolves to the same placement
+##
+## To add an event: copy a block below, rename the key with the right prefix,
+## point `anchor` at the launch (or the prior part, to chain), set `duration`.
+##
+## The anchor is the stable key of a base launch (new-year-*, golden-week-*,
+## anni-*, scenario-*) OR of another anchored event — chaining. An `after-`
+## chain tiles contiguously: each link begins exactly where its parent ended.
+## Periods (JST, and EN derived later) are computed from the anchor's; nothing
+## here is per-region. Resolution fails loud if an anchor can't be reached.
+
+## New Year
+before-new-year-2022:
+  anchor: new-year-2022
+  name: New Year Countdown
+  duration: P7D
+
+after-new-year-2022:
+  anchor: new-year-2022
+  name: New Year Celebration
+  duration: P7D
+
+after-new-year-2022-hangover:
+  anchor: after-new-year-2022
+  name: New Year Hangover
+  duration: P7D

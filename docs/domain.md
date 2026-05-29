@@ -230,6 +230,62 @@ the repeat separate so the client multiplies.
   of `_mappers._rewards`, so the two must stay in sync. It fails loud on an
   unknown key or malformed shape (curated YAML is the editor's feedback loop).
 
+## Anchored events
+
+Some campaigns don't have a date of their own — they're defined *relative* to a
+tentpole. A **New Year Countdown** runs the week up to New Year; an
+**Anniversary Celebration** and its **Encore** tile the days after the
+anniversary. These are curated in [`static/anchored.yaml`](../static/anchored.yaml)
+as `AnchoredEvent`s and never carry an explicit date.
+
+Each entry pins to **one edge** of an `anchor` (the stable key of another
+event) and runs for a `duration`:
+
+- **`before-*`** ends *at* the anchor's start, running `duration` before it
+  (a lead-in / countdown).
+- **`after-*`** begins *at* the anchor's end, running `duration` after it
+  (an extension). **`during-*`** is a readability synonym for `after-` (a part
+  that runs *during* a multi-part celebration) and resolves to the same
+  placement. The key prefix is load-bearing — it sets the direction.
+
+The prefix is deliberately load-bearing rather than a separate field: this file
+gets edited only a few times a year, so a self-evident key you can copy from a
+neighbour beats one that sends you to the docs or loader to learn a convention.
+
+`duration` is ISO-8601 restricted to fixed-length components
+(weeks/days/hours/minutes/seconds); years and months are rejected because they
+aren't a constant span.
+
+**Anchors are points, anchored events are spans.** Base anchors (New Year /
+Golden Week / anniversary / scenario launches) are span-0 instants, so their
+start and end edges coincide. An anchored event has a real span, and resolving
+it *exposes a new edge* — which is why these **chain**: an `after-*` can anchor
+to another anchored event, and the chain tiles contiguously (each link begins
+exactly where its parent ended). You only ever anchor to a well-defined edge
+*point*, never to a span.
+
+**Two-tz resolution** (the recursion lives in
+[`models/events/anchored.py::resolve_anchored`](../horsetrader/models/events/anchored.py),
+shared by both passes):
+
+- **JST, at load.** Every anchor has a JST launch (JST is source of truth), so
+  placement is deterministic and total. The collection resolves the whole graph
+  to a fixpoint against the curated launch collections (holidays / anniversaries
+  / scenarios) plus its own chains, and **fails loud** if anything is left
+  unmoored — a missing anchor, no JST period, or a cycle. That throw is the
+  editor's feedback loop, the same as the rest of the curated YAML.
+- **UTC, in prediction.** The EN date is derived, not regressed:
+  [`AnchorPredictor`](../horsetrader/timeline/predictors/anchored.py) (Mati,
+  runs *last*) re-runs the same resolver over the UTC edges the other predictors
+  have just stamped, so `campaign.utc = anchor.utc ± duration`, chains included.
+  A campaign inherits its anchor's `predicted` flag. Here an unreachable anchor
+  is **not** fatal — the base anchor simply wasn't predictable, so the campaign
+  stays unpredicted like any other.
+
+In `events.json` an anchored event bakes like a holiday (calendar `type`, `name`,
+optional `rewards`) but with a real `start`/`end` range plus `relation`
+(`before`/`after`) and the `anchor` key for grouping.
+
 ## See also
 
 - [data-sources.md](data-sources.md) for which file or scraper each

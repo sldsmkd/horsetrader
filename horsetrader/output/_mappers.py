@@ -2,7 +2,14 @@ from typing import Callable
 
 from horsetrader.core import Japlish, Period
 from horsetrader.models.entities import Character, Support, Trainee
-from horsetrader.models.events import Anniversary, Banner, Event, Holiday, Story
+from horsetrader.models.events import (
+    AnchoredEvent,
+    Anniversary,
+    Banner,
+    Event,
+    Holiday,
+    Story,
+)
 from horsetrader.models.rewards import RewardGenerator, Rewards
 
 
@@ -133,6 +140,17 @@ def _map_holiday(e: Event, period: Period) -> dict:
     return out
 
 
+def _map_anchored(e: AnchoredEvent, period: Period) -> dict:
+    # A calendar-style record like a holiday, plus the placement contract the
+    # web side groups on: `relation` (before/after) and the `anchor` key it
+    # hangs off. `start`/`end` come from the derived span, so unlike a holiday
+    # these are a real range, not a single instant.
+    out = _map_holiday(e, period)
+    out["relation"] = e.relation
+    out["anchor"] = e.anchor
+    return out
+
+
 MAPPERS = {
     Character: _map_character,
     Support: _map_support,
@@ -159,6 +177,7 @@ EVENT_MAPPERS: dict[type[Event], Callable[[Event, Period], dict]] = {
     Story: _map_story,
     Holiday: _map_holiday,
     Anniversary: _map_holiday,
+    AnchoredEvent: _map_anchored,
 }
 
 

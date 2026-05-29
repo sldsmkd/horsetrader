@@ -3,6 +3,7 @@ from datetime import timezone
 from horsetrader.semantics import matikanefukukitaru
 
 from .predictors import (
+    AnchorPredictor,
     AnniversaryPredictor,
     BannerPredictor,
     HolidayPredictor,
@@ -38,6 +39,9 @@ class Predict:
             ScenarioPredictor(timeline),
             StoryPredictor(timeline),
             BannerPredictor(timeline),
+            # Last: anchored campaigns derive their UTC from the anchor dates the
+            # predictors above have just stamped (and chain off one another).
+            AnchorPredictor(timeline),
         ):
             key = type(predictor).__name__.lower().removesuffix("predictor")
             self._stats[key] = predictor.predict(timeline)

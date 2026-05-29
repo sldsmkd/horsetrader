@@ -6,6 +6,9 @@
 ##   EN:          22:00 UTC (canonical "appeared on Global" instant)
 
 ## New Year
+## Lead-in / extension campaigns (New Year Countdown, Celebration, …) live in
+## static/anchored.yaml — they pin to these launches rather than carry dates.
+
 new-year-2022:
   jp:
     start: 2022-01-01T05:00:00+09:00
@@ -19,6 +22,8 @@ new-year-2023:
 new-year-2024:
   jp:
     start: 2024-01-01T05:00:00+09:00
+
+
 
 new-year-2025:
   jp:
