@@ -8,6 +8,7 @@ from .shakur import shakur
 from .spechan import spechan
 from .tazuna import tazuna
 from .transcend import transcend
+from .yayoi import yayoi
 
 __all__ = [
     "currenchan",
@@ -20,4 +21,5 @@ __all__ = [
     "spechan",
     "tazuna",
     "transcend",
+    "yayoi",
 ]

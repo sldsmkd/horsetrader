@@ -1,7 +1,8 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from horsetrader.core import Periods
 from horsetrader.models.core import TracenModel
+from horsetrader.models.rewards import Rewards
 from horsetrader.semantics import daitaku
 
 
@@ -22,3 +23,4 @@ class Event(TracenModel):
     """
 
     periods: Periods
+    rewards: Rewards | None = field(default=None, kw_only=True)

@@ -15,6 +15,7 @@ from horsetrader.info import Logger
 from horsetrader.models.core import References
 from horsetrader.models.entities import Support, Supports, Trainee, Trainees
 from horsetrader.models.media import CurrenChan, Image, ImageRequest
+from horsetrader.models.rewards import stamp_first_original_rewards
 from horsetrader.semantics import daitaku
 
 from .event import Event
@@ -167,6 +168,7 @@ class Banners(Events[Banner], metaclass=SingletonMeta):
                     references=references,
                 )
             )
+        stamp_first_original_rewards(banners)
         return banners
 
     @staticmethod

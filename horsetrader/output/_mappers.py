@@ -3,6 +3,7 @@ from typing import Callable
 from horsetrader.core import Japlish, Period
 from horsetrader.models.entities import Character, Support, Trainee
 from horsetrader.models.events import Banner, Event, Story
+from horsetrader.models.rewards import Rewards
 
 
 def _japlish(j: Japlish | None) -> str | None:
@@ -14,6 +15,23 @@ def _japlish(j: Japlish | None) -> str | None:
         except ValueError:
             pass
     return str(j)
+
+
+def _rewards(rewards: Rewards | None) -> dict[str, int] | None:
+    # Folds the heterogeneous Reward list back into the {key: value} shape
+    # baked records expect. Same-keyed entries sum so callers can stamp
+    # `[Carats(80), Carats(80)]` *or* `[Carats(160)]` and get the same
+    # output. Non-counter rewards (no `amount`) will need a polymorphic hook
+    # once the sequence-shaped reward lands; until then they're skipped.
+    if not rewards:
+        return None
+    out: dict[str, int] = {}
+    for r in rewards:
+        amount = getattr(r, "amount", None)
+        if amount is None:
+            continue
+        out[r.key] = out.get(r.key, 0) + amount
+    return out or None
 
 
 def _map_character(c: Character) -> dict:
@@ -54,7 +72,7 @@ def _map_banner(b: Banner, period: Period) -> dict:
     # TraineeBanner → "trainee". Bare Banner shouldn't be instantiated; if it
     # is, fall back to "banner" so the output isn't empty-stringed.
     kind = type(b).__name__.lower().removesuffix("banner") or "banner"
-    return {
+    out: dict = {
         "start": period.start.date().isoformat(),
         "end": period.end.date().isoformat(),
         "predicted": period.predicted,
@@ -63,10 +81,13 @@ def _map_banner(b: Banner, period: Period) -> dict:
         "contents": [c.key for c in b.contents],
         "image": f"/img/banners/{b.key}.webp",
     }
+    if rewards := _rewards(b.rewards):
+        out["rewards"] = rewards
+    return out
 
 
 def _map_story(s: Story, period: Period) -> dict:
-    return {
+    out: dict = {
         "start": period.start.date().isoformat(),
         "end": period.end.date().isoformat(),
         "predicted": period.predicted,
@@ -78,6 +99,9 @@ def _map_story(s: Story, period: Period) -> dict:
         "banner": str(s.banner.url) if s.banner else None,
         "art": str(s.art.url) if s.art else None,
     }
+    if rewards := _rewards(s.rewards):
+        out["rewards"] = rewards
+    return out
 
 
 MAPPERS = {

@@ -11,6 +11,11 @@ from horsetrader.info import Logger
 from horsetrader.models.core import References
 from horsetrader.models.entities import Support, Supports, Trainee, Trainees
 from horsetrader.models.media import CurrenChan, Image, ImageRequest
+from horsetrader.models.rewards import (
+    Rewards,
+    reward_for_gametora_icon,
+    stamp_story_off_table_extras,
+)
 from horsetrader.semantics import daitaku
 
 from .event import Event
@@ -112,6 +117,8 @@ class Stories(Events[Story], metaclass=SingletonMeta):
                 else:
                     logger.warning("No support for slug %s in %s", sup_slug, gametora_key)
 
+            rewards = self._resolve_rewards(record.get("reward_items", []), gametora_key)
+
             stories.append(
                 Story(
                     key=stable_key,
@@ -123,11 +130,32 @@ class Stories(Events[Story], metaclass=SingletonMeta):
                     supports=supports,
                     references=references,
                     correlations={Sources.GAMETORA.value: gametora_n},
+                    rewards=rewards,
                 )
             )
 
         self._assign_banners(stories)
+        stamp_story_off_table_extras(stories)
         return stories
+
+    @staticmethod
+    def _resolve_rewards(
+        reward_items: list[tuple[str, int]], gametora_key: str
+    ) -> Rewards | None:
+        # One Reward instance per scraped row; the bake mapper sums same-keyed
+        # entries when emitting JSON, so we don't bucket here. Unknown icons
+        # are logged so the rewards.txt mapping can be extended without
+        # silently dropping rows.
+        rewards = Rewards()
+        for icon_id, amount in reward_items:
+            cls = reward_for_gametora_icon(icon_id)
+            if cls is None:
+                logger.warning(
+                    "Unknown reward icon %s in %s (x%d)", icon_id, gametora_key, amount
+                )
+                continue
+            rewards.append(cls(amount=amount))
+        return rewards or None
 
     def _assign_banners(self, stories: list[Story]) -> None:
         banner_records = Static().story_banners()

@@ -45,6 +45,14 @@ _STORY_SUPPORT_LINKS_EXPR = './/a[contains(@href, "/umamusume/supports/")]'
 _JP_DATETIME_PATTERN = re.compile(r"(\d{4}年\d{1,2}月\d{1,2}日\s*\d{1,2}:\d{2})")
 _EN_TITLE_SUFFIX_PATTERN = re.compile(r"\s+Story\s+Event\s*$", re.IGNORECASE)
 
+# Point Rewards table. missions_row_img__ rows pair an item icon with its
+# amount text; missions_row_num__ holds the "xN" string.
+_STORY_REWARD_ROW_EXPR = './/div[contains(@class, "missions_row_img__")]'
+_STORY_REWARD_ITEM_IMG_EXPR = './/img[contains(@src, "/items/item_icon_")]'
+_STORY_REWARD_AMOUNT_EXPR = './/div[contains(@class, "missions_row_num__")]'
+_STORY_REWARD_ITEM_ID_PATTERN = re.compile(r"/items/item_icon_(\d+)\.png")
+_STORY_REWARD_AMOUNT_PATTERN = re.compile(r"x(\d+)")
+
 
 def _absolute_url(path_or_url: str | None) -> str | None:
     if not path_or_url:
@@ -83,6 +91,24 @@ class GametoraStory(metaclass=SingletonMeta):
                 seen.add(slug)
                 slugs.append(slug)
         return slugs
+
+    @staticmethod
+    def _extract_reward_items(main) -> list[tuple[str, int]]:
+        rewards: list[tuple[str, int]] = []
+        for row in xpath_all(main, _STORY_REWARD_ROW_EXPR):
+            img_src = xpath_attr(row, _STORY_REWARD_ITEM_IMG_EXPR, "src") or ""
+            id_match = _STORY_REWARD_ITEM_ID_PATTERN.search(img_src)
+            if not id_match:
+                continue
+            amount_node = xpath_first(row, _STORY_REWARD_AMOUNT_EXPR)
+            if amount_node is None:
+                continue
+            amount_text = amount_node.text_content().strip()
+            amount_match = _STORY_REWARD_AMOUNT_PATTERN.match(amount_text)
+            if not amount_match:
+                continue
+            rewards.append((id_match.group(1), int(amount_match.group(1))))
+        return rewards
 
     @staticmethod
     def _parse_period(block_text: str) -> Period:
@@ -133,6 +159,8 @@ class GametoraStory(metaclass=SingletonMeta):
                 cleaned = _EN_TITLE_SUFFIX_PATTERN.sub("", raw).strip()
                 title_en = cleaned or None
 
+        reward_items = self._extract_reward_items(main_ja)
+
         logger.info("Fetched story details for %s from Gametora", key)
         return {
             "period": period,
@@ -140,6 +168,7 @@ class GametoraStory(metaclass=SingletonMeta):
             "icon_url": icon_url,
             "trainee_ids": trainee_ids,
             "support_ids": support_ids,
+            "reward_items": reward_items,
             "source_url_ja": source_url_ja,
             "source_url_en": source_url_en,
         }
@@ -230,6 +259,7 @@ class GametoraStories(metaclass=SingletonMeta):
                 "icon_url": detail["icon_url"],
                 "trainee_ids": detail["trainee_ids"],
                 "support_ids": detail["support_ids"],
+                "reward_items": detail["reward_items"],
                 "references": [STORY_INDEX_URL, source_url_ja, source_url_en],
             })
 
