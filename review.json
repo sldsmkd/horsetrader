@@ -1,16 +1,1 @@
-[
-    {
-        "file": "horsetrader/output/bake.py",
-        "line": 53,
-        "summary": "Bake.events silently drops Banners that lack a UTC period (no matching schedule.yaml entry).",
-        "failure_scenario": "Because Concrete.project excludes unmatched events and Predict is still a passthrough, every unscheduled banner is silently dropped from events.json. Until Predict is implemented, the output is a strict subset of known banners with no log/warning — easy to mistake for complete data.",
-        "wontfix": "intentional - waiting on predict"
-    },
-    {
-        "file": "horsetrader/output/bake.py",
-        "line": 50,
-        "summary": "Bake.events filters to `isinstance(event, Banner)` only; any non-Banner Event in the Timeline is silently dropped.",
-        "failure_scenario": "Bake.timeline collects from every Events collection, but the writer hard-codes Banner. The moment another Events subclass lands (scenarios, CMs as first-class events), it will be loaded into the timeline but never written. Either drop the filter and dispatch on type, or assert that the timeline only contains Banners.",
-        "todo": "we'll fix this when we add another event type"
-    }
-]
+[]

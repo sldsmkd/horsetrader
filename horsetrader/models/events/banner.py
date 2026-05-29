@@ -7,7 +7,7 @@ from typing import Any
 from ethicrawl import ResourceList
 
 from horsetrader.core import Config, Periods, SingletonMeta, StableKey
-from horsetrader.enums import BannerType, CostumeVariants, SupportRarity, SupportType
+from horsetrader.enums import CostumeVariants, SupportRarity, SupportType
 from horsetrader.extractors.gametora import Gametora
 from horsetrader.extractors.gametora.banners import BANNER_INDEX_URL
 from horsetrader.extractors.static import Static
@@ -37,20 +37,41 @@ def _canonical(value: str) -> str:
 @daitaku
 @dataclass
 class Banner(Event):
-    """A gacha banner event with a start/end date, type and guest list."""
+    """A gacha banner event with a start/end date and a guest list.
 
-    type: BannerType = field(default=BannerType.SUPPORT, kw_only=True)
+    Banner is the abstract parent for the two concrete gacha kinds
+    (`SupportBanner`, `TraineeBanner`). Identity is the class itself —
+    isinstance dispatch replaces the old `BannerType` enum, and the
+    serialisation discriminator is derived from the class name in the
+    Eishin mapper layer.
+    """
+
     contents: list[Trainee | Support] = field(default_factory=list, kw_only=True)
     art: Image | None = field(default=None, kw_only=True)
 
     def match(self, query: str) -> bool:
-        needle = query.lower()
         return (
             super().match(query)
-            or needle in self.type.name.lower()
-            or needle in self.type.value.lower()
             or any(c.match(query) for c in self.contents)
         )
+
+
+@daitaku
+@dataclass
+class SupportBanner(Banner):
+    """A support-card gacha banner."""
+
+    def match(self, query: str) -> bool:
+        return super().match(query)
+
+
+@daitaku
+@dataclass
+class TraineeBanner(Banner):
+    """A trainee (character) gacha banner."""
+
+    def match(self, query: str) -> bool:
+        return super().match(query)
 
 
 _TraineeKey = tuple[str, CostumeVariants]
@@ -90,12 +111,12 @@ class Banners(Events[Banner], metaclass=SingletonMeta):
         if not item.key:
             logger.warning("Banner missing key")
             return
-        if item.type == BannerType.TRAINEE:
+        if isinstance(item, TraineeBanner):
             self._trainee_count += 1
             if not item.contents:
                 self._trainee_empty_count += 1
                 logger.warning(f"Trainee banner {item.key} has no resolvable contents")
-        elif item.type == BannerType.SUPPORT:
+        elif isinstance(item, SupportBanner):
             self._support_count += 1
             if not item.contents:
                 self._support_empty_count += 1
@@ -111,6 +132,11 @@ class Banners(Events[Banner], metaclass=SingletonMeta):
 
         return (_add_utc_period,)
 
+    _BANNER_CLASSES: dict[str, type[Banner]] = {
+        "support": SupportBanner,
+        "trainee": TraineeBanner,
+    }
+
     def _fetch_primary(self) -> list[Banner]:
         records = list(Gametora().banners())
         images = self._process_images(records)
@@ -119,16 +145,22 @@ class Banners(Events[Banner], metaclass=SingletonMeta):
 
         banners: list[Banner] = []
         for record in records:
-            contents = self._resolve_contents(record, trainee_idx, support_idx)
+            banner_class = self._BANNER_CLASSES.get(record["banner_type"])
+            if banner_class is None:
+                logger.warning(
+                    "Unknown banner kind %r for %s; skipping",
+                    record.get("banner_type"), record.get("key"),
+                )
+                continue
+            contents = self._resolve_contents(banner_class, record, trainee_idx, support_idx)
             art = images.get(record["image_url"])
             references = References(record.get("references", []))
             if art is not None:
                 references.add(art.references)
             banners.append(
-                Banner(
+                banner_class(
                     key=StableKey(record["key"]),
                     periods=Periods([record["period"]]),
-                    type=record["banner_type"],
                     contents=contents,
                     art=art,
                     correlations=dict(record.get("correlations", {})),
@@ -155,20 +187,20 @@ class Banners(Events[Banner], metaclass=SingletonMeta):
 
     def _resolve_contents(
         self,
+        banner_class: type[Banner],
         record: dict,
         trainee_idx: _TraineeIndexes,
         support_idx: _SupportIndexes,
     ) -> list[Trainee | Support]:
-        banner_type = record["banner_type"]
         record_key = record["key"]
         contents: list[Trainee | Support] = []
 
-        if banner_type == BannerType.TRAINEE:
+        if banner_class is TraineeBanner:
             for pickup in record.get("pickups", []):
                 trainee = self._resolve_trainee_pickup(pickup, record_key, trainee_idx)
                 if trainee is not None:
                     contents.append(trainee)
-        elif banner_type == BannerType.SUPPORT:
+        elif banner_class is SupportBanner:
             banner_start = record["period"].start
             for pickup in record.get("pickups", []):
                 support = self._resolve_support_pickup(

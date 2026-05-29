@@ -10,16 +10,15 @@ from horsetrader.semantics import daitaku
 class Event(TracenModel):
     """Semantic wrapper around `TracenModel` for event dataclasses, claimed by Daitaku.
 
-    DO NOT ADD CODE HERE. This class exists only to give event dataclasses a
-    name in the conventional `models/events/` namespace that matches the
-    `Events` collection wrapper. All shared model behavior belongs in
-    `TracenModel`; per-event behavior belongs in concrete subclasses.
-
     Unlike `Entity` (Digitan — who/what), `Event` is Daitaku — the *when*.
     Every concrete event carries `periods` — at most one `Period` per tzinfo
     (JST from extraction, UTC added at enrichment time, etc.), enforced
     by the `Periods` container. Re-runs are modeled as distinct events with
     their own stable keys, never as multiple periods on the same event.
+
+    Shared model behaviour belongs in `TracenModel` by default. If something
+    is genuinely event-only (the way `periods` is), it can land here;
+    per-event behaviour belongs in concrete subclasses.
     """
 
     periods: Periods

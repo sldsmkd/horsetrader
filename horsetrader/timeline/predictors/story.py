@@ -2,12 +2,14 @@ import bisect
 from datetime import date, datetime
 
 from horsetrader.core import JST, UTC, Period
-from horsetrader.models.events import Anniversary, GoldenWeek, NewYear, Scenario
-from horsetrader.models.events.story import Story
+from horsetrader.info import Logger
+from horsetrader.models.events import Anniversary, GoldenWeek, NewYear, Scenario, Story
 from horsetrader.semantics import matikanefukukitaru
 
 from ..timeline import Timeline
 from .base import Predictor, nearest_weekday
+
+logger = Logger.get(__name__)
 
 _ANCHOR_TYPES = (Anniversary, GoldenWeek, NewYear, Scenario)
 
@@ -54,6 +56,10 @@ class StoryPredictor(Predictor):
         return count
 
     def _pass_interpolate(self) -> int:
+        # TODO(mati): nearest_weekday can drift the snap past the bracket. Vibes,
+        # not statistics — acceptable today. A future "vibe-weight" helper
+        # (weekday * day-of-week confidence * proximity, returning a probability
+        # distribution over candidate days) would replace this hard set.
         valid_weekdays = {d for d, n in self.weekday(Story, UTC).items() if n > 0}
         if not valid_weekdays:
             return 0
@@ -84,6 +90,15 @@ class StoryPredictor(Predictor):
             _, right_jp, right_en = scheduled[pos]
             jp_span = (right_jp - left_jp).total_seconds()
             if jp_span <= 0:
+                continue
+            # Bisect assumes EN follows JP ordinal — if EN ever re-orders past
+            # a neighbour, interpolation produces a backwards date. Skip + warn
+            # rather than stamp garbage.
+            if right_en <= left_en:
+                logger.warning(
+                    "Story %s: EN bracket not monotonic (left=%s, right=%s); skipping",
+                    story.key, left_en, right_en,
+                )
                 continue
             frac = (jp.start - left_jp).total_seconds() / jp_span
             rough = left_en + (right_en - left_en) * frac

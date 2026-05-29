@@ -1,6 +1,8 @@
+from typing import Callable
+
 from horsetrader.core import Japlish, Period
 from horsetrader.models.entities import Character, Support, Trainee
-from horsetrader.models.events import Banner
+from horsetrader.models.events import Banner, Event, Story
 
 
 def _japlish(j: Japlish | None) -> str | None:
@@ -47,15 +49,34 @@ def _map_trainee(t: Trainee) -> dict:
     }
 
 
-def _map_event(b: Banner, period: Period) -> dict:
+def _map_banner(b: Banner, period: Period) -> dict:
+    # Discriminator from the runtime class: SupportBanner → "support",
+    # TraineeBanner → "trainee". Bare Banner shouldn't be instantiated; if it
+    # is, fall back to "banner" so the output isn't empty-stringed.
+    kind = type(b).__name__.lower().removesuffix("banner") or "banner"
     return {
         "start": period.start.date().isoformat(),
         "end": period.end.date().isoformat(),
         "predicted": period.predicted,
-        "type": b.type.name.lower(),
+        "type": kind,
         "key": b.key,
         "contents": [c.key for c in b.contents],
         "image": f"/img/banners/{b.key}.webp",
+    }
+
+
+def _map_story(s: Story, period: Period) -> dict:
+    return {
+        "start": period.start.date().isoformat(),
+        "end": period.end.date().isoformat(),
+        "predicted": period.predicted,
+        "type": type(s).__name__.lower(),
+        "key": s.key,
+        "title": _japlish(s.title),
+        "contents": [],
+        "image": str(s.thumb.url) if s.thumb else None,
+        "banner": str(s.banner.url) if s.banner else None,
+        "art": str(s.art.url) if s.art else None,
     }
 
 
@@ -64,3 +85,19 @@ MAPPERS = {
     Support: _map_support,
     Trainee: _map_trainee,
 }
+
+# Keyed by the base event class — subclasses (SupportBanner, TraineeBanner)
+# resolve via MRO walk in `event_mapper()` so a single Banner entry covers them.
+EVENT_MAPPERS: dict[type[Event], Callable[[Event, Period], dict]] = {
+    Banner: _map_banner,
+    Story: _map_story,
+}
+
+
+def event_mapper(event: Event) -> Callable[[Event, Period], dict] | None:
+    """Resolve the mapper for `event` by walking its MRO."""
+    for cls in type(event).__mro__:
+        mapper = EVENT_MAPPERS.get(cls)
+        if mapper is not None:
+            return mapper
+    return None

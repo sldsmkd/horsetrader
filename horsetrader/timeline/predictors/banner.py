@@ -1,9 +1,8 @@
 from datetime import date, datetime, timedelta
 
 from horsetrader.core import JST, UTC, Period
-from horsetrader.models.entities import Trainee
-from horsetrader.models.events import Anniversary, Banner, GoldenWeek, NewYear, Scenario
-from horsetrader.models.events.story import Story
+from horsetrader.models.entities import Support, Trainee
+from horsetrader.models.events import Anniversary, Banner, GoldenWeek, NewYear, Scenario, Story
 from horsetrader.semantics import matikanefukukitaru
 
 from ..timeline import Timeline
@@ -77,7 +76,7 @@ class BannerPredictor(Predictor):
             if jp is None:
                 continue
             banner_trainees = {str(c.key) for c in event.contents if isinstance(c, Trainee)}
-            banner_supports = {str(c.key) for c in event.contents if not isinstance(c, Trainee)}
+            banner_supports = {str(c.key) for c in event.contents if isinstance(c, Support)}
             for story_jp, story_en, t_keys, s_keys in stories:
                 if abs(story_jp - jp.start) > _STORY_WINDOW:
                     continue

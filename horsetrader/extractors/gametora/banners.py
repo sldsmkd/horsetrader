@@ -4,7 +4,7 @@ from typing import Sequence
 from lxml import html
 
 from horsetrader.core import SingletonMeta
-from horsetrader.enums import BannerType, CacheTime, Sources, SupportRarity, SupportType
+from horsetrader.enums import CacheTime, Sources, SupportRarity, SupportType
 from horsetrader.extractors.helpers import xpath_all, xpath_attr, xpath_first
 from horsetrader.info import Logger
 from horsetrader.semantics import transcend
@@ -136,9 +136,9 @@ class GametoraBanners(metaclass=SingletonMeta):
                 continue
             kind = " ".join(type_node.text_content().split())
             if kind == "Support Card Gacha":
-                banner_type = BannerType.SUPPORT
+                banner_type = "support"
             elif kind == "Character Gacha":
-                banner_type = BannerType.TRAINEE
+                banner_type = "trainee"
             else:
                 continue
 

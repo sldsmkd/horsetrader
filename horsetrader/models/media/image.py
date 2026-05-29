@@ -27,7 +27,7 @@ class Image:
     survives the rewrite and can be folded into entity-level provenance.
     """
 
-    url: Url | Path
+    url: Url
     references: References = field(default_factory=References)
 
     def __post_init__(self):
@@ -80,19 +80,12 @@ class Image:
     def _fetch_content(self) -> bytes | None:
         """Resolve `self.url` to raw bytes, or None if the source is unavailable.
 
-        file:// URLs read from disk via the shared cache (keyed by hashed path)
-        so repeated runs skip the disk read. HTTP/HTTPS delegates to Shakur's
+        file:// URLs read from disk directly. HTTP/HTTPS delegates to Shakur's
         `UmaClient.try_get`, which owns the cache, the 404→sentinel write, and
         the sentinel short-circuit so we don't re-hit missing URLs.
         """
-        if isinstance(self.url, Url) and self.url.scheme == "file":
-            from horsetrader.transport.uma_client_cache import UmaClientCache
-            cached = UmaClientCache.read(self.url, max_age=None)
-            if cached is not None:
-                return cached if isinstance(cached, bytes) else cached.encode()
-            content = Path(self.url.path).read_bytes()
-            UmaClientCache.write(self.url, content)
-            return content
+        if self.url.scheme == "file":
+            return Path(self.url.path).read_bytes()
 
         content = UmaClient().try_get(self.url, cache=CacheTime.BINARY)
         if content is None:
