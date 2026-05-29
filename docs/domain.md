@@ -167,6 +167,46 @@ Keys are kebab-case slugs (`silence-suzuka`); numeric Gametora IDs
 (`1002` etc.) are kept on `Character.gametora_id` for internal joins
 but the primary lookup surface is the key.
 
+## Rewards
+
+Events hand out rewards — carats, scout tickets, crystal shards — modelled
+in `models/rewards/`. Two shapes matter to the domain:
+
+- **Counter rewards** (`CounterReward` subclasses: `Carats`, `TraineeTicket`,
+  `SupportTicket`, `RainbowCrystalShard`, `GoldCrystalShard`) are a flat
+  `amount` of one item. They add and scale *by type* — `Carats(150) +
+  Carats(150) == Carats(300)`, `Carats(150) * 5 == Carats(750)` — and
+  adding two different counters raises rather than silently merging. This
+  is what lets rules stamp `[Carats(80), Carats(80)]` or `[Carats(160)]`
+  interchangeably and lets bake fold them to the same `{key: amount}`.
+
+- **`RewardGenerator`** wraps one counter plus a `repeat` count — a reward
+  paid out repeatedly, typically a **daily login bonus** over an event's
+  run. The ETL deliberately does *not* model the cadence (which days it
+  pays, when each instalment unlocks); that's the client's job. We carry
+  only the unit reward and how many times it lands. `total()` collapses it
+  to `reward * repeat` for callers wanting the headline figure.
+
+  **One generator per event.** Overlapping weekly / new-player / holiday
+  login bonuses are *separate events*, not multiple generators on one
+  event — so the baked shape is a single object, not a list.
+
+**Baked shape.** A `Rewards` list folds (in `output/_mappers.py::_rewards`)
+to a JSON object: counters become `{key: amount}` (same keys summed); a
+`RewardGenerator` serialises under `reward_generator` as
+`{<reward key>: amount, "repeat": n}`, keeping the per-payout amount and
+the repeat separate so the client multiplies.
+
+```json
+{ "carats": 660, "gold_crystal_shard": 3,
+  "reward_generator": { "gold_crystal_shard": 3, "repeat": 5 } }
+```
+
+Which rewards land on which events is policy, owned by
+`models/rewards/rules.py` (e.g. story events stamp 660 carats + 3 gold
+shards off-table; Original-debut banners stamp carats). New policy is a
+new function there, not edits to event aggregators.
+
 ## See also
 
 - [data-sources.md](data-sources.md) for which file or scraper each

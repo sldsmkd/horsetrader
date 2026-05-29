@@ -1,17 +1,15 @@
 import functools
 import re
-from datetime import date, datetime, timezone
 
-import yaml
-
-from horsetrader.core import Config, Period
+from horsetrader.core import Config, UTC, Period
 from horsetrader.info import Logger
+
+from . import store
 
 logger = Logger.get(__name__)
 
 _BANNER_PATTERN = re.compile(r"^story_(\d+)_banner\.png$")
-_KEY_PATTERN = re.compile(r"^story-(\d+)$")
-_EN_HOUR = 22  # Stories drop at 22:00 UTC on content refresh
+_KEY_PATTERN = re.compile(r"^story-\d{3}$")
 
 
 def load() -> list[dict]:
@@ -29,29 +27,42 @@ def load() -> list[dict]:
 
 
 @functools.cache
-def load_en() -> dict[str, Period]:
-    """Return EN story periods keyed by zero-padded stable key (story-NNN)."""
-    path = Config().static / "en.stories.yaml"
-    if not path.exists():
-        return {}
-    with path.open() as f:
-        raw = yaml.safe_load(f) or {}
-    if not isinstance(raw, dict):
-        raise ValueError(f"{path} is empty or not a mapping")
+def load_en() -> dict[str, dict]:
+    """Return EN overlay per stable key.
 
-    out: dict[str, Period] = {}
-    for key, entry in raw.items():
-        m = _KEY_PATTERN.match(str(key))
-        if m is None or not isinstance(entry, dict):
-            continue
-        try:
-            start: date = entry["start"]
-            end: date = entry["end"]
-        except KeyError as exc:
-            logger.warning("Skipping EN story %s: missing %s", key, exc)
-            continue
-        stable = f"story-{int(m.group(1)):03d}"
-        utc_start = datetime(start.year, start.month, start.day, _EN_HOUR, tzinfo=timezone.utc)
-        utc_end = datetime(end.year, end.month, end.day, _EN_HOUR, tzinfo=timezone.utc)
-        out[stable] = Period(start=utc_start, span=utc_end - utc_start)
+    Each value is a dict with ``period`` (UTC :class:`Period`) and ``name``
+    (optional ``str`` — Cygames-official EN title overriding Gametora's
+    scraped fansub).
+    """
+    filename = "stories.yaml"
+    source = str(Config().static / filename)
+    out: dict[str, dict] = {}
+    for key in store.load(filename):
+        if not _KEY_PATTERN.match(str(key)):
+            raise ValueError(
+                f"{source}: story key {key!r} must be a zero-padded stable key "
+                f"matching {_KEY_PATTERN.pattern}"
+            )
+        en_block = store.overlay(filename, key, "en")
+        if en_block is None:
+            raise ValueError(f"{source}: story {key!r} is missing required 'en' block")
+
+        start = store.require_zone(
+            en_block.get("start"), UTC, f"{source}: story {key!r} en.start"
+        )
+        end = store.require_zone(
+            en_block.get("end"), UTC, f"{source}: story {key!r} en.end"
+        )
+        name_raw = en_block.get("name")
+        if name_raw is not None and not isinstance(name_raw, str):
+            raise ValueError(
+                f"{source}: story {key!r} en.name must be a string; got {name_raw!r}"
+            )
+        name = name_raw.strip() if name_raw else None
+
+        out[str(key)] = {
+            "period": Period(start=start, span=end - start),
+            "name": name or None,
+        }
+    logger.info("Loaded %d EN stories from %s", len(out), filename)
     return out

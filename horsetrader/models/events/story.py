@@ -58,13 +58,24 @@ class Stories(Events[Story], metaclass=SingletonMeta):
 
     def _enrichers(self):
 
-        def _add_utc_period(story: Story) -> None:
-            period = Static().story_period(str(story.key))
+        def _apply_en_overlay(story: Story) -> None:
+            key = str(story.key)
+            period = Static().story_period(key)
+            name_override = Static().story_name_override(key)
+            if period is None and name_override is None:
+                return
             if period is not None:
                 story.periods.append(period)
-                story.references.add(str(Config().static / "en.stories.yaml"))
+            if name_override is not None:
+                if story.title is not None:
+                    story.title.en = name_override
+                else:
+                    logger.warning(
+                        "EN name override for %s ignored: no Gametora title to override", key
+                    )
+            story.references.add(str(Config().static / "stories.yaml"))
 
-        return (_add_utc_period,)
+        return (_apply_en_overlay,)
 
     def _fetch_primary(self) -> list[Story]:
         records = list(Gametora().stories())

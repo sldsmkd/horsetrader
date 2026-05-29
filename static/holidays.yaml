@@ -1,0 +1,64 @@
+## Holiday events (consolidated JP + EN source of truth)
+## Each `start:` is a fully-qualified ISO timestamp (date + time + offset).
+## Drop-time conventions encoded in those timestamps:
+##   New Year:    05:00 JST (early release for temple visits — a JP-server exception)
+##   Golden Week: 12:00 JST (standard JP content drop)
+##   EN:          22:00 UTC (canonical "appeared on Global" instant)
+
+## New Year
+new-year-2022:
+  jp:
+    start: 2022-01-01T05:00:00+09:00
+  en:
+    start: 2026-01-27T22:00:00+00:00
+
+new-year-2023:
+  jp:
+    start: 2023-01-01T05:00:00+09:00
+
+new-year-2024:
+  jp:
+    start: 2024-01-01T05:00:00+09:00
+
+new-year-2025:
+  jp:
+    start: 2025-01-01T05:00:00+09:00
+
+new-year-2026:
+  jp:
+    start: 2026-01-01T05:00:00+09:00
+
+## Golden Week
+golden-week-2021:
+  name: Golshi Week
+  jp:
+    start: 2021-04-30T12:00:00+09:00
+  en:
+    start: 2025-08-07T22:00:00+00:00
+
+golden-week-2022:
+  name: Golshi Week
+  jp:
+    start: 2022-04-28T12:00:00+09:00
+  en:
+    start: 2026-04-26T22:00:00+00:00
+
+golden-week-2023:
+  name: Gyaru Week
+  jp:
+    start: 2023-04-28T12:00:00+09:00
+
+golden-week-2024:
+  name: GOCHI Week
+  jp:
+    start: 2024-04-30T12:00:00+09:00
+
+golden-week-2025:
+  name: Gray Week
+  jp:
+    start: 2025-04-30T12:00:00+09:00
+
+golden-week-2026:
+  name: GOLD WEEK
+  jp:
+    start: 2026-04-30T12:00:00+09:00

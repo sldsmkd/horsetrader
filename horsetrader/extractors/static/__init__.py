@@ -29,10 +29,10 @@ class Static(metaclass=SingletonMeta):
         return _scenarios.load()
 
     def holidays(self) -> list[dict]:
-        """Records from jp.holidays.yaml merged with en.holidays.yaml.
+        """Records from holidays.yaml (consolidated JP + EN).
 
-        Each record has key, name, period, source, and an 'en' key (dict | None)
-        with the EN period, name, and source when present.
+        Each record has key, name, period (JP), source, and an 'en' key
+        (dict | None) with the EN period and source when present.
         """
         return _holidays.load()
 
@@ -51,5 +51,13 @@ class Static(metaclass=SingletonMeta):
         return _banners.to_period(*entry)
 
     def story_period(self, key: str) -> Period | None:
-        """UTC Period for the EN story with this stable key, or None if not in en.stories.yaml."""
-        return _stories.load_en().get(key)
+        """UTC Period for the EN story with this stable key, or None if not in stories.yaml."""
+        entry = _stories.load_en().get(key)
+        return entry["period"] if entry else None
+
+    def story_name_override(self, key: str) -> str | None:
+        """Maintainer-curated EN title for this story (fansub default, Cygames-official
+        when shipped), or None if no override is recorded in stories.yaml.
+        """
+        entry = _stories.load_en().get(key)
+        return entry["name"] if entry else None

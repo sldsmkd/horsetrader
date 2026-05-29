@@ -3,7 +3,7 @@ from typing import Callable
 from horsetrader.core import Japlish, Period
 from horsetrader.models.entities import Character, Support, Trainee
 from horsetrader.models.events import Banner, Event, Story
-from horsetrader.models.rewards import Rewards
+from horsetrader.models.rewards import RewardGenerator, Rewards
 
 
 def _japlish(j: Japlish | None) -> str | None:
@@ -17,20 +17,30 @@ def _japlish(j: Japlish | None) -> str | None:
     return str(j)
 
 
-def _rewards(rewards: Rewards | None) -> dict[str, int] | None:
-    # Folds the heterogeneous Reward list back into the {key: value} shape
-    # baked records expect. Same-keyed entries sum so callers can stamp
-    # `[Carats(80), Carats(80)]` *or* `[Carats(160)]` and get the same
-    # output. Non-counter rewards (no `amount`) will need a polymorphic hook
-    # once the sequence-shaped reward lands; until then they're skipped.
+def _rewards(rewards: Rewards | None) -> dict[str, object] | None:
+    # Folds the heterogeneous Reward list back into the shape baked records
+    # expect. Same-keyed counters sum so callers can stamp `[Carats(80),
+    # Carats(80)]` *or* `[Carats(160)]` and get the same output. A
+    # `RewardGenerator` keeps its repeat structure rather than being summed
+    # away — the client owns the payout cadence — so it serialises under
+    # `reward_generator` as a `{<reward key>: amount, "repeat": n}` object.
+    # One generator per event (a weekly, new-player, and holiday bonus that
+    # overlap are three separate events), so a single object, not a list.
     if not rewards:
         return None
-    out: dict[str, int] = {}
+    counters: dict[str, int] = {}
+    generator: dict[str, int] | None = None
     for r in rewards:
+        if isinstance(r, RewardGenerator):
+            generator = {r.reward.key: r.reward.amount, "repeat": r.repeat}
+            continue
         amount = getattr(r, "amount", None)
         if amount is None:
             continue
-        out[r.key] = out.get(r.key, 0) + amount
+        counters[r.key] = counters.get(r.key, 0) + amount
+    out: dict[str, object] = dict(counters)
+    if generator is not None:
+        out["reward_generator"] = generator
     return out or None
 
 

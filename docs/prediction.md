@@ -12,8 +12,8 @@ Every `Event` carries a `Periods` collection — at most one `Period` per
 - a **JP `Period`** for the event's JP run, and
 - a **UTC `Period`** for events whose EN release has already happened or
   been announced (sourced per type from `static/en.banners.yaml`,
-  `en.stories.yaml`, `en.anniversaries.yaml`, `en.holidays.yaml`, and
-  `en.scenarios.yaml`).
+  `en.anniversaries.yaml`, `en.scenarios.yaml`, and the `en:` blocks in
+  `stories.yaml` and `holidays.yaml`).
 
 `Predict.predict(timeline)` runs an ordered chain of predictors. Each
 predictor walks the timeline, looks for events that need a UTC `Period`
@@ -106,8 +106,10 @@ extrapolate from nothing.
 ### `StoryPredictor`
 
 Confirmed story EN dates come from
-[`static/en.stories.yaml`](../static/en.stories.yaml) at enrichment time
-(see `Stories._enrichers` in [`models/events/story.py`](../horsetrader/models/events/story.py)).
+[`static/stories.yaml`](../static/stories.yaml) at enrichment time
+(see `Stories._enrichers` in [`models/events/story.py`](../horsetrader/models/events/story.py));
+the same yaml also carries an optional `en.name:` override for the EN
+title, applied alongside the period.
 The predictor fills the rest in two passes.
 
 Pass 1 (anchor snap): same shape as `BannerPredictor` pass 1. If a JP

@@ -1,5 +1,6 @@
-from dataclasses import dataclass
-from typing import ClassVar
+from collections.abc import Iterator
+from dataclasses import dataclass, replace
+from typing import ClassVar, Self
 
 from horsetrader.semantics import yayoi
 
@@ -37,42 +38,85 @@ class Reward:
 
 @yayoi
 @dataclass(frozen=True)
-class Carats(Reward):
+class CounterReward(Reward):
+    """A plain counter handout — a fixed `amount` of a single item.
+
+    Most in-event rewards (carats, the scout tickets, crystal shards)
+    differ only in `key`/`item_key`; they share this `amount: int` payload
+    so the bake step and `RewardGenerator` can treat any of them uniformly
+    rather than re-declaring the field five times over.
+
+    Counters of the *same* type add and scale by amount — `Carats(150) +
+    Carats(150) == Carats(300)`, `Carats(150) * 5 == Carats(750)` — which
+    is what lets the bake step fold a list and `RewardGenerator` compute a
+    total without caring which counter it's holding.
+    """
+
+    amount: int
+
+    def __add__(self, other: Self) -> Self:
+        if type(self) is not type(other):
+            return NotImplemented
+        return replace(self, amount=self.amount + other.amount)
+
+    def __mul__(self, times: int) -> Self:
+        return replace(self, amount=self.amount * times)
+
+
+@yayoi
+@dataclass(frozen=True)
+class Carats(CounterReward):
     key: ClassVar[str] = "carats"
     item_key: ClassVar[str] = "item-00043"
-    amount: int
 
 
 @yayoi
 @dataclass(frozen=True)
-class TraineeTicket(Reward):
+class TraineeTicket(CounterReward):
     key: ClassVar[str] = "trainee_ticket"
     item_key: ClassVar[str] = "item-00041"
-    amount: int
 
 
 @yayoi
 @dataclass(frozen=True)
-class SupportTicket(Reward):
+class SupportTicket(CounterReward):
     key: ClassVar[str] = "support_ticket"
     item_key: ClassVar[str] = "item-00111"
-    amount: int
 
 
 @yayoi
 @dataclass(frozen=True)
-class RainbowCrystalShard(Reward):
+class RainbowCrystalShard(CounterReward):
     key: ClassVar[str] = "rainbow_crystal_shard"
     item_key: ClassVar[str] = "item-00149"
-    amount: int
 
 
 @yayoi
 @dataclass(frozen=True)
-class GoldCrystalShard(Reward):
+class GoldCrystalShard(CounterReward):
     key: ClassVar[str] = "gold_crystal_shard"
     item_key: ClassVar[str] = "item-00150"
-    amount: int
+
+
+@yayoi
+@dataclass(frozen=True)
+class RewardGenerator(Reward):
+    """A reward handed out on repeat — typically a daily login bonus that
+    pays out once per run-day over an event's span.
+
+    Wraps a single `Reward` and a `repeat` count. The *cadence* (which
+    days it pays, when each instalment unlocks) is the client's concern,
+    not ours; we only carry the unit reward and how many times it lands.
+    `total()` collapses the schedule into one Reward of `amount * repeat`
+    for callers that only want the headline figure.
+    """
+
+    key: ClassVar[str] = "reward_generator"
+    reward: CounterReward
+    repeat: int
+
+    def total(self) -> CounterReward:
+        return self.reward * self.repeat
 
 
 @yayoi
@@ -91,17 +135,27 @@ class Rewards(list[Reward]):
     """
 
 
+def _reward_subclasses(root: type[Reward] = Reward) -> Iterator[type[Reward]]:
+    """Every Reward subclass, depth-first. Recurses so intermediate bases
+    like `CounterReward` don't hide the concrete rewards beneath them from
+    the icon lookup.
+    """
+    for cls in root.__subclasses__():
+        yield cls
+        yield from _reward_subclasses(cls)
+
+
 def reward_for_gametora_icon(icon_id: str) -> type[Reward] | None:
     """Resolve a Gametora `item_icon_<ID>.png` anchor to the Reward class
-    it represents, or `None` if no known subclass claims it. Walks
-    `Reward.__subclasses__()` so new subclasses register themselves on
-    class definition. The lookup is `item_key`-shaped now (`item-00043`)
-    so it goes through the same key space `Items` uses.
+    it represents, or `None` if no known subclass claims it. Walks the
+    Reward subclass tree so new subclasses register themselves on class
+    definition. The lookup is `item_key`-shaped now (`item-00043`) so it
+    goes through the same key space `Items` uses.
     """
     if not icon_id:
         return None
     item_key = f"item-{icon_id}"
-    for cls in Reward.__subclasses__():
+    for cls in _reward_subclasses():
         if cls.item_key == item_key:
             return cls
     return None

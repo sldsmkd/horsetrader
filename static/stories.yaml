@@ -1,0 +1,92 @@
+## Stories — EN overlay for the Gametora-scraped JP corpus.
+## Keys are zero-padded stable keys (story-NNN) matching the downstream form;
+## Gametora's unpadded ordinal lives in `correlations["gametora"]` on the
+## scraped model, not here.
+## Each entry sits under an `en:` block holding FQ ISO timestamps (22:00 UTC, EN
+## content-refresh time) and an optional `name:` field. `en.name:` overrides
+## Gametora's scraped EN title — initially a community fansub; updated by the
+## maintainer when Cygames officially renames a story on EN release.
+
+story-001:
+  en:
+    start: 2025-06-26T22:00:00+00:00
+    end: 2025-07-09T22:00:00+00:00
+    name: "Dashing towards Your Dreams"
+
+story-002:
+  en:
+    start: 2025-07-16T22:00:00+00:00
+    end: 2025-08-01T22:00:00+00:00
+    name: "Brand New Friends"
+
+story-003:
+  en:
+    start: 2025-08-28T22:00:00+00:00
+    end: 2025-09-10T22:00:00+00:00
+    name: "Racing Hearts Beauty in Bloom"
+
+story-004:
+  en:
+    start: 2025-09-21T22:00:00+00:00
+    end: 2025-10-04T22:00:00+00:00
+    name: "Epic Odyssey Uma Quest"
+
+story-005:
+  en:
+    start: 2025-10-14T22:00:00+00:00
+    end: 2025-10-27T22:00:00+00:00
+    name: "Beaches, Bathing Suits & Blazing Trails"
+
+story-006:
+  en:
+    start: 2025-11-24T22:00:00+00:00
+    end: 2025-12-06T22:00:00+00:00
+    name: "Halloween Makeover!"
+
+story-007:
+  en:
+    start: 2025-12-14T22:00:00+00:00
+    end: 2025-12-25T22:00:00+00:00
+    name: "Orchestra in Late Autumn"
+
+story-008:
+  en:
+    start: 2026-01-05T22:00:00+00:00
+    end: 2026-01-20T22:00:00+00:00
+    name: "Hungry for a Miracle"
+
+story-009:
+  en:
+    start: 2026-01-29T22:00:00+00:00
+    end: 2026-02-09T22:00:00+00:00
+    name: "Blossoming Beginnings! New Year's Karuta Showdown"
+
+story-010:
+  en:
+    start: 2026-02-18T22:00:00+00:00
+    end: 2026-03-01T22:00:00+00:00
+    name: "The Peak of Confection"
+
+story-011:
+  en:
+    start: 2026-03-12T22:00:00+00:00
+    end: 2026-03-23T22:00:00+00:00
+    name: "Flying Run-Up!"
+
+story-012:
+  en:
+    start: 2026-04-05T22:00:00+00:00
+    end: 2026-04-18T22:00:00+00:00
+    name: "Tonight at the Ligne Droite"
+
+story-013:
+  en:
+    start: 2026-04-26T22:00:00+00:00
+    end: 2026-05-08T22:00:00+00:00
+    name: "Let Those Cheers Roar! Tracen Cheer Squad"
+
+story-014:
+  en:
+    start: 2026-05-18T22:00:00+00:00
+    end: 2026-05-29T22:00:00+00:00
+    name: "The Promised Hour: Silks & Three Riddles"

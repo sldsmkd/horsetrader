@@ -1,14 +1,3 @@
-## Scenarios
-scenario-1: # URA Finale
-  start: 2025-06-26
-  end: 9999-12-31 # In the grimdark future there will be no more scenarios
-scenario-2: # Unity Cup
-  start: 2025-11-06
-  end: 9999-12-31 # In the grimdark future there will be no more scenarios
-scenario-3: # Trackblazer
-  start: 2026-03-12
-  end: 9999-12-31 # In the grimdark future there will be no more scenarios
-
 ## CHAMPIONS MEETINGS ##
 ## NOTE check official schedule and derive date from last date; always 6 days
 ## 2 days pre qualifier, 2 days group stage, 1 day break, 1 day final
@@ -108,61 +97,4 @@ legend-race-12:
   start: 2026-05-07
   end: 2026-05-16
 
-## STORIES ##
-story-event-1:
-# Dashing towards Your Dreams
-  start: 2025-06-26
-  end: 2025-07-09
-story-event-2:
-# Brand New Friends
-  start: 2025-07-16
-  end: 2025-08-01
-story-event-3:
-# Racing Hearts Beauty in Bloom
-  start: 2025-08-28
-  end: 2025-09-10
-story-event-4:
-# Epic Odyssey Uma Quest
-  start: 2025-09-21
-  end: 2025-10-04
-story-event-5:
-# Beaches, Bathing Suits & Blazing Trails
-  start: 2025-10-14
-  end: 2025-10-27
-story-event-6:
-# Halloween Makeover!
-  start: 2025-11-24
-  end: 2025-12-06
-story-event-7:
-# Orchestra in Late Autumn
-  start: 2025-12-14
-  end: 2025-12-25
-story-event-8:
-# Hungry for a Miracle
-  start: 2026-01-05
-  end: 2026-01-20
-story-event-9:
-# Blossoming Beginnings! New Year's Karuta Showdown
-  start: 2026-01-29
-  end: 2026-02-09
-story-event-10:
-# The Peak of Confection
-  start: 2026-02-18
-  end: 2026-03-01
-story-event-11:
-# Flying Run-Up!
-  start: 2026-03-12
-  end: 2026-03-23
-story-event-12:
-# Tonight at the Ligne Droite
-  start: 2026-04-05
-  end: 2026-04-18
-story-event-13:
-# Let Those Cheers Roar! Tracen Cheer Squad
-  start: 2026-04-26
-  end: 2026-05-08
-story-event-14:
-# The Promised Hour: Silks & Three Riddles
-  start: 2026-05-18
-  end: 2026-05-29
 
