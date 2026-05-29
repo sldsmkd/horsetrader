@@ -46,13 +46,12 @@ class Bake:
         """
         records = []
         for event in timeline:
-            mapper = event_mapper(event)
-            if mapper is None:
-                continue
-            period = next((p for p in event.periods if p.tzinfo == timeline.tz), None)
-            if period is None:
-                continue
-            records.append(mapper(event, period))
+            # Timeline invariant: every event carries a period in its tz, so
+            # `next(...)` always succeeds — a missing one would be a contract
+            # violation upstream (Timeline._validate / Predict) and should
+            # raise here rather than be silently skipped.
+            period = next(p for p in event.periods if p.tzinfo == timeline.tz)
+            records.append(event_mapper(event)(event, period))
         path = Config().site / "static" / "events.json"
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps({"events": records}, ensure_ascii=False, indent=2))

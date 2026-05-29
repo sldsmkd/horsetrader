@@ -86,6 +86,19 @@ MAPPERS = {
     Trainee: _map_trainee,
 }
 
+def _map_unmapped(e: Event, period: Period) -> dict:
+    # Fallback when no concrete mapper is registered. Emits a bare record with
+    # a `{classname}:unmapped` discriminator so the JSON loads cleanly and the
+    # gaps are greppable downstream (`grep unmapped events.json | wc -l`).
+    return {
+        "start": period.start.date().isoformat(),
+        "end": period.end.date().isoformat(),
+        "predicted": period.predicted,
+        "type": f"{type(e).__name__.lower()}:unmapped",
+        "key": e.key,
+    }
+
+
 # Keyed by the base event class — subclasses (SupportBanner, TraineeBanner)
 # resolve via MRO walk in `event_mapper()` so a single Banner entry covers them.
 EVENT_MAPPERS: dict[type[Event], Callable[[Event, Period], dict]] = {
@@ -94,10 +107,11 @@ EVENT_MAPPERS: dict[type[Event], Callable[[Event, Period], dict]] = {
 }
 
 
-def event_mapper(event: Event) -> Callable[[Event, Period], dict] | None:
-    """Resolve the mapper for `event` by walking its MRO."""
+def event_mapper(event: Event) -> Callable[[Event, Period], dict]:
+    """Resolve the mapper for `event` by walking its MRO, falling back to
+    `_map_unmapped` so callers always get a callable."""
     for cls in type(event).__mro__:
         mapper = EVENT_MAPPERS.get(cls)
         if mapper is not None:
             return mapper
-    return None
+    return _map_unmapped
