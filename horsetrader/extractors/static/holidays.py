@@ -30,11 +30,15 @@ def load() -> list[dict]:
             en = {"period": Period(start=en_start), "source": source}
 
         top = store.shared(filename, key)
+        rewards = top.get("rewards")
+        if rewards is not None and not isinstance(rewards, dict):
+            raise ValueError(f"{source}: holiday {key!r} rewards must be a mapping")
         records.append({
             "key": str(key),
             "name": str(top.get("name", "")).strip() or None,
             "period": Period(start=jp_start),
             "source": source,
+            "rewards": rewards,
             "en": en,
         })
     logger.info("Loaded %d holidays from %s", len(records), filename)

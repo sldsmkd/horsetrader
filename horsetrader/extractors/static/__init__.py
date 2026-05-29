@@ -31,7 +31,8 @@ class Static(metaclass=SingletonMeta):
     def holidays(self) -> list[dict]:
         """Records from holidays.yaml (consolidated JP + EN).
 
-        Each record has key, name, period (JP), source, and an 'en' key
+        Each record has key, name, period (JP), source, a 'rewards' key
+        (the curated baked-shape mapping | None), and an 'en' key
         (dict | None) with the EN period and source when present.
         """
         return _holidays.load()

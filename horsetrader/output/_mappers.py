@@ -2,7 +2,7 @@ from typing import Callable
 
 from horsetrader.core import Japlish, Period
 from horsetrader.models.entities import Character, Support, Trainee
-from horsetrader.models.events import Banner, Event, Story
+from horsetrader.models.events import Anniversary, Banner, Event, Holiday, Story
 from horsetrader.models.rewards import RewardGenerator, Rewards
 
 
@@ -114,6 +114,25 @@ def _map_story(s: Story, period: Period) -> dict:
     return out
 
 
+def _map_holiday(e: Event, period: Period) -> dict:
+    # Holidays and anniversaries are calendar events: no contents/art, but they
+    # carry a display name (GoldenWeek's themed title) and curated rewards (the
+    # login-bonus generator). Discriminator is the concrete class name —
+    # "goldenweek" / "newyear" / "anniversary".
+    out: dict = {
+        "start": period.start.date().isoformat(),
+        "end": period.end.date().isoformat(),
+        "predicted": period.predicted,
+        "type": type(e).__name__.lower(),
+        "key": e.key,
+    }
+    if name := getattr(e, "name", None):
+        out["name"] = name
+    if rewards := _rewards(e.rewards):
+        out["rewards"] = rewards
+    return out
+
+
 MAPPERS = {
     Character: _map_character,
     Support: _map_support,
@@ -138,6 +157,8 @@ def _map_unmapped(e: Event, period: Period) -> dict:
 EVENT_MAPPERS: dict[type[Event], Callable[[Event, Period], dict]] = {
     Banner: _map_banner,
     Story: _map_story,
+    Holiday: _map_holiday,
+    Anniversary: _map_holiday,
 }
 
 

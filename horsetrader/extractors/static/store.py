@@ -19,6 +19,11 @@ from horsetrader.info import Logger
 
 logger = Logger.get(__name__)
 
+# The locale namespaces an entry's per-region blocks live under. Everything
+# else at entry top-level is region-agnostic (`shared`), including nested
+# mappings like a `rewards:` block.
+LOCALES = ("jp", "en")
+
 
 @functools.cache
 def load(filename: str) -> dict:
@@ -44,12 +49,13 @@ def overlay(filename: str, key: str, locale: str) -> dict | None:
 
 
 def shared(filename: str, key: str) -> dict:
-    """Region-agnostic fields on this entry — top-level keys whose values are
-    not locale-block mappings."""
+    """Region-agnostic fields on this entry — every top-level key except the
+    per-locale (`jp:` / `en:`) blocks. Nested non-locale mappings (e.g. a
+    `rewards:` block) are returned intact."""
     entry = load(filename).get(key)
     if not isinstance(entry, dict):
         return {}
-    return {k: v for k, v in entry.items() if not isinstance(v, dict)}
+    return {k: v for k, v in entry.items() if k not in LOCALES}
 
 
 def require_zone(value, expected: tzinfo, label: str) -> datetime:

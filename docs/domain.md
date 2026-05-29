@@ -202,10 +202,33 @@ the repeat separate so the client multiplies.
   "reward_generator": { "gold_crystal_shard": 3, "repeat": 5 } }
 ```
 
-Which rewards land on which events is policy, owned by
-`models/rewards/rules.py` (e.g. story events stamp 660 carats + 3 gold
-shards off-table; Original-debut banners stamp carats). New policy is a
-new function there, not edits to event aggregators.
+**Two ways a reward lands on an event:**
+
+- **Inferred policy**, owned by `models/rewards/rules.py` (e.g. story events
+  stamp 660 carats + 3 gold shards off-table; Original-debut banners stamp
+  carats). New policy is a new function there, not edits to event
+  aggregators.
+
+- **Curated data** in `static/*.yaml`. Holiday and anniversary login bonuses
+  are *known*, not inferred — so they're authored directly on the event, as a
+  top-level `rewards:` block written in the **same shape the client reads**
+  (the bake output above). The bonus is identical across regions, so it's a
+  shared field, not per-locale:
+
+  ```yaml
+  golden-week-2021:
+    name: Golshi Week
+    rewards:
+      reward_generator:
+        carats: 564
+        repeat: 10
+    jp: { start: 2021-04-30T12:00:00+09:00 }
+    en: { start: 2025-08-07T22:00:00+00:00 }
+  ```
+
+  `rewards_from_baked()` parses that block back into a `Rewards` — the inverse
+  of `_mappers._rewards`, so the two must stay in sync. It fails loud on an
+  unknown key or malformed shape (curated YAML is the editor's feedback loop).
 
 ## See also
 

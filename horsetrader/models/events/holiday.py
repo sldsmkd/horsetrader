@@ -4,6 +4,7 @@ from horsetrader.core import Periods, SingletonMeta, StableKey
 from horsetrader.extractors.static import Static
 from horsetrader.info import Logger
 from horsetrader.models.core import References
+from horsetrader.models.rewards import rewards_from_baked
 from horsetrader.semantics import daitaku
 
 from .event import Event
@@ -71,12 +72,20 @@ class Holidays(Events[Holiday], metaclass=SingletonMeta):
                 periods.append(en["period"])
                 references.add(en["source"])
 
+            # Login-bonus carats and the like are curated in the YAML (these
+            # land only on holidays/anniversaries, never inferred), and the
+            # bonus is identical across regions — so it's a shared field, not
+            # per-locale.
+            raw_rewards = record.get("rewards")
+            rewards = rewards_from_baked(raw_rewards) if raw_rewards else None
+
             if key.startswith("new-year-"):
                 holidays.append(
                     NewYear(
                         key=StableKey(key),
                         periods=periods,
                         references=references,
+                        rewards=rewards,
                     )
                 )
             elif key.startswith("golden-week-"):
@@ -86,6 +95,7 @@ class Holidays(Events[Holiday], metaclass=SingletonMeta):
                         periods=periods,
                         name=record.get("name"),
                         references=references,
+                        rewards=rewards,
                     )
                 )
             else:

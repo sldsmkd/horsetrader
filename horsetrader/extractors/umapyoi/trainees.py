@@ -30,7 +30,7 @@ class UmapyoiTrainees(metaclass=SingletonMeta):
             return list(cached)
 
         url = f"{_OUTFIT_LIST_URL_PREFIX}/{gametora_id}"
-        response = self._uc.get(url, cache=CacheTime.INDEX)
+        response = self._uc.get(url, cache=CacheTime.LEAF)
         if isinstance(response, bytes):
             raise RuntimeError(f"Expected text response from {url}, got bytes")
 

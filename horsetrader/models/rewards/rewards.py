@@ -145,6 +145,66 @@ def _reward_subclasses(root: type[Reward] = Reward) -> Iterator[type[Reward]]:
         yield from _reward_subclasses(cls)
 
 
+def reward_for_key(key: str) -> type[Reward] | None:
+    """Resolve a serialised reward `key` (e.g. `"carats"`) to the Reward class
+    that bakes under it, or `None`. Walks the subclass tree so new rewards
+    register on definition; intermediate bases like `CounterReward` carry no
+    `key` and so never match.
+    """
+    for cls in _reward_subclasses():
+        if getattr(cls, "key", "") == key:
+            return cls
+    return None
+
+
+def _counter_from_baked(key: str, amount: object, where: str) -> CounterReward:
+    cls = reward_for_key(key)
+    if cls is None or not issubclass(cls, CounterReward):
+        raise ValueError(f"{where}: unknown counter reward key {key!r}")
+    if not isinstance(amount, int):
+        raise ValueError(f"{where}: reward {key!r} amount must be an int; got {amount!r}")
+    return cls(amount)
+
+
+def _generator_from_baked(value: object) -> RewardGenerator:
+    if not isinstance(value, dict):
+        raise ValueError(f"reward_generator must be a mapping; got {value!r}")
+    body = dict(value)
+    if "repeat" not in body:
+        raise ValueError("reward_generator is missing 'repeat'")
+    repeat = body.pop("repeat")
+    if not isinstance(repeat, int):
+        raise ValueError(f"reward_generator repeat must be an int; got {repeat!r}")
+    if len(body) != 1:
+        raise ValueError(
+            f"reward_generator needs exactly one unit reward; got {list(body)}"
+        )
+    (rkey, amount), = body.items()
+    return RewardGenerator(
+        reward=_counter_from_baked(rkey, amount, "reward_generator"), repeat=repeat
+    )
+
+
+def rewards_from_baked(data: dict[str, object]) -> Rewards:
+    """Build a `Rewards` from the baked `{key: value}` shape — the inverse of
+    `horsetrader.output._mappers._rewards`. Plain `{key: amount}` entries become
+    the matching `CounterReward`; a `reward_generator` object becomes a
+    `RewardGenerator`. The two must stay in sync: this is what lets curated
+    `static/*.yaml` carry rewards written in the same shape the client reads.
+
+    Raises on an unknown key or malformed shape — curated static data fails
+    loud so the pipeline run is the editor's feedback loop (see
+    [[feedback_curated_yaml_fails_loud]]).
+    """
+    rewards = Rewards()
+    for key, value in data.items():
+        if key == RewardGenerator.key:
+            rewards.append(_generator_from_baked(value))
+        else:
+            rewards.append(_counter_from_baked(key, value, "rewards"))
+    return rewards
+
+
 def reward_for_gametora_icon(icon_id: str) -> type[Reward] | None:
     """Resolve a Gametora `item_icon_<ID>.png` anchor to the Reward class
     it represents, or `None` if no known subclass claims it. Walks the
