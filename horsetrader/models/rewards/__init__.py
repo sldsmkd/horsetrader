@@ -1,7 +1,8 @@
+from .items import Item, Items
 from .rewards import (
     Carats,
-    GoldShards,
-    RainbowShards,
+    GoldCrystalShard,
+    RainbowCrystalShard,
     Reward,
     Rewards,
     SupportTicket,
@@ -12,8 +13,10 @@ from .rules import stamp_first_original_rewards, stamp_story_off_table_extras
 
 __all__ = [
     "Carats",
-    "GoldShards",
-    "RainbowShards",
+    "GoldCrystalShard",
+    "Item",
+    "Items",
+    "RainbowCrystalShard",
     "Reward",
     "Rewards",
     "SupportTicket",

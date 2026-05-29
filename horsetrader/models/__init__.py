@@ -28,6 +28,7 @@ from .events import (
     Event,
     Events,
 )
+from .rewards import Item, Items
 
 __all__ = [
     # Core
@@ -53,4 +54,7 @@ __all__ = [
     # Banners
     "Banner",
     "Banners",
+    # Items (Yayoi)
+    "Item",
+    "Items",
 ]

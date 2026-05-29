@@ -6,6 +6,7 @@ from horsetrader.semantics import transcend
 from .banners import GametoraBanners
 from .character import GametoraCharacter
 from .characters import GametoraCharacters
+from .items import GametoraItems
 from .story import GametoraStories
 from .support import GametoraSupport
 from .supports import GametoraSupports
@@ -25,6 +26,7 @@ class Gametora(metaclass=SingletonMeta):
         self._banners_scraper = GametoraBanners()
         self._characters_scraper = GametoraCharacters()
         self._character_scraper = GametoraCharacter()
+        self._items_scraper = GametoraItems()
         self._stories_scraper = GametoraStories()
         self._supports_scraper = GametoraSupports()
         self._support_scraper = GametoraSupport()
@@ -34,6 +36,10 @@ class Gametora(metaclass=SingletonMeta):
     def banners(self) -> Sequence[dict]:
         """Fetch JP gacha banner history (support and trainee banners)."""
         return self._banners_scraper.banners()
+
+    def items(self) -> Sequence[dict]:
+        """Fetch item index (icons + JP/EN names) from the Gametora items page."""
+        return self._items_scraper.items()
 
     def stories(self) -> Sequence[dict]:
         """Fetch Story event index."""

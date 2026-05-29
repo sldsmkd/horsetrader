@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING
 from horsetrader.enums import CostumeVariants
 from horsetrader.info import Logger
 
-from .rewards import Carats, GoldShards, Rewards
+from .rewards import Carats, GoldCrystalShard, Rewards
 
 if TYPE_CHECKING:
     from horsetrader.models.events import Banner, Story
@@ -82,4 +82,4 @@ def stamp_story_off_table_extras(stories: "list[Story]") -> None:
         if s.rewards is None:
             s.rewards = Rewards()
         s.rewards.append(Carats(660))
-        s.rewards.append(GoldShards(3))
+        s.rewards.append(GoldCrystalShard(3))

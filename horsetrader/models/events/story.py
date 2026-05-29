@@ -143,15 +143,16 @@ class Stories(Events[Story], metaclass=SingletonMeta):
         reward_items: list[tuple[str, int]], gametora_key: str
     ) -> Rewards | None:
         # One Reward instance per scraped row; the bake mapper sums same-keyed
-        # entries when emitting JSON, so we don't bucket here. Unknown icons
-        # are logged so the rewards.txt mapping can be extended without
-        # silently dropping rows.
+        # entries when emitting JSON, so we don't bucket here. Allowlist by
+        # design: scraped icons without a typed `Reward` subclass are dropped
+        # at debug — the Items collection still has them by item-id if a
+        # consumer wants the long tail.
         rewards = Rewards()
         for icon_id, amount in reward_items:
             cls = reward_for_gametora_icon(icon_id)
             if cls is None:
-                logger.warning(
-                    "Unknown reward icon %s in %s (x%d)", icon_id, gametora_key, amount
+                logger.debug(
+                    "Unmapped reward icon %s in %s (x%d)", icon_id, gametora_key, amount
                 )
                 continue
             rewards.append(cls(amount=amount))
