@@ -6,6 +6,7 @@ from .predictors import (
     AnchorPredictor,
     AnniversaryPredictor,
     BannerPredictor,
+    FallthroughPredictor,
     HolidayPredictor,
     ScenarioPredictor,
     StoryPredictor,
@@ -39,9 +40,12 @@ class Predict:
             ScenarioPredictor(timeline),
             StoryPredictor(timeline),
             BannerPredictor(timeline),
-            # Last: anchored campaigns derive their UTC from the anchor dates the
+            # Anchored campaigns derive their UTC from the anchor dates the
             # predictors above have just stamped (and chain off one another).
             AnchorPredictor(timeline),
+            # Dead last: catch-all that maps any event still missing a UTC period
+            # through a DateMapper built from everything scheduled above.
+            FallthroughPredictor(timeline),
         ):
             key = type(predictor).__name__.lower().removesuffix("predictor")
             self._stats[key] = predictor.predict(timeline)

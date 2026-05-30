@@ -156,6 +156,64 @@ key), snap the banner to that story's EN date at 22:00 UTC. First match
 wins. This catches roughly half the otherwise-orphaned banners — see the
 `_predict` stats for the running tally.
 
+Pass 3 (spacing interpolation): the remainder are marketing-driven orphans
+(typically standalone SR/SSR support promos between story windows) with no
+anchor co-release and no story cast match — but they still sit *between*
+banners passes 1/2 just scheduled. Banners live on a JST timeline, so JP
+order is chronological; for each orphan, bisect between its two nearest
+scheduled banners (confirmed or predicted upstream) and place it at the same
+fraction of the EN window it occupies in the JP window:
+
+```
+frac = (jp - left_jp) / (right_jp - left_jp)
+rough_en = left_en + frac · (right_en - left_en)
+```
+
+That carries the JP spacing across, scaled into UTC. The result is snapped
+to the confirmed EN weekday distribution and stamped at 22:00 UTC. Same
+shape as `StoryPredictor`'s interpolation pass — including the non-monotonic
+bracket guard (skip + warn if `right_en <= left_en`) and the weekday-snap
+drift caveat. Brackets are the pre-pass-3 anchors only; freshly interpolated
+banners don't become anchors for their neighbours, so error doesn't compound.
+The timeline's head is always bracketed (the back-catalogue is fully
+anchored); the unbracketed tail is pass 4's job.
+
+Pass 4 (tail extrapolation): the most recent JP banners sit past the last
+scheduled banner, so they have no right neighbour for pass 3 to bracket
+against. Anchor on the latest scheduled banner (confirmed or predicted) and
+project each remaining orphan forward along the `Timeline.acceleration(JST,
+UTC)` slope:
+
+```
+rough_en = anchor_en + slope · (jp - anchor_jp)
+```
+
+A straight line off the last known point — no right anchor needed.
+Weekday-snapped and stamped at 22:00 UTC like the other passes. Lower
+confidence than bracketed interpolation (it leans entirely on the global
+slope), but the tail has no closer signal. Anything at or before the anchor
+is skipped — that's a pass-3 concern, not an extrapolation. With pass 4 in
+place no banner carrying a JP period is left unpredicted.
+
+### `FallthroughPredictor`
+
+Dead last in the chain — after every dedicated pass, including
+`AnchorPredictor`. Builds a [`DateMapper`](../horsetrader/timeline/datemapper.py)
+from every event already carrying both a JP and a UTC period (confirmed or
+predicted upstream), then maps the JP day of anything *still* missing a UTC
+period through it and stamps `Period(predicted=True)` at 22:00 UTC.
+
+It's the catch-all bucket — cross-type by design (the JST→UTC server warp is
+shared, so a stray story can ride banner/scenario anchors and vice versa),
+no weekday snap, no per-type signal. `DateMapper` does a bisect to the
+bracketing pairs, linear-interpolates, and rounds to the nearest whole day;
+outside the known range it extrapolates off the nearest end segment's local
+slope (deliberately janky past the last anchor — fine for a last resort). The
+more the passes above schedule, the more local slopes it has to work against,
+so its accuracy rises as the timeline fills in. Today it's inert
+(`fallthrough: 0` — nothing reaches it), but it's there to keep new event
+types or edge cases from silently landing in `unpredicted`.
+
 ## Stats
 
 Each predictor returns the count of new predictions it made. `Predict`
@@ -169,14 +227,18 @@ period after the chain:
   "holiday": 8,
   "scenario": 10,
   "story": 39,
-  "banner": 72,
-  "unpredicted": 180
+  "banner": 254,
+  "anchor": 3,
+  "fallthrough": 0,
+  "unpredicted": 0
 }
 ```
 
-`unpredicted > 0` is informational, not a failure — it's mostly banners
-with no anchor co-release and no story tie-in within the ±7-day window
-(orphan SR/SSR support banners between story drops).
+`unpredicted` is currently 0: passes 1–3 cover anchored, story-tied and
+bracketed banners, and pass 4 extrapolates the tail. A non-zero value isn't
+a failure — it just means some event carries a JP period the chain couldn't
+route (e.g. a banner with no JP period at all, or a future event type with
+no predictor) — but banners no longer contribute to it.
 
 ## Deferred / future work
 
@@ -193,15 +255,6 @@ regression: a list of rule functions that adjust predicted dates after
 the predictor chain runs. Rules are individual, named, and toggleable
 — don't bake them into the predictors themselves, and don't pre-implement
 any until the user formalises one.
-
-### BannerPredictor pass 3 (planned)
-
-Banners that share no JP date with an anchor and whose contents don't
-fall inside any story's cast still slip through — typically standalone
-SR/SSR support promos between story windows. A general acceleration-based
-projection (mirroring `HolidayPredictor`'s use of `Timeline.predict()`)
-would catch these but produces lower-confidence dates; defer until a
-consumer needs them.
 
 ### Cross-predictor anchor unification
 
