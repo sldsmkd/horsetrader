@@ -10,7 +10,7 @@ from horsetrader.core import Config, Period, Periods, SingletonMeta, StableKey
 from horsetrader.enums import CostumeVariants, SupportRarity, SupportType
 from horsetrader.extractors.gametora import Gametora
 from horsetrader.extractors.gametora.banners import BANNER_INDEX_URL
-from horsetrader.extractors.static import Static
+from horsetrader.extractors.static import Static, store
 from horsetrader.info import Logger
 from horsetrader.models.core import References
 from horsetrader.models.entities import Support, Supports, Trainee, Trainees
@@ -145,7 +145,7 @@ class Banners(Events[Banner], metaclass=SingletonMeta):
             period = Static().banner_period(banner.key)
             if period is not None:
                 banner.periods.append(period)
-                banner.references.add(str(Config().static / "en.banners.yaml"))
+                banner.references.add(store.source())
 
         return (_add_utc_period,)
 

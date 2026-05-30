@@ -44,7 +44,7 @@ zone-tagged `datetime`, not the date string.
 JP scenarios release on a fixed cadence: **the 24th of a month**, on or
 near the **anniversary** (late Feb / late Aug for major drops, occasional
 mid-cycle scenarios on the 24th of other months). See
-[`static/jp.scenarios.yaml`](../static/jp.scenarios.yaml) — the `start`
+[`static/yaml/scenarios.yaml`](../static/yaml/scenarios.yaml) — the `jp.start`
 dates make the pattern obvious.
 
 EN doesn't follow the 24th cadence. Releases land on weekdays that
@@ -73,9 +73,10 @@ our data (days 0–3 are pre-registration and untracked):
 
 CM track data — venue, surface, distance, direction, condition, season,
 weather — is currently MVP scaffolding: scraped from Gametora's JP event
-pages with manual overrides in `static/import/cm_tracks.yaml` for venues
-Gametora can't resolve (US venues like Del Mar, Santa Anita). When the
-races expansion ships, real track metadata will come from wikiwiki /
+pages, with manual venue overrides for the ones Gametora can't resolve (US
+venues like Del Mar, Santa Anita). Those overrides aren't wired into the new
+ETL yet — the old `cm_tracks.yaml` sits in `references/import/` for reference.
+When the races expansion ships, real track metadata will come from wikiwiki /
 wikiru and replace both. Don't over-engineer `TrackInfo` in the meantime.
 
 ### The Christmas Oguri rule
@@ -130,7 +131,7 @@ the pipeline for two reasons:
 **Images.** Three per story: `story-NNN.webp` (art — reconstructed from the
 `thumb_title` URL), `story-NNN-thumb.webp` (icon from the event block), and
 `story-NNN-banner.webp` (banner matched by date-sort ordinal against
-`references/stories/story_NN_banner.png` reference files).
+`static/img/stories/story_NN_banner.png` reference files).
 
 **Trainee resolution.** The character slug from the Gametora href *is* the
 character's stable key. `Trainees().search(char_slug)` hits via
@@ -234,8 +235,12 @@ the repeat separate so the client multiplies.
 Some campaigns don't have a date of their own — they're defined *relative* to a
 tentpole. A **New Year Countdown** runs the week up to New Year; an
 **Anniversary Celebration** and its **Encore** tile the days after the
-anniversary. These are curated in [`static/anchored.yaml`](../static/anchored.yaml)
-as `AnchoredEvent`s and never carry an explicit date.
+anniversary. They're curated as `AnchoredEvent`s **inline in the consolidated
+static files**, beside the anchor they hang off (the New Year ones sit in
+[`static/yaml/holidays.yaml`](../static/yaml/holidays.yaml) next to `anchor-new-year-*`),
+and gathered from the merged store by their `before-`/`during-`/`after-` key
+prefix — file location doesn't matter. They never carry an explicit date.
+(Authoring crib: [`static/yaml/anchors.txt`](../static/yaml/anchors.txt).)
 
 Each entry pins to **one edge** of an `anchor` (the stable key of another
 event) and runs for a `duration`:
@@ -247,9 +252,13 @@ event) and runs for a `duration`:
   that runs *during* a multi-part celebration) and resolves to the same
   placement. The key prefix is load-bearing — it sets the direction.
 
-The prefix is deliberately load-bearing rather than a separate field: this file
-gets edited only a few times a year, so a self-evident key you can copy from a
+The prefix is deliberately load-bearing rather than a separate field: these get
+edited only a few times a year, so a self-evident key you can copy from a
 neighbour beats one that sends you to the docs or loader to learn a convention.
+It's also the selector: every loader picks its rows from the merged store by
+key pattern (`store.select(...)`), so the anchored loader claims
+`^(before|during|after)-` while the region loaders claim disjoint shapes — no
+filename involved, the prefix alone routes each entry to its loader.
 
 `duration` is ISO-8601 restricted to fixed-length components
 (weeks/days/hours/minutes/seconds); years and months are rejected because they

@@ -112,8 +112,18 @@ class Config(metaclass=SingletonMeta):
 
     @property
     def static(self) -> Path:
-        """Path to the static / data directory in the ETL repo (hand-curated YAML files)."""
+        """Path to the static / data directory in the ETL repo (hand-curated assets)."""
         return self._repo_root / "static"
+
+    @property
+    def static_yaml(self) -> Path:
+        """Path to the consolidated static YAML corpus (``static/yaml/``).
+
+        Every `*.yaml` here is auto-loaded and merged by the store — no
+        whitelist. Reference-only / not-yet-wired files live in `static/pending/`
+        instead, outside the loaded set.
+        """
+        return self.static / "yaml"
 
     @property
     def references(self) -> Path:

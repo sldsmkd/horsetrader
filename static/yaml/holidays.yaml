@@ -1,18 +1,8 @@
-## Holiday anchors (consolidated JP + EN source of truth)
-## Each `start:` is a fully-qualified ISO timestamp (date + time + offset).
-## Drop-time conventions encoded in those timestamps:
-##   New Year:    05:00 JST (early release for temple visits — a JP-server exception)
-##   Golden Week: 12:00 JST (standard JP content drop)
-##   EN:          22:00 UTC (canonical "appeared on Global" instant)
-##
-## These are `anchor-*` points: span-0 launches that anchored events (in
-## static/anchored.yaml) hang their lead-ins / extensions off. The point itself
-## carries only its date(s) and any curated login-bonus rewards — display names
-## (Golden Week's themed title) ride on the anchored spans, not here.
-
-## New Year
-## Lead-in / extension campaigns (New Year Countdown, Celebration, …) live in
-## static/anchored.yaml — they pin to these launches rather than carry dates.
+# NY 2022
+before-new-year-2022:
+  anchor: anchor-new-year-2022
+  name: New Year Countdown
+  duration: P7D
 
 anchor-new-year-2022:
   jp:
@@ -20,6 +10,18 @@ anchor-new-year-2022:
   en:
     start: 2026-01-27T22:00:00+00:00
 
+during-new-year-2022:
+  anchor: anchor-new-year-2022
+  name: New Year Celebration
+  duration: P7D
+
+after-new-year-2022-hangover:
+  anchor: during-new-year-2022
+  name: New Year Hangover
+  duration: P7D
+
+
+# NY 2023
 anchor-new-year-2023:
   jp:
     start: 2023-01-01T05:00:00+09:00
@@ -27,8 +29,6 @@ anchor-new-year-2023:
 anchor-new-year-2024:
   jp:
     start: 2024-01-01T05:00:00+09:00
-
-
 
 anchor-new-year-2025:
   jp:

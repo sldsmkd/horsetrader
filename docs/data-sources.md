@@ -12,8 +12,8 @@ place that talks to the network — everything else routes through `UmaClient`.
 | Gametora | HTTP + Selenium (some pages are JS-rendered) | Characters, Trainees, Supports, Banners, Stories, JP event dates | `@transcend` (uses `@shakur`) |
 | Umapyoi | HTTP | Character / Trainee enrichment | `@transcend` (uses `@shakur`) |
 | `static/*.yaml` | Local YAML | Consolidated per-event corpora (JP + EN dates, names, overrides); JP scenarios corpus | `@transcend` (`extractors/static/`) |
-| `references/*.jpg` | Local images | Human-eye source for `static/en.*.yaml` updates | (manual) |
-| `references/stories/*.png` | Local images | Story event banners, consumed by ETL via `extractors/static/story.py` | (manual) |
+| `references/announcements/*.jpg` | Local images | Human-eye source for `static/en.*.yaml` updates | (manual) |
+| `static/img/stories/*.png` | Local images | Story event banners, consumed by ETL via `extractors/static/stories.py` | (manual) |
 
 Cache lives at `$HORSETRADER_TARGET/.cache/`. Binary assets and index pages
 have separate TTLs (see [`horsetrader/enums/CacheTime`](../horsetrader/enums/)).
@@ -47,7 +47,7 @@ Extractors live in [`horsetrader/extractors/gametora/`](../horsetrader/extractor
   12:00 JST — see [domain.md](domain.md) for why).
 
 The **JS-rendered scenarios page is off-limits** — see
-[`static/jp.scenarios.yaml`](#static-yaml-files) below.
+[`static/yaml/scenarios.yaml`](#static-yaml-files) below.
 
 ## Umapyoi
 
@@ -58,25 +58,26 @@ appropriate `_enrich_…` method on each `TracenModels`.
 
 ## Static YAML files
 
-Hand-curated and scraper-immune. All live under
-[`static/`](../static/) and are read via `Config().static`.
+Hand-curated and scraper-immune. The loaded corpus lives under
+[`static/yaml/`](../static/yaml/) (read via `Config().static_yaml`); **every
+`*.yaml` there is auto-merged by the store — no whitelist.** Reference-only or
+not-yet-wired files sit in [`static/pending/`](../static/pending/) instead,
+outside the loaded set.
 
 | File | Status | Purpose |
 | --- | --- | --- |
-| [`static/holidays.yaml`](../static/holidays.yaml) | **Consolidated.** | Holiday anchors: `anchor-new-year-YYYY` and `anchor-golden-week-YYYY` entries, an optional region-agnostic `rewards:` (curated login bonus) and `jp:` / `en:` blocks each holding a FQ ISO `start:`. Read by `extractors/static/holidays.py`; loaded with anniversaries into the unified `Anchors` collection. Golden Week's themed name now rides the anchored spans, not the anchor (the `name:` lines are kept commented as a hand-off). |
-| [`static/stories.yaml`](../static/stories.yaml) | **Consolidated.** | EN overlay for the Gametora-scraped JP story corpus. Each entry has an `en:` block with FQ ISO `start:` / `end:` (22:00 UTC) and an optional `name:` overriding Gametora's scraped EN title (fansub default; replaced with the Cygames-official title when shipped). YAML keys are zero-padded stable keys (`story-NNN`). Joined by `Static.story_period()` + `Static.story_name_override()`. |
-| [`static/en.banners.yaml`](../static/en.banners.yaml) | **Manually curated.** | EN confirmed banner periods, keyed by `<id>-banner`. Read by `extractors/static/banners.py`; stamps a UTC `Period` onto the matching `Banner` at extraction time. |
-| [`static/jp.scenarios.yaml`](../static/jp.scenarios.yaml) | **Manually curated; queued for merge.** | Full JP scenarios corpus, keyed `scenario-N` (release-order integer). Carries `en` title (fansub), `jp` title, JP `start`, and `art` URL. Used directly because Gametora's scenarios page is JS-rendered, brittle, and not worth scraping. Will merge into a consolidated `scenarios.yaml` following the [shape below](#consolidated-yaml-shape). |
-| [`static/en.scenarios.yaml`](../static/en.scenarios.yaml) | **Manually curated; queued for merge.** | EN scenario titles (official Cygames) and confirmed EN `start`. Joined onto `jp.scenarios.yaml` via the `scenario-N` key by `Static.scenarios()`. The `en:` field here is the **official** EN title and overrides the fansub from `jp.scenarios.yaml` once merged. |
-| [`static/jp.anniversaries.yaml`](../static/jp.anniversaries.yaml) | **Manually curated; queued for merge.** | JP anniversary corpus, keyed `anchor-anni-N_M` (e.g. `anchor-anni-1_0`, `anchor-anni-0_5`). Drops at 12:00 JST. Loaded (with holidays) into the unified `Anchors` collection. Queued for merge into consolidated `anniversaries.yaml`. |
-| [`static/en.anniversaries.yaml`](../static/en.anniversaries.yaml) | **Manually curated; queued for merge.** | EN confirmed anniversary `start` dates, same `anchor-anni-N_M` keys. Joined by `Static.anniversaries()`. |
-| [`static/_en.schedule.yaml`](../static/_en.schedule.yaml) | **Reference only — out of scope.** | Mainline EN event + CM dates from the Cygames monthly announcements (image archive in [`references/`](../references/)). Underscore prefix marks it as reference documentation, not pipeline input — kept for maintainer lookup but not consumed by any loader. |
+| [`static/yaml/holidays.yaml`](../static/yaml/holidays.yaml) | **Consolidated.** | Holiday anchors: `anchor-new-year-YYYY` and `anchor-golden-week-YYYY` entries, an optional region-agnostic `rewards:` (curated login bonus) and `jp:` / `en:` blocks each holding a FQ ISO `start:`. Read by `extractors/static/holidays.py`; loaded with anniversaries into the unified `Anchors` collection. Also hosts the New Year anchored events inline (`before-`/`during-`/`after-`). Golden Week's themed name now rides the anchored spans, not the anchor (the `name:` lines are kept commented as a hand-off). |
+| [`static/yaml/stories.yaml`](../static/yaml/stories.yaml) | **Consolidated.** | EN overlay for the Gametora-scraped JP story corpus. Each entry has an `en:` block with FQ ISO `start:` / `end:` (22:00 UTC) and an optional `name:` overriding Gametora's scraped EN title (fansub default; replaced with the Cygames-official title when shipped). YAML keys are zero-padded stable keys (`story-NNN`). Joined by `Static.story_period()` + `Static.story_name_override()`. |
+| [`static/yaml/banners.yaml`](../static/yaml/banners.yaml) | **Consolidated.** | EN confirmed banner periods, keyed by `<id>-banner`, each under an `en:` block with FQ ISO `start` / `end` (22:00 UTC). Read by `extractors/static/banners.py` (via the merged store); stamps a UTC `Period` onto the matching `Banner` at extraction time. A banner absent here stays predicted. |
+| [`static/yaml/scenarios.yaml`](../static/yaml/scenarios.yaml) | **Consolidated.** | Full JP scenarios corpus + EN overlay, keyed by zero-padded stable key (`scenario-NN`, release order). Each entry has a `jp:` block (`name`, JP `start` 12:00 JST), an `en:` block (`name` = EN title; `start` 22:00 UTC, present only once it's on Global), and a region-agnostic `art:` URL. Read by `extractors/static/scenarios.py`. Used directly because Gametora's scenarios page is JS-rendered, brittle, and not worth scraping. |
+| [`static/yaml/anniversaries.yaml`](../static/yaml/anniversaries.yaml) | **Consolidated.** | JP anniversary corpus + EN overlay, keyed `anchor-anni-N_M` (e.g. `anchor-anni-1_0`, `anchor-anni-0_5`). Each entry has a `jp:` block (`start` 12:00 JST) and an optional `en:` block (`start` 22:00 UTC, present only once on Global). Read by `extractors/static/anniversaries.py`; loaded with holidays into the unified `Anchors` collection. |
+| [`static/pending/_en.schedule.yaml`](../static/pending/_en.schedule.yaml) | **Reference only — out of scope.** | Mainline EN event + CM dates from the Cygames monthly announcements (image archive in [`references/`](../references/)). Lives in `static/pending/`, which is what keeps it out of scope — reference documentation, not pipeline input, not consumed by any loader. |
 
 ### Consolidated yaml shape
 
-`holidays.yaml` and `stories.yaml` already follow it; `anniversaries.yaml`
-and `scenarios.yaml` will when they're merged from their split forms.
-The pattern:
+`holidays.yaml`, `stories.yaml`, `scenarios.yaml`, `anniversaries.yaml`, and
+`banners.yaml` all follow it (the split `jp.*` / `en.*` forms are fully
+retired). The pattern:
 
 ```yaml
 <stable-key>:
@@ -103,16 +104,19 @@ Rules:
   are documented in each file's header comment but enforced by the data.
   Loader cross-validates that the offset matches the block's expected
   zone (`jp.start.tzinfo == JST`, `en.start.tzinfo == UTC`).
-- **Names follow a precedence rule**: a `jp:`-side name is the JP title /
-  fansub default; an optional `en.name:` is the Cygames-official EN
-  translation and overrides the default at consumer time. See
-  `static/jp.scenarios.yaml` for the canonical fansub-vs-official split
-  that defined this rule.
+- **Names**: `jp.name` is the JP title; `en.name` is the EN title, preferred
+  for EN display when present. (Whether a given `en.name` is a community fansub
+  or the official Cygames wording is a data-quality matter, not the loader's
+  concern — it just reads the string.) Stories differ in *mechanism*:
+  `stories.yaml`'s `en.name` overrides the live Gametora-scraped title at
+  extraction, rather than sitting beside a curated JP name.
 - **Region-agnostic fields** (e.g. holidays' `rewards:` login-bonus block,
-  the hypothetical scenario `art:` URL) sit at the top level alongside the
-  region blocks. Loaders pull these via `store.shared()`.
-- **`_*.yaml`** filenames (leading underscore) are reference-only —
-  kept for maintainer lookup, not read by any loader.
+  scenarios' `art:` URL) sit at the top level alongside the region blocks.
+  Loaders pull these via `store.shared()`.
+- **Scope is the directory, not the filename.** Everything in `static/yaml/`
+  loads — no whitelist, no per-file marking. Out-of-scope files live elsewhere:
+  `static/pending/` (not-yet-wired) and `references/import/` (pre-split YAML
+  scraps kept for reference).
 - **Fail loud**: curated YAML is hand-typed. Validation failures raise
   `ValueError` with `<path>: <entity> '<key>' <field> ...` so the
   editor sees the error on the next pipeline run while the YAML is
@@ -121,59 +125,116 @@ Rules:
 #### Loader split: store primitives vs. entity logic
 
 [`extractors/static/store.py`](../horsetrader/extractors/static/store.py)
-holds the small generic layer:
+holds the generic layer — **a single merged keystore.** It globs every
+`*.yaml` in `static/yaml/` (no whitelist — drop a file in and it's loaded) and
+merges them into one in-memory corpus keyed by stable key. **Filenames are
+organisational, never semantic:** a key resolves the same wherever it's
+authored, and loaders ask for *their* entries **by key pattern**, not by file —
+so entries can move between files freely. The API:
 
-- `load(filename)` — cached YAML I/O + structural mapping check.
-- `overlay(filename, key, locale)` — per-(key, locale) block, or `None`.
-- `shared(filename, key)` — region-agnostic top-level fields on the entry.
+- `select(pattern)` — the keys matching a stable-key shape (e.g.
+  `^scenario-\d{2}$`), corpus-wide. Each loader's pattern claims a disjoint
+  slice; this is the only "which rows are mine" query.
+- `overlay(key, locale)` — per-(key, locale) block, or `None`.
+- `shared(key)` — region-agnostic top-level fields on the entry.
+- `find(key)` — the raw entry for any stable key (cross-corpus lookup).
+- `source()` — generic provenance (the corpus directory); loaders and models
+  never name a file.
+- `load(filename)` — low-level single-file parser; backs the merge.
 - `require_zone(value, expected, label)` — fail-loud tz validator.
 
-Each entity loader (`holidays.py`, `stories.py`, future
-`anniversaries.py` / `scenarios.py`) drives those primitives with its
-own key pattern, required regions, and output container shape. The
-philosophy is **work from the back**: start with the smallest shared
-primitives; lift more into `store.py` only when 3 of 4 loaders rhyme on
-a pattern.
+A stable key defined in two files fails loud at merge time (keys are
+globally unique by design). Each entity loader (`holidays.py`,
+`anniversaries.py`, `scenarios.py`, `stories.py`, `banners.py`, and
+`anchored.py` for the `before-`/`during-`/`after-` events) drives these with
+its own `_KEY_PATTERN`, required regions, and output container shape. The
+philosophy is **work from the back**: the merge lifted itself into
+`store.py` only once the region loaders rhymed on the per-region shape.
 
 #### Per-file extras
 
-- Scenario keys: `scenario-N`, **release-order** integers. The display
-  order on Gametora occasionally differs from release order — the
-  `art:` URLs for `scenario-3` and `scenario-4` are deliberately swapped
+- Scenario keys: `scenario-NN`, zero-padded **release-order** integers. The
+  display order on Gametora occasionally differs from release order — the
+  `art:` URLs for `scenario-03` and `scenario-04` are deliberately swapped
   relative to Gametora's display order. Don't "fix" them.
-- Banner keys (`en.banners.yaml`): `<gametora-id>-banner` (e.g.
+- Banner keys (`banners.yaml`): `<gametora-id>-banner` (e.g.
   `30002-banner`).
-- "Forever" sentinel: `9999-12-31` for open-ended scenarios (split-file
-  scenarios only — date-only until that file merges).
 
-### Legacy / queued imports
+### Out-of-scope holding pens
 
-[`static/import/`](../static/import/) holds the older, pre-split tree's
-data files: `missions.yaml`, `login_bonus.yaml`, `free_pulls.yaml`,
-`cm_tracks.yaml`, `search_aliases.yaml`, `schedule.yaml`. None of these
-are currently read by the new ETL — they're staged for porting. When
-wiring one in, decide its status (manual vs. auto-generated) and add a
-row above with a link to whichever extractor consumes it.
+Two homes for YAML the ETL doesn't read:
 
-## `references/` images
+- [`static/pending/`](../static/pending/) — reference docs and anything staged
+  for a near-term port (e.g. `_en.schedule.yaml`).
+- [`references/import/`](../references/import/) — loose scraps of pre-split
+  YAML (`missions.yaml`, `login_bonus.yaml`, `free_pulls.yaml`,
+  `cm_tracks.yaml`, `search_aliases.yaml`, `schedule.yaml`): documentation /
+  reference the maintainer will draw on as scope expands, not a structured
+  port-queue. Lives under `references/` (the human-eye grab bag), not `static/`.
+
+When wiring one in, move it into `static/yaml/` (where the store auto-picks it
+up), give it the region-namespace shape, and add a row above describing it.
+
+## `references/announcements/`
 
 Archive of the monthly schedule images Cygames publishes in their
 announcements. **Not consumed by the ETL** — they're for the maintainer to
-eyeball when updating `static/en.banners.yaml` and `static/_en.schedule.yaml`.
+eyeball when updating `static/yaml/banners.yaml` and `static/pending/_en.schedule.yaml`.
 Naming convention: `YYYY_MM.jpg`, with named variants for special posts
 (e.g. `2025_06_extra_banners.jpg`, `2026_04_golshi_week.jpg`). Don't
 delete them after a YAML update — having the source-of-truth screenshot
 saves a future "where did this date come from?" investigation.
 
-### `references/stories/`
+### Sourcing and what they drive
+
+Cygames posts the EN-server "Release Schedule" image to their socials on the
+**1st of each month**. Easiest way to grab it is to google the month and pull
+it from the Reddit post. This image is the **source of truth for every EN date
+and EN localisation** of anything it contains — Legend Races, trainee/support
+banners, Champions Meeting cups, story events, etc. — each with an explicit
+`HH:MM, DD Mon – HH:MM, DD Mon (UTC)` window.
+
+Workflow (same monthly cadence as the story banners above):
+
+1. Save the image here as `YYYY_MM.jpg` (named variant for special posts).
+2. Sleuth on [gametora](https://gametora.com/umamusume) to map each entry to
+   its stable id / ordinal.
+3. Update the relevant curated YAMLs under `static/` (`banners.yaml`,
+   `anniversaries.yaml`, `scenarios.yaml`, `stories.yaml`, …) with the
+   EN windows and any official localised names.
+
+## `references/apologems/`
+
+Screenshots of the irregular gifts Cygames drops into the in-game Presents box,
+named by date (`DD-MM-YYYY.png`). Contents vary — carats plus assorted items
+(Alarm Clocks, Training Boosters, etc.) — under various reasons ("…Giveaway",
+maintenance compensation, bug fixes). *"Apologems"* is just the community
+nickname for the whole catch-all. **Not consumed by the ETL** — these drops are
+discretionary and have no predictable cadence, so there's nothing to model
+today. Kept as a timestamped archive in case a pattern ever emerges worth
+analysing.
+
+Suspected pattern (unconfirmed, not yet traced): these may track **JP marketing
+beats** that don't map onto global's smaller numbers, so global rebrands them as
+generic "…Giveaway" presents that turn up whenever the JP beat lands — which is
+why they look random here. The triggers look eclectic, though: some are
+systematic and calendar-traceable (download-count milestones — "7 million
+downloads!"), others are essentially unpredictable real-world one-offs (e.g. the
+Cygames president's racehorse winning a major race). So expect *partial*
+correlation against the JP milestone/announcement calendar at best, not a clean
+curve — and a low-priority, low-volume source either way.
+
+## `static/img/stories/`
 
 Story event banner images, named `story_NN_banner.png` (1-based integer
-ordinal, no zero-pad requirement). **Consumed by the ETL** via
-`extractors/static/story.py`. `Stories._assign_banners()` date-sorts all
-story events and pairs them with the reference files in ordinal order, then
-publishes each via `CurrenChan` as `story-NNN-banner.webp`. When a new
-story event is added to the game, drop its banner PNG here — the ordinal
-drives the stable-key match, so filename order must match release order.
+ordinal, no zero-pad requirement). Unlike the `references/` images these are
+**consumed by the ETL** via `extractors/static/stories.py`, which is why they
+live under `static/` (pipeline input) rather than `references/` (human-eye
+only). `Stories._assign_banners()` date-sorts all story events and pairs them
+with these files in ordinal order, then publishes each via `CurrenChan` as
+`story-NNN-banner.webp`. When a new story event is added to the game, drop its
+banner PNG here — the ordinal drives the stable-key match, so filename order
+must match release order.
 
 ## The transport boundary
 

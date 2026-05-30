@@ -13,16 +13,16 @@ _KEY_PATTERN = re.compile(r"^story-\d{3}$")
 
 
 def load() -> list[dict]:
-    """Return story banner records from references/stories/, sorted by ordinal."""
-    refs_dir = Config().references / "stories"
+    """Return story banner records from static/img/stories/, sorted by ordinal."""
+    img_dir = Config().static / "img" / "stories"
     records = []
-    for path in refs_dir.glob("story_*_banner.png"):
+    for path in img_dir.glob("story_*_banner.png"):
         m = _BANNER_PATTERN.match(path.name)
         if m is None:
             continue
         records.append({"n": int(m.group(1)), "banner_path": path})
     records.sort(key=lambda r: r["n"])
-    logger.info("Found %d story banner(s) in references", len(records))
+    logger.info("Found %d story banner(s) in static/img/stories", len(records))
     return records
 
 
@@ -32,18 +32,12 @@ def load_en() -> dict[str, dict]:
 
     Each value is a dict with ``period`` (UTC :class:`Period`) and ``name``
     (optional ``str`` — Cygames-official EN title overriding Gametora's
-    scraped fansub).
+    scraped fansub). Selected by the ``story-NNN`` key shape, corpus-wide.
     """
-    filename = "stories.yaml"
-    source = str(Config().static / filename)
+    source = store.source()
     out: dict[str, dict] = {}
-    for key in store.load(filename):
-        if not _KEY_PATTERN.match(str(key)):
-            raise ValueError(
-                f"{source}: story key {key!r} must be a zero-padded stable key "
-                f"matching {_KEY_PATTERN.pattern}"
-            )
-        en_block = store.overlay(filename, key, "en")
+    for key in store.select(_KEY_PATTERN):
+        en_block = store.overlay(key, "en")
         if en_block is None:
             raise ValueError(f"{source}: story {key!r} is missing required 'en' block")
 
@@ -64,5 +58,5 @@ def load_en() -> dict[str, dict]:
             "period": Period(start=start, span=end - start),
             "name": name or None,
         }
-    logger.info("Loaded %d EN stories from %s", len(out), filename)
+    logger.info("Loaded %d EN stories", len(out))
     return out

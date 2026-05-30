@@ -2,12 +2,15 @@ import functools
 import re
 from datetime import timedelta
 
-from horsetrader.core import Config
 from horsetrader.info import Logger
 
 from . import store
 
 logger = Logger.get(__name__)
+
+# Anchored-event keys: a load-bearing `before-` / `during-` / `after-` prefix.
+# This shape is what selects them from the merged store, corpus-wide.
+_KEY_PATTERN = re.compile(r"^(before|during|after)-")
 
 # ISO-8601 duration, restricted to the components that map to a fixed
 # `timedelta`. Years and months are deliberately unrepresentable here — they
@@ -53,7 +56,9 @@ def _relation(key: str, label: str) -> str:
 
 @functools.cache
 def load() -> list[dict]:
-    """Records from anchored.yaml (curated lead-ins / extensions).
+    """Curated anchored events (lead-ins / extensions), inlined across the
+    consolidated static files and gathered from the merged store by their
+    ``before-`` / ``during-`` / ``after-`` key prefix.
 
     Each record has key, relation ('before'|'after', from the key prefix),
     anchor (a stable key — resolved against other events at model-build time),
@@ -61,13 +66,11 @@ def load() -> list[dict]:
     and source. Periods are NOT resolved here — the anchor lives in another
     collection (Anchors / Scenarios), so placement is the model's job.
     """
-    filename = "anchored.yaml"
-    source = str(Config().static / filename)
     records: list[dict] = []
-    for key in store.load(filename):
-        key = str(key)
+    source = store.source()
+    for key in store.select(_KEY_PATTERN):
         where = f"{source}: anchored event {key!r}"
-        fields = store.shared(filename, key)
+        fields = store.find(key) or {}
 
         anchor = fields.get("anchor")
         if not isinstance(anchor, str) or not anchor:
@@ -86,5 +89,5 @@ def load() -> list[dict]:
             "rewards": rewards,
             "source": source,
         })
-    logger.info("Loaded %d anchored events from %s", len(records), filename)
+    logger.info("Loaded %d anchored events from the merged static corpus", len(records))
     return records

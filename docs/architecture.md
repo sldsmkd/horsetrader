@@ -22,8 +22,8 @@ and passes the resulting **UTC-bearing timeline** to `Bake`, which writes
 
 ```
                               ┌─────────────────────┐
-                              │ static/*.yaml       │ ← hand-curated
-                              │ references/*.jpg    │ ← human-eye source
+                              │ static/yaml/*.yaml  │ ← hand-curated
+                              │ references/         │ ← human-eye source
                               └─────────────────────┘
                                         │
                   ┌─────────────────────┴────────────────────────┐
@@ -155,7 +155,7 @@ surface it, not paper over it with defaults or `try/except: pass`. See
 | A predictor for an unscheduled-EN type | `timeline/predictors/<thing>.py` | `@matikanefukukitaru` |
 | Final-bake mapping / serialisation rules | `output/_mappers.py` or a new `output/` helper | `@eishin` |
 | HTTP / cache / robots.txt | `transport/` | `@shakur` only |
-| A new YAML-curated dataset | `static/<name>.yaml` (follow the [consolidated yaml shape](data-sources.md#consolidated-yaml-shape)) + an extractor in `extractors/static/` driving `store.py` primitives | dataset is hand-curated; extractor follows `@transcend` |
+| A new YAML-curated dataset | `static/yaml/<name>.yaml` (follow the [consolidated yaml shape](data-sources.md#consolidated-yaml-shape); the store auto-loads it, no whitelist) + an extractor in `extractors/static/` driving `store.py` primitives | dataset is hand-curated; extractor follows `@transcend` |
 
 If you can't pick a character, push back rather than guess — that
 mismatch usually means the work crosses boundaries and should be split.

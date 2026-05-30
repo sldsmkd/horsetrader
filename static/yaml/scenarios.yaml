@@ -1,0 +1,106 @@
+scenario-01:
+  en:
+    name: "The Beginning: URA Finale"
+    start: 2025-06-26T22:00:00+00:00
+  jp:
+    name: "URAファイナルズ"
+    start: 2021-02-24T12:00:00+09:00
+  art: https://media.gametora.com/umamusume/scenarios/hero/thumb/1.png
+
+scenario-02:
+  en:
+    name: "Unity Cup: Shine On, Team Spirit!"
+    start: 2025-11-06T22:00:00+00:00
+  jp:
+    name: "アオハル杯"
+    start: 2021-08-30T12:00:00+09:00
+  art: https://media.gametora.com/umamusume/scenarios/hero/thumb/2.png
+
+scenario-03:
+  en:
+    name: "Trackblazer: Start of the Climax"
+    start: 2026-03-12T22:00:00+00:00
+  jp:
+    name: "Make a new track!!"
+    start: 2022-02-24T12:00:00+09:00
+  art: https://media.gametora.com/umamusume/scenarios/hero/thumb/4.png
+
+scenario-04:
+  en:
+    name: "Grand Live"
+  jp:
+    name: "グランドライブ"
+    start: 2022-08-24T12:00:00+09:00
+  art: https://media.gametora.com/umamusume/scenarios/hero/thumb/3.png
+
+scenario-05:
+  en:
+    name: "Grand Masters"
+  jp:
+    name: "グランドマスターズ"
+    start: 2023-02-24T12:00:00+09:00
+  art: https://media.gametora.com/umamusume/scenarios/hero/thumb/5.png
+
+scenario-06:
+  en:
+    name: "Project L'Arc"
+  jp:
+    name: "プロジェクトL'Arc"
+    start: 2023-08-24T12:00:00+09:00
+  art: https://media.gametora.com/umamusume/scenarios/hero/thumb/6.png
+
+scenario-07:
+  en:
+    name: "U.A.F. Ready GO!"
+  jp:
+    name: "U.A.F. Ready GO!"
+    start: 2024-02-24T12:00:00+09:00
+  art: https://media.gametora.com/umamusume/scenarios/hero/thumb/7.png
+
+scenario-08:
+  en:
+    name: "Great Food Festival"
+  jp:
+    name: "大豊食祭"
+    start: 2024-06-26T12:00:00+09:00
+  art: https://media.gametora.com/umamusume/scenarios/hero/thumb/8.png
+
+scenario-09:
+  en:
+    name: "Run, Mecha Umamusume!"
+  jp:
+    name: "走れ！メカウマ娘"
+    start: 2024-10-29T12:00:00+09:00
+  art: https://media.gametora.com/umamusume/scenarios/hero/thumb/9.png
+
+scenario-10:
+  en:
+    name: "The Twinkle Legends"
+  jp:
+    name: "The Twinkle Legends"
+    start: 2025-02-24T12:00:00+09:00
+  art: https://media.gametora.com/umamusume/scenarios/hero/thumb/10.png
+
+scenario-11:
+  en:
+    name: "Design Your Island"
+  jp:
+    name: "無人島へようこそ"
+    start: 2025-06-27T12:00:00+09:00
+  art: https://media.gametora.com/umamusume/scenarios/hero/thumb/11.png
+
+scenario-12:
+  en:
+    name: "Yukoma Hot Springs"
+  jp:
+    name: "ゆこま温泉郷"
+    start: 2025-10-29T12:00:00+09:00
+  art: https://media.gametora.com/umamusume/scenarios/hero/thumb/12.png
+
+scenario-13:
+  en:
+    name: "Beyond Dreams"
+  jp:
+    name: "Beyond Dreams"
+    start: 2026-02-24T12:00:00+09:00
+  art: https://media.gametora.com/umamusume/scenarios/hero/thumb/13.png

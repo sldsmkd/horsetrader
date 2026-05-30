@@ -1,3 +1,16 @@
+## Holiday anchors (consolidated JP + EN source of truth)
+## Each `start:` is a fully-qualified ISO timestamp (date + time + offset).
+## Drop-time conventions encoded in those timestamps:
+##   New Year:    05:00 JST (early release for temple visits — a JP-server exception)
+##   Golden Week: 12:00 JST (standard JP content drop)
+##   EN:          22:00 UTC (canonical "appeared on Global" instant)
+##
+## These are `anchor-*` points: span-0 launches that anchored events (in
+## static/anchored.yaml) hang their lead-ins / extensions off. The point itself
+## carries only its date(s) and any curated login-bonus rewards — display names
+## (Golden Week's themed title) ride on the anchored spans, not here.
+
+
 ## Anchored events (curated lead-ins / extensions around a tentpole)
 ##
 ## Each entry pins itself to one *edge* of another event (the `anchor`) and
@@ -19,19 +32,3 @@
 ## chain tiles contiguously: each link begins exactly where its parent ended.
 ## Periods (JST, and EN derived later) are computed from the anchor's; nothing
 ## here is per-region. Resolution fails loud if an anchor can't be reached.
-
-## New Year
-before-new-year-2022:
-  anchor: anchor-new-year-2022
-  name: New Year Countdown
-  duration: P7D
-
-after-new-year-2022:
-  anchor: anchor-new-year-2022
-  name: New Year Celebration
-  duration: P7D
-
-after-new-year-2022-hangover:
-  anchor: after-new-year-2022
-  name: New Year Hangover
-  duration: P7D

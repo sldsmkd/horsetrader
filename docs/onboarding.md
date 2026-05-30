@@ -95,8 +95,8 @@ without reading [architecture.md](architecture.md) first.
 horsetrader-etl/
 ├── main.py                  # entry point — Pipeline().run()
 ├── jitter.py                # post-warmup mtime jitter (run once after cold fetch)
-├── static/                  # hand-curated input YAML (banners, scenarios, schedule)
-├── references/              # archived Cygames announcement images (human-eye reference only)
+├── static/                  # yaml/ (auto-loaded curated corpus), img/ (story banners), pending/ (not-yet-wired)
+├── references/              # human-eye reference only — announcements/ (monthly images), apologems/
 ├── docs/                    # this folder
 └── horsetrader/             # the package
     ├── core/                # config, period, japlish, singletons (zero-dep primitives)

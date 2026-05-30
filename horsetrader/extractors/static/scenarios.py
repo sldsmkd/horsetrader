@@ -1,75 +1,73 @@
 import functools
-from datetime import datetime, timezone
+import re
 
-import yaml
-
-from horsetrader.core import Config, JST, Period
+from horsetrader.core import JST, UTC, Period
 from horsetrader.info import Logger
+
+from . import store
 
 logger = Logger.get(__name__)
 
-_SCENARIO_HOUR = 12   # JP content drop: 12:00 JST
-_EN_HOUR_UTC = 22     # EN content drop: 22:00 UTC
+_KEY_PATTERN = re.compile(r"^scenario-\d{2}$")
+
+
+def _require_name(value, label: str) -> str:
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"{label} must be a non-empty string; got {value!r}")
+    return value.strip()
 
 
 @functools.cache
 def load() -> list[dict]:
-    jp_path = Config().static / "jp.scenarios.yaml"
-    en_path = Config().static / "en.scenarios.yaml"
+    """Records from the consolidated ``static/scenarios.yaml`` (JP + EN).
 
-    with jp_path.open() as f:
-        jp_raw = yaml.safe_load(f)
-    if not isinstance(jp_raw, dict):
-        raise ValueError(f"{jp_path} is empty or not a mapping")
+    Each record has ``key``, ``title_jp``, ``title_en``, ``art_url``,
+    ``period`` (JP launch), ``source``, and an ``en`` key (``dict | None``)
+    carrying the EN ``period`` + ``title_en`` — present only once a scenario
+    has reached the Global server (its ``en`` block has a ``start``).
 
-    en_raw: dict = {}
-    if en_path.exists():
-        with en_path.open() as f:
-            en_raw = yaml.safe_load(f) or {}
-        if not isinstance(en_raw, dict):
-            raise ValueError(f"{en_path} is empty or not a mapping")
-
-    jp_source = str(jp_path)
-    en_source = str(en_path)
+    Entries are selected by the ``scenario-NN`` key shape, corpus-wide — which
+    file they live in is irrelevant.
+    """
+    source = store.source()
     records: list[dict] = []
-    for key, entry in jp_raw.items():
-        try:
-            d = datetime.strptime(str(entry["start"]), "%Y-%m-%d")
-        except (KeyError, ValueError) as exc:
-            logger.warning("Skipping scenario %s: bad date — %s", key, exc)
-            continue
-        title_en = str(entry.get("en", "")).strip()
-        title_jp = str(entry.get("jp", "")).strip()
-        art_url = str(entry.get("art", "")).strip() or None
-        if not title_en and not title_jp:
-            logger.warning("Skipping scenario %s: no title", key)
-            continue
+    for key in store.select(_KEY_PATTERN):
+        jp_block = store.overlay(key, "jp")
+        if jp_block is None:
+            raise ValueError(f"{source}: scenario {key!r} is missing required 'jp' block")
+        jp_start = store.require_zone(
+            jp_block.get("start"), JST, f"{source}: scenario {key!r} jp.start"
+        )
+        title_jp = _require_name(jp_block.get("name"), f"{source}: scenario {key!r} jp.name")
 
+        title_en = ""
         en: dict | None = None
-        if (en_entry := en_raw.get(key)) is not None:
-            try:
-                en_d = datetime.strptime(str(en_entry["start"]), "%Y-%m-%d")
-            except (KeyError, ValueError) as exc:
-                logger.warning("Skipping EN scenario %s: bad date — %s", key, exc)
-            else:
+        en_block = store.overlay(key, "en")
+        if en_block is not None:
+            title_en = _require_name(
+                en_block.get("name"), f"{source}: scenario {key!r} en.name"
+            )
+            if en_block.get("start") is not None:
+                en_start = store.require_zone(
+                    en_block.get("start"), UTC, f"{source}: scenario {key!r} en.start"
+                )
                 en = {
-                    "title_en": str(en_entry.get("en", "")).strip(),
-                    "period": Period(
-                        start=datetime(en_d.year, en_d.month, en_d.day, _EN_HOUR_UTC, tzinfo=timezone.utc)
-                    ),
-                    "source": en_source,
+                    "title_en": title_en,
+                    "period": Period(start=en_start),
+                    "source": source,
                 }
+
+        art = store.shared(key).get("art")
+        art_url = str(art).strip() if art else None
 
         records.append({
             "key": str(key),
-            "title_en": title_en,
             "title_jp": title_jp,
+            "title_en": title_en,
             "art_url": art_url,
-            "period": Period(
-                start=datetime(d.year, d.month, d.day, _SCENARIO_HOUR, tzinfo=JST)
-            ),
-            "source": jp_source,
+            "period": Period(start=jp_start),
+            "source": source,
             "en": en,
         })
-    logger.info("Loaded %d scenarios from %s", len(records), jp_path.name)
+    logger.info("Loaded %d scenarios", len(records))
     return records

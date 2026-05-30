@@ -18,11 +18,12 @@ class Static(metaclass=SingletonMeta):
     """
 
     def anniversaries(self) -> list[dict]:
-        """Records from jp.anniversaries.yaml merged with en.anniversaries.yaml."""
+        """Records from the consolidated anniversaries.yaml (JP + EN)."""
         return _anniversaries.load()
 
     def anchored_events(self) -> list[dict]:
-        """Records from anchored.yaml (curated lead-ins / extensions).
+        """Curated lead-ins / extensions, inlined across the consolidated files
+        and gathered from the merged store by key prefix.
 
         Each record has key, relation ('before'|'after'), anchor (stable key),
         name, duration (timedelta), a 'rewards' key (baked-shape mapping | None),
@@ -32,7 +33,7 @@ class Static(metaclass=SingletonMeta):
         return _anchored.load()
 
     def scenarios(self) -> list[dict]:
-        """Records from jp.scenarios.yaml merged with en.scenarios.yaml.
+        """Records from the consolidated scenarios.yaml (JP + EN).
 
         Each record has key, title_en, title_jp, art_url, period, source,
         and an 'en' key (dict | None) with the EN period, title, and source.
@@ -49,18 +50,15 @@ class Static(metaclass=SingletonMeta):
         return _holidays.load()
 
     def story_banners(self) -> list[dict]:
-        """Banner image records from references/stories/, sorted by ordinal.
+        """Banner image records from static/img/stories/, sorted by ordinal.
 
         Each record has ``n`` (1-based ordinal) and ``banner_path`` (Path).
         """
         return _stories.load()
 
     def banner_period(self, key: str) -> Period | None:
-        """UTC Period for the EN banner with this key, or None if not in en.banners.yaml."""
-        entry = _banners.load().get(key)
-        if entry is None:
-            return None
-        return _banners.to_period(*entry)
+        """UTC Period for the EN banner with this key, or None if not in banners.yaml."""
+        return _banners.load().get(key)
 
     def story_period(self, key: str) -> Period | None:
         """UTC Period for the EN story with this stable key, or None if not in stories.yaml."""

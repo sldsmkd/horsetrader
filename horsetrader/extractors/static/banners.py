@@ -1,35 +1,39 @@
 import functools
-from datetime import date, datetime, timezone
+import re
 
-import yaml
+from horsetrader.core import UTC, Period
+from horsetrader.info import Logger
 
-from horsetrader.core import Config, Period
+from . import store
 
-# Banners go live at 22:00 UTC and close at 21:59 UTC on the stated end date.
-# Model end as 22:00 UTC on that date — the 1-minute gap is display rounding,
-# and mirrors the JP side where both endpoints are stamped at 12:00 JST.
-_BANNER_HOUR = 22
+logger = Logger.get(__name__)
+
+_KEY_PATTERN = re.compile(r"^\d+-banner$")
 
 
 @functools.cache
-def load() -> dict[str, tuple[date, date]]:
-    path = Config().static / "en.banners.yaml"
-    with path.open() as f:
-        raw = yaml.safe_load(f)
-    if not isinstance(raw, dict):
-        raise ValueError(f"{path} is empty or not a mapping")
-    return {
-        key: (entry["start"], entry["end"])
-        for key, entry in raw.items()
-        if isinstance(entry, dict) and "start" in entry and "end" in entry
-    }
+def load() -> dict[str, Period]:
+    """EN confirmed banner periods, keyed by ``<id>-banner``.
 
-
-def to_period(start_date: date, end_date: date) -> Period:
-    utc_start = datetime(
-        start_date.year, start_date.month, start_date.day, _BANNER_HOUR, tzinfo=timezone.utc
-    )
-    utc_end = datetime(
-        end_date.year, end_date.month, end_date.day, _BANNER_HOUR, tzinfo=timezone.utc
-    )
-    return Period(utc_start, span=utc_end - utc_start)
+    Each entry's ``en`` block carries FQ ISO ``start`` / ``end`` (banners go
+    live at 22:00 UTC and the close timestamp is stamped the same), so the
+    `Period` is taken straight from the data. A banner absent here has no
+    confirmed EN window — the model leaves it predicted; a banner that *is*
+    present but malformed fails loud (curated data). Selected by the
+    ``<id>-banner`` key shape, corpus-wide.
+    """
+    source = store.source()
+    out: dict[str, Period] = {}
+    for key in store.select(_KEY_PATTERN):
+        en_block = store.overlay(key, "en")
+        if en_block is None:
+            raise ValueError(f"{source}: banner {key!r} is missing required 'en' block")
+        start = store.require_zone(
+            en_block.get("start"), UTC, f"{source}: banner {key!r} en.start"
+        )
+        end = store.require_zone(
+            en_block.get("end"), UTC, f"{source}: banner {key!r} en.end"
+        )
+        out[str(key)] = Period(start=start, span=end - start)
+    logger.info("Loaded %d EN banner periods", len(out))
+    return out

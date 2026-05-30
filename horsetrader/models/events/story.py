@@ -6,7 +6,7 @@ from horsetrader.core import Config, Japlish, Period, Periods, SingletonMeta, St
 from horsetrader.enums import Sources
 from horsetrader.extractors.gametora import Gametora
 from horsetrader.extractors.gametora.story import STORY_INDEX_URL
-from horsetrader.extractors.static import Static
+from horsetrader.extractors.static import Static, store
 from horsetrader.info import Logger
 from horsetrader.models.core import References
 from horsetrader.models.entities import Support, Supports, Trainee, Trainees
@@ -82,7 +82,7 @@ class Stories(Events[Story], metaclass=SingletonMeta):
                     logger.warning(
                         "EN name override for %s ignored: no Gametora title to override", key
                     )
-            story.references.add(str(Config().static / "stories.yaml"))
+            story.references.add(store.source())
 
         return (_apply_en_overlay,)
 
