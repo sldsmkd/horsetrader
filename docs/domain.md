@@ -41,11 +41,19 @@ zone-tagged `datetime`, not the date string.
 
 ## Scenarios
 
-JP scenarios release on a fixed cadence: **the 24th of a month**, on or
-near the **anniversary** (late Feb / late Aug for major drops, occasional
-mid-cycle scenarios on the 24th of other months). See
-[`static/yaml/scenarios.yaml`](../static/yaml/scenarios.yaml) — the `jp.start`
-dates make the pattern obvious.
+JP scenarios release on **the 24th of a month**. The *cadence* changed
+mid-life, and our `jp.start` data pins the inflection exactly:
+
+- **Through U.A.F. (2024-02-24): 2 per year**, both on the anniversary axis
+  (late Feb = full anniversary, late Aug = half-anniversary), ~180-day gaps.
+- **From Great Food Festival (2024-06-26): 3 per year**, ~120-day gaps (a
+  rough Feb / Jun / Oct rhythm). Only the **February** scenario still lands on
+  the anniversary; the other two are **off-axis**.
+
+This shift matters for anchoring: scenario-launch and anniversary-beat *used*
+to be the same date and now coincide only in February. The first half-anniversary
+to ship *without* a scenario was 3.5 (2024-08-24) — GFF had already gone out in
+June. See [`static/yaml/scenarios.yaml`](../static/yaml/scenarios.yaml).
 
 EN doesn't follow the 24th cadence. Releases land on weekdays that
 cluster — `ScenarioPredictor` uses the empirical EN weekday histogram
@@ -57,6 +65,48 @@ Scenario keys are `scenario-N`, **release order**. JP and EN share the
 key. Gametora's display order occasionally differs from release order
 (the `art:` URLs for `scenario-3` and `scenario-4` are deliberately
 swapped relative to Gametora's display) — see [data-sources.md](data-sources.md).
+
+### Scenario / anniversary beats always bundle a meta support card
+
+**Provable in our own scraped data, zero counterexamples across 15 beats
+(2021–2026):** every scenario launch and every anniversary date co-releases at
+least one support card that the JP PvP meta rates highly. The beat is the
+meta-support channel.
+
+From **Grand Masters (2023-02-24) onward** the bundle hardened into a fixed
+shape: the scenario's **friend/group (PAL) card** ships *alongside* a durable
+top-tier stat card, both stamped with the scenario's exact launch date:
+
+| Beat | Friend/group card | Bundled meta stat card |
+| --- | --- | --- |
+| Grand Masters 2023-02 | 3 Goddesses (group) | **Mejiro Ramonu** (wit) |
+| Project L'Arc 2023-08 | Satake Mei (PAL) | **El Condor Pasa** (speed) |
+| U.A.F. 2024-02 | Ryoka Tsurugi (PAL) | **Orfevre** (guts) |
+| Mecha 2024-10 | *(none)* | **Air Shakur** / **Daiwa Scarlet** |
+| 3.5 anniversary 2024-08 | — | **Tokai Teio** / **Satono Diamond** |
+
+Before Grand Masters the same co-release existed but the bundled card was
+**scenario-tuned and transient** — strong *for that scenario* then fell off
+(Rice Shower power w/ Aoharu, Narita Top Road speed w/ Trackblazer, Agnes
+Tachyon speed w/ Grand Live). Same monetisation mechanic, not yet the durable
+meta card. (This is the same ~2.0-anniversary "operational hardening" inflection
+that shows up in the [CM zodiac→category transition](#champions-meetings-cm).)
+
+Post-2024 nuance: the **anniversary-axis** beats (Feb / Aug 24) get the premium
+speed/wit/guts meta cards; the **off-axis** scenarios (Jun / Oct) still bundle a
+top card but often in a lower-value category (GFF → Nishino Flower power, DYI →
+Tamamo Cross power).
+
+**Why the ETL cares:** these bundled banners co-release on the scenario /
+anniversary date, which is already a `BannerPredictor._ANCHOR_TYPES` anchor — so
+pass 1 (anchor-snap) already places them. This finding *explains why that pass
+is reliable* and is the high-confidence end of the banner-intent spectrum. (Two
+weaker, not-yet-modelled couplings sit at the other end: the pre-CM "Banner C"
+competitive whalebait, which needs CM track metadata, and the seasonal-holiday
+trainee banners, which surface fan-favourite *trainees* for emotional resonance
+rather than meta supports.) Meta-strength itself is **not** a baked field — it's
+scenario- and region-dependent and retunes every ~4 months; this is a statement
+about *release coupling*, not a card-rating system.
 
 ## Champions Meetings (CM)
 
