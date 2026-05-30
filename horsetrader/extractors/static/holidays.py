@@ -35,7 +35,6 @@ def load() -> list[dict]:
             raise ValueError(f"{source}: holiday {key!r} rewards must be a mapping")
         records.append({
             "key": str(key),
-            "name": str(top.get("name", "")).strip() or None,
             "period": Period(start=jp_start),
             "source": source,
             "rewards": rewards,

@@ -13,20 +13,21 @@
 ## To add an event: copy a block below, rename the key with the right prefix,
 ## point `anchor` at the launch (or the prior part, to chain), set `duration`.
 ##
-## The anchor is the stable key of a base launch (new-year-*, golden-week-*,
-## anni-*, scenario-*) OR of another anchored event — chaining. An `after-`
+## The anchor is the stable key of a base launch (anchor-new-year-*,
+## anchor-golden-week-*, anchor-anni-*, scenario-*) OR of another anchored
+## event — chaining. An `after-`
 ## chain tiles contiguously: each link begins exactly where its parent ended.
 ## Periods (JST, and EN derived later) are computed from the anchor's; nothing
 ## here is per-region. Resolution fails loud if an anchor can't be reached.
 
 ## New Year
 before-new-year-2022:
-  anchor: new-year-2022
+  anchor: anchor-new-year-2022
   name: New Year Countdown
   duration: P7D
 
 after-new-year-2022:
-  anchor: new-year-2022
+  anchor: anchor-new-year-2022
   name: New Year Celebration
   duration: P7D
 

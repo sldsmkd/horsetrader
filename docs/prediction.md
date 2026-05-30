@@ -56,9 +56,10 @@ confirmed for routing purposes.
 
 ### `AnniversaryPredictor`
 
-Predicts EN dates for `Anniversary` events with no confirmed UTC period.
+Predicts EN dates for anchors of kind `anniversary` (`Anchor` instances whose
+key is `anchor-anni-…`) with no confirmed UTC period.
 
-1. Collect confirmed JP+UTC pairs from `Anniversary` events. If none exist, return 0.
+1. Collect confirmed JP+UTC pairs from those anchors. If none exist, return 0.
 2. Build a **weekday signal** from those same confirmed pairs.
 3. Compute the global `Timeline.acceleration(JST, UTC)` slope. If it can't
    fit, return 0.
@@ -67,10 +68,12 @@ Predicts EN dates for `Anniversary` events with no confirmed UTC period.
 
 ### `HolidayPredictor`
 
-Covers `GoldenWeek` and `NewYear` specifically — the two concrete subtypes
-of `Holiday`. Base `Holiday` is not targeted directly.
+Covers anchors of kind `golden-week` and `new-year` — the two holiday
+flavours of the collapsed `Anchor` type. Anniversaries are anchors too but
+predict on their own cadence via `AnniversaryPredictor`; this predictor
+filters on `Anchor.kind`, not the runtime class.
 
-Weekday signal is merged across both subtypes (any weekday with a confirmed
+Weekday signal is merged across both flavours (any weekday with a confirmed
 EN drop counts as valid). For each unscheduled holiday, project its JP
 start via `Timeline.predict(jp_start, UTC)`, snap to the nearest valid
 weekday, and stamp `Period(start=<snapped at 22:00 UTC>, predicted=True)`.
@@ -82,8 +85,8 @@ the predictor returns however many it managed before the fit failed.
 Predicts EN dates for scenarios with no confirmed UTC period.
 
 1. **Anniversary lock-in (pass 0):** build a JP-date → EN-period map from
-   all `Anniversary` events that already carry a UTC period (confirmed or
-   just predicted by `AnniversaryPredictor`). If a scenario's JP date
+   all anchors of kind `anniversary` that already carry a UTC period
+   (confirmed or just predicted by `AnniversaryPredictor`). If a scenario's JP date
    exactly matches an anniversary's JP date, snap the scenario to that
    anniversary's EN date and skip the acceleration model for that event.
 2. Build a **weekday signal**: histogram of weekdays from confirmed-EN
@@ -113,9 +116,9 @@ title, applied alongside the period.
 The predictor fills the rest in two passes.
 
 Pass 1 (anchor snap): same shape as `BannerPredictor` pass 1. If a JP
-story shares a JP drop date with an `Anniversary`, `GoldenWeek`, `NewYear`,
-or `Scenario` whose EN date is known (confirmed or predicted upstream),
-snap the story to that EN date at 22:00 UTC.
+story shares a JP drop date with an `Anchor` (any kind — new year, golden
+week, anniversary) or a `Scenario` whose EN date is known (confirmed or
+predicted upstream), snap the story to that EN date at 22:00 UTC.
 
 Pass 2 (ordinal interpolation): for the remaining unscheduled stories,
 walk the stable-key-sorted list, bisect between the two nearest scheduled
@@ -136,11 +139,11 @@ problem, not Story's.
 
 ### `BannerPredictor`
 
-Pass 1 (anchor snap): if a JP banner co-released with any of `Anniversary`,
-`GoldenWeek`, `NewYear`, or `Scenario`, snap the banner's EN start to that
-event's EN date — confirmed or already predicted by an earlier predictor.
-Anchor types are tried in dict-lookup order; the scenario anchor wins if
-multiple types share a JP date. The banner's JP `span` carries over; the
+Pass 1 (anchor snap): if a JP banner co-released with an `Anchor` (any kind)
+or a `Scenario`, snap the banner's EN start to that event's EN date —
+confirmed or already predicted by an earlier predictor. Anchor types are
+tried in `_ANCHOR_TYPES` order (`Anchor`, then `Scenario`); the scenario
+anchor wins if both share a JP date. The banner's JP `span` carries over; the
 start is 22:00 UTC on the anchor's EN date.
 
 Pass 2 (story tie-in): banners that don't share a JP date with an anchor

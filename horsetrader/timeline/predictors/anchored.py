@@ -1,4 +1,4 @@
-from horsetrader.core import UTC, Period
+from horsetrader.core import UTC, Period, StableKey
 from horsetrader.models.events import AnchoredEvent
 from horsetrader.models.events.anchored import AnchorSpec, resolve_anchored
 from horsetrader.semantics import matikanefukukitaru
@@ -25,7 +25,7 @@ class AnchorPredictor(Predictor):
     def predict(self, timeline: Timeline) -> int:
         by_key = {e.key: e for e in timeline}
 
-        def base_utc(key: str) -> Period | None:
+        def base_utc(key: StableKey) -> Period | None:
             event = by_key.get(key)
             if event is None:
                 return None

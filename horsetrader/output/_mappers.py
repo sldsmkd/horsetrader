@@ -3,11 +3,10 @@ from typing import Callable
 from horsetrader.core import Japlish, Period
 from horsetrader.models.entities import Character, Support, Trainee
 from horsetrader.models.events import (
+    Anchor,
     AnchoredEvent,
-    Anniversary,
     Banner,
     Event,
-    Holiday,
     Story,
 )
 from horsetrader.models.rewards import RewardGenerator, Rewards
@@ -121,11 +120,12 @@ def _map_story(s: Story, period: Period) -> dict:
     return out
 
 
-def _map_holiday(e: Event, period: Period) -> dict:
-    # Holidays and anniversaries are calendar events: no contents/art, but they
-    # carry a display name (GoldenWeek's themed title) and curated rewards (the
-    # login-bonus generator). Discriminator is the concrete class name —
-    # "goldenweek" / "newyear" / "anniversary".
+def _map_anchor(e: Event, period: Period) -> dict:
+    # Anchors are calendar points: no contents/art, just a date and any curated
+    # rewards (the login-bonus generator). All flavours (new year / golden week
+    # / anniversary) collapse to one `type: "anchor"` — the client splits them
+    # by key prefix. Shared with `_map_anchored`, which adds the placement
+    # fields and carries its own display `name`.
     out: dict = {
         "start": period.start.date().isoformat(),
         "end": period.end.date().isoformat(),
@@ -145,7 +145,7 @@ def _map_anchored(e: AnchoredEvent, period: Period) -> dict:
     # web side groups on: `relation` (before/after) and the `anchor` key it
     # hangs off. `start`/`end` come from the derived span, so unlike a holiday
     # these are a real range, not a single instant.
-    out = _map_holiday(e, period)
+    out = _map_anchor(e, period)
     out["relation"] = e.relation
     out["anchor"] = e.anchor
     return out
@@ -172,11 +172,20 @@ def _map_unmapped(e: Event, period: Period) -> dict:
 
 # Keyed by the base event class — subclasses (SupportBanner, TraineeBanner)
 # resolve via MRO walk in `event_mapper()` so a single Banner entry covers them.
+#
+# TODO: this dict trips a reportAssignmentType — the concrete-typed mappers
+# (`_map_banner(b: Banner, …)`) aren't assignable to the declared
+# `Callable[[Event, Period], dict]` because function params are contravariant.
+# It's sound at runtime (event_mapper only hands each mapper an instance of its
+# key class), but the type is a lie. Preferred fix: dissolve the table — make
+# baking an abstract method on `Event` (e.g. `bake(self, period) -> dict`) with
+# a per-subclass implementation, the same way `match` is abstract on
+# `TracenModel` and overridden everywhere. Each event then owns its own wire
+# shape and there's no variance to violate.
 EVENT_MAPPERS: dict[type[Event], Callable[[Event, Period], dict]] = {
     Banner: _map_banner,
     Story: _map_story,
-    Holiday: _map_holiday,
-    Anniversary: _map_holiday,
+    Anchor: _map_anchor,
     AnchoredEvent: _map_anchored,
 }
 

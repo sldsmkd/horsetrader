@@ -1,32 +1,46 @@
 from datetime import datetime
 
 from horsetrader.core import JST, UTC, Period
-from horsetrader.models.events import GoldenWeek, NewYear
+from horsetrader.models.events import Anchor
 from horsetrader.semantics import matikanefukukitaru
 
 from ..timeline import Timeline
 from .base import Predictor, nearest_weekday
 
 
-_HOLIDAY_TYPES = (GoldenWeek, NewYear)
+# The two holiday flavours among the collapsed Anchor type. Anniversaries are an
+# anchor too but predict on their own cadence (see AnniversaryPredictor).
+_HOLIDAY_KINDS = ("golden-week", "new-year")
+
+
+def _is_holiday(event) -> bool:
+    return isinstance(event, Anchor) and event.kind in _HOLIDAY_KINDS
 
 
 @matikanefukukitaru
 class HolidayPredictor(Predictor):
-    """Predict EN release dates for GoldenWeek and NewYear events."""
+    """Predict EN release dates for Golden Week and New Year anchors."""
 
     def predict(self, timeline: Timeline) -> int:
         valid_weekdays = {
-            d for d, n in self.weekday(GoldenWeek, UTC).items() if n > 0
+            d
+            for d, n in self.weekday(
+                lambda e: isinstance(e, Anchor) and e.kind == "golden-week", UTC
+            ).items()
+            if n > 0
         } | {
-            d for d, n in self.weekday(NewYear, UTC).items() if n > 0
+            d
+            for d, n in self.weekday(
+                lambda e: isinstance(e, Anchor) and e.kind == "new-year", UTC
+            ).items()
+            if n > 0
         }
         if not valid_weekdays:
             return 0
 
         count = 0
         for event in self._timeline:
-            if isinstance(event, _HOLIDAY_TYPES) and not any(p.tzinfo == UTC for p in event.periods):
+            if _is_holiday(event) and not any(p.tzinfo == UTC for p in event.periods):
                 jp = next((p for p in event.periods if p.tzinfo == JST), None)
                 if jp is not None:
                     try:

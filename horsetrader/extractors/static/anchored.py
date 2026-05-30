@@ -59,7 +59,7 @@ def load() -> list[dict]:
     anchor (a stable key — resolved against other events at model-build time),
     name, duration (timedelta), a 'rewards' key (baked-shape mapping | None),
     and source. Periods are NOT resolved here — the anchor lives in another
-    collection, so placement is the model's job (see Holiday/Anniversary).
+    collection (Anchors / Scenarios), so placement is the model's job.
     """
     filename = "anchored.yaml"
     source = str(Config().static / filename)

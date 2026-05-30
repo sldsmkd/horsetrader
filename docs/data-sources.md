@@ -63,13 +63,13 @@ Hand-curated and scraper-immune. All live under
 
 | File | Status | Purpose |
 | --- | --- | --- |
-| [`static/holidays.yaml`](../static/holidays.yaml) | **Consolidated.** | Holiday corpus: `new-year-YYYY` and `golden-week-YYYY` entries, region-agnostic `name:` (optional) and `jp:` / `en:` blocks each holding a FQ ISO `start:`. Read by `extractors/static/holidays.py`. |
+| [`static/holidays.yaml`](../static/holidays.yaml) | **Consolidated.** | Holiday anchors: `anchor-new-year-YYYY` and `anchor-golden-week-YYYY` entries, an optional region-agnostic `rewards:` (curated login bonus) and `jp:` / `en:` blocks each holding a FQ ISO `start:`. Read by `extractors/static/holidays.py`; loaded with anniversaries into the unified `Anchors` collection. Golden Week's themed name now rides the anchored spans, not the anchor (the `name:` lines are kept commented as a hand-off). |
 | [`static/stories.yaml`](../static/stories.yaml) | **Consolidated.** | EN overlay for the Gametora-scraped JP story corpus. Each entry has an `en:` block with FQ ISO `start:` / `end:` (22:00 UTC) and an optional `name:` overriding Gametora's scraped EN title (fansub default; replaced with the Cygames-official title when shipped). YAML keys are zero-padded stable keys (`story-NNN`). Joined by `Static.story_period()` + `Static.story_name_override()`. |
 | [`static/en.banners.yaml`](../static/en.banners.yaml) | **Manually curated.** | EN confirmed banner periods, keyed by `<id>-banner`. Read by `extractors/static/banners.py`; stamps a UTC `Period` onto the matching `Banner` at extraction time. |
 | [`static/jp.scenarios.yaml`](../static/jp.scenarios.yaml) | **Manually curated; queued for merge.** | Full JP scenarios corpus, keyed `scenario-N` (release-order integer). Carries `en` title (fansub), `jp` title, JP `start`, and `art` URL. Used directly because Gametora's scenarios page is JS-rendered, brittle, and not worth scraping. Will merge into a consolidated `scenarios.yaml` following the [shape below](#consolidated-yaml-shape). |
 | [`static/en.scenarios.yaml`](../static/en.scenarios.yaml) | **Manually curated; queued for merge.** | EN scenario titles (official Cygames) and confirmed EN `start`. Joined onto `jp.scenarios.yaml` via the `scenario-N` key by `Static.scenarios()`. The `en:` field here is the **official** EN title and overrides the fansub from `jp.scenarios.yaml` once merged. |
-| [`static/jp.anniversaries.yaml`](../static/jp.anniversaries.yaml) | **Manually curated; queued for merge.** | JP anniversary corpus, keyed `anni-N_M` (e.g. `anni-1_0`, `anni-0_5`). Drops at 12:00 JST. Queued for merge into consolidated `anniversaries.yaml`. |
-| [`static/en.anniversaries.yaml`](../static/en.anniversaries.yaml) | **Manually curated; queued for merge.** | EN confirmed anniversary `start` dates. Joined by `Static.anniversaries()`. |
+| [`static/jp.anniversaries.yaml`](../static/jp.anniversaries.yaml) | **Manually curated; queued for merge.** | JP anniversary corpus, keyed `anchor-anni-N_M` (e.g. `anchor-anni-1_0`, `anchor-anni-0_5`). Drops at 12:00 JST. Loaded (with holidays) into the unified `Anchors` collection. Queued for merge into consolidated `anniversaries.yaml`. |
+| [`static/en.anniversaries.yaml`](../static/en.anniversaries.yaml) | **Manually curated; queued for merge.** | EN confirmed anniversary `start` dates, same `anchor-anni-N_M` keys. Joined by `Static.anniversaries()`. |
 | [`static/_en.schedule.yaml`](../static/_en.schedule.yaml) | **Reference only — out of scope.** | Mainline EN event + CM dates from the Cygames monthly announcements (image archive in [`references/`](../references/)). Underscore prefix marks it as reference documentation, not pipeline input — kept for maintainer lookup but not consumed by any loader. |
 
 ### Consolidated yaml shape
@@ -80,7 +80,7 @@ The pattern:
 
 ```yaml
 <stable-key>:
-  <region-agnostic field>: ...   # e.g. holidays' `name:`
+  <region-agnostic field>: ...   # e.g. holidays' `rewards:`
   jp:
     start: 2022-01-01T05:00:00+09:00   # FQ ISO timestamp, JST offset
     name: ...                          # per-region fields nested here
@@ -108,8 +108,8 @@ Rules:
   translation and overrides the default at consumer time. See
   `static/jp.scenarios.yaml` for the canonical fansub-vs-official split
   that defined this rule.
-- **Region-agnostic fields** (e.g. holidays' `name: Golshi Week`, the
-  hypothetical scenario `art:` URL) sit at the top level alongside the
+- **Region-agnostic fields** (e.g. holidays' `rewards:` login-bonus block,
+  the hypothetical scenario `art:` URL) sit at the top level alongside the
   region blocks. Loaders pull these via `store.shared()`.
 - **`_*.yaml`** filenames (leading underscore) are reference-only —
   kept for maintainer lookup, not read by any loader.

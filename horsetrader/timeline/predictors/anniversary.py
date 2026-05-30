@@ -1,11 +1,15 @@
 from datetime import datetime, timedelta
 
 from horsetrader.core import JST, UTC, Period
-from horsetrader.models.events import Anniversary
+from horsetrader.models.events import Anchor
 from horsetrader.semantics import matikanefukukitaru
 
 from ..timeline import Timeline
 from .base import Predictor, nearest_weekday
+
+
+def _is_anniversary(event) -> bool:
+    return isinstance(event, Anchor) and event.kind == "anniversary"
 
 
 @matikanefukukitaru
@@ -16,7 +20,7 @@ class AnniversaryPredictor(Predictor):
         confirmed = [
             (jp.start, en.start)
             for event in self._timeline
-            if isinstance(event, Anniversary)
+            if _is_anniversary(event)
             for jp in [next((p for p in event.periods if p.tzinfo == JST and not p.predicted), None)]
             for en in [next((p for p in event.periods if p.tzinfo == UTC and not p.predicted), None)]
             if jp and en
@@ -39,7 +43,7 @@ class AnniversaryPredictor(Predictor):
 
         count = 0
         for event in self._timeline:
-            if isinstance(event, Anniversary) and not any(p.tzinfo == UTC for p in event.periods):
+            if _is_anniversary(event) and not any(p.tzinfo == UTC for p in event.periods):
                 jp = next((p for p in event.periods if p.tzinfo == JST), None)
                 if jp is not None:
                     jp_elapsed = (jp.start - jp_anchor).total_seconds() / 86400

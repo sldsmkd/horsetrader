@@ -3,7 +3,7 @@ from datetime import date, datetime
 
 from horsetrader.core import JST, UTC, Period
 from horsetrader.info import Logger
-from horsetrader.models.events import Anniversary, GoldenWeek, NewYear, Scenario, Story
+from horsetrader.models.events import Anchor, Scenario, Story
 from horsetrader.semantics import matikanefukukitaru
 
 from ..timeline import Timeline
@@ -11,7 +11,7 @@ from .base import Predictor, nearest_weekday
 
 logger = Logger.get(__name__)
 
-_ANCHOR_TYPES = (Anniversary, GoldenWeek, NewYear, Scenario)
+_ANCHOR_TYPES = (Anchor, Scenario)
 
 
 @matikanefukukitaru

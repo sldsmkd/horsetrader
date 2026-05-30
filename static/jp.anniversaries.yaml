@@ -1,21 +1,20 @@
-anni-0_5: # NOQA
+anchor-anni-0_5: # NOQA
   start: 2021-08-24 # Aoharu Hai - started on 2021-08-30, anni was earlier
-anni-1_0:
+anchor-anni-1_0:
   start: 2022-02-24 # Make a New Track
-anni-1_5:
+anchor-anni-1_5:
   start: 2022-08-24 # Grand Live
-anni-2_0:
+anchor-anni-2_0:
   start: 2023-02-24 # Grand Masters
-anni-2_5:
+anchor-anni-2_5:
   start: 2023-08-24 # Project L'Arc
-anni-3_0:
+anchor-anni-3_0:
   start: 2024-02-24 # U.A.F. Ready GO!
-anni-3_5:
+anchor-anni-3_5:
   start: 2024-08-24
-anni-4_0:
+anchor-anni-4_0:
   start: 2025-02-24 # The Twinkle Legends
-anni-4_5:
+anchor-anni-4_5:
   start: 2025-08-24
-anni-5_0:
+anchor-anni-5_0:
   start: 2026-02-24 # Beyond Dreams
-

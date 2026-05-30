@@ -2,13 +2,13 @@ from datetime import date, datetime, timedelta
 
 from horsetrader.core import JST, UTC, Period
 from horsetrader.models.entities import Support, Trainee
-from horsetrader.models.events import Anniversary, Banner, GoldenWeek, NewYear, Scenario, Story
+from horsetrader.models.events import Anchor, Banner, Scenario, Story
 from horsetrader.semantics import matikanefukukitaru
 
 from ..timeline import Timeline
 from .base import Predictor
 
-_ANCHOR_TYPES = (Anniversary, GoldenWeek, NewYear, Scenario)
+_ANCHOR_TYPES = (Anchor, Scenario)
 _STORY_WINDOW = timedelta(days=7)
 
 

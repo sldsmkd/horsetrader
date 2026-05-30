@@ -1,8 +1,20 @@
+from collections.abc import Callable
 from datetime import datetime, timedelta, tzinfo
 
 from horsetrader.models.events import Event
 
 from ..timeline import Timeline
+
+# Either a concrete Event subclass (matched by isinstance) or a predicate over
+# events. Anchors collapsed New Year / Golden Week / anniversary into one class,
+# so those are selected by a `kind` predicate rather than the runtime type.
+Selector = type[Event] | Callable[[Event], bool]
+
+
+def _selects(selector: Selector, event: Event) -> bool:
+    if isinstance(selector, type):
+        return isinstance(event, selector)
+    return selector(event)
 
 
 def nearest_weekday(dt: datetime, valid_weekdays: set[int]) -> datetime:
@@ -21,11 +33,11 @@ class Predictor:
     def __init__(self, timeline: Timeline):
         self._timeline = timeline
 
-    def weekday(self, event_class: type[Event], tz: tzinfo) -> dict[int, int]:
-        """Weekday histogram (0=Mon … 6=Sun) for events of event_class in tz."""
+    def weekday(self, selector: Selector, tz: tzinfo) -> dict[int, int]:
+        """Weekday histogram (0=Mon … 6=Sun) for events matching selector in tz."""
         counts: dict[int, int] = {i: 0 for i in range(7)}
         for event in self._timeline:
-            if not isinstance(event, event_class):
+            if not _selects(selector, event):
                 continue
             period = next((p for p in event.periods if p.tzinfo == tz), None)
             if period is None:
@@ -33,11 +45,11 @@ class Predictor:
             counts[period.start.weekday()] += 1
         return counts
 
-    def monthday(self, event_class: type[Event], tz: tzinfo) -> dict[int, int]:
-        """Day-of-month histogram (1–31) for events of event_class in tz."""
+    def monthday(self, selector: Selector, tz: tzinfo) -> dict[int, int]:
+        """Day-of-month histogram (1–31) for events matching selector in tz."""
         counts: dict[int, int] = {i: 0 for i in range(1, 32)}
         for event in self._timeline:
-            if not isinstance(event, event_class):
+            if not _selects(selector, event):
                 continue
             period = next((p for p in event.periods if p.tzinfo == tz), None)
             if period is None:

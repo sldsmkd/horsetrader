@@ -117,7 +117,7 @@ the pipeline for two reasons:
 1. **Banner anchoring.** A story event always co-releases with at least one
    costume banner for the featured trainees. Once Story events are added to
    `BannerPredictor._ANCHOR_TYPES`, story EN dates can anchor those
-   costume-banner predictions the same way Anniversary and Scenario dates
+   costume-banner predictions the same way anchor and Scenario dates
    do today.
 
 2. **Stable key scheme.** Gametora assigns its own integer IDs
@@ -209,15 +209,14 @@ the repeat separate so the client multiplies.
   carats). New policy is a new function there, not edits to event
   aggregators.
 
-- **Curated data** in `static/*.yaml`. Holiday and anniversary login bonuses
-  are *known*, not inferred — so they're authored directly on the event, as a
-  top-level `rewards:` block written in the **same shape the client reads**
-  (the bake output above). The bonus is identical across regions, so it's a
-  shared field, not per-locale:
+- **Curated data** in `static/*.yaml`. Anchor login bonuses (New Year /
+  Golden Week / anniversary) are *known*, not inferred — so they're authored
+  directly on the anchor, as a top-level `rewards:` block written in the
+  **same shape the client reads** (the bake output above). The bonus is
+  identical across regions, so it's a shared field, not per-locale:
 
   ```yaml
-  golden-week-2021:
-    name: Golshi Week
+  anchor-golden-week-2021:
     rewards:
       reward_generator:
         carats: 564
@@ -270,8 +269,9 @@ shared by both passes):
 
 - **JST, at load.** Every anchor has a JST launch (JST is source of truth), so
   placement is deterministic and total. The collection resolves the whole graph
-  to a fixpoint against the curated launch collections (holidays / anniversaries
-  / scenarios) plus its own chains, and **fails loud** if anything is left
+  to a fixpoint against the curated launch collections (the unified `Anchors` —
+  New Year / Golden Week / anniversaries — and scenarios) plus its own chains,
+  and **fails loud** if anything is left
   unmoored — a missing anchor, no JST period, or a cycle. That throw is the
   editor's feedback loop, the same as the rest of the curated YAML.
 - **UTC, in prediction.** The EN date is derived, not regressed:
@@ -282,7 +282,7 @@ shared by both passes):
   is **not** fatal — the base anchor simply wasn't predictable, so the campaign
   stays unpredicted like any other.
 
-In `events.json` an anchored event bakes like a holiday (calendar `type`, `name`,
+In `events.json` an anchored event bakes like an anchor (calendar `type`, `name`,
 optional `rewards`) but with a real `start`/`end` range plus `relation`
 (`before`/`after`) and the `anchor` key for grouping.
 

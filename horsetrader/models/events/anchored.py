@@ -28,7 +28,7 @@ class AnchoredEvent(Event):
     """
 
     name: str | None = field(default=None, kw_only=True)
-    anchor: str = field(kw_only=True)
+    anchor: StableKey = field(kw_only=True)
     relation: str = field(kw_only=True)
     duration: timedelta = field(kw_only=True)
 
@@ -42,7 +42,7 @@ class AnchoredEvent(Event):
 class AnchorSpec:
     """The placement inputs for one anchored node, tz-agnostic."""
 
-    anchor: str
+    anchor: StableKey
     relation: str
     duration: timedelta
 
@@ -65,9 +65,9 @@ def place(spec: AnchorSpec, anchor_period: Period) -> Period:
 
 
 def resolve_anchored(
-    specs: dict[str, AnchorSpec],
-    base_period: Callable[[str], Period | None],
-) -> tuple[dict[str, Period], list[str]]:
+    specs: dict[StableKey, AnchorSpec],
+    base_period: Callable[[StableKey], Period | None],
+) -> tuple[dict[StableKey, Period], list[StableKey]]:
     """Topologically place every anchored node, following chains to a fixpoint.
 
     `base_period(key)` returns the resolved Period for a *non-anchored* key (a
@@ -79,7 +79,7 @@ def resolve_anchored(
     unknown, carries no period in this tz, or sits in a cycle — the caller
     decides whether that's fatal (load: yes; UTC prediction: just unpredicted).
     """
-    resolved: dict[str, Period] = {}
+    resolved: dict[StableKey, Period] = {}
     remaining = dict(specs)
     progress = True
     while remaining and progress:
@@ -112,7 +112,9 @@ class AnchoredEvents(Events[AnchoredEvent], metaclass=SingletonMeta):
             return []
 
         specs = {
-            r["key"]: AnchorSpec(r["anchor"], r["relation"], r["duration"])
+            StableKey(r["key"]): AnchorSpec(
+                StableKey(r["anchor"]), r["relation"], r["duration"]
+            )
             for r in records
         }
         resolved, unresolved = resolve_anchored(specs, self._anchor_jst)
@@ -125,14 +127,14 @@ class AnchoredEvents(Events[AnchoredEvent], metaclass=SingletonMeta):
 
         events: list[AnchoredEvent] = []
         for record in records:
-            key = record["key"]
+            key = StableKey(record["key"])
             raw_rewards = record.get("rewards")
             events.append(
                 AnchoredEvent(
-                    key=StableKey(key),
+                    key=key,
                     periods=Periods([resolved[key]]),
                     name=record.get("name"),
-                    anchor=record["anchor"],
+                    anchor=StableKey(record["anchor"]),
                     relation=record["relation"],
                     duration=record["duration"],
                     references=References([record["source"]]),
@@ -141,23 +143,23 @@ class AnchoredEvents(Events[AnchoredEvent], metaclass=SingletonMeta):
             )
         return events
 
-    def _anchor_jst(self, key: str) -> Period | None:
+    def _anchor_jst(self, key: StableKey) -> Period | None:
         """JST Period for a base launch this collection can anchor to.
 
-        Consults the curated point-launch collections (holidays — New Year /
-        Golden Week, anniversaries, scenarios). Anchored-to-anchored references
-        are handled by `resolve_anchored` itself and never reach here.
+        Consults the curated point-launch collections (anchors — New Year /
+        Golden Week / anniversaries — and scenarios). Anchored-to-anchored
+        references are handled by `resolve_anchored` itself and never reach here.
         """
         return self._base_period(key, JST)
 
-    def _base_period(self, key: str, tz: tzinfo) -> Period | None:
+    def _base_period(self, key: StableKey, tz: tzinfo) -> Period | None:
         # Imported lazily so this module doesn't pin a sibling-collection import
-        # order; all three are SingletonMeta, so this just hands back the warm
+        # order; both are SingletonMeta, so this just hands back the warm
         # instance (loading it on first touch).
-        from .holiday import Anniversaries, Holidays
+        from .anchor import Anchors
         from .scenario import Scenarios
 
-        for collection in (Holidays(), Anniversaries(), Scenarios()):
+        for collection in (Anchors(), Scenarios()):
             event = collection.get(key)
             if event is not None:
                 return next((p for p in event.periods if p.tzinfo == tz), None)
