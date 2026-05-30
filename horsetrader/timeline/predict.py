@@ -6,6 +6,7 @@ from .predictors import (
     AnchorPredictor,
     AnniversaryPredictor,
     BannerPredictor,
+    ChampionsMeetingPredictor,
     FallthroughPredictor,
     HolidayPredictor,
     ScenarioPredictor,
@@ -40,6 +41,10 @@ class Predict:
             ScenarioPredictor(timeline),
             StoryPredictor(timeline),
             BannerPredictor(timeline),
+            # CM windows are final-anchored and longer than their JP scrape, so
+            # they need a dedicated pass before the generic fallthrough would
+            # mis-map them off the opening day with the wrong span.
+            ChampionsMeetingPredictor(timeline),
             # Anchored campaigns derive their UTC from the anchor dates the
             # predictors above have just stamped (and chain off one another).
             AnchorPredictor(timeline),

@@ -1,0 +1,92 @@
+## CHAMPIONS MEETINGS — EN overlay ##
+#
+# TODO: scrape target - these images are gold - https://game8.co/games/Umamusume-Pretty-Derby/archives/541155
+#
+# EN-server release windows for Champions Meetings, keyed by the Gametora
+# chronological occurrence ordinal, zero-padded to 3 (cm-NNN) — the same
+# stable key the scraper assigns (see extractors/gametora/champions_meetings.py).
+# The EN server replays JP's CM sequence in order, so cm-001 (Taurus, 2400
+# Tokyo) is JP's first CM from 2021 but reached Global in Aug 2025.
+#
+# A CM absent here has no confirmed EN window and stays predicted; one that
+# IS present but malformed fails loud (curated data) — incl. en.end <= en.start.
+#
+# WINDOW SEMANTICS — these are the EN AVAILABILITY (marketing) windows from
+# Cygames' monthly Release Schedule image: drop 22:00 UTC, run usually-but-not-
+# always 10 days. This is deliberately LONGER than the JP-scraped COMPETITION
+# window, which Gametora records as always exactly 6 days (2d quali / 2d group /
+# 1d reg / 1d final) — EN adds the pre-registration lead-in on the front. The
+# two spans differ by source, not by error — see docs/domain.md. `start` =
+# availability open, `end` = availability close (next-morning instant). The
+# competition final lands near `end`; the *final day* is the stable anchor for
+# prediction, not the opening day (final is precomputed, opening drifts).
+cm-001:
+  # Taurus Cup: 2400m Tokyo
+  en:
+    start: 2025-08-17T22:00:00+00:00
+    end: 2025-08-27T22:00:00+00:00
+cm-002:
+  # Gemini Cup: 3200m Kyoto
+  en:
+    start: 2025-09-07T22:00:00+00:00
+    end: 2025-09-17T22:00:00+00:00
+cm-003:
+  # Cancer Cup: 1600m Tokyo
+  en:
+    start: 2025-10-07T22:00:00+00:00
+    end: 2025-10-16T22:00:00+00:00
+cm-004:
+  # Leo Cup: 2200m Hanshin
+  en:
+    start: 2025-10-30T22:00:00+00:00
+    end: 2025-11-09T22:00:00+00:00
+cm-005:
+  # Virgo Cup: 1600m Hanshin
+  en:
+    start: 2025-11-16T22:00:00+00:00
+    end: 2025-11-26T22:00:00+00:00
+cm-006:
+  # Libra Cup: 3000m Kyoto
+  en:
+    start: 2025-12-08T22:00:00+00:00
+    end: 2025-12-18T22:00:00+00:00
+cm-007:
+  # Scorpio Cup: 2000m Tokyo
+  en:
+    start: 2025-12-28T22:00:00+00:00
+    end: 2026-01-07T22:00:00+00:00
+cm-008:
+  # Sagittarius Cup: 2500m Nakayama
+  en:
+    start: 2026-01-19T22:00:00+00:00
+    end: 2026-01-29T22:00:00+00:00
+cm-009:
+  # Capricorn Cup: 1200m Chukyo
+  en:
+    start: 2026-02-09T22:00:00+00:00
+    end: 2026-02-19T22:00:00+00:00
+cm-010:
+  # Aquarius Cup: 1600m Tokyo (dirt)
+  en:
+    start: 2026-03-02T22:00:00+00:00
+    end: 2026-03-12T22:00:00+00:00
+cm-011:
+  # Pisces Cup: 3200m Hanshin
+  en:
+    start: 2026-03-26T22:00:00+00:00
+    end: 2026-04-05T22:00:00+00:00
+cm-012:
+  # Aries Cup: 2000m Nakayama
+  en:
+    start: 2026-04-20T22:00:00+00:00
+    end: 2026-04-29T22:00:00+00:00
+cm-013:
+  # Taurus Cup: 2400m Tokyo
+  en:
+    start: 2026-05-10T22:00:00+00:00
+    end: 2026-05-20T22:00:00+00:00
+cm-014:
+  # Gemini Cup: 1600m Tokyo
+  en:
+    start: 2026-05-31T22:00:00+00:00
+    end: 2026-06-10T22:00:00+00:00

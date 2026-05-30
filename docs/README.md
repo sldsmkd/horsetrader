@@ -16,6 +16,7 @@ not documented here.
 | --- | --- |
 | Get the pipeline running on a new machine | [onboarding.md](onboarding.md) |
 | Understand what runs in what order | [architecture.md](architecture.md) |
+| Add a new extractor / event type end-to-end | [howto-new-extractor.md](howto-new-extractor.md) |
 | Decode the character module names (`@digitan`, `@shakur`, …) | [semantics.md](semantics.md) → in-repo [overview](../horsetrader/semantics/overview.md) |
 | Know the code conventions before opening a PR | [standards.md](standards.md) |
 | See what's scraped vs. what's hand-curated | [data-sources.md](data-sources.md) |

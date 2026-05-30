@@ -4,6 +4,7 @@ from horsetrader.semantics import transcend
 from . import anchored as _anchored
 from . import anniversaries as _anniversaries
 from . import banners as _banners
+from . import champions_meetings as _champions_meetings
 from . import holidays as _holidays
 from . import scenarios as _scenarios
 from . import stories as _stories
@@ -59,6 +60,10 @@ class Static(metaclass=SingletonMeta):
     def banner_period(self, key: str) -> Period | None:
         """UTC Period for the EN banner with this key, or None if not in banners.yaml."""
         return _banners.load().get(key)
+
+    def cm_period(self, key: str) -> Period | None:
+        """UTC Period for the EN Champions Meeting with this key, or None if not curated."""
+        return _champions_meetings.load().get(key)
 
     def story_period(self, key: str) -> Period | None:
         """UTC Period for the EN story with this stable key, or None if not in stories.yaml."""

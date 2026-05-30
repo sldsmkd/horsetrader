@@ -71,6 +71,43 @@ our data (days 0–3 are pre-registration and untracked):
 | 8 | Rest / last-minute training |
 | 9 | Finals |
 
+**Which window each source reports — marketing vs. reality.** The two sources
+disagree on a CM's span *by design*, because they describe different things:
+
+- **JP (Gametora scrape) = the competition core, always exactly 6 days.**
+  Gametora records *only* competitive play — the qualifier→finals span (e.g.
+  `14日 4:00 – 20日 3:59`); the pre-registration days 0–3 aren't in it. This is
+  invariant: all 45 scraped CMs are 6 days at date level (the start hour varies
+  3:00/4:00 JST, but the span doesn't). So the **JP `Period` is always the
+  6-day core.**
+- **EN (Cygames announcement) = the full availability window (usually 10 days,
+  occasionally 9).** The monthly release-schedule announcement gives the *whole*
+  event including the lead-in (drop **22:00 UTC**), aligned to the concurrent
+  banner/content cycle — in the May 2026 schedule the Taurus Cup window
+  (May 10 22:00 – May 20 21:59 UTC) is *identical* to that month's New Trainee
+  banner window. **Curated EN dates use this announcement window** (the EN
+  source of truth — see [data-sources.md](data-sources.md)). The span varies on
+  the EN side, not JP: the lead-in is what flexes.
+
+Consequence: **the JP and EN `Period`s have different spans on purpose** — JP is
+the fixed 6-day competition core, EN is the marketing/availability window that
+adds the lead-in on the front. A naive equal-span JP→Global projection therefore
+*under-counts* a CM's EN window: a predicted CM would inherit the 6-day JP span
+and miss the ~3–4-day pre-registration lead-in EN tacks on.
+
+**Predict from the final, not the opening.** The competition *final* is
+precomputed and immune to meta changes; the opening drifts (Cygames flexes the
+registration/qualifier timing to avoid meta-changing banners during the
+competitive phase — the Oguri Cap rule below — but keeps the final fixed). So
+the [`ChampionsMeetingPredictor`](../horsetrader/timeline/predictors/champions_meeting.py)
+anchors on the **final day**: it maps JP-final → EN-final through a `DateMapper`
+of confirmed CM pairs, then rebuilds the EN availability window *backwards* from
+that final using the typical confirmed EN span (≈10 days). Final-to-final also
+neutralises the asymmetric front-padding for free. It runs as its own pass —
+after `BannerPredictor`, before the generic fallthrough (which would otherwise
+mis-map a CM off its opening day with the wrong 6-day span). See
+[prediction.md](prediction.md).
+
 CM track data — venue, surface, distance, direction, condition, season,
 weather — is currently MVP scaffolding: scraped from Gametora's JP event
 pages, with manual venue overrides for the ones Gametora can't resolve (US

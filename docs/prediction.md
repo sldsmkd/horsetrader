@@ -195,6 +195,26 @@ slope), but the tail has no closer signal. Anything at or before the anchor
 is skipped — that's a pass-3 concern, not an extrapolation. With pass 4 in
 place no banner carrying a JP period is left unpredicted.
 
+### `ChampionsMeetingPredictor`
+
+Runs after `BannerPredictor`, before `AnchorPredictor` / the fallthrough. CMs
+need their own pass because their two sources disagree on span *by design*:
+Gametora records only competitive play, so the JP scrape is always exactly 6
+days, while the EN release is the full availability window (usually 10) that
+adds the lead-in on the front (see [domain.md](domain.md)). The generic
+fallthrough would carry the fixed 6-day JP span across and map the JP *opening*
+day — wrong on both.
+
+Instead this **anchors on the final day**, which is precomputed and meta-immune
+(the opening drifts under the Oguri Cap rule). It builds a
+[`DateMapper`](../horsetrader/timeline/datemapper.py) from confirmed CM pairs
+keyed JP-final → EN-final, maps each unscheduled CM's JP final through it, and
+rebuilds the EN window *backwards* from that final using the mean confirmed EN
+span — stamped at 22:00 UTC. Final-to-final also absorbs the asymmetric
+front-padding (EN includes pre-registration days the JP scrape omits). Needs ≥2
+confirmed CMs to interpolate; with fewer it stamps nothing and leaves them to
+the fallthrough.
+
 ### `FallthroughPredictor`
 
 Dead last in the chain — after every dedicated pass, including

@@ -4,6 +4,7 @@ from horsetrader.core import SingletonMeta
 from horsetrader.semantics import transcend
 
 from .banners import GametoraBanners
+from .champions_meetings import GametoraChampionsMeetings
 from .character import GametoraCharacter
 from .characters import GametoraCharacters
 from .items import GametoraItems
@@ -24,6 +25,7 @@ class Gametora(metaclass=SingletonMeta):
 
     def __init__(self):
         self._banners_scraper = GametoraBanners()
+        self._champions_meetings_scraper = GametoraChampionsMeetings()
         self._characters_scraper = GametoraCharacters()
         self._character_scraper = GametoraCharacter()
         self._items_scraper = GametoraItems()
@@ -36,6 +38,10 @@ class Gametora(metaclass=SingletonMeta):
     def banners(self) -> Sequence[dict]:
         """Fetch JP gacha banner history (support and trainee banners)."""
         return self._banners_scraper.banners()
+
+    def champions_meetings(self) -> Sequence[dict]:
+        """Fetch Champions Meeting occurrences (JP period + EN name, keyed cm-NNN)."""
+        return self._champions_meetings_scraper.champions_meetings()
 
     def items(self) -> Sequence[dict]:
         """Fetch item index (icons + JP/EN names) from the Gametora items page."""

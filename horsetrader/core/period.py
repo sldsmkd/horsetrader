@@ -26,6 +26,8 @@ class Period:
             raise ValueError("span must be a timedelta object or None")
         if span is None:
             span = timedelta(0)
+        if span < timedelta(0):
+            raise ValueError(f"span must be non-negative; got {span}")
         self._date = start
         self._span = span
         self._predicted = predicted
