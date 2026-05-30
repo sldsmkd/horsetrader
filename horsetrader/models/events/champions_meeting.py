@@ -23,6 +23,10 @@ class ChampionsMeeting(Event):
     Global server (curated in `champions_meetings.yaml`). `name` is the EN
     cup / category label from the locale-less Gametora index ("Taurus Cup",
     "DIRT", …); track metadata is intentionally not modelled here.
+
+    Deliberately carries **no rewards**: CM payouts are performance-dependent
+    (they vary with the player's tournament result), so the front end computes
+    them from player input. Don't add reward inference here the way banners do.
     """
 
     name: str | None = None
