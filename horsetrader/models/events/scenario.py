@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 
 from ethicrawl import ResourceList, Url
 
-from horsetrader.core import Config, Japlish, Periods, SingletonMeta, StableKey
+from horsetrader.core import Config, Japlish, Period, Periods, SingletonMeta, StableKey
 from horsetrader.extractors.static import Static
 from horsetrader.info import Logger
 from horsetrader.models.core import References
@@ -26,6 +26,16 @@ class Scenario(Event):
 
     def match(self, query: str) -> bool:
         return super().match(query)
+
+    def bake(self, period: Period) -> dict:
+        # A major scenario release date — a real timeline event, not a gap.
+        # Same envelope + title/art/thumb shape as a Story, minus the
+        # banner/contents a story carries.
+        out = super().bake(period)
+        out["title"] = self.title.display if self.title else None
+        out["image"] = str(self.thumb.url) if self.thumb else None
+        out["art"] = str(self.art.url) if self.art else None
+        return out
 
 
 @daitaku

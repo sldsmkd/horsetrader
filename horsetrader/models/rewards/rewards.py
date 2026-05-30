@@ -187,7 +187,7 @@ def _generator_from_baked(value: object) -> RewardGenerator:
 
 def rewards_from_baked(data: dict[str, object]) -> Rewards:
     """Build a `Rewards` from the baked `{key: value}` shape — the inverse of
-    `horsetrader.output._mappers._rewards`. Plain `{key: amount}` entries become
+    `rewards_to_baked`. Plain `{key: amount}` entries become
     the matching `CounterReward`; a `reward_generator` object becomes a
     `RewardGenerator`. The two must stay in sync: this is what lets curated
     `static/*.yaml` carry rewards written in the same shape the client reads.
@@ -205,17 +205,55 @@ def rewards_from_baked(data: dict[str, object]) -> Rewards:
     return rewards
 
 
-def reward_for_gametora_icon(icon_id: str) -> type[Reward] | None:
-    """Resolve a Gametora `item_icon_<ID>.png` anchor to the Reward class
-    it represents, or `None` if no known subclass claims it. Walks the
+def rewards_to_baked(rewards: "Rewards | None") -> dict[str, object] | None:
+    """Fold a `Rewards` list into the baked `{key: value}` shape — the inverse
+    of `rewards_from_baked`, and what `Event.bake` stamps under `rewards`.
+
+    Same-keyed counters sum, so callers can stamp `[Carats(80), Carats(80)]`
+    *or* `[Carats(160)]` and get the same output. A `RewardGenerator` keeps its
+    repeat structure rather than being summed away — the client owns the payout
+    cadence — so it serialises under `reward_generator` as a `{<reward key>:
+    amount, "repeat": n}` object. One generator per event (a weekly, new-player,
+    and holiday bonus that overlap are three separate events), so a single
+    object, not a list. Returns `None` for an empty/absent `Rewards` so callers
+    can drop the key entirely.
+    """
+    if not rewards:
+        return None
+    counters: dict[str, int] = {}
+    generator: dict[str, int] | None = None
+    for r in rewards:
+        if isinstance(r, RewardGenerator):
+            generator = {r.reward.key: r.reward.amount, "repeat": r.repeat}
+            continue
+        amount = getattr(r, "amount", None)
+        if amount is None:
+            continue
+        counters[r.key] = counters.get(r.key, 0) + amount
+    out: dict[str, object] = dict(counters)
+    if generator is not None:
+        out["reward_generator"] = generator
+    return out or None
+
+
+def reward_for_gametora_icon(icon_id: str) -> type[CounterReward] | None:
+    """Resolve a Gametora `item_icon_<ID>.png` anchor to the `CounterReward`
+    class it represents, or `None` if no known subclass claims it. Walks the
     Reward subclass tree so new subclasses register themselves on class
     definition. The lookup is `item_key`-shaped now (`item-00043`) so it
     goes through the same key space `Items` uses.
+
+    A scraped icon is always "N of an item", so the match is constrained to
+    `CounterReward` (the only rewards that carry an `amount`) — the same
+    `issubclass` narrowing `_counter_from_baked` uses. In practice only the
+    concrete counters set an `item_key`, but the guard keeps callers sound: a
+    future non-counter reward that happened to carry one is skipped, never
+    constructed with an `amount` it doesn't have.
     """
     if not icon_id:
         return None
     item_key = f"item-{icon_id}"
     for cls in _reward_subclasses():
-        if cls.item_key == item_key:
+        if cls.item_key == item_key and issubclass(cls, CounterReward):
             return cls
     return None

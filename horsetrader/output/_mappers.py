@@ -1,59 +1,10 @@
-from typing import Callable
-
-from horsetrader.core import Japlish, Period
 from horsetrader.models.entities import Character, Support, Trainee
-from horsetrader.models.events import (
-    Anchor,
-    AnchoredEvent,
-    Banner,
-    Event,
-    Story,
-)
-from horsetrader.models.rewards import RewardGenerator, Rewards
-
-
-def _japlish(j: Japlish | None) -> str | None:
-    if j is None:
-        return None
-    for attr in ("en", "jp"):
-        try:
-            return getattr(j, attr)
-        except ValueError:
-            pass
-    return str(j)
-
-
-def _rewards(rewards: Rewards | None) -> dict[str, object] | None:
-    # Folds the heterogeneous Reward list back into the shape baked records
-    # expect. Same-keyed counters sum so callers can stamp `[Carats(80),
-    # Carats(80)]` *or* `[Carats(160)]` and get the same output. A
-    # `RewardGenerator` keeps its repeat structure rather than being summed
-    # away — the client owns the payout cadence — so it serialises under
-    # `reward_generator` as a `{<reward key>: amount, "repeat": n}` object.
-    # One generator per event (a weekly, new-player, and holiday bonus that
-    # overlap are three separate events), so a single object, not a list.
-    if not rewards:
-        return None
-    counters: dict[str, int] = {}
-    generator: dict[str, int] | None = None
-    for r in rewards:
-        if isinstance(r, RewardGenerator):
-            generator = {r.reward.key: r.reward.amount, "repeat": r.repeat}
-            continue
-        amount = getattr(r, "amount", None)
-        if amount is None:
-            continue
-        counters[r.key] = counters.get(r.key, 0) + amount
-    out: dict[str, object] = dict(counters)
-    if generator is not None:
-        out["reward_generator"] = generator
-    return out or None
 
 
 def _map_character(c: Character) -> dict:
     return {
-        "name": _japlish(c.name),
-        "quote": _japlish(c.quote),
+        "name": c.name.display if c.name else None,
+        "quote": c.quote.display if c.quote else None,
         "icon": str(c.icon.url) if c.icon else None,
         "portrait": str(c.portrait.url) if c.portrait else None,
     }
@@ -62,10 +13,10 @@ def _map_character(c: Character) -> dict:
 def _map_support(s: Support) -> dict:
     return {
         "character": s.character.key if s.character else None,
-        "display": _japlish(s.display),
+        "display": s.display.display if s.display else None,
         "type": s.type.value if s.type else None,
         "rarity": s.rarity.value if s.rarity else None,
-        "title": _japlish(s.title),
+        "title": s.title.display if s.title else None,
         "release": s.release.isoformat(),
         "thumbnail": str(s.thumbnail.url) if s.thumbnail else None,
         "art": str(s.art.url) if s.art else None,
@@ -75,7 +26,7 @@ def _map_support(s: Support) -> dict:
 def _map_trainee(t: Trainee) -> dict:
     return {
         "character": t.character.key,
-        "variant": _japlish(t.variant.title),
+        "variant": t.variant.title.display if t.variant.title else None,
         "rarity": t.variant.rarity,
         "release": t.release.isoformat(),
         "thumbnail": str(t.thumbnail.url) if t.thumbnail else None,
@@ -83,118 +34,11 @@ def _map_trainee(t: Trainee) -> dict:
     }
 
 
-def _map_banner(b: Banner, period: Period) -> dict:
-    # Discriminator from the runtime class: SupportBanner → "support",
-    # TraineeBanner → "trainee". Bare Banner shouldn't be instantiated; if it
-    # is, fall back to "banner" so the output isn't empty-stringed.
-    kind = type(b).__name__.lower().removesuffix("banner") or "banner"
-    out: dict = {
-        "start": period.start.date().isoformat(),
-        "end": period.end.date().isoformat(),
-        "predicted": period.predicted,
-        "type": kind,
-        "key": b.key,
-        "contents": [c.key for c in b.contents],
-        "image": f"/img/banners/{b.key}.webp",
-    }
-    if rewards := _rewards(b.rewards):
-        out["rewards"] = rewards
-    return out
-
-
-def _map_story(s: Story, period: Period) -> dict:
-    out: dict = {
-        "start": period.start.date().isoformat(),
-        "end": period.end.date().isoformat(),
-        "predicted": period.predicted,
-        "type": type(s).__name__.lower(),
-        "key": s.key,
-        "title": _japlish(s.title),
-        "contents": [],
-        "image": str(s.thumb.url) if s.thumb else None,
-        "banner": str(s.banner.url) if s.banner else None,
-        "art": str(s.art.url) if s.art else None,
-    }
-    if rewards := _rewards(s.rewards):
-        out["rewards"] = rewards
-    return out
-
-
-def _map_anchor(e: Event, period: Period) -> dict:
-    # Anchors are calendar points: no contents/art, just a date and any curated
-    # rewards (the login-bonus generator). All flavours (new year / golden week
-    # / anniversary) collapse to one `type: "anchor"` — the client splits them
-    # by key prefix. Shared with `_map_anchored`, which adds the placement
-    # fields and carries its own display `name`.
-    out: dict = {
-        "start": period.start.date().isoformat(),
-        "end": period.end.date().isoformat(),
-        "predicted": period.predicted,
-        "type": type(e).__name__.lower(),
-        "key": e.key,
-    }
-    if name := getattr(e, "name", None):
-        out["name"] = name
-    if rewards := _rewards(e.rewards):
-        out["rewards"] = rewards
-    return out
-
-
-def _map_anchored(e: AnchoredEvent, period: Period) -> dict:
-    # A calendar-style record like a holiday, plus the placement contract the
-    # web side groups on: `relation` (before/after) and the `anchor` key it
-    # hangs off. `start`/`end` come from the derived span, so unlike a holiday
-    # these are a real range, not a single instant.
-    out = _map_anchor(e, period)
-    out["relation"] = e.relation
-    out["anchor"] = e.anchor
-    return out
-
-
+# Entities serialise through an exact-type lookup in `Bake._serialize` — no MRO
+# walk, no base-class entry — so unlike events there's no contravariance to
+# violate and the table stays. (Events own their wire shape via `Event.bake`.)
 MAPPERS = {
     Character: _map_character,
     Support: _map_support,
     Trainee: _map_trainee,
 }
-
-def _map_unmapped(e: Event, period: Period) -> dict:
-    # Fallback when no concrete mapper is registered. Emits a bare record with
-    # a `{classname}:unmapped` discriminator so the JSON loads cleanly and the
-    # gaps are greppable downstream (`grep unmapped events.json | wc -l`).
-    return {
-        "start": period.start.date().isoformat(),
-        "end": period.end.date().isoformat(),
-        "predicted": period.predicted,
-        "type": f"{type(e).__name__.lower()}:unmapped",
-        "key": e.key,
-    }
-
-
-# Keyed by the base event class — subclasses (SupportBanner, TraineeBanner)
-# resolve via MRO walk in `event_mapper()` so a single Banner entry covers them.
-#
-# TODO: this dict trips a reportAssignmentType — the concrete-typed mappers
-# (`_map_banner(b: Banner, …)`) aren't assignable to the declared
-# `Callable[[Event, Period], dict]` because function params are contravariant.
-# It's sound at runtime (event_mapper only hands each mapper an instance of its
-# key class), but the type is a lie. Preferred fix: dissolve the table — make
-# baking an abstract method on `Event` (e.g. `bake(self, period) -> dict`) with
-# a per-subclass implementation, the same way `match` is abstract on
-# `TracenModel` and overridden everywhere. Each event then owns its own wire
-# shape and there's no variance to violate.
-EVENT_MAPPERS: dict[type[Event], Callable[[Event, Period], dict]] = {
-    Banner: _map_banner,
-    Story: _map_story,
-    Anchor: _map_anchor,
-    AnchoredEvent: _map_anchored,
-}
-
-
-def event_mapper(event: Event) -> Callable[[Event, Period], dict]:
-    """Resolve the mapper for `event` by walking its MRO, falling back to
-    `_map_unmapped` so callers always get a callable."""
-    for cls in type(event).__mro__:
-        mapper = EVENT_MAPPERS.get(cls)
-        if mapper is not None:
-            return mapper
-    return _map_unmapped

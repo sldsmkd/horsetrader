@@ -1,8 +1,9 @@
+from abc import abstractmethod
 from dataclasses import dataclass, field
 
-from horsetrader.core import Periods
+from horsetrader.core import Period, Periods
 from horsetrader.models.core import TracenModel
-from horsetrader.models.rewards import Rewards
+from horsetrader.models.rewards import Rewards, rewards_to_baked
 from horsetrader.semantics import daitaku
 
 
@@ -24,3 +25,28 @@ class Event(TracenModel):
 
     periods: Periods
     rewards: Rewards | None = field(default=None, kw_only=True)
+
+    @abstractmethod
+    def bake(self, period: Period) -> dict:
+        """Serialise this event to its wire record for the matched `period`.
+
+        Abstract by contract — every concrete event owns its own wire shape,
+        even if it adds nothing past the shared envelope (the same way `match`
+        is abstract on `TracenModel`). The body here is the base case, callable
+        via `super().bake(period)`: the date span, the `predicted` flag, the
+        class-derived `type` discriminator, the stable key, and any curated
+        rewards (a base `Event` field, so it lands here rather than in four
+        subclasses). `period` is passed in rather than read off `self` because
+        an event carries one `Period` per tz and the caller picks which one
+        (the EN/UTC one for the baked timeline).
+        """
+        out: dict = {
+            "start": period.start.date().isoformat(),
+            "end": period.end.date().isoformat(),
+            "predicted": period.predicted,
+            "type": type(self).__name__.lower(),
+            "key": self.key,
+        }
+        if rewards := rewards_to_baked(self.rewards):
+            out["rewards"] = rewards
+        return out

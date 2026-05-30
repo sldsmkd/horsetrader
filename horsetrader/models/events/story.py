@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 
 from ethicrawl import ResourceList, Url
 
-from horsetrader.core import Config, Japlish, Periods, SingletonMeta, StableKey
+from horsetrader.core import Config, Japlish, Period, Periods, SingletonMeta, StableKey
 from horsetrader.enums import Sources
 from horsetrader.extractors.gametora import Gametora
 from horsetrader.extractors.gametora.story import STORY_INDEX_URL
@@ -43,6 +43,15 @@ class Story(Event):
             or any(t.match(query) for t in self.trainees)
             or any(s.match(query) for s in self.supports)
         )
+
+    def bake(self, period: Period) -> dict:
+        out = super().bake(period)
+        out["title"] = self.title.display if self.title else None
+        out["contents"] = []
+        out["image"] = str(self.thumb.url) if self.thumb else None
+        out["banner"] = str(self.banner.url) if self.banner else None
+        out["art"] = str(self.art.url) if self.art else None
+        return out
 
 
 @daitaku

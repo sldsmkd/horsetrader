@@ -12,6 +12,7 @@ from .rewards import (
     reward_for_gametora_icon,
     reward_for_key,
     rewards_from_baked,
+    rewards_to_baked,
 )
 from .rules import stamp_first_original_rewards, stamp_story_off_table_extras
 
@@ -30,6 +31,7 @@ __all__ = [
     "reward_for_gametora_icon",
     "reward_for_key",
     "rewards_from_baked",
+    "rewards_to_baked",
     "stamp_first_original_rewards",
     "stamp_story_off_table_extras",
 ]

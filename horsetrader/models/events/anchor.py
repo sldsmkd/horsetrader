@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from horsetrader.core import Periods, SingletonMeta, StableKey
+from horsetrader.core import Period, Periods, SingletonMeta, StableKey
 from horsetrader.extractors.static import Static
 from horsetrader.info import Logger
 from horsetrader.models.core import References
@@ -62,6 +62,14 @@ class Anchor(Event):
 
     def match(self, query: str) -> bool:
         return super().match(query)
+
+    def bake(self, period: Period) -> dict:
+        # Anchors are calendar points: no contents/art, just a date and any
+        # curated rewards (the login-bonus generator), all of which the base
+        # envelope already carries. All flavours (new year / golden week /
+        # anniversary) collapse to one `type: "anchor"` — the client splits
+        # them by key prefix, the same way `kind` does here.
+        return super().bake(period)
 
 
 @daitaku

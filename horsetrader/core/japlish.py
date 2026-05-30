@@ -173,6 +173,21 @@ class Japlish(str):
         if en_text == str(self):
             self._encoding = JaplishEncoding.EN
 
+    @property
+    def display(self) -> str:
+        """The best single string to show, preferring EN over JP over the base.
+
+        The baked wire output is EN-facing, so an English translation wins when
+        one is attached; otherwise fall back to the Japanese slot, then to the
+        raw base payload. Mirrors `match`, which also walks both slots.
+        """
+        for attr in ("en", "jp"):
+            try:
+                return getattr(self, attr)
+            except ValueError:
+                pass
+        return str(self)
+
     def match(self, query: str) -> bool:
         """True if any encoded form of this text contains ``query`` (case-insensitive)."""
         needle = query.lower()

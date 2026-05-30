@@ -6,7 +6,7 @@ from typing import Any
 
 from ethicrawl import ResourceList
 
-from horsetrader.core import Config, Periods, SingletonMeta, StableKey
+from horsetrader.core import Config, Period, Periods, SingletonMeta, StableKey
 from horsetrader.enums import CostumeVariants, SupportRarity, SupportType
 from horsetrader.extractors.gametora import Gametora
 from horsetrader.extractors.gametora.banners import BANNER_INDEX_URL
@@ -56,6 +56,16 @@ class Banner(Event):
             or any(c.match(query) for c in self.contents)
         )
 
+    def bake(self, period: Period) -> dict:
+        out = super().bake(period)
+        # Discriminator from the runtime class: SupportBanner → "support",
+        # TraineeBanner → "trainee". Bare Banner shouldn't be instantiated; if
+        # it is, fall back to "banner" so the output isn't empty-stringed.
+        out["type"] = type(self).__name__.lower().removesuffix("banner") or "banner"
+        out["contents"] = [c.key for c in self.contents]
+        out["image"] = f"/img/banners/{self.key}.webp"
+        return out
+
 
 @daitaku
 @dataclass
@@ -65,6 +75,9 @@ class SupportBanner(Banner):
     def match(self, query: str) -> bool:
         return super().match(query)
 
+    def bake(self, period: Period) -> dict:
+        return super().bake(period)
+
 
 @daitaku
 @dataclass
@@ -73,6 +86,9 @@ class TraineeBanner(Banner):
 
     def match(self, query: str) -> bool:
         return super().match(query)
+
+    def bake(self, period: Period) -> dict:
+        return super().bake(period)
 
 
 _TraineeKey = tuple[str, CostumeVariants]

@@ -37,6 +37,18 @@ class AnchoredEvent(Event):
             self.name is not None and query.lower() in self.name.lower()
         )
 
+    def bake(self, period: Period) -> dict:
+        # A calendar-style record (the base envelope, with `start`/`end` a real
+        # derived span rather than a single instant) plus the placement contract
+        # the web side groups on: `relation` (before/after) and the `anchor` key
+        # it hangs off. Carries its own display `name` when curated.
+        out = super().bake(period)
+        if self.name:
+            out["name"] = self.name
+        out["relation"] = self.relation
+        out["anchor"] = self.anchor
+        return out
+
 
 @dataclass(frozen=True)
 class AnchorSpec:

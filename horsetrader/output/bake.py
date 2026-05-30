@@ -9,7 +9,7 @@ from horsetrader.models.events.events import Events
 from horsetrader.semantics import eishin
 from horsetrader.timeline import Timeline
 
-from ._mappers import MAPPERS, event_mapper
+from ._mappers import MAPPERS
 
 
 @eishin
@@ -51,7 +51,7 @@ class Bake:
             # violation upstream (Timeline._validate / Predict) and should
             # raise here rather than be silently skipped.
             period = next(p for p in event.periods if p.tzinfo == timeline.tz)
-            records.append(event_mapper(event)(event, period))
+            records.append(event.bake(period))
         path = Config().site / "static" / "events.json"
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps({"events": records}, ensure_ascii=False, indent=2))
