@@ -16,6 +16,7 @@ from horsetrader.models.rewards import (
     reward_for_gametora_icon,
     stamp_story_off_table_extras,
 )
+from horsetrader.output._records import StoryRecord
 from horsetrader.semantics import daitaku
 
 from .event import Event
@@ -44,14 +45,15 @@ class Story(Event):
             or any(s.match(query) for s in self.supports)
         )
 
-    def bake(self, period: Period) -> dict:
-        out = super().bake(period)
-        out["title"] = self.title.display if self.title else None
-        out["contents"] = []
-        out["image"] = str(self.thumb.url) if self.thumb else None
-        out["banner"] = str(self.banner.url) if self.banner else None
-        out["art"] = str(self.art.url) if self.art else None
-        return out
+    def bake(self, period: Period) -> StoryRecord:
+        return StoryRecord(
+            **self._envelope(period),
+            title=self.title.display if self.title else None,
+            contents=[],
+            image=str(self.thumb.url) if self.thumb else None,
+            banner=str(self.banner.url) if self.banner else None,
+            art=str(self.art.url) if self.art else None,
+        )
 
 
 @daitaku

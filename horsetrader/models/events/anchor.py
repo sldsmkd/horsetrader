@@ -5,6 +5,7 @@ from horsetrader.extractors.static import Static
 from horsetrader.info import Logger
 from horsetrader.models.core import References
 from horsetrader.models.rewards import rewards_from_baked
+from horsetrader.output._records import AnchorRecord
 from horsetrader.semantics import daitaku
 
 from .event import Event
@@ -63,13 +64,13 @@ class Anchor(Event):
     def match(self, query: str) -> bool:
         return super().match(query)
 
-    def bake(self, period: Period) -> dict:
+    def bake(self, period: Period) -> AnchorRecord:
         # Anchors are calendar points: no contents/art, just a date and any
         # curated rewards (the login-bonus generator), all of which the base
         # envelope already carries. All flavours (new year / golden week /
         # anniversary) collapse to one `type: "anchor"` — the client splits
         # them by key prefix, the same way `kind` does here.
-        return super().bake(period)
+        return AnchorRecord(**self._envelope(period))
 
 
 @daitaku

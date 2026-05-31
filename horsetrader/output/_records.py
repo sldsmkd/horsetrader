@@ -1,0 +1,162 @@
+"""Typed wire-shape DTOs for the baked bundle — Eishin's published contract.
+
+These ``msgspec.Struct`` classes *are* the shape of ``academy.json`` and
+``events.json``. They are the single source of truth the JSON Schema is
+generated from (``msgspec.json.schema``) and the type the bake self-validates
+against on the way out (``msgspec.json.decode``), so the schema we publish to
+``generated/site/static/`` physically cannot drift from what we emit.
+
+Ownership note: the records live with Eishin (``output/``) because they are the
+*serialised* form, not a model. The model ``bake()`` methods map a model into
+the matching record here; the entity mappers in ``_mappers.py`` do the same for
+``academy.json``. Models depend on this module (for the return type); this
+module depends on nothing but ``msgspec`` — so there is no import cycle even
+though ``output`` otherwise sits above ``models``.
+
+Field order is the emitted key order. The only intentional deviation from the
+pre-msgspec output is that the ``type`` discriminator (the union tag) leads each
+event record instead of sitting mid-object; JSON key order is not significant,
+so the bundles are otherwise byte-comparable.
+"""
+
+import msgspec
+from msgspec import UNSET, UnsetType
+
+from horsetrader.semantics import eishin
+
+# A baked rewards object: ``{<reward-key>: amount}`` for plain counters, plus an
+# optional ``reward_generator`` whose value is itself ``{<reward-key>: amount,
+# "repeat": n}`` — all-int. So the value union is ``int | dict[str, int]``. This
+# mirrors what Yayoi's ``rewards_to_baked`` emits; the dynamic keys are hers, so
+# the schema stays a typed open object rather than a fixed struct. A tighter
+# (fixed-key) schema would need a rewards reshape, which is Yayoi's call.
+Baked = dict[str, int | dict[str, int]]
+
+
+# ── academy.json ──────────────────────────────────────────────────────────────
+
+@eishin
+class CharacterRecord(msgspec.Struct):
+    name: str | None
+    quote: str | None
+    icon: str | None
+    portrait: str | None
+
+
+@eishin
+class SupportRecord(msgspec.Struct):
+    character: str | None
+    display: str | None
+    type: str | None
+    rarity: str | None
+    title: str | None
+    release: str
+    thumbnail: str | None
+    art: str | None
+
+
+@eishin
+class TraineeRecord(msgspec.Struct):
+    character: str
+    variant: str | None
+    rarity: int
+    release: str
+    thumbnail: str | None
+    portrait: str | None
+
+
+@eishin
+class Academy(msgspec.Struct):
+    """Top-level shape of ``academy.json`` — the three entity collections, each a
+    stable-key → record map (the keys are the collection class names lowercased,
+    matching ``Bake.academy``)."""
+
+    characters: dict[str, CharacterRecord]
+    supports: dict[str, SupportRecord]
+    trainees: dict[str, TraineeRecord]
+
+
+# ── events.json ───────────────────────────────────────────────────────────────
+
+@eishin
+class EventRecord(msgspec.Struct, tag_field="type", kw_only=True):
+    """Shared event envelope. The ``type`` tag is supplied by each concrete
+    subclass and leads the object. ``rewards`` defaults to ``UNSET`` — encoding
+    omits the key when an event carries none, and decoding treats it as optional
+    (so the bundle round-trips). Every other field is required, including those
+    the subclasses add; ``kw_only`` is what lets a required subclass field sit
+    alongside the base's defaulted ``rewards``. JSON key order is insignificant,
+    so the kw-only field reordering doesn't affect the contract."""
+
+    start: str
+    end: str
+    predicted: bool
+    key: str
+    rewards: Baked | UnsetType = UNSET
+
+
+@eishin
+class SupportBannerRecord(EventRecord, tag="support"):
+    contents: list[str]
+    image: str
+
+
+@eishin
+class TraineeBannerRecord(EventRecord, tag="trainee"):
+    contents: list[str]
+    image: str
+
+
+@eishin
+class ScenarioRecord(EventRecord, tag="scenario"):
+    title: str | None
+    image: str | None
+    art: str | None
+
+
+@eishin
+class StoryRecord(EventRecord, tag="story"):
+    title: str | None
+    contents: list[str]
+    image: str | None
+    banner: str | None
+    art: str | None
+
+
+@eishin
+class CMRecord(EventRecord, tag="cm"):
+    name: str | None
+
+
+@eishin
+class AnchorRecord(EventRecord, tag="anchor"):
+    # Calendar point: nothing past the shared envelope (+ any curated rewards).
+    pass
+
+
+@eishin
+class AnchoredEventRecord(EventRecord, tag="anchoredevent"):
+    relation: str
+    anchor: str
+    name: str | UnsetType = UNSET  # curated display name; omitted when absent
+
+
+# Concrete event records, discriminated on ``type``. ``EventsBundle.events`` is
+# this union, which is what makes ``msgspec.json.schema`` emit the ``oneOf`` +
+# discriminator and ``msgspec.json.decode`` route each record by its tag.
+EventRecordUnion = (
+    SupportBannerRecord
+    | TraineeBannerRecord
+    | ScenarioRecord
+    | StoryRecord
+    | CMRecord
+    | AnchorRecord
+    | AnchoredEventRecord
+)
+
+
+@eishin
+class EventsBundle(msgspec.Struct):
+    """Top-level shape of ``events.json`` — a flat, tz-start-sorted list."""
+
+    events: list[EventRecordUnion]

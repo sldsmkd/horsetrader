@@ -5,6 +5,7 @@ from horsetrader.extractors.gametora import Gametora
 from horsetrader.extractors.static import Static, store
 from horsetrader.info import Logger
 from horsetrader.models.core import References
+from horsetrader.output._records import CMRecord
 from horsetrader.semantics import daitaku
 
 from .event import Event
@@ -36,13 +37,10 @@ class ChampionsMeeting(Event):
             self.name is not None and query.lower() in self.name.lower()
         )
 
-    def bake(self, period: Period) -> dict:
-        out = super().bake(period)
-        # Concise discriminator matching the stable-key prefix, not the
-        # class-derived "championsmeeting".
-        out["type"] = "cm"
-        out["name"] = self.name
-        return out
+    def bake(self, period: Period) -> CMRecord:
+        # `CMRecord`'s tag is "cm" — the concise discriminator matching the
+        # stable-key prefix, not the class-derived "championsmeeting".
+        return CMRecord(**self._envelope(period), name=self.name)
 
 
 @daitaku

@@ -16,6 +16,7 @@ from horsetrader.models.core import References
 from horsetrader.models.entities import Support, Supports, Trainee, Trainees
 from horsetrader.models.media import CurrenChan, Image, ImageRequest
 from horsetrader.models.rewards import stamp_first_original_rewards
+from horsetrader.output._records import SupportBannerRecord, TraineeBannerRecord
 from horsetrader.semantics import daitaku
 
 from .event import Event
@@ -56,15 +57,15 @@ class Banner(Event):
             or any(c.match(query) for c in self.contents)
         )
 
-    def bake(self, period: Period) -> dict:
-        out = super().bake(period)
-        # Discriminator from the runtime class: SupportBanner → "support",
-        # TraineeBanner → "trainee". Bare Banner shouldn't be instantiated; if
-        # it is, fall back to "banner" so the output isn't empty-stringed.
-        out["type"] = type(self).__name__.lower().removesuffix("banner") or "banner"
-        out["contents"] = [c.key for c in self.contents]
-        out["image"] = f"/img/banners/{self.key}.webp"
-        return out
+    def _banner_fields(self, period: Period) -> dict:
+        # Shared record kwargs for both concrete banners; the runtime class
+        # picks the record type (and thus the `type` tag) in `bake`. Bare
+        # `Banner` is abstract — it has no record and isn't instantiated.
+        return {
+            **self._envelope(period),
+            "contents": [c.key for c in self.contents],
+            "image": f"/img/banners/{self.key}.webp",
+        }
 
 
 @daitaku
@@ -75,8 +76,8 @@ class SupportBanner(Banner):
     def match(self, query: str) -> bool:
         return super().match(query)
 
-    def bake(self, period: Period) -> dict:
-        return super().bake(period)
+    def bake(self, period: Period) -> SupportBannerRecord:
+        return SupportBannerRecord(**self._banner_fields(period))
 
 
 @daitaku
@@ -87,8 +88,8 @@ class TraineeBanner(Banner):
     def match(self, query: str) -> bool:
         return super().match(query)
 
-    def bake(self, period: Period) -> dict:
-        return super().bake(period)
+    def bake(self, period: Period) -> TraineeBannerRecord:
+        return TraineeBannerRecord(**self._banner_fields(period))
 
 
 _TraineeKey = tuple[str, CostumeVariants]

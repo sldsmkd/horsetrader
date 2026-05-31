@@ -1,9 +1,12 @@
 from abc import abstractmethod
 from dataclasses import dataclass, field
 
+from msgspec import UNSET
+
 from horsetrader.core import Period, Periods
 from horsetrader.models.core import TracenModel
 from horsetrader.models.rewards import Rewards, rewards_to_baked
+from horsetrader.output._records import EventRecord
 from horsetrader.semantics import daitaku
 
 
@@ -27,26 +30,34 @@ class Event(TracenModel):
     rewards: Rewards | None = field(default=None, kw_only=True)
 
     @abstractmethod
-    def bake(self, period: Period) -> dict:
-        """Serialise this event to its wire record for the matched `period`.
+    def bake(self, period: Period) -> EventRecord:
+        """Map this event to its wire record (`output/_records.py`) for the
+        matched `period`.
 
-        Abstract by contract — every concrete event owns its own wire shape,
+        Abstract by contract — every concrete event owns its own record type,
         even if it adds nothing past the shared envelope (the same way `match`
-        is abstract on `TracenModel`). The body here is the base case, callable
-        via `super().bake(period)`: the date span, the `predicted` flag, the
-        class-derived `type` discriminator, the stable key, and any curated
-        rewards (a base `Event` field, so it lands here rather than in four
-        subclasses). `period` is passed in rather than read off `self` because
-        an event carries one `Period` per tz and the caller picks which one
-        (the EN/UTC one for the baked timeline).
+        is abstract on `TracenModel`). The `type` discriminator is that record's
+        msgspec tag, not something computed here. Concrete `bake`s build their
+        record from `_envelope()` plus their own fields. `period` is passed in
+        rather than read off `self` because an event carries one `Period` per tz
+        and the caller picks which one (the EN/UTC one for the baked timeline).
         """
-        out: dict = {
+        ...
+
+    def _envelope(self, period: Period) -> dict:
+        """The shared record kwargs every concrete `bake` spreads in: the date
+        span, the `predicted` flag, the stable key, and any curated rewards (a
+        base `Event` field, so it folds in here rather than in four subclasses).
+
+        Rewards is passed as `UNSET` when the event carries none, which drops
+        the key from the output — the same omission the old dict-build got by
+        skipping the assignment.
+        """
+        baked = rewards_to_baked(self.rewards)
+        return {
             "start": period.start.date().isoformat(),
             "end": period.end.date().isoformat(),
             "predicted": period.predicted,
-            "type": type(self).__name__.lower(),
             "key": self.key,
+            "rewards": baked if baked else UNSET,
         }
-        if rewards := rewards_to_baked(self.rewards):
-            out["rewards"] = rewards
-        return out

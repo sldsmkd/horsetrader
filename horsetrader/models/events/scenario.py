@@ -7,6 +7,7 @@ from horsetrader.extractors.static import Static
 from horsetrader.info import Logger
 from horsetrader.models.core import References
 from horsetrader.models.media import CurrenChan, Image, ImageRequest
+from horsetrader.output._records import ScenarioRecord
 from horsetrader.semantics import daitaku
 
 from .event import Event
@@ -27,15 +28,16 @@ class Scenario(Event):
     def match(self, query: str) -> bool:
         return super().match(query)
 
-    def bake(self, period: Period) -> dict:
+    def bake(self, period: Period) -> ScenarioRecord:
         # A major scenario release date — a real timeline event, not a gap.
         # Same envelope + title/art/thumb shape as a Story, minus the
         # banner/contents a story carries.
-        out = super().bake(period)
-        out["title"] = self.title.display if self.title else None
-        out["image"] = str(self.thumb.url) if self.thumb else None
-        out["art"] = str(self.art.url) if self.art else None
-        return out
+        return ScenarioRecord(
+            **self._envelope(period),
+            title=self.title.display if self.title else None,
+            image=str(self.thumb.url) if self.thumb else None,
+            art=str(self.art.url) if self.art else None,
+        )
 
 
 @daitaku

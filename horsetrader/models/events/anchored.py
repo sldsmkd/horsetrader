@@ -2,10 +2,13 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import timedelta, tzinfo
 
+from msgspec import UNSET
+
 from horsetrader.core import JST, Period, Periods, SingletonMeta, StableKey
 from horsetrader.info import Logger
 from horsetrader.models.core import References
 from horsetrader.models.rewards import rewards_from_baked
+from horsetrader.output._records import AnchoredEventRecord
 from horsetrader.semantics import daitaku
 
 from .event import Event
@@ -37,17 +40,18 @@ class AnchoredEvent(Event):
             self.name is not None and query.lower() in self.name.lower()
         )
 
-    def bake(self, period: Period) -> dict:
+    def bake(self, period: Period) -> AnchoredEventRecord:
         # A calendar-style record (the base envelope, with `start`/`end` a real
         # derived span rather than a single instant) plus the placement contract
         # the web side groups on: `relation` (before/after) and the `anchor` key
-        # it hangs off. Carries its own display `name` when curated.
-        out = super().bake(period)
-        if self.name:
-            out["name"] = self.name
-        out["relation"] = self.relation
-        out["anchor"] = self.anchor
-        return out
+        # it hangs off. Carries its own display `name` when curated, else the
+        # key is omitted (UNSET).
+        return AnchoredEventRecord(
+            **self._envelope(period),
+            relation=self.relation,
+            anchor=self.anchor,
+            name=self.name if self.name else UNSET,
+        )
 
 
 @dataclass(frozen=True)
@@ -115,6 +119,12 @@ class AnchoredEvents(Events[AnchoredEvent], metaclass=SingletonMeta):
     def _validate_item(self, item: AnchoredEvent) -> None:
         if not item.periods:
             logger.warning("Anchored event %s has no periods", item.key)
+        if not item.name:
+            # Anchored events are displayable, so the client wants a name; it
+            # falls back to an empty box without one. Absence is a curation
+            # nudge, not a failure (cf. rewards, which are legitimately absent
+            # and simply omit their key) — so warn rather than raise.
+            logger.warning("Anchored event %s has no display name", item.key)
 
     def _fetch_primary(self) -> list[AnchoredEvent]:
         from horsetrader.extractors.static import Static
