@@ -16,7 +16,8 @@ extraction (Transcend's job — the EN corpus isn't a separate stage).
 `Pipeline.run()` then builds a **timeline** of every Event, hands it to
 `Predict`, which fills in predicted UTC periods for the ones missing them,
 and passes the resulting **UTC-bearing timeline** to `Bake`, which writes
-`academy.json` and `events.json` into `$HORSETRADER_TARGET/site/static/`.
+`academy.json` and `events.json` — each with a co-located JSON Schema — into
+`$HORSETRADER_TARGET/site/static/`.
 
 ## Stages
 
@@ -61,7 +62,9 @@ and passes the resulting **UTC-bearing timeline** to `Bake`, which writes
                   ┌───────────────┴────────────────┐
                   ▼                                ▼
         Bake.academy(stages)          Bake.events(timeline)
-        → site/static/academy.json    → site/static/events.json
+        → academy.json                → events.json
+          + academy.schema.json         + events.schema.json
+          (site/static/)                (site/static/)
 ```
 
 Curren Chan (image processing) runs alongside, invoked from media-bearing
@@ -128,6 +131,41 @@ date-math primitives — they don't know or care about JST↔UTC conversion.
 Translation between zones is the predictors' problem, not the calendar
 layer's.
 
+### The baked bundle is a typed, self-validating contract
+
+The shape of `academy.json` / `events.json` is defined once, by the
+`msgspec.Struct` DTOs in [`output/_records.py`](../horsetrader/output/_records.py)
+— Eishin's published wire contract. Everything else falls out of them:
+
+- **The models map *into* the contract.** Each event's
+  [`bake(period)`](../horsetrader/models/events/event.py) returns its record
+  type (built from the shared `Event._envelope()` plus its own fields); the
+  entity mappers in [`_mappers.py`](../horsetrader/output/_mappers.py) do the
+  same for the academy side. The model→record dependency is why
+  `output/__init__` exposes `Bake` lazily (PEP 562) — to keep `_records` a leaf
+  the models can import without the `output → timeline → models` cycle.
+- **Events are a discriminated union on `type`.** `EventRecord` is a msgspec
+  *tagged union* (`tag_field="type"`); each concrete record declares its tag
+  (`support`, `trainee`, `scenario`, `story`, `cm`, `anchor`, `anchoredevent`).
+  The tag *is* the discriminator — there's no hand-computed `type` string. As
+  before, `predicted` is an envelope field set from *which* `Period` matched,
+  not a field on the model.
+- **The JSON Schema is generated, not written.** `Bake._write` emits
+  `<name>.schema.json` via `msgspec.json.schema(...)` straight from the same
+  structs, so the published contract physically can't drift from the data. The
+  web planner derives its TypeScript types from these schemas (see the bridge
+  in `generated/TODO.md`); the ETL owns the data, so it owns the contract.
+- **The bake self-validates (fail-loud).** Before writing, `_write` decodes its
+  own encoded bytes back through the struct and raises on mismatch — so a bundle
+  that would violate the published schema is never written, and the site is
+  never asked to build against bad data.
+
+Optional-vs-null is deliberate: a field that's legitimately absent (`rewards`,
+an anchored event's `name`) is **omitted** (msgspec `UNSET`), while a field
+that's always present but unknown (`cm.name`, `scenario.title`) is emitted as
+`null`. A missing anchored-event `name` additionally *warns* at load — it's a
+displayable event, so the absence is a curation nudge, not a failure.
+
 ### Transport stays behind `UmaClient`
 
 Network I/O, cache lookups, robots.txt parsing, sentinel/404 negative-cache
@@ -153,7 +191,7 @@ surface it, not paper over it with defaults or `try/except: pass`. See
 | A new event type that shows up on the timeline | `models/events/<thing>.py` + `<things>.py` | `@daitaku` |
 | An extractor for an entity or event | `extractors/<source>/<thing>.py` | `@transcend` (uses `@shakur` for the wire) |
 | A predictor for an unscheduled-EN type | `timeline/predictors/<thing>.py` | `@matikanefukukitaru` |
-| Final-bake mapping / serialisation rules | `output/_mappers.py` or a new `output/` helper | `@eishin` |
+| The baked wire shape (a new field/record on the JSON) | `output/_records.py` (the `msgspec.Struct` DTOs) + the model's `bake()` / `output/_mappers.py` | `@eishin` |
 | HTTP / cache / robots.txt | `transport/` | `@shakur` only |
 | A new YAML-curated dataset | `static/yaml/<name>.yaml` (follow the [consolidated yaml shape](data-sources.md#consolidated-yaml-shape); the store auto-loads it, no whitelist) + an extractor in `extractors/static/` driving `store.py` primitives | dataset is hand-curated; extractor follows `@transcend` |
 
