@@ -42,8 +42,8 @@ anchor-new-year-2026:
 anchor-golden-week-2021:
   # name: Golshi Week
   rewards:
-    reward_generator:
-      reward_carats: 564
+    generator:
+      carats: 564
       repeat: 10
   jp:
     start: 2021-04-30T12:00:00+09:00

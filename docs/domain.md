@@ -279,15 +279,17 @@ in `models/rewards/`. Two shapes matter to the domain:
   login bonuses are *separate events*, not multiple generators on one
   event — so the baked shape is a single object, not a list.
 
-**Baked shape.** A `Rewards` list folds (in `output/_mappers.py::_rewards`)
-to a JSON object: counters become `{key: amount}` (same keys summed); a
-`RewardGenerator` serialises under `reward_generator` as
+**Baked shape.** A `Rewards` list folds (in
+`models/rewards/rewards.py::rewards_to_baked`) to a JSON object — the value of an
+event's `rewards` key: counters become `{key: amount}` (same keys summed); a
+`RewardGenerator` serialises under `generator` as
 `{<reward key>: amount, "repeat": n}`, keeping the per-payout amount and
-the repeat separate so the client multiplies.
+the repeat separate so the client multiplies. Keys are bare + pluralised
+(`carats`, `gold_crystal_shards`, …); the `rewards` wrapper namespaces them.
 
 ```json
-{ "carats": 660, "gold_crystal_shard": 3,
-  "reward_generator": { "gold_crystal_shard": 3, "repeat": 5 } }
+{ "carats": 660, "gold_crystal_shards": 3,
+  "generator": { "gold_crystal_shards": 3, "repeat": 5 } }
 ```
 
 **Two ways a reward lands on an event:**
@@ -306,7 +308,7 @@ the repeat separate so the client multiplies.
   ```yaml
   anchor-golden-week-2021:
     rewards:
-      reward_generator:
+      generator:
         carats: 564
         repeat: 10
     jp: { start: 2021-04-30T12:00:00+09:00 }

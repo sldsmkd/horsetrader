@@ -66,35 +66,35 @@ class CounterReward(Reward):
 @yayoi
 @dataclass(frozen=True)
 class Carats(CounterReward):
-    key: ClassVar[str] = "reward_carats"
+    key: ClassVar[str] = "carats"
     item_key: ClassVar[str] = "item-00043"
 
 
 @yayoi
 @dataclass(frozen=True)
 class TraineeTicket(CounterReward):
-    key: ClassVar[str] = "reward_trainee_tickets"
+    key: ClassVar[str] = "trainee_tickets"
     item_key: ClassVar[str] = "item-00041"
 
 
 @yayoi
 @dataclass(frozen=True)
 class SupportTicket(CounterReward):
-    key: ClassVar[str] = "reward_support_tickets"
+    key: ClassVar[str] = "support_tickets"
     item_key: ClassVar[str] = "item-00111"
 
 
 @yayoi
 @dataclass(frozen=True)
 class RainbowCrystalShard(CounterReward):
-    key: ClassVar[str] = "reward_rainbow_crystal_shards"
+    key: ClassVar[str] = "rainbow_crystal_shards"
     item_key: ClassVar[str] = "item-00149"
 
 
 @yayoi
 @dataclass(frozen=True)
 class GoldCrystalShard(CounterReward):
-    key: ClassVar[str] = "reward_gold_crystal_shards"
+    key: ClassVar[str] = "gold_crystal_shards"
     item_key: ClassVar[str] = "item-00150"
 
 
@@ -111,7 +111,7 @@ class RewardGenerator(Reward):
     for callers that only want the headline figure.
     """
 
-    key: ClassVar[str] = "reward_generator"
+    key: ClassVar[str] = "generator"
     reward: CounterReward
     repeat: int
 
@@ -167,28 +167,29 @@ def _counter_from_baked(key: str, amount: object, where: str) -> CounterReward:
 
 
 def _generator_from_baked(value: object) -> RewardGenerator:
+    key = RewardGenerator.key
     if not isinstance(value, dict):
-        raise ValueError(f"reward_generator must be a mapping; got {value!r}")
+        raise ValueError(f"{key} must be a mapping; got {value!r}")
     body = dict(value)
     if "repeat" not in body:
-        raise ValueError("reward_generator is missing 'repeat'")
+        raise ValueError(f"{key} is missing 'repeat'")
     repeat = body.pop("repeat")
     if not isinstance(repeat, int):
-        raise ValueError(f"reward_generator repeat must be an int; got {repeat!r}")
+        raise ValueError(f"{key} repeat must be an int; got {repeat!r}")
     if len(body) != 1:
         raise ValueError(
-            f"reward_generator needs exactly one unit reward; got {list(body)}"
+            f"{key} needs exactly one unit reward; got {list(body)}"
         )
     (rkey, amount), = body.items()
     return RewardGenerator(
-        reward=_counter_from_baked(rkey, amount, "reward_generator"), repeat=repeat
+        reward=_counter_from_baked(rkey, amount, key), repeat=repeat
     )
 
 
 def rewards_from_baked(data: dict[str, object]) -> Rewards:
     """Build a `Rewards` from the baked `{key: value}` shape — the inverse of
     `rewards_to_baked`. Plain `{key: amount}` entries become
-    the matching `CounterReward`; a `reward_generator` object becomes a
+    the matching `CounterReward`; a `generator` object becomes a
     `RewardGenerator`. The two must stay in sync: this is what lets curated
     `static/*.yaml` carry rewards written in the same shape the client reads.
 
@@ -212,7 +213,7 @@ def rewards_to_baked(rewards: "Rewards | None") -> dict[str, object] | None:
     Same-keyed counters sum, so callers can stamp `[Carats(80), Carats(80)]`
     *or* `[Carats(160)]` and get the same output. A `RewardGenerator` keeps its
     repeat structure rather than being summed away — the client owns the payout
-    cadence — so it serialises under `reward_generator` as a `{<reward key>:
+    cadence — so it serialises under `generator` as a `{<reward key>:
     amount, "repeat": n}` object. One generator per event (a weekly, new-player,
     and holiday bonus that overlap are three separate events), so a single
     object, not a list. Returns `None` for an empty/absent `Rewards` so callers
@@ -232,7 +233,7 @@ def rewards_to_baked(rewards: "Rewards | None") -> dict[str, object] | None:
         counters[r.key] = counters.get(r.key, 0) + amount
     out: dict[str, object] = dict(counters)
     if generator is not None:
-        out["reward_generator"] = generator
+        out[RewardGenerator.key] = generator
     return out or None
 
 

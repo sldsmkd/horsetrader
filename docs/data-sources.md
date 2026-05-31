@@ -59,9 +59,12 @@ Notes that are load-bearing, not cosmetic:
   being the `during-`→`after-` sugar above). A `static/extractors/*.py`
   `_KEY_PATTERN` selects each corpus's rows by this shape — change a key format
   and its pattern moves with it.
-- **Reward keys are not entity keys.** They're a fixed serialisation vocab
-  (`reward_carats`, `reward_trainee_tickets`, …, plus the `reward_generator`
-  wrapper), so they use an underscore, not the `-` namespace separator.
+- **Reward keys are not stable keys.** They're a fixed serialisation vocab
+  bundled under an event's `rewards` object (`{"carats": 2160,
+  "support_tickets": 2, …}`) — bare + pluralised, since the `rewards` wrapper
+  already namespaces them, so the client reads one object rather than scanning
+  top-level keys. A repeating bonus appears under `generator`
+  (`{"carats": 564, "repeat": 10}`).
 
 ## Gametora
 

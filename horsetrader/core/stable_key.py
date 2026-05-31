@@ -20,8 +20,10 @@ class StableKey(str):
         ``after-`` at load)
       - ``item-<id>``
 
-    Reward keys are *not* entity keys (a fixed serialisation vocab, not models),
-    so they use an underscore: ``reward_carats``, ``reward_trainee_tickets``, ….
+    Reward keys are *not* stable keys — they're a fixed serialisation vocab
+    bundled under an event's ``rewards`` object (``{"carats": 2160,
+    "support_tickets": 2, …}``), bare + pluralised, since the wrapper already
+    namespaces them.
     """
 
     pass

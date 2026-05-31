@@ -25,7 +25,7 @@ from msgspec import UNSET, UnsetType
 from horsetrader.semantics import eishin
 
 # A baked rewards object: ``{<reward-key>: amount}`` for plain counters, plus an
-# optional ``reward_generator`` whose value is itself ``{<reward-key>: amount,
+# optional ``generator`` whose value is itself ``{<reward-key>: amount,
 # "repeat": n}`` — all-int. So the value union is ``int | dict[str, int]``. This
 # mirrors what Yayoi's ``rewards_to_baked`` emits; the dynamic keys are hers, so
 # the schema stays a typed open object rather than a fixed struct. A tighter
