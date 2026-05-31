@@ -38,20 +38,28 @@ def _parse_duration(value: object, label: str) -> timedelta:
     return timedelta(weeks=weeks, days=days, hours=hours, minutes=minutes, seconds=seconds)
 
 
-def _relation(key: str, label: str) -> str:
-    """Direction is carried by the key prefix (load-bearing by design).
+def _normalize_key(key: str) -> str:
+    """Collapse the `during-` authoring alias to `after-`.
 
-    `during-` is a readability synonym for `after-` — a part that runs *during*
-    a multi-part celebration reads more naturally than `after-` — and resolves
-    to the same 'after' placement (starts at the anchor's end edge).
+    `during-` reads more naturally than `after-` for a part that runs *during* a
+    multi-part celebration, but it's pure YAML sugar: at parse time it becomes
+    `after-`, so the stable key — and every downstream consumer, including the
+    `anchor:` chain references — only ever sees `before-` / `after-`. The body
+    keeps entries distinct; two keys that normalise to the same value are a
+    curation collision and raise in `load`.
     """
+    if key.startswith("during-"):
+        return f"after-{key.removeprefix('during-')}"
+    return key
+
+
+def _relation(key: str, label: str) -> str:
+    """Direction is carried by the (already `during`-normalised) key prefix."""
     if key.startswith("before-"):
         return "before"
-    if key.startswith(("after-", "during-")):
+    if key.startswith("after-"):
         return "after"
-    raise ValueError(
-        f"{label}: key must start with 'before-', 'after-', or 'during-'"
-    )
+    raise ValueError(f"{label}: key must start with 'before-' or 'after-'")
 
 
 @functools.cache
@@ -67,10 +75,19 @@ def load() -> list[dict]:
     collection (Anchors / Scenarios), so placement is the model's job.
     """
     records: list[dict] = []
+    seen: dict[str, str] = {}
     source = store.source()
-    for key in store.select(_KEY_PATTERN):
-        where = f"{source}: anchored event {key!r}"
-        fields = store.find(key) or {}
+    for raw_key in store.select(_KEY_PATTERN):
+        key = _normalize_key(raw_key)
+        if key in seen:
+            raise ValueError(
+                f"{source}: anchored key {raw_key!r} normalises to {key!r}, "
+                f"already claimed by {seen[key]!r}"
+            )
+        seen[key] = raw_key
+
+        where = f"{source}: anchored event {raw_key!r}"
+        fields = store.find(raw_key) or {}
 
         anchor = fields.get("anchor")
         if not isinstance(anchor, str) or not anchor:
@@ -83,7 +100,10 @@ def load() -> list[dict]:
         records.append({
             "key": key,
             "relation": _relation(key, where),
-            "anchor": anchor,
+            # `anchor` may itself reference a `during-` part further up the
+            # chain — normalise it too so the chain resolves against the
+            # post-normalisation keys.
+            "anchor": _normalize_key(anchor),
             "name": str(fields.get("name", "")).strip() or None,
             "duration": _parse_duration(fields.get("duration"), where),
             "rewards": rewards,

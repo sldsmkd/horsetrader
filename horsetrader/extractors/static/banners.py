@@ -8,19 +8,19 @@ from . import store
 
 logger = Logger.get(__name__)
 
-_KEY_PATTERN = re.compile(r"^\d+-banner$")
+_KEY_PATTERN = re.compile(r"^banner-\d+$")
 
 
 @functools.cache
 def load() -> dict[str, Period]:
-    """EN confirmed banner periods, keyed by ``<id>-banner``.
+    """EN confirmed banner periods, keyed by ``banner-<id>``.
 
     Each entry's ``en`` block carries FQ ISO ``start`` / ``end`` (banners go
     live at 22:00 UTC and the close timestamp is stamped the same), so the
     `Period` is taken straight from the data. A banner absent here has no
     confirmed EN window — the model leaves it predicted; a banner that *is*
     present but malformed fails loud (curated data). Selected by the
-    ``<id>-banner`` key shape, corpus-wide.
+    ``banner-<id>`` key shape, corpus-wide.
     """
     source = store.source()
     out: dict[str, Period] = {}

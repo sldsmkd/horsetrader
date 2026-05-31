@@ -1,472 +1,472 @@
 ## BANNERS ##
-30002-banner:
+banner-30002:
   # note initial seed banner 26 Jun 2025 – 2 Jul 2025 characters
   en:
     start: 2025-06-26T22:00:00+00:00
     end: 2025-07-02T22:00:00+00:00
   # NOTE: had a rerun EN exclusive 13 Jul 2025 – 16 Jul 2025 (untracked)
-30003-banner:
+banner-30003:
   # note initial seed banner 26 Jun 2025 – 2 Jul 2025 supports
   en:
     start: 2025-06-26T22:00:00+00:00
     end: 2025-07-02T22:00:00+00:00
   # NOTE: had a rerun EN exclusive 13 Jul 2025 – 16 Jul 2025 (untracked)
-30004-banner:
+banner-30004:
   # TM. Opera O character banner 26 Jun 2025 – 2 Jul 2025
   en:
     start: 2025-06-26T22:00:00+00:00
     end: 2025-07-02T22:00:00+00:00
-30005-banner:
+banner-30005:
   # Sweep Tosho and Oguri Cap support banner 26 Jun 2025 – 2 Jul 2025
   en:
     start: 2025-06-26T22:00:00+00:00
     end: 2025-07-02T22:00:00+00:00
-30006-banner:
+banner-30006:
   # Mihono Bourbon character banner 2 Jul 2025 – 10 Jul 2025
   en:
     start: 2025-07-02T22:00:00+00:00
     end: 2025-07-10T22:00:00+00:00
-30007-banner:
+banner-30007:
   # Daitaku Helios and Twin Turbo support banner 2 Jul 2025 – 10 Jul 2025
   en:
     start: 2025-07-02T22:00:00+00:00
     end: 2025-07-10T22:00:00+00:00
-30008-banner:
+banner-30008:
   # Biwa Hayahide character banner 10 Jul 2025 – 22 Jul 2025
   en:
     start: 2025-07-10T22:00:00+00:00
     end: 2025-07-22T22:00:00+00:00
-30009-banner:
+banner-30009:
   # Ikuno Dictus and Mejiro Palmer support banner 10 Jul 2025 – 22 Jul 2025
   en:
     start: 2025-07-10T22:00:00+00:00
     end: 2025-07-22T22:00:00+00:00
-30010-banner:
+banner-30010:
   # Tokai Teio and Mejiro McQueen character banner 16 Jul 2025 – 1 Aug 2025
   en:
     start: 2025-07-16T22:00:00+00:00
     end: 2025-08-01T22:00:00+00:00
-30011-banner:
+banner-30011:
   # Kitasan Black and Satono Diamond support banner 16 Jul 2025 – 1 Aug 2025
   en:
     start: 2025-07-16T22:00:00+00:00
     end: 2025-08-01T22:00:00+00:00
-30012-banner:
+banner-30012:
   # Curren Chan character banner 27 Jul 2025 – 7 Aug 2025
   en:
     start: 2025-07-27T22:00:00+00:00
     end: 2025-08-07T22:00:00+00:00
-30013-banner:
+banner-30013:
   # Nishino Flower and Yukino Bijin support banner 27 Jul 2025 – 7 Aug 2025
   en:
     start: 2025-07-27T22:00:00+00:00
     end: 2025-08-07T22:00:00+00:00
-30014-banner:
+banner-30014:
   # Narita Taishin character banner 3 Aug 2025 – 13 Aug 2025
   en:
     start: 2025-08-03T22:00:00+00:00
     end: 2025-08-13T22:00:00+00:00
-30015-banner:
+banner-30015:
   # Zenno Rob Roy and Yaeno Muteki support banner 3 Aug 2025 – 13 Aug 2025
   en:
     start: 2025-08-03T22:00:00+00:00
     end: 2025-08-13T22:00:00+00:00
-30016-banner:
+banner-30016:
   # Smart Falcon character banner 11 Aug 2025 – 22 Aug 2025
   en:
     start: 2025-08-11T22:00:00+00:00
     end: 2025-08-22T22:00:00+00:00
-30017-banner:
+banner-30017:
   # Super Creek and Tazuna Hayakawa support banner 11 Aug 2025 - 22 Aug 2025
   en:
     start: 2025-08-11T22:00:00+00:00
     end: 2025-08-22T22:00:00+00:00
-30018-banner:
+banner-30018:
   # Narita Brian character banner 20 Aug 2025 – 31 Aug 2025
   en:
     start: 2025-08-20T22:00:00+00:00
     end: 2025-08-31T22:00:00+00:00
-30019-banner:
+banner-30019:
   # Seeking the Pearl and Sakura Chiyono O support banner 20 Aug 2025 – 31 Aug 2025
   en:
     start: 2025-08-20T22:00:00+00:00
     end: 2025-08-31T22:00:00+00:00
-30020-banner:
+banner-30020:
   # Mayano Top Gun and Air Groove character banner 28 Aug 2025 – 10 Sept 2025
   en:
     start: 2025-08-28T22:00:00+00:00
     end: 2025-09-10T22:00:00+00:00
-30021-banner:
+banner-30021:
   # Kawakami Princess and Hishi Akebono support banner 28 Aug 2025 – 10 Sept 2025
   en:
     start: 2025-08-28T22:00:00+00:00
     end: 2025-09-10T22:00:00+00:00
-30022-banner:
+banner-30022:
   # Seiun Sky character banner 7 Sept 2025 – 18 Sept 2025
   en:
     start: 2025-09-07T22:00:00+00:00
     end: 2025-09-18T22:00:00+00:00
-30023-banner:
+banner-30023:
   # Silence Suzuka and Tamamo Cross support banner 7 Sept 2025 – 18 Sept 2025
   en:
     start: 2025-09-07T22:00:00+00:00
     end: 2025-09-18T22:00:00+00:00
-30024-banner:
+banner-30024:
   # Hishi Amazon character banner 17 Sept 2025 – 25 Sept 2025
   en:
     start: 2025-09-17T22:00:00+00:00
     end: 2025-09-25T22:00:00+00:00
-30025-banner:
+banner-30025:
   # Shinko Windy and Bamboo Memory support banner 17 Sept 2025 – 25 Sept 2025
   en:
     start: 2025-09-17T22:00:00+00:00
     end: 2025-09-25T22:00:00+00:00
-30026-banner:
+banner-30026:
   # El Condor Pasa and Grass Wonder character banner 21 Sept 2025 – 4 Oct 2025
   en:
     start: 2025-09-21T22:00:00+00:00
     end: 2025-10-04T22:00:00+00:00
-30027-banner:
+banner-30027:
   # Seiun Sky and King Halo support banner 21 Sept 2025 – 4 Oct 2025
   en:
     start: 2025-09-21T22:00:00+00:00
     end: 2025-10-04T22:00:00+00:00
-30028-banner:
+banner-30028:
   # Fuji Kiseki character banner 2 Oct 2025 – 10 Oct 2025
   en:
     start: 2025-10-02T22:00:00+00:00
     end: 2025-10-10T22:00:00+00:00
-30029-banner:
+banner-30029:
   # Mejiro Ardan and Mejiro Ryan support banner 2 Oct 2025 – 10 Oct 2025
   en:
     start: 2025-10-02T22:00:00+00:00
     end: 2025-10-10T22:00:00+00:00
-30030-banner:
+banner-30030:
   # Gold City character banner 7 Oct 2025 – 16 Oct 2025
   en:
     start: 2025-10-07T22:00:00+00:00
     end: 2025-10-16T22:00:00+00:00
-30031-banner:
+banner-30031:
   # Vodka and Nishino Flower support banner 7 Oct 2025 – 16 Oct 2025
   en:
     start: 2025-10-07T22:00:00+00:00
     end: 2025-10-16T22:00:00+00:00
-30032-banner:
+banner-30032:
   # Special Week and Maruzensky character banner 14 Oct 2025 – 27 Oct 2025
   en:
     start: 2025-10-14T22:00:00+00:00
     end: 2025-10-27T22:00:00+00:00
-30033-banner:
+banner-30033:
   # Sweep Tosho and Winning Ticket support banner 14 Oct 2025 – 27 Oct 2025
   en:
     start: 2025-10-14T22:00:00+00:00
     end: 2025-10-27T22:00:00+00:00
-30034-banner:
+banner-30034:
   # Meisho Doto character banner 21 Oct 2025 – 30 Oct 2025
   en:
     start: 2025-10-21T22:00:00+00:00
     end: 2025-10-30T22:00:00+00:00
-30035-banner:
+banner-30035:
   # Special Week and Tokai Teio support banner 21 Oct 2025 – 30 Oct 2025
   en:
     start: 2025-10-21T22:00:00+00:00
     end: 2025-10-30T22:00:00+00:00
-30036-banner:
+banner-30036:
   # Eishin Flash character banner 30 Oct 2025 – 9 Nov 2025
   en:
     start: 2025-10-30T22:00:00+00:00
     end: 2025-11-09T22:00:00+00:00
-30037-banner:
+banner-30037:
   # Tosen Jordan and Nice Nature support banner 30 Oct 2025 – 9 Nov 2025
   en:
     start: 2025-10-30T22:00:00+00:00
     end: 2025-11-09T22:00:00+00:00
-30038-banner:
+banner-30038:
   # Matikanefukukitaru character banner 6 Nov 2025 – 17 Nov 2025
   en:
     start: 2025-11-06T22:00:00+00:00
     end: 2025-11-17T22:00:00+00:00
-30039-banner:
+banner-30039:
   # Rice Shower and Riko Kashimoto support banner 6 Nov 2025 – 17 Nov 2025
   en:
     start: 2025-11-06T22:00:00+00:00
     end: 2025-11-17T22:00:00+00:00
-30040-banner:
+banner-30040:
   # Hishi Akebono character banner 11 Nov 2025 – 21 Nov 2025
   en:
     start: 2025-11-11T22:00:00+00:00
     end: 2025-11-21T22:00:00+00:00
-30041-banner:
+banner-30041:
   # Sakura Bakushin O and Biko Pegasus support banner 11 Nov 2025 – 21 Nov 2025
   en:
     start: 2025-11-11T22:00:00+00:00
     end: 2025-11-21T22:00:00+00:00
-30042-banner:
+banner-30042:
   # Agnes Digital character banner 19 Nov 2025 – 28 Nov 2025
   en:
     start: 2025-11-19T22:00:00+00:00
     end: 2025-11-28T22:00:00+00:00
-30043-banner:
+banner-30043:
   # Fine Motion and Ikuno Dictus support banner 19 Nov 2025 – 28 Nov 2025
   en:
     start: 2025-11-19T22:00:00+00:00
     end: 2025-11-28T22:00:00+00:00
-30044-banner:
+banner-30044:
   # Rice Shower and Super Creek character banner 24 Nov 2025 – 6 Dec 2025
   en:
     start: 2025-11-24T22:00:00+00:00
     end: 2025-12-06T22:00:00+00:00
-30045-banner:
+banner-30045:
   # Tamamo Cross and Zenno Rob Roy support banner 24 Nov 2025 – 6 Dec 2025
   en:
     start: 2025-11-24T22:00:00+00:00
     end: 2025-12-06T22:00:00+00:00
-30046-banner:
+banner-30046:
   # Kawakami Princess character banner 1 Dec 2025 – 10 Dec 2025
   en:
     start: 2025-12-01T22:00:00+00:00
     end: 2025-12-10T22:00:00+00:00
-30047-banner:
+banner-30047:
   # Seiun Sky and Yaeno Muteki support banner 1 Dec 2025 – 10 Dec 2025
   en:
     start: 2025-12-01T22:00:00+00:00
     end: 2025-12-10T22:00:00+00:00
-30048-banner:
+banner-30048:
   # Manhattan Cafe character banner 8 Dec 2025 – 16 Dec 2025
   en:
     start: 2025-12-08T22:00:00+00:00
     end: 2025-12-16T22:00:00+00:00
-30049-banner:
+banner-30049:
   # Sirius Symboli and Nakayama Festa support banner 8 Dec 2025 – 16 Dec 2025
   en:
     start: 2025-12-08T22:00:00+00:00
     end: 2025-12-16T22:00:00+00:00
-30050-banner:
+banner-30050:
   # Symboli Rudolf and Gold City character banner 14 Dec 2025 – 25 Dec 2025
   en:
     start: 2025-12-14T22:00:00+00:00
     end: 2025-12-25T22:00:00+00:00
-30051-banner:
+banner-30051:
   # Curren Chan and Narita Brian support banner 14 Dec 2025 – 25 Dec 2025
   en:
     start: 2025-12-14T22:00:00+00:00
     end: 2025-12-25T22:00:00+00:00
-30052-banner:
+banner-30052:
   # Tosen Jordan character banner 18 Dec 2025 – 29 Dec 2025
   en:
     start: 2025-12-18T22:00:00+00:00
     end: 2025-12-29T22:00:00+00:00
-30053-banner:
+banner-30053:
   # El Condor Pasa and Kitasan Black support banner 18 Dec 2025 – 29 Dec 2025
   en:
     start: 2025-12-18T22:00:00+00:00
     end: 2025-12-29T22:00:00+00:00
-30054-banner:
+banner-30054:
   # Mejiro Dober character banner 28 Dec 2025 – 7 Jan 2026
   en:
     start: 2025-12-28T22:00:00+00:00
     end: 2026-01-07T22:00:00+00:00
-30055-banner:
+banner-30055:
   # Vodka and Daitaku Helios support banner 28 Dec 2025 – 7 Jan 2026
   en:
     start: 2025-12-28T22:00:00+00:00
     end: 2026-01-07T22:00:00+00:00
-30056-banner:
+banner-30056:
   # Oguri Cap and Biwa Hayahide character banner 5 Jan 2026 – 20 Jan 2026
   en:
     start: 2026-01-05T22:00:00+00:00
     end: 2026-01-20T22:00:00+00:00
-30057-banner:
+banner-30057:
   # Mayano Top Gun and Narita Taishin support banner 5 Jan 2026 – 20 Jan 2026
   en:
     start: 2026-01-05T22:00:00+00:00
     end: 2026-01-20T22:00:00+00:00
-30058-banner:
+banner-30058:
   # Fine Motion character banner 15 Jan 2026 – 23 Jan 2026
   en:
     start: 2026-01-15T22:00:00+00:00
     end: 2026-01-23T22:00:00+00:00
-30059-banner:
+banner-30059:
   # Inari One and Manhattan Cafe support banner 15 Jan 2026 – 23 Jan 2026
   en:
     start: 2026-01-15T22:00:00+00:00
     end: 2026-01-23T22:00:00+00:00
-30060-banner:
+banner-30060:
   # Tamamo Cross character banner 22 Jan 2026 – 31 Jan 2026
   en:
     start: 2026-01-22T22:00:00+00:00
     end: 2026-01-31T22:00:00+00:00
-30061-banner:
+banner-30061:
   # Oguri Cap and Nice Nature support banner 22 Jan 2026 – 31 Jan 2026
   en:
     start: 2026-01-22T22:00:00+00:00
     end: 2026-01-31T22:00:00+00:00
-30062-banner:
+banner-30062:
   # Haru Urara and TM. Opera O character banner 29 Jan 2026 – 9 Feb 2026
   en:
     start: 2026-01-29T22:00:00+00:00
     end: 2026-02-09T22:00:00+00:00
-30063-banner:
+banner-30063:
   # Admire Vega and Matikanefukukitaru support banner 29 Jan 2026 – 9 Feb 2026
   en:
     start: 2026-01-29T22:00:00+00:00
     end: 2026-02-09T22:00:00+00:00
-30064-banner:
+banner-30064:
   # 20 character banner 5 Feb 2026 – 14 Feb 2026
   en:
     start: 2026-02-05T22:00:00+00:00
     end: 2026-02-14T22:00:00+00:00
-30065-banner:
+banner-30065:
   # Tamamo Cross and Sasami Anshinzawa support banner 5 Feb 2026 – 14 Feb 2026
   en:
     start: 2026-02-05T22:00:00+00:00
     end: 2026-02-14T22:00:00+00:00
-30066-banner:
+banner-30066:
   # Sakura Chiyono O character banner 11 Feb 2026 – 19 Feb 2026
   en:
     start: 2026-02-11T22:00:00+00:00
     end: 2026-02-19T22:00:00+00:00
-30067-banner:
+banner-30067:
   # Tazuna Hayakawa and Riko Kashimoto support banner 11 Feb 2026 – 19 Feb 2026
   en:
     start: 2026-02-11T22:00:00+00:00
     end: 2026-02-19T22:00:00+00:00
-30068-banner:
+banner-30068:
   # Mihono Bourbon and Eishin Flash character banner 18 Feb 2026 – 1 Mar 2026
   en:
     start: 2026-02-18T22:00:00+00:00
     end: 2026-03-01T22:00:00+00:00
-30069-banner:
+banner-30069:
   # Nishino Flower and Sakura Bakushin O support banner 18 Feb 2026 – 1 Mar 2026
   en:
     start: 2026-02-18T22:00:00+00:00
     end: 2026-03-01T22:00:00+00:00
-30070-banner:
+banner-30070:
   # Mejiro Ardan character banner 25 Feb 2026 – 5 Mar 2026
   en:
     start: 2026-02-25T22:00:00+00:00
     end: 2026-03-05T22:00:00+00:00
-30071-banner:
+banner-30071:
   # Ines Fujin and Agnes Digital support banner 25 Feb 2026 – 5 Mar 2026
   en:
     start: 2026-02-25T22:00:00+00:00
     end: 2026-03-05T22:00:00+00:00
-30072-banner:
+banner-30072:
   # Admire Vega character banner 5 Mar 2026 – 13 Mar 2026
   en:
     start: 2026-03-05T22:00:00+00:00
     end: 2026-03-13T22:00:00+00:00
-30073-banner:
+banner-30073:
   # Fine Motion and Kawakami Princess support banner 5 Mar 2026 – 13 Mar 2026
   en:
     start: 2026-03-05T22:00:00+00:00
     end: 2026-03-13T22:00:00+00:00
-30074-banner:
+banner-30074:
   # Matikanetannhauser and Kitasan Black character banner 12 Mar 2026 – 23 Mar 2026
   en:
     start: 2026-03-12T22:00:00+00:00
     end: 2026-03-23T22:00:00+00:00
-30075-banner:
+banner-30075:
   # Mejiro Ryan, Admire Vega, Sakura Bakushin O, and Narita Top Road support banner 12 Mar 2026 – 23 Mar 2026
   en:
     start: 2026-03-12T22:00:00+00:00
     end: 2026-03-23T22:00:00+00:00
-30076-banner:
+banner-30076:
   # Satono Diamond character banner 22 Mar 2026 – 2 Apr 2026
   en:
     start: 2026-03-22T22:00:00+00:00
     end: 2026-04-02T22:00:00+00:00
-30077-banner:
+banner-30077:
   # Curren Chan and Marvelous Sunday support banner 22 Mar 2026 – 2 Apr 2026
   en:
     start: 2026-03-22T22:00:00+00:00
     end: 2026-04-02T22:00:00+00:00
-30078-banner:
+banner-30078:
   # Mejiro Bright character banner 26 Mar 2026 – 6 Apr 2026
   en:
     start: 2026-03-26T22:00:00+00:00
     end: 2026-04-06T22:00:00+00:00
-30079-banner:
+banner-30079:
   # Zenno Rob Roy and Curren Chan support banner 26 Mar 2026 – 6 Apr 2026
   en:
     start: 2026-03-26T22:00:00+00:00
     end: 2026-04-06T22:00:00+00:00
-30080-banner:
+banner-30080:
   # Seiun Sky and Fuji Kiseki character banner 5 Apr 2026 – 18 Apr 2026
   en:
     start: 2026-04-05T22:00:00+00:00
     end: 2026-04-18T22:00:00+00:00
-30081-banner:
+banner-30081:
   # Symboli Rudolf and Sirius Symboli support banner 5 Apr 2026 – 18 Apr 2026
   en:
     start: 2026-04-05T22:00:00+00:00
     end: 2026-04-18T22:00:00+00:00
-30082-banner:
+banner-30082:
   # Nishino Flower character banner 12 Apr 2026 – 20 Apr 2026
   en:
     start: 2026-04-12T22:00:00+00:00
     end: 2026-04-20T22:00:00+00:00
-30083-banner:
+banner-30083:
   # Sweep Tosho and Daiwa Scarlet support banner 12 Apr 2026 – 20 Apr 2026
   en:
     start: 2026-04-12T22:00:00+00:00
     end: 2026-04-20T22:00:00+00:00
-30084-banner:
+banner-30084:
   # Yaeno Muteki character banner 20 Apr 2026 – 29 Apr 2026
   en:
     start: 2026-04-20T22:00:00+00:00
     end: 2026-04-29T22:00:00+00:00
-30085-banner:
+banner-30085:
   # Ines Fujin and Twin Turbo support banner 20 Apr 2026 – 29 Apr 2026
   en:
     start: 2026-04-20T22:00:00+00:00
     end: 2026-04-29T22:00:00+00:00
-30086-banner:
+banner-30086:
   # Nice Nature and King Halo character banner 26 Apr 2026 – 8 May 2026
   en:
     start: 2026-04-26T22:00:00+00:00
     end: 2026-05-08T22:00:00+00:00
-30087-banner:
+banner-30087:
   # Bamboo Memory and Seeking the Pearl support banner 26 Apr 2026 – 8 May 2026
   en:
     start: 2026-04-26T22:00:00+00:00
     end: 2026-05-08T22:00:00+00:00
-30088-banner:
+banner-30088:
   # Ines Fujin character banner 30 Apr 2026 – 10 May 2026
   en:
     start: 2026-04-30T22:00:00+00:00
     end: 2026-05-10T22:00:00+00:00
-30089-banner:
+banner-30089:
   # Tokai Teio and Mr. CB support banner 30 Apr 2026 – 10 May 2026
   en:
     start: 2026-04-30T22:00:00+00:00
     end: 2026-05-10T22:00:00+00:00
-30090-banner:
+banner-30090:
   # Mejiro Palmer character banner 10 May 2026 – 20 May 2026
   en:
     start: 2026-05-10T22:00:00+00:00
     end: 2026-05-20T22:00:00+00:00
-30091-banner:
+banner-30091:
   # Rice Shower and Matikanefukukitaru support banner 10 May 2026 – 20 May 2026
   en:
     start: 2026-05-10T22:00:00+00:00
     end: 2026-05-20T22:00:00+00:00
-30092-banner:
+banner-30092:
   # Curren Chan and Fine Motion character banner 18 May 2026 – 29 May 2026
   en:
     start: 2026-05-18T22:00:00+00:00
     end: 2026-05-29T22:00:00+00:00
-30093-banner:
+banner-30093:
   # Haru Urara and Ikuno Dictus support banner 18 May 2026 – 29 May 2026
   en:
     start: 2026-05-18T22:00:00+00:00
     end: 2026-05-29T22:00:00+00:00
-30094-banner:
+banner-30094:
   # Inari One character banner 28 May 2026 – 7 Jun 2026
   en:
     start: 2026-05-28T22:00:00+00:00
     end: 2026-06-07T22:00:00+00:00
-30095-banner:
+banner-30095:
   # Sakura Chiyono O and Admire Vega support banner 28 May 2026 – 7 Jun 2026
   en:
     start: 2026-05-28T22:00:00+00:00

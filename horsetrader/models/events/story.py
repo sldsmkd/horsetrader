@@ -133,7 +133,7 @@ class Stories(Events[Story], metaclass=SingletonMeta):
 
             supports: list[Support] = []
             for sup_slug in record.get("support_ids", []):
-                s = supports_col.get(sup_slug)
+                s = supports_col.get(StableKey(f"{Support.KEY_PREFIX}{sup_slug}"))
                 if s is not None:
                     supports.append(s)
                 else:

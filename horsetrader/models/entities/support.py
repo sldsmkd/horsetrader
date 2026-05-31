@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, ClassVar
 
 from ethicrawl import ResourceList
 
@@ -22,6 +22,7 @@ logger = Logger.get(__name__)
 @digitan
 @dataclass
 class Support(Entity):
+    KEY_PREFIX: ClassVar[str] = "support-"
     release: Period
     character: Character | None = None
     display: Japlish | None = None
@@ -86,7 +87,7 @@ class Supports(Entities[Support], metaclass=SingletonMeta):
             character: Character | None = None
             char_key = record.get("character_key")
             if char_key is not None:
-                character = characters.get(StableKey(char_key))
+                character = characters.get(StableKey(f"{Character.KEY_PREFIX}{char_key}"))
             matched.append((record, character))
 
         images = self._process_images([r for r, _ in matched])
@@ -105,7 +106,7 @@ class Supports(Entities[Support], metaclass=SingletonMeta):
 
             supports.append(
                 Support(
-                    key=StableKey(record["key"]),
+                    key=StableKey(f"{Support.KEY_PREFIX}{record['key']}"),
                     character=character,
                     display=record.get("character_name"),
                     release=record["release"],

@@ -160,7 +160,7 @@ class GametoraBanners(metaclass=SingletonMeta):
 
             records.append(
                 {
-                    "key": f"{banner_id}-banner",
+                    "key": f"banner-{banner_id}",
                     "banner_id": banner_id,
                     "period": period,
                     "banner_type": banner_type,

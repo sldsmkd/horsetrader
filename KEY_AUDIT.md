@@ -1,5 +1,21 @@
 # Stable-key audit & standardisation plan
 
+> ✅ **DONE (2026-05-31).** Implemented and verified: every namespace now uses
+> `<type>-<body>` (`char-`/`support-`/`trainee-`/`banner-`, others already
+> compliant), `during-`→`after-` is normalised at load with a collision raise,
+> and reward keys are `reward_`-prefixed + pluralised. Pipeline re-run is
+> byte-clean: entity counts unchanged, prediction signal (type/start/end/predicted)
+> identical to the pre-keys baseline, `unpredicted: 0`. The canonical scheme now
+> lives in [`StableKey`](horsetrader/core/stable_key.py) + the "Stable-key scheme"
+> section of [docs/data-sources.md](docs/data-sources.md).
+>
+> Resolutions to the open questions: **`kind` is real** — parsed from
+> `anchor-<kind>-` and routes 3 predictors, so anchor keys keep `<kind>` in the
+> body (already compliant, untouched). **Extra touch point found during verify:**
+> `extractors/static/banners.py` `_KEY_PATTERN` matched the old `\d+-banner` shape
+> and had to move to `banner-\d+` (else confirmed EN banner periods silently
+> dropped and banners flipped to predicted).
+
 Working doc (2026-05-31). Goal: a single consistent stable-key scheme across every
 baked namespace, with externally-sourced ids kept separately where they aren't the
 key itself. Captured here so it can be actioned independently of the

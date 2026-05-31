@@ -18,6 +18,51 @@ place that talks to the network — everything else routes through `UmaClient`.
 Cache lives at `$HORSETRADER_TARGET/.cache/`. Binary assets and index pages
 have separate TTLs (see [`horsetrader/enums/CacheTime`](../horsetrader/enums/)).
 
+## Stable-key scheme
+
+Every model id is a [`StableKey`](../horsetrader/core/stable_key.py) of the form
+**`<type>-<body>`** — a fixed namespace token first, so any key is routable by
+splitting on the first `-`. The body is either a game-db id (Gametora) or an
+invented slug/sequence.
+
+| Namespace | Key shape | Example |
+| --- | --- | --- |
+| character | `char-<slug>` | `char-oguri-cap` |
+| support | `support-<id>-<slug>` | `support-10001-special-week` |
+| trainee | `trainee-<id>-<slug>` | `trainee-100101-special-week` |
+| banner | `banner-<id>` | `banner-30003` |
+| scenario | `scenario-<nn>` | `scenario-01` |
+| story | `story-<nnn>` | `story-001` |
+| cm | `cm-<nnn>` | `cm-001` |
+| anchor | `anchor-<kind>-<ver>` | `anchor-new-year-2022`, `anchor-anni-3_0` |
+| anchored event | `before-` / `after-<body>` | `after-new-year-2022` |
+| item | `item-<id>` | `item-00043` |
+
+Notes that are load-bearing, not cosmetic:
+
+- **Entity ids stay in the body.** The game id is the genuinely stable anchor;
+  the prefix is added at construction via a `KEY_PREFIX` ClassVar on each entity
+  model. The slug after it is human-readable garnish (banner pickups still match
+  characters on the bare slug, so the banner index strips `char-` before
+  matching — see [`banner.py`](../horsetrader/models/events/banner.py)).
+- **`anchor-<kind>-` is parsed.** `kind` (new-year / golden-week / anniversary)
+  is read back off the prefix and routes the predictor chain — see
+  [prediction.md](prediction.md). Don't reshape anchor keys without keeping
+  `<kind>` recoverable.
+- **Anchored events are relation-led.** The `before-` / `after-` prefix *is* the
+  namespace and is also the `relation` field. `during-` is **YAML authoring
+  sugar** — at load it (and any `anchor:` chain reference to it) normalises to
+  `after-`; two keys that collapse to the same key raise. So the stable key only
+  ever shows `before-` / `after-` (see
+  [`extractors/static/anchored.py`](../horsetrader/extractors/static/anchored.py)).
+- **Curated YAML keys are these stable keys byte-for-byte** (the one exception
+  being the `during-`→`after-` sugar above). A `static/extractors/*.py`
+  `_KEY_PATTERN` selects each corpus's rows by this shape — change a key format
+  and its pattern moves with it.
+- **Reward keys are not entity keys.** They're a fixed serialisation vocab
+  (`reward_carats`, `reward_trainee_tickets`, …, plus the `reward_generator`
+  wrapper), so they use an underscore, not the `-` namespace separator.
+
 ## Gametora
 
 The primary scraper target. Some pages are static HTML and fetched via
@@ -261,8 +306,10 @@ When a `Banner` payload lists pickup characters / trainees / supports,
 matching to live entities follows fixed rules. These live in the entity
 code but the matching rules are part of the data contract:
 
-- **Trainees:** index by `(character_key, CostumeVariants)`. Fall back to
-  the canonical (`DEFAULT`) variant when the variant lookup fails.
+- **Trainees:** index by `(character slug, CostumeVariants)` — the bare slug,
+  i.e. the character key with its `char-` prefix stripped, since pickups are
+  matched on the slugified pickup name. Fall back to the canonical (`DEFAULT`)
+  variant when the variant lookup fails.
 - **Supports — new cards:** match by release date.
 - **Supports — reruns:** match by **max release date before** the banner
   start. (The pickup is whichever support of that name was current.)

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, ClassVar
 
 from ethicrawl import ResourceList
 
@@ -39,6 +39,7 @@ class TraineeVariant:
 @digitan
 @dataclass
 class Trainee(Entity):
+    KEY_PREFIX: ClassVar[str] = "trainee-"
     character: Character
     release: Period
     variant: TraineeVariant
@@ -122,7 +123,7 @@ class Trainees(Entities[Trainee], metaclass=SingletonMeta):
 
             trainees.append(
                 Trainee(
-                    key=StableKey(record["key"]),
+                    key=StableKey(f"{Trainee.KEY_PREFIX}{record['key']}"),
                     character=character,
                     release=record["release"],
                     variant=TraineeVariant(

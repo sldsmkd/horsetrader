@@ -66,35 +66,35 @@ class CounterReward(Reward):
 @yayoi
 @dataclass(frozen=True)
 class Carats(CounterReward):
-    key: ClassVar[str] = "carats"
+    key: ClassVar[str] = "reward_carats"
     item_key: ClassVar[str] = "item-00043"
 
 
 @yayoi
 @dataclass(frozen=True)
 class TraineeTicket(CounterReward):
-    key: ClassVar[str] = "trainee_ticket"
+    key: ClassVar[str] = "reward_trainee_tickets"
     item_key: ClassVar[str] = "item-00041"
 
 
 @yayoi
 @dataclass(frozen=True)
 class SupportTicket(CounterReward):
-    key: ClassVar[str] = "support_ticket"
+    key: ClassVar[str] = "reward_support_tickets"
     item_key: ClassVar[str] = "item-00111"
 
 
 @yayoi
 @dataclass(frozen=True)
 class RainbowCrystalShard(CounterReward):
-    key: ClassVar[str] = "rainbow_crystal_shard"
+    key: ClassVar[str] = "reward_rainbow_crystal_shards"
     item_key: ClassVar[str] = "item-00149"
 
 
 @yayoi
 @dataclass(frozen=True)
 class GoldCrystalShard(CounterReward):
-    key: ClassVar[str] = "gold_crystal_shard"
+    key: ClassVar[str] = "reward_gold_crystal_shards"
     item_key: ClassVar[str] = "item-00150"
 
 

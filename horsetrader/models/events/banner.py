@@ -13,7 +13,7 @@ from horsetrader.extractors.gametora.banners import BANNER_INDEX_URL
 from horsetrader.extractors.static import Static, store
 from horsetrader.info import Logger
 from horsetrader.models.core import References
-from horsetrader.models.entities import Support, Supports, Trainee, Trainees
+from horsetrader.models.entities import Character, Support, Supports, Trainee, Trainees
 from horsetrader.models.media import CurrenChan, Image, ImageRequest
 from horsetrader.models.rewards import stamp_first_original_rewards
 from horsetrader.output._records import SupportBannerRecord, TraineeBannerRecord
@@ -232,13 +232,15 @@ class Banners(Events[Banner], metaclass=SingletonMeta):
 
     @staticmethod
     def _build_trainee_indexes() -> _TraineeIndexes:
-        trainees = Trainees().values()
-        by_slug: dict[_TraineeKey, Trainee] = {
-            (t.character.key, t.variant.variant): t for t in trainees
-        }
-        by_canonical: dict[_TraineeKey, Trainee] = {
-            (_canonical(t.character.key), t.variant.variant): t for t in trainees
-        }
+        by_slug: dict[_TraineeKey, Trainee] = {}
+        by_canonical: dict[_TraineeKey, Trainee] = {}
+        for t in Trainees().values():
+            # Pickups are matched by the slugified pickup name, which carries no
+            # key prefix — so index on the bare character slug, not the now
+            # `char-` prefixed stable key.
+            slug = t.character.key.removeprefix(Character.KEY_PREFIX)
+            by_slug[(slug, t.variant.variant)] = t
+            by_canonical[(_canonical(slug), t.variant.variant)] = t
         return by_slug, by_canonical
 
     @staticmethod
@@ -252,8 +254,11 @@ class Banners(Events[Banner], metaclass=SingletonMeta):
                 or s.rarity == SupportRarity.UNKNOWN
             ):
                 continue
-            by_slug[(s.character.key, s.rarity, s.type)].append(s)
-            by_canonical[(_canonical(s.character.key), s.rarity, s.type)].append(s)
+            # Bare character slug, not the `char-` prefixed key — see
+            # `_build_trainee_indexes`.
+            slug = s.character.key.removeprefix(Character.KEY_PREFIX)
+            by_slug[(slug, s.rarity, s.type)].append(s)
+            by_canonical[(_canonical(slug), s.rarity, s.type)].append(s)
         return by_slug, by_canonical
 
     @staticmethod

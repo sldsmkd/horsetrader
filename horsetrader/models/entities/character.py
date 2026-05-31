@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any, ClassVar, Optional
 
 from ethicrawl import ResourceList
 
@@ -30,6 +30,7 @@ class ThreeSizes:
 @digitan
 @dataclass
 class Character(Entity):
+    KEY_PREFIX: ClassVar[str] = "char-"
     name: Japlish
     three_sizes: ThreeSizes
     icon: Image | None = None
@@ -106,7 +107,7 @@ class Characters(Entities[Character], metaclass=SingletonMeta):
 
             characters.append(
                 Character(
-                    key=StableKey(record["key"]),
+                    key=StableKey(f"{Character.KEY_PREFIX}{record['key']}"),
                     name=record["name"],
                     three_sizes=ThreeSizes(),
                     icon=icon,
@@ -154,7 +155,8 @@ class Characters(Entities[Character], metaclass=SingletonMeta):
         Gametora's bilingual payload is preferred; only the EN slot is backfilled
         if Umapyoi has EN text that Gametora's Japlish doesn't carry yet.
         """
-        record = Umapyoi().character(c.key)
+        # Umapyoi is keyed by the bare character slug, not our prefixed key.
+        record = Umapyoi().character(c.key.removeprefix(Character.KEY_PREFIX))
         sizes = record.get("three_sizes", {})
 
         c.name = record.get("name", c.name)
