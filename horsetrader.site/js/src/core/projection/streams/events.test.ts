@@ -47,7 +47,7 @@ test("events without rewards emit nothing", () => {
   assert.deepEqual(eventStream(b, "2026-06-01"), []);
 });
 
-test("a repeating generator is recognised but deferred — its nested value is skipped", () => {
+test("the events channel ignores generators (own channel) — its nested value is skipped", () => {
   const b = bundle(
     banner("anchor", "2026-06-10", { generator: { carats: 564, repeat: 10 } }),
   );

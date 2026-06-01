@@ -8,3 +8,5 @@ export type { NamedStream, Projection } from "./project.ts";
 export { attribute, subtotals, balanceSeries } from "./ledger.ts";
 export type { Ledger, LedgerEntry, BalanceSeries, StreamEmission, ResourceVector } from "./ledger.ts";
 export { eventStream } from "./streams/events.ts";
+export { generatorStream, generatorsFromBundle } from "./streams/generator.ts";
+export type { GeneratorSpec } from "./streams/generator.ts";

@@ -12,26 +12,18 @@
 
 import type { EventsBundle } from "../../bundle/events.gen.ts";
 import type { ResourceVector, StreamEmission } from "../ledger.ts";
+import { resourceOf } from "./rewards.ts";
 
 /**
- * Reward keys are the ETL's serialisation vocab; the engine's accumulator uses
- * its own resource dimensions. The only non-identity mapping today is bare
- * `carats` → `carats_free`: timeline rewards are gift (free) carats, and paid
- * is a separate dimension the timeline never grants.
- */
-function resourceOf(rewardKey: string): string {
-  return rewardKey === "carats" ? "carats_free" : rewardKey;
-}
-
-/**
- * Emit the timeline's rewards as dated deltas. Rewards land on an event's
- * `end` — the point the event has fully paid out. Only events landing strictly
- * after `after` (the snapshot date; anything on or before it is already baked
- * into the reading the projection starts from) are emitted.
+ * Emit the timeline's discrete rewards as dated deltas. Rewards land on an
+ * event's `end` — the point the event has fully paid out. Only events landing
+ * strictly after `after` (the snapshot date; anything on or before it is already
+ * baked into the reading the projection starts from) are emitted.
  *
- * The repeating-bonus `generator` shape (`{carats, repeat}`) is recognised but
- * deliberately not yet expanded — its cadence is a procedural concern still to
- * be modelled (see docs/contract.md). Its nested value is skipped, not summed.
+ * The repeating-bonus `generator` shape (`{payload, repeat}`) is *not* this
+ * channel's concern — its nested value is skipped here and expanded separately
+ * by the generator stream, which owns the recurrence (see ./generator.ts). This
+ * keeps the two provenances on separate channels.
  */
 export function eventStream(bundle: EventsBundle, after: string): StreamEmission[] {
   const emissions: StreamEmission[] = [];
@@ -42,7 +34,7 @@ export function eventStream(bundle: EventsBundle, after: string): StreamEmission
 
     const deltas: ResourceVector = {};
     for (const [key, value] of Object.entries(event.rewards)) {
-      if (typeof value !== "number") continue; // generator (nested) — deferred
+      if (typeof value !== "number") continue; // generator (nested) — separate channel
       const resource = resourceOf(key);
       deltas[resource] = (deltas[resource] ?? 0) + value;
     }
