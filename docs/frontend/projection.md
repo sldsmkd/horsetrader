@@ -51,6 +51,27 @@ balance* (affordability), so the channel must consume the fold's own output to
 decide what it spends. That coupling — a stream that reads the projection-so-far —
 is the real design problem, and is the substance of this slice.
 
+**Persist the intent, derive the resolution.** Only the *commitment* (banner id →
+planned spend) is stored input; the resolved strategy/sequences are **derived
+every recompute** from intent + current running balance, never persisted. This is
+what dissolves the old prototype's pain (plans relying on state that no longer
+exists): there is no stored resolution to go stale, so nothing to repair — a
+mutation just re-resolves. And when a downstream plan can no longer afford its
+intent, **let the balance go negative** — that deficit is valid output (the
+pressure point), not an error to back-propagate away. The reservation /
+last-day-catch tangle in the old code was exactly that over-eager feasibility
+repair; don't reintroduce it.
+
+**Open exploration — the resolution ordering comparator.** Concurrent strategies
+contend for the same shared resources, so resolution is *sequential* in a stable
+total order, and that order is a priority decision still to settle. Current
+leaning: **order by banner `end`, with banner id as the tie-breaker** — because
+banners are *not* all fixed length, so the end date carries the real deadline
+(fund the soonest-closing banner first) and id alone can't order them correctly.
+Id-only would be deterministic but deadline-blind. Decide this deliberately when
+the channel is built; the *mechanism* (stable order + sequential resolve) holds
+regardless of the comparator.
+
 ### Next steps, in order
 
 1. **Coordinator + stream toggles** — wire `bundle → project → balanceAt` end to
@@ -59,6 +80,8 @@ is the real design problem, and is the substance of this slice.
    never changes. Dev/debug-flavoured isolation, not a core concern.
 2. **Spends/commitments channel** — the client-generated strategy collection,
    overlay, and the balance-consuming affordability logic, outside the pure fold.
+   Persist only the commitment intent; derive resolution each recompute. Settle
+   the resolution-ordering comparator here (leaning `end`, id as tie-breaker).
 3. **Dense LUT swap** — flip `balanceAt`'s internals to the O(1) dictionary once
    daily rewards densify the series.
 
