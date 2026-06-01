@@ -11,13 +11,7 @@
  */
 
 import type { EventsBundle } from "../../bundle/events.gen.ts";
-import type { ResourceVector } from "../../persistence/document.ts";
-
-/** A dated bag of signed resource deltas a stream emits for one date. */
-export interface StreamEmission {
-  date: string;
-  deltas: ResourceVector;
-}
+import type { ResourceVector, StreamEmission } from "../ledger.ts";
 
 /**
  * Reward keys are the ETL's serialisation vocab; the engine's accumulator uses
@@ -52,7 +46,7 @@ export function eventStream(bundle: EventsBundle, after: string): StreamEmission
       const resource = resourceOf(key);
       deltas[resource] = (deltas[resource] ?? 0) + value;
     }
-    if (Object.keys(deltas).length) emissions.push({ date, deltas });
+    if (Object.keys(deltas).length) emissions.push({ date, source: event.key, deltas });
   }
   return emissions;
 }

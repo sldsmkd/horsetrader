@@ -28,7 +28,7 @@ test("rewards land on the event end as one delta vector; bare carats become cara
   );
   const out = eventStream(b, "2026-06-01");
   assert.deepEqual(out, [
-    { date: "2026-06-10", deltas: { carats_free: 720, trainee_tickets: 2 } },
+    { date: "2026-06-10", source: "banner-1", deltas: { carats_free: 720, trainee_tickets: 2 } },
   ]);
 });
 
@@ -59,6 +59,6 @@ test("flat rewards alongside a generator keep the flat deltas and drop only the 
     banner("mixed", "2026-06-10", { carats: 50, generator: { carats: 564, repeat: 10 } }),
   );
   assert.deepEqual(eventStream(b, "2026-06-01"), [
-    { date: "2026-06-10", deltas: { carats_free: 50 } },
+    { date: "2026-06-10", source: "mixed", deltas: { carats_free: 50 } },
   ]);
 });
