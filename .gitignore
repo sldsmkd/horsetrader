@@ -14,3 +14,7 @@ horsetrader.old/
 
 # VSCode workspace settings
 *.code-workspace
+
+# Temporary exclude site and generated
+site/
+generated/
