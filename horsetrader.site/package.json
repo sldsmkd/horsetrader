@@ -5,8 +5,8 @@
     "gen:types": "node scripts/gen-types.mjs",
     "check": "tsc --noEmit",
     "test": "node --test \"js/src/core/**/*.test.ts\"",
-    "dev": "cp index.html ../static/ && esbuild js/src/main.js --bundle --sourcemap --outfile=../static/js/app.js --serve=localhost:3000 --servedir=../static",
-    "build": "cp index.html ../static/ && esbuild js/src/main.js --bundle --minify --outfile=../static/js/app.js",
+    "dev": "cp index.html ../static/ && esbuild js/src/main.ts --bundle --sourcemap --outfile=../static/js/app.js --serve=localhost:3000 --servedir=../static",
+    "build": "cp index.html ../static/ && esbuild js/src/main.ts --bundle --minify --outfile=../static/js/app.js",
     "deploy": "wrangler pages deploy ../static"
   },
   "devDependencies": {
