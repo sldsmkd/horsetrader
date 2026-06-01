@@ -17,7 +17,7 @@
 import type { EventsBundle } from "../../bundle/events.gen.ts";
 import type { StreamEmission } from "../ledger.ts";
 import { resourceOf } from "./rewards.ts";
-import { addDays } from "./dates.ts";
+import { addDays } from "../dates.ts";
 
 /** A per-day amount schedule for one resource, anchored at `start`; null = unpaid that day. */
 export interface SequenceSpec {

@@ -15,6 +15,7 @@
  */
 
 import type { ResourceVector } from "../persistence/document.ts";
+import { addDays } from "./dates.ts";
 
 export type { ResourceVector } from "../persistence/document.ts";
 
@@ -82,20 +83,27 @@ export function subtotals(ledger: Ledger): Map<string, ResourceVector> {
 }
 
 /**
- * The cumulative running balance — a step function over the dates where the
- * balance actually changes, starting from a base reading (the snapshot). This
- * is the scrub cache: built once by the fold, queried O(log n) by `balanceAt`
- * on every cursor move, never refolded. There is no point stored for an empty
- * day; the balance holds flat between change-points.
+ * The cumulative running balance, starting from a base reading (the snapshot).
+ * The scrub cache: built once by the fold, queried O(1) by `balanceAt` on every
+ * cursor move, never refolded.
+ *
+ * It is materialised *densely* — a balance for every calendar day across the
+ * timeline's extent, carrying the running total across days with no entry. We do
+ * not store sparse change-points and binary-search between them: daily rewards
+ * make nearly every day a change-point anyway, so a dense `date → balance`
+ * dictionary is both simpler and a flat O(1) lookup. `dates` still exposes the
+ * change-points (the step risers) for views that want them; `extent` is the
+ * dense range.
  */
 export interface BalanceSeries {
-  /** Sorted change-point dates — the dates where the balance moves. */
+  /** Sorted change-point dates — the dates where the balance actually moves. */
   readonly dates: readonly string[];
-  /** Running balance *at* each change-point (parallel to `dates`). */
-  readonly balances: readonly ResourceVector[];
+  /** The dense range `[first, last]` (the change-point extent), or null if empty. */
+  readonly extent: readonly [string, string] | null;
   /**
-   * Balance at any cursor date: the last change-point ≤ `date`, or the base
-   * reading if `date` precedes the first change-point. A copy, safe to mutate.
+   * Balance at any cursor date — O(1). The base reading before the first
+   * change-point; the final balance after the last; the dense per-day value in
+   * between. A copy, safe to mutate.
    */
   balanceAt(date: string): ResourceVector;
 }
@@ -104,23 +112,27 @@ export function balanceSeries(base: ResourceVector, ledger: Ledger): BalanceSeri
   const perDate = subtotals(ledger);
   const dates = [...perDate.keys()].sort();
 
+  if (dates.length === 0) {
+    return { dates, extent: null, balanceAt: () => ({ ...base }) };
+  }
+
+  const first = dates[0]!;
+  const last = dates[dates.length - 1]!;
+
+  const dense = new Map<string, ResourceVector>();
   const running: ResourceVector = { ...base };
-  const balances: ResourceVector[] = [];
-  for (const date of dates) {
-    accumulate(running, perDate.get(date)!);
-    balances.push({ ...running });
+  for (let date = first; date <= last; date = addDays(date, 1)) {
+    const delta = perDate.get(date);
+    if (delta) accumulate(running, delta);
+    dense.set(date, { ...running });
   }
 
   function balanceAt(date: string): ResourceVector {
-    let lo = 0;
-    let hi = dates.length;
-    while (lo < hi) {
-      const mid = (lo + hi) >> 1;
-      if (dates[mid]! <= date) lo = mid + 1;
-      else hi = mid;
-    }
-    return lo === 0 ? { ...base } : { ...balances[lo - 1]! };
+    if (date < first) return { ...base };
+    const hit = dense.get(date);
+    if (hit) return { ...hit };
+    return { ...dense.get(last)! }; // beyond the extent — hold the final balance
   }
 
-  return { dates, balances, balanceAt };
+  return { dates, extent: [first, last], balanceAt };
 }

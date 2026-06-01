@@ -1,7 +1,7 @@
 /**
- * Date arithmetic for the daily-cadence stream expanders (generator, sequence).
- * UTC throughout, so cadence is timezone-stable and never drifts across a DST
- * boundary.
+ * UTC date arithmetic for the projection — the daily-cadence stream expanders
+ * (generator, sequence) and the dense balance fill. UTC throughout, so the
+ * cadence is timezone-stable and never drifts across a DST boundary.
  */
 
 /** ISO date `days` after `date` (UTC). */

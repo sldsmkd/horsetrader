@@ -15,7 +15,7 @@
 import type { EventsBundle } from "../../bundle/events.gen.ts";
 import type { ResourceVector, StreamEmission } from "../ledger.ts";
 import { resourceOf } from "./rewards.ts";
-import { addDays } from "./dates.ts";
+import { addDays } from "../dates.ts";
 
 /** A recurring daily payout: `payload` each day from `start`, for `repeat` days. */
 export interface GeneratorSpec {

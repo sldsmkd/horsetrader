@@ -28,7 +28,7 @@ test("subtotals sum entries per resource per date, sparse over dates with entrie
   assert.deepEqual(byDate.get("2026-06-12"), { carats_free: 30 });
 });
 
-test("balanceSeries is a step function from the base, with a change-point only where entries land", () => {
+test("balanceSeries exposes the change-points and the dense extent", () => {
   const base = { carats_free: 1000 };
   const ledger = [
     ...attribute("events", [emit("2026-06-10", "x", { carats_free: 100 })]),
@@ -36,7 +36,23 @@ test("balanceSeries is a step function from the base, with a change-point only w
   ];
   const series = balanceSeries(base, ledger);
   assert.deepEqual(series.dates, ["2026-06-10", "2026-06-12"]);
-  assert.deepEqual(series.balances, [{ carats_free: 1100 }, { carats_free: 1150 }]);
+  assert.deepEqual(series.extent, ["2026-06-10", "2026-06-12"]);
+});
+
+test("the balance is materialised densely — every day in the extent is filled, even with no entry", () => {
+  const series = balanceSeries({ carats_free: 1000 }, [
+    ...attribute("events", [emit("2026-06-10", "x", { carats_free: 100 })]),
+    ...attribute("events", [emit("2026-06-12", "y", { carats_free: 50 })]),
+  ]);
+  // 2026-06-11 has no entry but still resolves to the carried-forward balance.
+  assert.deepEqual(series.balanceAt("2026-06-11"), { carats_free: 1100 });
+});
+
+test("an empty ledger has no change-points, a null extent, and always returns the base", () => {
+  const series = balanceSeries({ carats_free: 1000 }, []);
+  assert.deepEqual(series.dates, []);
+  assert.equal(series.extent, null);
+  assert.deepEqual(series.balanceAt("2026-06-11"), { carats_free: 1000 });
 });
 
 test("balanceAt holds flat between change-points and returns the base before the first", () => {

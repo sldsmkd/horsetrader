@@ -25,14 +25,16 @@ Partially built under `core/projection/`, all headless-tested (`npm test`):
     generate *spending* strategies in the same shape (a separate channel — below).
 
   Shared reward-vocab mapping in `streams/rewards.ts`; shared UTC date arithmetic
-  in `streams/dates.ts`.
+  in `dates.ts`.
 
-**The cache seam is in place but not yet dense.** `balanceAt` hides its
-representation: today sparse change-points + binary search (O(log n)). When daily
-rewards make nearly *every* day a change-point, swap the internals to a dense
-`date → balance` dictionary (O(1)) behind the same interface — no caller changes.
-Hold the dense grid until daily rewards justify materialising it (see the deferred
-optimisation below).
+**The balance series is the scrub cache, materialised densely.** `balanceSeries`
+builds a balance for *every* calendar day across the timeline's extent (carrying
+the running total across days with no entry), so `balanceAt` is a flat O(1)
+`date → balance` lookup, never refolded on scrub. We do **not** keep sparse
+change-points and binary-search between them: daily rewards make nearly every day
+a change-point anyway, so the dense dictionary is both simpler and faster. The
+series still exposes the change-points (`dates`, the step risers) and the dense
+`extent` for views that want them.
 
 ### Still to come: the spends/commitments channel (now unblocked)
 
@@ -82,8 +84,6 @@ regardless of the comparator.
    overlay, and the balance-consuming affordability logic, outside the pure fold.
    Persist only the commitment intent; derive resolution each recompute. Settle
    the resolution-ordering comparator here (leaning `end`, id as tie-breaker).
-3. **Dense LUT swap** — flip `balanceAt`'s internals to the O(1) dictionary once
-   daily rewards densify the series.
 
 ## Mental model: a spreadsheet (with one caveat)
 
@@ -185,8 +185,11 @@ This is the crux, and the reason it matters is the driver — *the budget is the
 user's device* (see [architecture.md](architecture.md)).
 
 - **Cache the computed series.** Scrubbing the date cursor must **never** re-fold
-  — it's a lookup into the cached step function: binary-search the last
-  change-point ≤ the cursor date and hold the balance from there, O(log n).
+  — it's a flat O(1) lookup into the cached **dense** `date → balance` dictionary
+  (`balanceSeries` materialises a balance for every day across the extent). No
+  sparse change-points + binary search: daily rewards densify the timeline anyway,
+  so the dense dictionary is simpler *and* faster — `balanceAt` is a direct
+  dictionary read.
 - **The fold reruns only when an input changes** (snapshot, a commitment,
   config), never on scrub or hover.
 - **Recompute granularity: full scan, for now.** On any input change, recompute
