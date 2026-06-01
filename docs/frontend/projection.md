@@ -26,6 +26,16 @@ Partially built under `core/projection/`, all headless-tested (`npm test`):
 
   Shared reward-vocab mapping in `streams/rewards.ts`; shared UTC date arithmetic
   in `dates.ts`.
+- **The coordinator** (`core/coordinator/`) — the headless seam joining
+  persistence to projection. It loads the plan, builds the channels from the
+  bundle (`channels.ts` registry), folds the *enabled* ones via `project()`, and
+  recomputes on any input or toggle change. The UI drives it (`update`,
+  `setEnabled`) and reads the result (`projection`, `balanceAt`, `channels`); it
+  never touches the DOM. **Stream toggles** live here: disabling a channel drops
+  it from the next fold (it keeps existing, just stops contributing) and is
+  **ephemeral** — never persisted into the plan (dev/debug isolation). The
+  projection origin is the snapshot date, or the injected `now` before a snapshot
+  is set.
 
 **The balance series is the scrub cache, materialised densely.** `balanceSeries`
 builds a balance for *every* calendar day across the timeline's extent (carrying
@@ -76,14 +86,13 @@ regardless of the comparator.
 
 ### Next steps, in order
 
-1. **Coordinator + stream toggles** — wire `bundle → project → balanceAt` end to
-   end. Toggling a stream off (it keeps existing but stops contributing) is a
-   coordinator-level filter over *which* channels reach `project()`; the fold
-   never changes. Dev/debug-flavoured isolation, not a core concern.
-2. **Spends/commitments channel** — the client-generated strategy collection,
+1. **Spends/commitments channel** — the client-generated strategy collection,
    overlay, and the balance-consuming affordability logic, outside the pure fold.
    Persist only the commitment intent; derive resolution each recompute. Settle
    the resolution-ordering comparator here (leaning `end`, id as tie-breaker).
+   This is the one channel that consumes the fold's own output, so it slots into
+   the coordinator's recompute as a second phase *after* the ground-truth fold,
+   not as another independent entry in the `channels.ts` registry.
 
 ## Mental model: a spreadsheet (with one caveat)
 
