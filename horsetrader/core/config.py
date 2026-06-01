@@ -8,15 +8,11 @@ from horsetrader.semantics import tazuna
 
 from .singleton_meta import SingletonMeta
 
-# _TARGET = "HORSETRADER_TARGET"
 _SKIP_CACHE_REFRESH = "HORSETRADER_SKIP_CACHE_REFRESH"
 
 _SKELETON = f"""\
 # Horsetrader runtime configuration.
 # Process env (shell exports) takes precedence over values here.
-
-# Required: absolute path to the ETL output root.
-{_TARGET}=
 
 # Optional flags (uncomment to enable):
 # {_SKIP_CACHE_REFRESH}=1
@@ -30,21 +26,14 @@ class Config(metaclass=SingletonMeta):
     All horsetrader env vars are read through Config so call sites don't
     sprinkle ``environ.get`` lookups. On first construction, Config loads a
     ``.env`` file via ``python-dotenv`` (process env wins over file values);
-    if no ``.env`` exists anywhere up the tree from CWD and the required
-    ``HORSETRADER_TARGET`` isn't exported either, a skeleton ``.env`` is
-    written to CWD as a first-run scaffold.
-
-    Path-related state is validated lazily on first ``.cache`` / ``.static``
-    access so import-time consumers (e.g. Logger) don't force every entry
-    point to set the target dir.
+    if no ``.env`` exists anywhere up the tree from CWD a skeleton ``.env``
+    is written to CWD as a first-run scaffold.
 
     Recognised env vars:
-      - ``HORSETRADER_TARGET`` — output root. Required; lazily validated.
       - ``HORSETRADER_SKIP_CACHE_REFRESH`` — bypass cache TTL checks. Truthy = any non-empty string.
     """
 
     def __init__(self):
-        self._root: Path | None = None
         self._dotenv_path: Path | None = None
         self._repo_root: Path = self._find_repo_root()
         self._load_dotenv()
@@ -64,32 +53,10 @@ class Config(metaclass=SingletonMeta):
             self._dotenv_path = Path(found)
             load_dotenv(self._dotenv_path, override=False)
             return
-        if _TARGET in environ:
-            return
         self._dotenv_path = Path.cwd() / ".env"
         self._dotenv_path.write_text(_SKELETON)
-        print(
-            f"Created skeleton {self._dotenv_path}. "
-            f"Set {_TARGET} in it (or in your shell) and re-run.",
-            file=stderr,
-        )
+        print(f"Created skeleton {self._dotenv_path}.", file=stderr)
         load_dotenv(self._dotenv_path, override=False)
-
-    def _target(self) -> Path:
-        if self._root is not None:
-            return self._root
-        value = environ.get(_TARGET)
-        if not value:
-            location = (
-                f"in {self._dotenv_path}"
-                if self._dotenv_path is not None
-                else "in your shell or a .env file"
-            )
-            raise RuntimeError(
-                f"{_TARGET} is not set. Set {_TARGET}=<path> {location}."
-            )
-        self._root = Path(value).expanduser().resolve()
-        return self._root
 
     @property
     def cache(self) -> Path:
