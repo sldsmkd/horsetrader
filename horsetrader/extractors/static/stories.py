@@ -13,8 +13,8 @@ _KEY_PATTERN = re.compile(r"^story-\d{3}$")
 
 
 def load() -> list[dict]:
-    """Return story banner records from static/img/stories/, sorted by ordinal."""
-    img_dir = Config().static / "img" / "stories"
+    """Return story banner records from config/img/stories/, sorted by ordinal."""
+    img_dir = Config().curated / "img" / "stories"
     records = []
     for path in img_dir.glob("story_*_banner.png"):
         m = _BANNER_PATTERN.match(path.name)
@@ -22,7 +22,7 @@ def load() -> list[dict]:
             continue
         records.append({"n": int(m.group(1)), "banner_path": path})
     records.sort(key=lambda r: r["n"])
-    logger.info("Found %d story banner(s) in static/img/stories", len(records))
+    logger.info("Found %d story banner(s) in config/img/stories", len(records))
     return records
 
 

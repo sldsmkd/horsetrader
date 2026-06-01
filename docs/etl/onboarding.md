@@ -23,14 +23,14 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-The pinned set in [`requirements.txt`](../requirements.txt) is a `pip freeze`
+The pinned set in [`requirements.txt`](../../requirements.txt) is a `pip freeze`
 snapshot. Direct dependencies: `ethicrawl`, `selenium`, `lxml`, `requests`,
 `Pillow`, `PyYAML`, `numpy`, `python-dotenv`. Refresh the freeze when you
 deliberately bump anything.
 
 ## Configuration
 
-All runtime config goes through [`horsetrader.core.Config`](../horsetrader/core/config.py)
+All runtime config goes through [`horsetrader.core.Config`](../../horsetrader/core/config.py)
 — do **not** read `os.environ` from library code. The only required variable
 is the output root:
 
@@ -65,8 +65,8 @@ calls `.run()` once, then prints metrics as JSON. `Pipeline.run()` is
 one-shot: a second call logs an error and bails — see
 [architecture.md](architecture.md) for why.
 
-Output lands under `$HORSETRADER_TARGET/site/`. Cache lives under
-`$HORSETRADER_TARGET/.cache/`.
+Output lands under `$HORSETRADER_TARGET/site/`. Cache lives at the repo
+root `.cache/` (resolved from the repo root, not `HORSETRADER_TARGET`).
 
 ## First run + jitter
 
@@ -74,7 +74,7 @@ A cold run hits Gametora / Umapyoi / sundry hand wikis for every entity in
 the corpus. **Expect it to take a while** — `ethicrawl` rate-limits
 respectfully and that's deliberate.
 
-After the first run, run [`jitter.py`](../jitter.py) **once**:
+After the first run, run [`jitter.py`](../../jitter.py) **once**:
 
 ```bash
 python jitter.py
@@ -95,7 +95,7 @@ without reading [architecture.md](architecture.md) first.
 horsetrader-etl/
 ├── main.py                  # entry point — Pipeline().run()
 ├── jitter.py                # post-warmup mtime jitter (run once after cold fetch)
-├── static/                  # yaml/ (auto-loaded curated corpus), img/ (story banners), pending/ (not-yet-wired)
+├── config/                  # yaml/ (auto-loaded curated corpus), img/ (story banners), pending/ (not-yet-wired)
 ├── references/              # human-eye reference only — announcements/ (monthly images), apologems/
 ├── docs/                    # this folder
 └── horsetrader/             # the package

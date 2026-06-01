@@ -23,7 +23,7 @@ and passes the resulting **UTC-bearing timeline** to `Bake`, which writes
 
 ```
                               ┌─────────────────────┐
-                              │ static/yaml/*.yaml  │ ← hand-curated
+                              │ config/yaml/*.yaml  │ ← hand-curated
                               │ references/         │ ← human-eye source
                               └─────────────────────┘
                                         │
@@ -107,7 +107,7 @@ per-entity fetching would force these contexts to be torn down and rebuilt
 mid-loop. See [data-sources.md](data-sources.md) for the transport
 contract.
 
-Cold-start cost is real. [`jitter.py`](../jitter.py) handles the followup
+Cold-start cost is real. [`jitter.py`](../../jitter.py) handles the followup
 problem of "all cache entries expire on the same day."
 
 ### Periods are tz-tagged; predictions land alongside confirmed ones
@@ -124,7 +124,7 @@ Transcend stamps:
 `Predict` runs *after* both are in place. Its job is to add a **predicted
 UTC `Period`** to events that still only have a JP one. The `predicted`
 flag in the baked output comes from *which* Period matched, not a field on
-the Banner / Scenario itself — see [`Bake.events()`](../horsetrader/output/bake.py).
+the Banner / Scenario itself — see [`Bake.events()`](../../horsetrader/output/bake.py).
 
 `Period` and `Periods` are decorated `@daitaku` and they're pure
 date-math primitives — they don't know or care about JST↔UTC conversion.
@@ -134,13 +134,13 @@ layer's.
 ### The baked bundle is a typed, self-validating contract
 
 The shape of `academy.json` / `events.json` is defined once, by the
-`msgspec.Struct` DTOs in [`output/_records.py`](../horsetrader/output/_records.py)
+`msgspec.Struct` DTOs in [`output/_records.py`](../../horsetrader/output/_records.py)
 — Eishin's published wire contract. Everything else falls out of them:
 
 - **The models map *into* the contract.** Each event's
-  [`bake(period)`](../horsetrader/models/events/event.py) returns its record
+  [`bake(period)`](../../horsetrader/models/events/event.py) returns its record
   type (built from the shared `Event._envelope()` plus its own fields); the
-  entity mappers in [`_mappers.py`](../horsetrader/output/_mappers.py) do the
+  entity mappers in [`_mappers.py`](../../horsetrader/output/_mappers.py) do the
   same for the academy side. The model→record dependency is why
   `output/__init__` exposes `Bake` lazily (PEP 562) — to keep `_records` a leaf
   the models can import without the `output → timeline → models` cycle.
@@ -169,7 +169,7 @@ displayable event, so the absence is a curation nudge, not a failure.
 ### Transport stays behind `UmaClient`
 
 Network I/O, cache lookups, robots.txt parsing, sentinel/404 negative-cache
-logic — all of it lives in [`horsetrader/transport/`](../horsetrader/transport/)
+logic — all of it lives in [`horsetrader/transport/`](../../horsetrader/transport/)
 behind `UmaClient`. Other modules use `try_get` (tolerant) or `get` (strict)
 and never touch `UmaClientCache` directly, never string-match on transport
 errors. If a request fails in a way callers should react to, expose it via
@@ -193,7 +193,7 @@ surface it, not paper over it with defaults or `try/except: pass`. See
 | A predictor for an unscheduled-EN type | `timeline/predictors/<thing>.py` | `@matikanefukukitaru` |
 | The baked wire shape (a new field/record on the JSON) | `output/_records.py` (the `msgspec.Struct` DTOs) + the model's `bake()` / `output/_mappers.py` | `@eishin` |
 | HTTP / cache / robots.txt | `transport/` | `@shakur` only |
-| A new YAML-curated dataset | `static/yaml/<name>.yaml` (follow the [consolidated yaml shape](data-sources.md#consolidated-yaml-shape); the store auto-loads it, no whitelist) + an extractor in `extractors/static/` driving `store.py` primitives | dataset is hand-curated; extractor follows `@transcend` |
+| A new YAML-curated dataset | `config/yaml/<name>.yaml` (follow the [consolidated yaml shape](data-sources.md#consolidated-yaml-shape); the store auto-loads it, no whitelist) + an extractor in `extractors/static/` driving `store.py` primitives | dataset is hand-curated; extractor follows `@transcend` |
 
 If you can't pick a character, push back rather than guess — that
 mismatch usually means the work crosses boundaries and should be split.

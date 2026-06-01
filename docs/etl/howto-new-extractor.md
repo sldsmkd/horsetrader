@@ -122,7 +122,7 @@ write down *why*:
   coming. A 2-digit width would wrap. Padding is part of the key.
 - **Check it against any existing curated files.** CM keys already appeared
   (unpadded) in `references/import/cm_tracks.yaml` and
-  `static/pending/_en.schedule.yaml`; confirming both used the same ordinal
+  `config/pending/_en.schedule.yaml`; confirming both used the same ordinal
   scheme is what proved there was no conflict. Curated YAML keys must be the
   stable key **byte-for-byte** — the loader does no normalisation.
 
@@ -136,7 +136,7 @@ Lives in `extractors/<source>/<thing>.py`. Returns **record dicts and core
 primitives** (`Period`, etc.) — never model instances; entity construction is
 the model layer's job. Mirror the analog you found in Step 0.
 
-Worked example: [`extractors/gametora/champions_meetings.py`](../horsetrader/extractors/gametora/champions_meetings.py)
+Worked example: [`extractors/gametora/champions_meetings.py`](../../horsetrader/extractors/gametora/champions_meetings.py)
 scrapes both pages, parses the JP `Period` from the `/ja/` date-divs, parses the
 EN `{ordinal: name}` map from the `<select>`, sorts JP occurrences by start,
 assigns `cm-{n:03d}`, and joins the name by ordinal. Notes:
@@ -151,7 +151,7 @@ assigns `cm-{n:03d}`, and joins the name by ordinal. Notes:
   drop, so CM keeps its own JP parser rather than reusing `dates.parse_period`.
 
 Then expose it on the **facade** (`Gametora` in
-[`extractors/gametora/__init__.py`](../horsetrader/extractors/gametora/__init__.py)):
+[`extractors/gametora/__init__.py`](../../horsetrader/extractors/gametora/__init__.py)):
 add the scraper to `__init__` and a one-line method. Models import the facade,
 never the scraper class.
 
@@ -166,7 +166,7 @@ never the scraper class.
 > occurrence reaches Global. Your job is the *machinery* that reads it when it's
 > there (Step 4); populating it is curation, not engineering.
 
-When the overlay does get authored, it lives under `static/yaml/`
+When the overlay does get authored, it lives under `config/yaml/`
 (auto-merged by the store — **no whitelist**) and follows the
 [consolidated shape](data-sources.md#consolidated-yaml-shape): top-level stable
 key, region blocks (`en:`), **fully-qualified ISO timestamps** with the right
@@ -188,7 +188,7 @@ offset.
 ## Step 4 — The static loader
 
 A per-entity loader in `extractors/static/<thing>.py`, mirroring
-[`static/banners.py`](../horsetrader/extractors/static/champions_meetings.py)'s
+[`config/banners.py`](../../horsetrader/extractors/static/champions_meetings.py)'s
 sibling. It claims its slice of the merged store **by key pattern**:
 
 ```python
@@ -210,12 +210,12 @@ def load() -> dict[str, Period]:
   lives in is irrelevant.
 
 Expose it on the **`Static` facade**
-([`extractors/static/__init__.py`](../horsetrader/extractors/static/__init__.py)):
+([`extractors/static/__init__.py`](../../horsetrader/extractors/static/__init__.py)):
 one method, `cm_period(key) -> Period | None`.
 
 ## Step 5 — The model + collection
 
-One file, [`models/events/champions_meeting.py`](../horsetrader/models/events/champions_meeting.py):
+One file, [`models/events/champions_meeting.py`](../../horsetrader/models/events/champions_meeting.py):
 
 - **`ChampionsMeeting(Event)`** — a `@daitaku @dataclass`. Add only the fields
   your type owns (`name`). Override `match` (add name search) and `bake`:
@@ -238,7 +238,7 @@ added at enrichment (`Periods` enforces ≤1 per tzinfo). `Predict` later adds a
 ## Step 6 — Export it (the only wiring)
 
 Add the model + collection to
-[`models/events/__init__.py`](../horsetrader/models/events/__init__.py)'s
+[`models/events/__init__.py`](../../horsetrader/models/events/__init__.py)'s
 imports and `__all__`. That's it — auto-discovery does the rest. No edit to
 `pipeline.py`, `bake.py`, `predict.py`, or `_mappers.py`.
 
@@ -289,8 +289,8 @@ them. If recon taught you something durable about the source, it belongs in
 | 0 | `scratch_*.py` | Recon both sources; settle key + DOM shape | — |
 | 1 | `extractors/<source>/<thing>.py` | Scraper → record dicts (warn-skip) | `gametora/banners.py` |
 | 2 | `extractors/<source>/__init__.py` | Facade method | `Gametora.banners()` |
-| 3 | `static/yaml/<thing>.yaml` | Curated EN overlay — *optional*, curator-owned, real data | `banners.yaml` |
-| 4 | `extractors/static/<thing>.py` | Loader by key pattern (fail-loud) | `static/banners.py` |
+| 3 | `config/yaml/<thing>.yaml` | Curated EN overlay — *optional*, curator-owned, real data | `banners.yaml` |
+| 4 | `extractors/static/<thing>.py` | Loader by key pattern (fail-loud) | `config/banners.py` |
 | 5 | `extractors/static/__init__.py` | `Static` facade method | `Static.banner_period()` |
 | 6 | `models/events/<thing>.py` | Dataclass + collection (`_fetch_primary`/`_enrichers`) | `models/events/banner.py` |
 | 7 | `models/events/__init__.py` | Export → auto-discovered stage | — |

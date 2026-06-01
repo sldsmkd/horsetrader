@@ -6,15 +6,24 @@ venv/
 __pycache__/
 *.py[cod]
 
+# Node / frontend build tooling (horsetrader.site)
+node_modules/
+.wrangler/
+
 # Local config
 .env
 
 # Legacy tree being ported from
-horsetrader.old/
+_horsetrader.old/
 
 # VSCode workspace settings
 *.code-workspace
 
-# Temporary exclude site and generated
-site/
+# Bake output bridge (regenerated; not version-controlled)
 generated/
+
+# Shippable build artifact — built into, deployed to Cloudflare (regenerated)
+static/
+
+# .cache for caching data
+.cache/

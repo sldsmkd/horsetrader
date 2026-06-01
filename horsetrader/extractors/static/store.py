@@ -62,11 +62,11 @@ class Entry(NamedTuple):
 
 @functools.cache
 def load(filename: str) -> dict:
-    """Return the parsed mapping for ``static/yaml/<filename>``, or ``{}`` if absent.
+    """Return the parsed mapping for ``config/yaml/<filename>``, or ``{}`` if absent.
 
     Low-level single-file parser that backs the corpus merge.
     """
-    path = Config().static_yaml / filename
+    path = Config().curated_yaml / filename
     if not path.exists():
         return {}
     with path.open() as f:
@@ -78,16 +78,16 @@ def load(filename: str) -> dict:
 
 
 def _corpus_files() -> list[str]:
-    """Every yaml in ``static/yaml/``, sorted — the whole directory *is* the
+    """Every yaml in ``config/yaml/``, sorted — the whole directory *is* the
     corpus, no whitelist and no per-file marking. Out-of-scope files live
-    elsewhere (``static/pending/``, ``references/import/``), never here.
+    elsewhere (``config/pending/``, ``references/import/``), never here.
     """
-    return sorted(p.name for p in Config().static_yaml.glob("*.yaml"))
+    return sorted(p.name for p in Config().curated_yaml.glob("*.yaml"))
 
 
 @functools.cache
 def _corpus() -> dict[str, Entry]:
-    """Merge every yaml in ``static/yaml/`` into one ``stable-key -> Entry`` map.
+    """Merge every yaml in ``config/yaml/`` into one ``stable-key -> Entry`` map.
 
     Insertion follows filename order, then each file's key order. A stable key
     defined in two files fails loud — keys are globally unique by design.
@@ -138,7 +138,7 @@ def source() -> str:
     not a per-file path. Entries can live in any file, so the provenance *is*
     the keystore as a whole; nothing downstream names a file.
     """
-    return str(Config().static_yaml)
+    return str(Config().curated_yaml)
 
 
 def overlay(key: str, locale: str) -> dict | None:

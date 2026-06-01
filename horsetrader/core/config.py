@@ -93,8 +93,8 @@ class Config(metaclass=SingletonMeta):
 
     @property
     def cache(self) -> Path:
-        """Path to the cache directory under the target, creating it if missing."""
-        cache_dir = self._target() / ".cache"
+        """Path to the cache directory at the repo root, creating it if missing."""
+        cache_dir = self._repo_root / ".cache"
         cache_dir.mkdir(parents=True, exist_ok=True)
         return cache_dir
 
@@ -111,21 +111,16 @@ class Config(metaclass=SingletonMeta):
         return bool(environ.get(_SKIP_CACHE_REFRESH))
 
     @property
-    def static(self) -> Path:
-        """Path to the static / data directory in the ETL repo (hand-curated assets)."""
-        return self._repo_root / "static"
+    def curated(self) -> Path:
+        """Path to the curated config / data directory in the repo (``config/``, hand-curated assets)."""
+        return self._repo_root / "config"
 
     @property
-    def static_yaml(self) -> Path:
-        """Path to the consolidated static YAML corpus (``static/yaml/``).
+    def curated_yaml(self) -> Path:
+        """Path to the consolidated curated YAML corpus (``config/yaml/``).
 
         Every `*.yaml` here is auto-loaded and merged by the store — no
-        whitelist. Reference-only / not-yet-wired files live in `static/pending/`
+        whitelist. Reference-only / not-yet-wired files live in `config/pending/`
         instead, outside the loaded set.
         """
-        return self.static / "yaml"
-
-    @property
-    def references(self) -> Path:
-        """Path to the references directory in the ETL repo (hand-curated source assets)."""
-        return self._repo_root / "references"
+        return self.curated / "yaml"

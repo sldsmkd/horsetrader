@@ -10,19 +10,19 @@ canonical role catalogue lives next to the code.
 
 The single source of truth for the character roles, their dataflow
 ordering, and the litmus-test heuristics for placing new code is
-[`horsetrader/semantics/overview.md`](../horsetrader/semantics/overview.md).
+[`horsetrader/semantics/overview.md`](../../horsetrader/semantics/overview.md).
 
 Don't duplicate that content here. If you're trying to figure out which
 character owns a piece of work, open the overview.
 
 Per-character bios sit alongside the decorators as
-[`horsetrader/semantics/<character>.md`](../horsetrader/semantics/) — raw
+[`horsetrader/semantics/<character>.md`](../../horsetrader/semantics/) — raw
 profiles from the umamusu.wiki used as the source material for the
 personality-as-litmus-test rule.
 
 ## The dual structure, briefly
 
-A `Character` dataclass lives in [`models/entities/character.py`](../horsetrader/models/entities/character.py)
+A `Character` dataclass lives in [`models/entities/character.py`](../../horsetrader/models/entities/character.py)
 — that's the **type**. Digitan owns knowledge *about* characters — that's
 the **role**. The two meet via a decorator on the class:
 

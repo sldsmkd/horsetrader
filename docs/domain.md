@@ -53,7 +53,7 @@ mid-life, and our `jp.start` data pins the inflection exactly:
 This shift matters for anchoring: scenario-launch and anniversary-beat *used*
 to be the same date and now coincide only in February. The first half-anniversary
 to ship *without* a scenario was 3.5 (2024-08-24) — GFF had already gone out in
-June. See [`static/yaml/scenarios.yaml`](../static/yaml/scenarios.yaml).
+June. See [`config/yaml/scenarios.yaml`](../config/yaml/scenarios.yaml).
 
 EN doesn't follow the 24th cadence. Releases land on weekdays that
 cluster — `ScenarioPredictor` uses the empirical EN weekday histogram
@@ -64,7 +64,7 @@ reintroduce it.
 Scenario keys are `scenario-N`, **release order**. JP and EN share the
 key. Gametora's display order occasionally differs from release order
 (the `art:` URLs for `scenario-3` and `scenario-4` are deliberately
-swapped relative to Gametora's display) — see [data-sources.md](data-sources.md).
+swapped relative to Gametora's display) — see [data-sources.md](etl/data-sources.md).
 
 ### Scenario / anniversary beats always bundle a meta support card
 
@@ -136,7 +136,7 @@ disagree on a CM's span *by design*, because they describe different things:
   banner/content cycle — in the May 2026 schedule the Taurus Cup window
   (May 10 22:00 – May 20 21:59 UTC) is *identical* to that month's New Trainee
   banner window. **Curated EN dates use this announcement window** (the EN
-  source of truth — see [data-sources.md](data-sources.md)). The span varies on
+  source of truth — see [data-sources.md](etl/data-sources.md)). The span varies on
   the EN side, not JP: the lead-in is what flexes.
 
 Consequence: **the JP and EN `Period`s have different spans on purpose** — JP is
@@ -156,7 +156,7 @@ that final using the typical confirmed EN span (≈10 days). Final-to-final also
 neutralises the asymmetric front-padding for free. It runs as its own pass —
 after `BannerPredictor`, before the generic fallthrough (which would otherwise
 mis-map a CM off its opening day with the wrong 6-day span). See
-[prediction.md](prediction.md).
+[prediction.md](etl/prediction.md).
 
 CM track data — venue, surface, distance, direction, condition, season,
 weather — is currently MVP scaffolding: scraped from Gametora's JP event
@@ -180,7 +180,7 @@ Implications for prediction:
 
 - Pre-CM-8 JP violations exist in the historical data. They are **not**
   to be replicated when predicting EN. The deferred outlier-rules hook
-  (see [prediction.md](prediction.md)) is the right home for this.
+  (see [prediction.md](etl/prediction.md)) is the right home for this.
 - Post-CM-8, banners cluster *just before* a CM as intentional
   meta-seeding. This is a tighter anchor signal than global speedup
   alone — and a reason BannerPredictor pass 2 will likely need
@@ -218,7 +218,7 @@ the pipeline for two reasons:
 **Images.** Three per story: `story-NNN.webp` (art — reconstructed from the
 `thumb_title` URL), `story-NNN-thumb.webp` (icon from the event block), and
 `story-NNN-banner.webp` (banner matched by date-sort ordinal against
-`static/img/stories/story_NN_banner.png` reference files).
+`config/img/stories/story_NN_banner.png` reference files).
 
 **Trainee resolution.** The character slug from the Gametora href *is* the
 character's stable key. `Trainees().search(char_slug)` hits via
@@ -240,7 +240,7 @@ Banner identity and media conventions:
 
 Contents-matching rules (which trainees / supports a banner pickups
 resolve to) are part of the data contract — they live in entity code but
-are documented in [data-sources.md](data-sources.md).
+are documented in [data-sources.md](etl/data-sources.md).
 
 ## Characters
 
@@ -299,7 +299,7 @@ the repeat separate so the client multiplies. Keys are bare + pluralised
   carats). New policy is a new function there, not edits to event
   aggregators.
 
-- **Curated data** in `static/*.yaml`. Anchor login bonuses (New Year /
+- **Curated data** in `config/*.yaml`. Anchor login bonuses (New Year /
   Golden Week / anniversary) are *known*, not inferred — so they're authored
   directly on the anchor, as a top-level `rewards:` block written in the
   **same shape the client reads** (the bake output above). The bonus is
@@ -326,10 +326,10 @@ tentpole. A **New Year Countdown** runs the week up to New Year; an
 **Anniversary Celebration** and its **Encore** tile the days after the
 anniversary. They're curated as `AnchoredEvent`s **inline in the consolidated
 static files**, beside the anchor they hang off (the New Year ones sit in
-[`static/yaml/holidays.yaml`](../static/yaml/holidays.yaml) next to `anchor-new-year-*`),
+[`config/yaml/holidays.yaml`](../config/yaml/holidays.yaml) next to `anchor-new-year-*`),
 and gathered from the merged store by their `before-`/`during-`/`after-` key
 prefix — file location doesn't matter. They never carry an explicit date.
-(Authoring crib: [`static/yaml/anchors.txt`](../static/yaml/anchors.txt).)
+(Authoring crib: [`config/yaml/anchors.txt`](../config/yaml/anchors.txt).)
 
 Each entry pins to **one edge** of an `anchor` (the stable key of another
 event) and runs for a `duration`:
@@ -386,7 +386,7 @@ optional `rewards`) but with a real `start`/`end` range plus `relation`
 
 ## See also
 
-- [data-sources.md](data-sources.md) for which file or scraper each
+- [data-sources.md](etl/data-sources.md) for which file or scraper each
   fact above is sourced from.
-- [prediction.md](prediction.md) for how these rules are (and aren't)
+- [prediction.md](etl/prediction.md) for how these rules are (and aren't)
   reflected in predictor logic today.

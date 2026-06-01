@@ -2,7 +2,7 @@
 
 How the ETL fills in missing Global (EN) dates for events that exist on JP
 but haven't been announced for EN yet. Owned end-to-end by
-`@matikanefukukitaru` ([`horsetrader/timeline/predictors/`](../horsetrader/timeline/predictors/)).
+`@matikanefukukitaru` ([`horsetrader/timeline/predictors/`](../../horsetrader/timeline/predictors/)).
 
 ## The shape
 
@@ -11,7 +11,7 @@ Every `Event` carries a `Periods` collection — at most one `Period` per
 
 - a **JP `Period`** for the event's JP run, and
 - a **UTC `Period`** for events whose EN release has already happened or
-  been announced (sourced from the `en:` blocks in `static/yaml/banners.yaml`,
+  been announced (sourced from the `en:` blocks in `config/yaml/banners.yaml`,
   `anniversaries.yaml`, `scenarios.yaml`, `stories.yaml`, and
   `holidays.yaml`).
 
@@ -30,7 +30,7 @@ This is heuristics over the in-memory timeline, not a fitted model:
 
 - No corpus assembly, no kernel weighting, no regression beyond a single slope.
 - The quantitative inputs are three helpers on `Timeline`
-  ([`timeline.py`](../horsetrader/timeline/timeline.py)):
+  ([`timeline.py`](../../horsetrader/timeline/timeline.py)):
   - `origin(tz)` — earliest non-predicted event start in `tz`, treated as
     that server's launch anchor.
   - `acceleration(from_tz, to_tz)` — least-squares slope of
@@ -99,7 +99,7 @@ Predicts EN dates for scenarios with no confirmed UTC period.
 4. For each remaining unscheduled scenario:
    - Project its JP start through the acceleration: `rough = utc_anchor + slope * jp_elapsed`.
    - Snap `rough` to the nearest valid weekday via
-     [`nearest_weekday`](../horsetrader/timeline/predictors/base.py).
+     [`nearest_weekday`](../../horsetrader/timeline/predictors/base.py).
    - Stamp the result as a `Period(start=<snapped at 22:00 UTC>, predicted=True)`.
 
 If no confirmed scenarios exist in the timeline, or `acceleration()`
@@ -109,8 +109,8 @@ extrapolate from nothing.
 ### `StoryPredictor`
 
 Confirmed story EN dates come from
-[`static/yaml/stories.yaml`](../static/yaml/stories.yaml) at enrichment time
-(see `Stories._enrichers` in [`models/events/story.py`](../horsetrader/models/events/story.py));
+[`config/yaml/stories.yaml`](../../config/yaml/stories.yaml) at enrichment time
+(see `Stories._enrichers` in [`models/events/story.py`](../../horsetrader/models/events/story.py));
 the same yaml also carries an optional `en.name:` override for the EN
 title, applied alongside the period.
 The predictor fills the rest in two passes.
@@ -201,13 +201,13 @@ Runs after `BannerPredictor`, before `AnchorPredictor` / the fallthrough. CMs
 need their own pass because their two sources disagree on span *by design*:
 Gametora records only competitive play, so the JP scrape is always exactly 6
 days, while the EN release is the full availability window (usually 10) that
-adds the lead-in on the front (see [domain.md](domain.md)). The generic
+adds the lead-in on the front (see [domain.md](../domain.md)). The generic
 fallthrough would carry the fixed 6-day JP span across and map the JP *opening*
 day — wrong on both.
 
 Instead this **anchors on the final day**, which is precomputed and meta-immune
 (the opening drifts under the Oguri Cap rule). It builds a
-[`DateMapper`](../horsetrader/timeline/datemapper.py) from confirmed CM pairs
+[`DateMapper`](../../horsetrader/timeline/datemapper.py) from confirmed CM pairs
 keyed JP-final → EN-final, maps each unscheduled CM's JP final through it, and
 rebuilds the EN window *backwards* from that final using the mean confirmed EN
 span — stamped at 22:00 UTC. Final-to-final also absorbs the asymmetric
@@ -218,7 +218,7 @@ the fallthrough.
 ### `FallthroughPredictor`
 
 Dead last in the chain — after every dedicated pass, including
-`AnchorPredictor`. Builds a [`DateMapper`](../horsetrader/timeline/datemapper.py)
+`AnchorPredictor`. Builds a [`DateMapper`](../../horsetrader/timeline/datemapper.py)
 from every event already carrying both a JP and a UTC period (confirmed or
 predicted upstream), then maps the JP day of anything *still* missing a UTC
 period through it and stamps `Period(predicted=True)` at 22:00 UTC.
@@ -267,7 +267,7 @@ no predictor) — but banners no longer contribute to it.
 Some EN scheduling decisions don't follow from the JP slope alone. The
 canonical example: when a JP banner ran during a Champions Meeting, the
 EN release gets pushed back to avoid overlap with the EN CM. See
-[domain.md](domain.md) for the policy and the Christmas Oguri incident
+[domain.md](../domain.md) for the policy and the Christmas Oguri incident
 that's its genesis.
 
 The intended shape is a **post-processing hook** layered on top of the
@@ -306,5 +306,5 @@ A predictor is the right home when:
 
 Place new predictors in `horsetrader/timeline/predictors/<thing>.py`,
 subclass `Predictor`, decorate `@matikanefukukitaru`, and slot into the
-chain in [`Predict.predict`](../horsetrader/timeline/predict.py). Order
+chain in [`Predict.predict`](../../horsetrader/timeline/predict.py). Order
 is significant — earlier predictors' outputs are visible to later ones.

@@ -128,7 +128,7 @@ let it propagate.
 
 ## Config and environment
 
-All `HORSETRADER_*` env vars are read through [`horsetrader.core.Config`](../horsetrader/core/config.py).
+All `HORSETRADER_*` env vars are read through [`horsetrader.core.Config`](../../horsetrader/core/config.py).
 **Do not call `os.environ.get` from library code.** New vars get a property
 on `Config` so call sites don't sprout `environ.get` lookups, and so the
 "what env vars exist" question has one answer.
@@ -153,14 +153,14 @@ indexes by key — **all in the constructor**. This is on purpose:
   `jitter.py` solves the followup "everything expires at once" problem.
 
 Don't add lazy-fetching shims to "optimise" startup. If startup is slow,
-[`jitter.py`](../jitter.py) and `HORSETRADER_SKIP_CACHE_REFRESH` are the
+[`jitter.py`](../../jitter.py) and `HORSETRADER_SKIP_CACHE_REFRESH` are the
 intended tools.
 
 ## Entity / Entities are no-code wrappers
 
-`Entity` / `Entities` in [`models/entities/`](../horsetrader/models/entities/)
+`Entity` / `Entities` in [`models/entities/`](../../horsetrader/models/entities/)
 are semantic wrappers around `TracenModel` / `TracenModels` in
-[`models/core/`](../horsetrader/models/core/). **All logic lives in the
+[`models/core/`](../../horsetrader/models/core/). **All logic lives in the
 core classes.** The entity wrappers exist only so subclasses can sit under
 the conventional `models/entities/` namespace and carry the `@digitan`
 marker.
