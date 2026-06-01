@@ -1,0 +1,38 @@
+:root {
+  color-scheme: light dark;
+  font-family: system-ui, sans-serif;
+}
+
+body {
+  margin: 0;
+  padding: 2rem;
+  line-height: 1.5;
+}
+
+#app {
+  max-width: 48rem;
+  margin: 0 auto;
+}
+
+.loading {
+  opacity: 0.6;
+}
+
+.counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.counts li {
+  border: 1px solid currentColor;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+}
+
+.counts strong {
+  display: block;
+  font-size: 1.5rem;
+}
