@@ -3,13 +3,17 @@
   "private": true,
   "scripts": {
     "gen:types": "node scripts/gen-types.mjs",
+    "check": "tsc --noEmit",
+    "test": "node --test \"js/src/core/**/*.test.ts\"",
     "dev": "cp index.html ../static/ && esbuild js/src/main.js --bundle --sourcemap --outfile=../static/js/app.js --serve=localhost:3000 --servedir=../static",
     "build": "cp index.html ../static/ && esbuild js/src/main.js --bundle --minify --outfile=../static/js/app.js",
     "deploy": "wrangler pages deploy ../static"
   },
   "devDependencies": {
+    "@types/node": "^25.9.1",
     "esbuild": "^0.25.0",
     "json-schema-to-typescript": "^15.0.4",
+    "typescript": "^5.7.0",
     "wrangler": "^4.0.0"
   }
 }
