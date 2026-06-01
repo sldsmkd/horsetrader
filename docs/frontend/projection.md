@@ -249,3 +249,23 @@ recover structure you optimised away. So keep streams **separate and live**, fol
 naively, and only collapse once the feature set is settled *and* a real device
 proves it necessary. It closes down possibility space — a post-hoc, measured
 optimisation, never an early one.
+
+### Culling fully-past events: don't (premature optimisation)
+
+The projection is forward-only from the snapshot — but that is **already
+guaranteed** by every channel's strictly-after-`after` per-emission filter, which
+is also a *correctness* requirement: the snapshot is the user's actual balance, so
+it already banked every past reward; re-emitting one would double-count. Given
+that, **do not** add a pre-pass that prunes whole past events to "save work."
+
+Two reasons. First, it buys nothing measurable — the bundle is a few hundred
+events and the fold is naive-cheap. Second, the safe predicate is a trap: "past"
+must be judged by a stream's *actual last payout date*, not the event record's
+`end` — a generator/sequence can start before the snapshot and pay well past its
+nominal `end` (golden-week: `end` Aug 7, pays through Aug 16). Cull by `end` and
+you silently drop a straddler's future income (the anchor-boundary warning above,
+made concrete). Not worth the risk for no gain.
+
+If timeline volume *ever* becomes a real problem, the fix is upstream: the **ETL
+stops baking 15-year-old history**, not the client growing a fiddly span-aware
+prune. Premature optimisation is the root of all evil; this one also has teeth.
