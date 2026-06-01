@@ -3,7 +3,55 @@
 The engine that derives everything visible from the stored inputs. Pure `core/`,
 no DOM, deterministic, headless-testable. This is the heart of the app.
 
-> Status: design, not yet implemented.
+## Implementation status
+
+Partially built under `core/projection/`, all headless-tested (`npm test`):
+
+- **The fold** — `project(snapshot, streams) → { ledger, series }` (`project.ts`).
+- **The rich ledger + its folds** — `attribute` (emissions → single-resource,
+  per-stream/per-source entries), `subtotals` (per-date), and `balanceSeries`
+  with the cached `balanceAt` scrub lookup (`ledger.ts`).
+- **Two ground-truth channels**, each a pure `(date, deltas)` producer kept on
+  its own provenance channel (`streams/`): the discrete **events** channel, and
+  the recurring **generator** channel (`{start, payload, repeat}` → one emission
+  per day for `repeat` days; the bundle's inline `rewards.generator` extracts via
+  `generatorsFromBundle`). Shared reward-vocab mapping in `streams/rewards.ts`.
+
+**The cache seam is in place but not yet dense.** `balanceAt` hides its
+representation: today sparse change-points + binary search (O(log n)). When daily
+rewards make nearly *every* day a change-point, swap the internals to a dense
+`date → balance` dictionary (O(1)) behind the same interface — no caller changes.
+Hold the dense grid until daily rewards justify materialising it (see the deferred
+optimisation below).
+
+### Parked: the commitment *sequence* type (waiting on the ETL)
+
+Spends/commitments are the **primary** user interaction ("commit this spend to
+this banner, on this date") and the next channel — but they are **not** core
+projection logic, and the old prototype was wrong to intermingle spend resolution
+into the fold. Spends are *external*, and they need a data type we do not have
+yet: a **compound `sequence`** (an ordered commitment). Some sequences are
+game-defined, so that type is best produced by the **ETL** and baked into the
+bundle — which is why this channel is **blocked** until the ETL ships the
+sequence type (and the contract for it). *Being built ETL-side now.*
+
+Unlike events/generators, the spends channel is **not** a clean `(date, deltas)`
+producer: a spend's deltas depend on the *running balance* (affordability), so
+the channel must consume the fold's own output to decide what it spends. That
+coupling — a stream that reads the projection-so-far — is the real design problem,
+and it is deferred together with this channel.
+
+### Next steps, in order
+
+1. **(ETL, elsewhere)** build the compound `sequence` type → unblocks spends.
+2. **Coordinator + stream toggles** — wire `bundle → project → balanceAt` end to
+   end. Toggling a stream off (it keeps existing but stops contributing) is a
+   coordinator-level filter over *which* channels reach `project()`; the fold
+   never changes. Dev/debug-flavoured isolation, not a core concern.
+3. **Spends/commitments channel** — once the sequence type lands; this is where
+   the balance-consuming allocation logic goes, outside the pure fold.
+4. **Dense LUT swap** — flip `balanceAt`'s internals to the O(1) dictionary once
+   daily rewards densify the series.
 
 ## Mental model: a spreadsheet (with one caveat)
 
