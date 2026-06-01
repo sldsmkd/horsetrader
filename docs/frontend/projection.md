@@ -11,11 +11,21 @@ Partially built under `core/projection/`, all headless-tested (`npm test`):
 - **The rich ledger + its folds** — `attribute` (emissions → single-resource,
   per-stream/per-source entries), `subtotals` (per-date), and `balanceSeries`
   with the cached `balanceAt` scrub lookup (`ledger.ts`).
-- **Two ground-truth channels**, each a pure `(date, deltas)` producer kept on
-  its own provenance channel (`streams/`): the discrete **events** channel, and
-  the recurring **generator** channel (`{start, payload, repeat}` → one emission
-  per day for `repeat` days; the bundle's inline `rewards.generator` extracts via
-  `generatorsFromBundle`). Shared reward-vocab mapping in `streams/rewards.ts`.
+- **Three ground-truth channels**, each a pure `(date, deltas)` producer kept on
+  its own provenance channel (`streams/`):
+  - **events** — discrete rewards landing on an event's `end`.
+  - **generator** — recurring fixed payout (`{start, payload, repeat}` → one
+    emission per day for `repeat` days; extracted from inline `rewards.generator`
+    by `generatorsFromBundle`).
+  - **sequence** — a per-day amount schedule for a single resource (`{start,
+    resource, amounts: (int|null)[]}`, anchored at the event start; `null` =
+    unpaid that day). This is the baked daily-login-bonus shape, extracted from
+    inline `rewards.sequence` by `sequencesFromBundle`. The client and ETL share
+    this shape: the ETL bakes income sequences (this channel), the client will
+    generate *spending* strategies in the same shape (a separate channel — below).
+
+  Shared reward-vocab mapping in `streams/rewards.ts`; shared UTC date arithmetic
+  in `streams/dates.ts`.
 
 **The cache seam is in place but not yet dense.** `balanceAt` hides its
 representation: today sparse change-points + binary search (O(log n)). When daily
@@ -24,33 +34,32 @@ rewards make nearly *every* day a change-point, swap the internals to a dense
 Hold the dense grid until daily rewards justify materialising it (see the deferred
 optimisation below).
 
-### Parked: the commitment *sequence* type (waiting on the ETL)
+### Still to come: the spends/commitments channel (now unblocked)
 
 Spends/commitments are the **primary** user interaction ("commit this spend to
-this banner, on this date") and the next channel — but they are **not** core
-projection logic, and the old prototype was wrong to intermingle spend resolution
-into the fold. Spends are *external*, and they need a data type we do not have
-yet: a **compound `sequence`** (an ordered commitment). Some sequences are
-game-defined, so that type is best produced by the **ETL** and baked into the
-bundle — which is why this channel is **blocked** until the ETL ships the
-sequence type (and the contract for it). *Being built ETL-side now.*
+this banner, on this date") — but they are **not** core projection logic, and the
+old prototype was wrong to intermingle spend resolution into the fold. The ETL
+shipped the shared `SequenceReward` *value type* (the sequence channel above
+ingests its baked income form), so the client now has the shape it needs and this
+work is a **pure frontend task** — no longer ETL-blocked.
 
-Unlike events/generators, the spends channel is **not** a clean `(date, deltas)`
-producer: a spend's deltas depend on the *running balance* (affordability), so
-the channel must consume the fold's own output to decide what it spends. That
-coupling — a stream that reads the projection-so-far — is the real design problem,
-and it is deferred together with this channel.
+What remains is genuinely client-owned: the user's spends are a **collection of
+strategies the client generates** in the sequence shape (negative deltas), then
+overlays into one net daily delta. Unlike the ground-truth channels it is **not**
+a clean `(date, deltas)` producer: a spend's deltas depend on the *running
+balance* (affordability), so the channel must consume the fold's own output to
+decide what it spends. That coupling — a stream that reads the projection-so-far —
+is the real design problem, and is the substance of this slice.
 
 ### Next steps, in order
 
-1. **(ETL, elsewhere)** build the compound `sequence` type → unblocks spends.
-2. **Coordinator + stream toggles** — wire `bundle → project → balanceAt` end to
+1. **Coordinator + stream toggles** — wire `bundle → project → balanceAt` end to
    end. Toggling a stream off (it keeps existing but stops contributing) is a
    coordinator-level filter over *which* channels reach `project()`; the fold
    never changes. Dev/debug-flavoured isolation, not a core concern.
-3. **Spends/commitments channel** — once the sequence type lands; this is where
-   the balance-consuming allocation logic goes, outside the pure fold.
-4. **Dense LUT swap** — flip `balanceAt`'s internals to the O(1) dictionary once
+2. **Spends/commitments channel** — the client-generated strategy collection,
+   overlay, and the balance-consuming affordability logic, outside the pure fold.
+3. **Dense LUT swap** — flip `balanceAt`'s internals to the O(1) dictionary once
    daily rewards densify the series.
 
 ## Mental model: a spreadsheet (with one caveat)

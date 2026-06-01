@@ -10,3 +10,5 @@ export type { Ledger, LedgerEntry, BalanceSeries, StreamEmission, ResourceVector
 export { eventStream } from "./streams/events.ts";
 export { generatorStream, generatorsFromBundle } from "./streams/generator.ts";
 export type { GeneratorSpec } from "./streams/generator.ts";
+export { sequenceStream, sequencesFromBundle } from "./streams/sequence.ts";
+export type { SequenceSpec } from "./streams/sequence.ts";

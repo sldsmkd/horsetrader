@@ -15,6 +15,7 @@
 import type { EventsBundle } from "../../bundle/events.gen.ts";
 import type { ResourceVector, StreamEmission } from "../ledger.ts";
 import { resourceOf } from "./rewards.ts";
+import { addDays } from "./dates.ts";
 
 /** A recurring daily payout: `payload` each day from `start`, for `repeat` days. */
 export interface GeneratorSpec {
@@ -22,13 +23,6 @@ export interface GeneratorSpec {
   start: string;
   payload: ResourceVector;
   repeat: number;
-}
-
-/** ISO date `days` after `date` (UTC), so cadence is timezone-stable. */
-function addDays(date: string, days: number): string {
-  const d = new Date(date + "T00:00:00Z");
-  d.setUTCDate(d.getUTCDate() + days);
-  return d.toISOString().slice(0, 10);
 }
 
 /**
@@ -67,7 +61,7 @@ export function generatorsFromBundle(bundle: EventsBundle): GeneratorSpec[] {
 
     const payload: ResourceVector = {};
     for (const [key, value] of Object.entries(generator)) {
-      if (key === "repeat") continue;
+      if (key === "repeat" || typeof value !== "number") continue;
       payload[resourceOf(key)] = value;
     }
     if (Object.keys(payload).length) specs.push({ source: event.key, start: event.start, payload, repeat });
