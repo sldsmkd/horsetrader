@@ -120,6 +120,29 @@ class RewardGenerator(Reward):
 
 
 @yayoi
+@dataclass(frozen=True)
+class SequenceReward(Reward):
+    """A daily-login-bonus schedule for a *single* counter type: per login-day,
+    an amount of that type, or `None` for a day it isn't paid.
+
+    The type is fixed across the sequence, so a skip is the *absence of the
+    type* — `Null` in curated YAML, `None` here, not `0`. Anniversary login
+    tables pay every day, but some days hand out a welfare/support card we don't
+    track; those days are `None`. A second type we *did* track wouldn't fold in
+    here — it'd be its own `SequenceReward`. `reward_type` is a plain
+    `CounterReward` subclass (never a sequence or generator); the event stays
+    open indefinitely, so the ETL models no end. `total()` sums the paying days.
+    """
+
+    key: ClassVar[str] = "sequence"
+    reward_type: type[CounterReward]
+    sequence: tuple[int | None, ...]
+
+    def total(self) -> CounterReward:
+        return self.reward_type(sum(a for a in self.sequence if a is not None))
+
+
+@yayoi
 class Rewards(list[Reward]):
     """In-event handouts attached to an `Event` — a list of typed `Reward`s.
 
@@ -186,6 +209,37 @@ def _generator_from_baked(value: object) -> RewardGenerator:
     )
 
 
+def _sequence_from_baked(value: object) -> SequenceReward:
+    key = SequenceReward.key
+    if not isinstance(value, dict):
+        raise ValueError(f"{key} must be a mapping; got {value!r}")
+    body = dict(value)
+    if "type" not in body:
+        raise ValueError(f"{key} is missing 'type'")
+    if "sequence" not in body:
+        raise ValueError(f"{key} is missing 'sequence'")
+    type_key = body.pop("type")
+    steps = body.pop("sequence")
+    if body:
+        raise ValueError(f"{key} has unexpected keys {list(body)}")
+    cls = reward_for_key(type_key) if isinstance(type_key, str) else None
+    if cls is None or not issubclass(cls, CounterReward):
+        raise ValueError(f"{key} type must be a counter reward; got {type_key!r}")
+    if not isinstance(steps, list):
+        raise ValueError(f"{key} 'sequence' must be a list; got {steps!r}")
+    amounts: list[int | None] = []
+    for step in steps:
+        # `Null` (or a bare `0`) — the type isn't paid that day; an unmodelled
+        # welfare-card day, an *absence* of the type rather than zero of it.
+        if step is None or step == 0:
+            amounts.append(None)
+        elif isinstance(step, int):
+            amounts.append(step)
+        else:
+            raise ValueError(f"{key} step must be an int or null; got {step!r}")
+    return SequenceReward(reward_type=cls, sequence=tuple(amounts))
+
+
 def rewards_from_baked(data: dict[str, object]) -> Rewards:
     """Build a `Rewards` from the baked `{key: value}` shape — the inverse of
     `rewards_to_baked`. Plain `{key: amount}` entries become
@@ -201,6 +255,8 @@ def rewards_from_baked(data: dict[str, object]) -> Rewards:
     for key, value in data.items():
         if key == RewardGenerator.key:
             rewards.append(_generator_from_baked(value))
+        elif key == SequenceReward.key:
+            rewards.append(_sequence_from_baked(value))
         else:
             rewards.append(_counter_from_baked(key, value, "rewards"))
     return rewards
@@ -222,10 +278,14 @@ def rewards_to_baked(rewards: "Rewards | None") -> dict[str, object] | None:
     if not rewards:
         return None
     counters: dict[str, int] = {}
-    generator: dict[str, int] | None = None
+    generator: dict[str, object] | None = None
+    sequence: dict[str, object] | None = None
     for r in rewards:
         if isinstance(r, RewardGenerator):
             generator = {r.reward.key: r.reward.amount, "repeat": r.repeat}
+            continue
+        if isinstance(r, SequenceReward):
+            sequence = {"type": r.reward_type.key, "sequence": list(r.sequence)}
             continue
         amount = getattr(r, "amount", None)
         if amount is None:
@@ -234,6 +294,8 @@ def rewards_to_baked(rewards: "Rewards | None") -> dict[str, object] | None:
     out: dict[str, object] = dict(counters)
     if generator is not None:
         out[RewardGenerator.key] = generator
+    if sequence is not None:
+        out[SequenceReward.key] = sequence
     return out or None
 
 

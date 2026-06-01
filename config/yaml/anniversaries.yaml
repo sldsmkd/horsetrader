@@ -8,9 +8,25 @@ anchor-anni-1_0:
     start: 2026-03-12T22:00:00+00:00 # Trackblazer
   jp:
     start: 2022-02-24T12:00:00+09:00 # Make a New Track
+
+# 1.5th Anniversary
 anchor-anni-1_5:
   jp:
     start: 2022-08-24T12:00:00+09:00 # Grand Live
+during-anni-1_5: # Part 2
+  anchor: anchor-anni-1_5
+  name: 1.5th Anniversary Celebration Part 2
+  duration: P28D
+  rewards:
+    carats: 3000
+    sequence:
+      type: carats
+      sequence: [150,150,Null,150,150,150,150,150,Null,150,150,150]
+after-anni-1_5p2: # Part 3 starts 9/2
+  anchor: during-anni-1_5
+  name: 1.5th Anniversary Celebration Part 3
+  duration: P28D
+
 anchor-anni-2_0:
   jp:
     start: 2023-02-24T12:00:00+09:00 # Grand Masters

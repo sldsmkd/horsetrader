@@ -24,13 +24,18 @@ from msgspec import UNSET, UnsetType
 
 from horsetrader.semantics import eishin
 
-# A baked rewards object: ``{<reward-key>: amount}`` for plain counters, plus an
-# optional ``generator`` whose value is itself ``{<reward-key>: amount,
-# "repeat": n}`` — all-int. So the value union is ``int | dict[str, int]``. This
-# mirrors what Yayoi's ``rewards_to_baked`` emits; the dynamic keys are hers, so
-# the schema stays a typed open object rather than a fixed struct. A tighter
-# (fixed-key) schema would need a rewards reshape, which is Yayoi's call.
-Baked = dict[str, int | dict[str, int]]
+# A baked rewards object: ``{<reward-key>: amount}`` for plain counters, plus two
+# optional nested objects — a ``generator`` (``{<reward-key>: amount, "repeat":
+# n}``, all-int) and a ``sequence`` (``{"type": <reward-key>, "sequence": [amount
+# | null, …]}``, a daily-login schedule where ``null`` is an unmodelled/absent
+# day). Both nest under a string key, so the top-level value is ``int | <object>``
+# and the object's own values span ``int | str | list[int | None]`` (msgspec
+# forbids a union of two dict types, so the two nested shapes share one loose
+# value union rather than being modelled apart). This mirrors what Yayoi's
+# ``rewards_to_baked`` emits; the dynamic keys are hers, so the schema stays a
+# typed open object rather than a fixed struct. A tighter (fixed-key) schema
+# would need a rewards reshape, which is Yayoi's call.
+Baked = dict[str, int | dict[str, int | str | list[int | None]]]
 
 
 # ── academy.json ──────────────────────────────────────────────────────────────

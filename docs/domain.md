@@ -279,12 +279,29 @@ in `models/rewards/`. Two shapes matter to the domain:
   login bonuses are *separate events*, not multiple generators on one
   event — so the baked shape is a single object, not a list.
 
+- **`SequenceReward`** is a **daily login bonus** for a *single* counter type,
+  spelled out day by day: each login-day pays an amount of that type or `Null`
+  for a day it isn't paid. Because the type is fixed, a skip is the **absence of
+  that type** (`Null` in YAML, `None` in the model, *not* `0`) — anniversary
+  tables pay every day, but some days give a welfare/support card we don't
+  track, and those days are `Null`. (A bare `0` is accepted as shorthand.) A
+  second type we *did* track wouldn't fold in here — it'd be its own
+  `SequenceReward`. The `reward_type` is a plain `CounterReward` subclass, never
+  a sequence or generator; the event stays open indefinitely, so the ETL models
+  no end. `total()` sums the paying days.
+
+  Note the two reward shapes coexist on an anniversary event: a one-time
+  `carats` gift at the start (a plain counter) sits beside the `sequence` daily
+  login table — `{ "carats": 3000, "sequence": { "type": "carats", … } }`.
+
 **Baked shape.** A `Rewards` list folds (in
 `models/rewards/rewards.py::rewards_to_baked`) to a JSON object — the value of an
 event's `rewards` key: counters become `{key: amount}` (same keys summed); a
 `RewardGenerator` serialises under `generator` as
 `{<reward key>: amount, "repeat": n}`, keeping the per-payout amount and
-the repeat separate so the client multiplies. Keys are bare + pluralised
+the repeat separate so the client multiplies; a `SequenceReward` serialises
+under `sequence` as `{"type": <reward key>, "sequence": [...]}` with absent days
+as `null`. Keys are bare + pluralised
 (`carats`, `gold_crystal_shards`, …); the `rewards` wrapper namespaces them.
 
 ```json

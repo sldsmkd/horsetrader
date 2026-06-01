@@ -30,7 +30,7 @@ export interface SupportBannerRecord {
     [k: string]:
       | number
       | {
-          [k: string]: number;
+          [k: string]: number | string | (number | null)[];
         };
   };
 }
@@ -46,7 +46,7 @@ export interface TraineeBannerRecord {
     [k: string]:
       | number
       | {
-          [k: string]: number;
+          [k: string]: number | string | (number | null)[];
         };
   };
 }
@@ -63,7 +63,7 @@ export interface ScenarioRecord {
     [k: string]:
       | number
       | {
-          [k: string]: number;
+          [k: string]: number | string | (number | null)[];
         };
   };
 }
@@ -82,7 +82,7 @@ export interface StoryRecord {
     [k: string]:
       | number
       | {
-          [k: string]: number;
+          [k: string]: number | string | (number | null)[];
         };
   };
 }
@@ -97,7 +97,7 @@ export interface CMRecord {
     [k: string]:
       | number
       | {
-          [k: string]: number;
+          [k: string]: number | string | (number | null)[];
         };
   };
 }
@@ -111,7 +111,7 @@ export interface AnchorRecord {
     [k: string]:
       | number
       | {
-          [k: string]: number;
+          [k: string]: number | string | (number | null)[];
         };
   };
 }
@@ -128,7 +128,7 @@ export interface AnchoredEventRecord {
     [k: string]:
       | number
       | {
-          [k: string]: number;
+          [k: string]: number | string | (number | null)[];
         };
   };
 }
