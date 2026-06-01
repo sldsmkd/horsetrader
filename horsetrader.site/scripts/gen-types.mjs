@@ -1,5 +1,6 @@
 // Generates the site's bundle types from the JSON Schemas the ETL publishes
-// beside the data in generated/site/static. These types ARE the ETL contract:
+// into config/schema/ (the contract, kept out of the shippable static/ deploy
+// dir). These types ARE the ETL contract:
 // they are derived, never hand-written, so they can't silently drift from the
 // baked shape (see docs/architecture.md, "The ETL contract"). Re-run after the
 // ETL re-bakes if the schema changed. Output is committed and consumed by core/.
@@ -15,7 +16,7 @@ import { fileURLToPath } from "node:url";
 import { compile } from "json-schema-to-typescript";
 
 const here = dirname(fileURLToPath(import.meta.url));
-const staticDir = resolve(here, "../../generated/site/static");
+const schemaDir = resolve(here, "../../config/schema");
 const outDir = resolve(here, "../js/src/core/bundle");
 
 const schemas = [
@@ -24,7 +25,7 @@ const schemas = [
 ];
 
 async function generate({ in: inFile, out: outFile }) {
-  const schema = JSON.parse(await readFile(resolve(staticDir, inFile), "utf8"));
+  const schema = JSON.parse(await readFile(resolve(schemaDir, inFile), "utf8"));
   const rootName = schema.$ref.split("/").pop();
   const { [rootName]: rootDef, ...rest } = schema.$defs;
   const root = { title: rootName, ...rootDef, $defs: rest };

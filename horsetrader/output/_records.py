@@ -3,8 +3,8 @@
 These ``msgspec.Struct`` classes *are* the shape of ``academy.json`` and
 ``events.json``. They are the single source of truth the JSON Schema is
 generated from (``msgspec.json.schema``) and the type the bake self-validates
-against on the way out (``msgspec.json.decode``), so the schema we publish to
-``generated/site/static/`` physically cannot drift from what we emit.
+against on the way out (``msgspec.json.decode``), so the schema we publish
+(to ``config/schema/``) physically cannot drift from what we emit.
 
 Ownership note: the records live with Eishin (``output/``) because they are the
 *serialised* form, not a model. The model ``bake()`` methods map a model into

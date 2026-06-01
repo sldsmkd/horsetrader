@@ -3,9 +3,9 @@
   "private": true,
   "scripts": {
     "gen:types": "node scripts/gen-types.mjs",
-    "dev": "cp index.html ../generated/site/ && esbuild js/src/main.js --bundle --sourcemap --outfile=../generated/site/js/app.js --serve=localhost:3000 --servedir=../generated/site",
-    "build": "cp index.html ../generated/site/ && esbuild js/src/main.js --bundle --minify --outfile=../generated/site/js/app.js",
-    "deploy": "wrangler pages deploy ../generated/site"
+    "dev": "cp index.html ../static/ && esbuild js/src/main.js --bundle --sourcemap --outfile=../static/js/app.js --serve=localhost:3000 --servedir=../static",
+    "build": "cp index.html ../static/ && esbuild js/src/main.js --bundle --minify --outfile=../static/js/app.js",
+    "deploy": "wrangler pages deploy ../static"
   },
   "devDependencies": {
     "esbuild": "^0.25.0",

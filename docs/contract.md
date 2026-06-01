@@ -10,22 +10,23 @@ in [frontend/architecture.md](frontend/architecture.md) +
 
 ## The bundle
 
-The ETL bakes a static, read-only bundle into `generated/site/static/`:
+The ETL bakes a static, read-only bundle into the repo-root **`static/`** deploy dir:
 
-- `academy.json` — entity reference data (characters, trainees, supports, items).
-- `events.json` — the dated event timeline (the forecast).
-- `img/**` — webp images, referenced by the JSON.
+- `static/json/academy.json` — entity reference data (characters, trainees, supports, items).
+- `static/json/events.json` — the dated event timeline (the forecast).
+- `static/img/**` — webp images, referenced by the JSON.
 
-`generated/` is the bridge dir (in-tree but gitignored, not version-controlled):
-the ETL writes data + images; the site build writes `index.html` + `js/app.js`
-into the same tree; together they are the deployable web root. The data is
-**read-only to the site** — the ETL owns it.
+`static/` is the **deploy root** wrangler ships (gitignored, regenerated): the ETL
+writes the JSON bundle + images here directly, and the site build writes
+`index.html` + `js/app.js` into the same tree. The data is **read-only to the
+site** — the ETL owns it.
 
 ## The schema (types can't drift)
 
 The ETL publishes a JSON Schema for the bundle — `academy.schema.json` /
-`events.schema.json` — generated from its typed `msgspec` DTOs and shipped beside
-the data. The site runs `npm run gen:types` to compile those into
+`events.schema.json` — generated from its typed `msgspec` DTOs and written to
+`config/schema/` (out of the shippable `static/` deploy dir — it's the contract,
+not a deploy asset). The site runs `npm run gen:types` to compile those into
 `core/bundle/*.gen.ts` (committed, never hand-edited; re-run when the ETL re-bakes
 a changed shape). Because the site's types are *derived from* the ETL's schema,
 the consuming cast cannot silently drift from the bake.
@@ -104,10 +105,12 @@ the audience changes:
 Shape drift is the ETL's brick to throw, never the site's — see
 [frontend/trust-and-failure.md](frontend/trust-and-failure.md).
 
-## The bridge
+## Cross-side changes
 
-Cross-repo asks live in **`generated/TODO.md`**: site→ETL under "Needed from ETL",
-ETL→site under "Needed from site".
+There is no shared handoff file. A change that needs *both* sides at once is a
+**scope-creep signal**: sessions are single-purpose (ETL *or* site, not both).
+Note what the other side needs and do it in a **subsequent session** — don't
+reach across the boundary mid-task.
 
 ## See also
 

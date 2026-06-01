@@ -16,8 +16,9 @@ extraction (Transcend's job — the EN corpus isn't a separate stage).
 `Pipeline.run()` then builds a **timeline** of every Event, hands it to
 `Predict`, which fills in predicted UTC periods for the ones missing them,
 and passes the resulting **UTC-bearing timeline** to `Bake`, which writes
-`academy.json` and `events.json` — each with a co-located JSON Schema — into
-`$HORSETRADER_TARGET/site/static/`.
+`academy.json` and `events.json` into the repo-root `static/json/` deploy dir,
+and each one's JSON Schema into `config/schema/` (the contract, kept out of the
+shippable `static/` tree).
 
 ## Stages
 
@@ -62,9 +63,9 @@ and passes the resulting **UTC-bearing timeline** to `Bake`, which writes
                   ┌───────────────┴────────────────┐
                   ▼                                ▼
         Bake.academy(stages)          Bake.events(timeline)
-        → academy.json                → events.json
+        → academy.json                → events.json    (static/json/)
           + academy.schema.json         + events.schema.json
-          (site/static/)                (site/static/)
+                                        (schema → config/schema/)
 ```
 
 Curren Chan (image processing) runs alongside, invoked from media-bearing
@@ -153,8 +154,8 @@ The shape of `academy.json` / `events.json` is defined once, by the
 - **The JSON Schema is generated, not written.** `Bake._write` emits
   `<name>.schema.json` via `msgspec.json.schema(...)` straight from the same
   structs, so the published contract physically can't drift from the data. The
-  web planner derives its TypeScript types from these schemas (see the bridge
-  in `generated/TODO.md`); the ETL owns the data, so it owns the contract.
+  web planner derives its TypeScript types from these schemas; the ETL owns the
+  data, so it owns the contract.
 - **The bake self-validates (fail-loud).** Before writing, `_write` decodes its
   own encoded bytes back through the struct and raises on mismatch — so a bundle
   that would violate the published schema is never written, and the site is

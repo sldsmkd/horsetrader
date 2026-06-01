@@ -1,0 +1,229 @@
+{
+  "$ref": "#/$defs/Academy",
+  "$defs": {
+    "Academy": {
+      "title": "Academy",
+      "description": "Top-level shape of ``academy.json`` — the three entity collections, each a\nstable-key → record map (the keys are the collection class names lowercased,\nmatching ``Bake.academy``).",
+      "type": "object",
+      "properties": {
+        "characters": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/CharacterRecord"
+          }
+        },
+        "supports": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/SupportRecord"
+          }
+        },
+        "trainees": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/TraineeRecord"
+          }
+        }
+      },
+      "required": [
+        "characters",
+        "supports",
+        "trainees"
+      ]
+    },
+    "CharacterRecord": {
+      "title": "CharacterRecord",
+      "type": "object",
+      "properties": {
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "quote": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "icon": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "portrait": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "name",
+        "quote",
+        "icon",
+        "portrait"
+      ]
+    },
+    "SupportRecord": {
+      "title": "SupportRecord",
+      "type": "object",
+      "properties": {
+        "character": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "display": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "rarity": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "release": {
+          "type": "string"
+        },
+        "thumbnail": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "art": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "character",
+        "display",
+        "type",
+        "rarity",
+        "title",
+        "release",
+        "thumbnail",
+        "art"
+      ]
+    },
+    "TraineeRecord": {
+      "title": "TraineeRecord",
+      "type": "object",
+      "properties": {
+        "character": {
+          "type": "string"
+        },
+        "variant": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "rarity": {
+          "type": "integer"
+        },
+        "release": {
+          "type": "string"
+        },
+        "thumbnail": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "portrait": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "character",
+        "variant",
+        "rarity",
+        "release",
+        "thumbnail",
+        "portrait"
+      ]
+    }
+  }
+}

@@ -123,7 +123,7 @@ class Items(TracenModels[Item], metaclass=SingletonMeta):
 
     @staticmethod
     def _process_icons(records: list[dict]) -> dict[str, Image | None]:
-        outdir = Config().site / "img" / "items"
+        outdir = Config().static / "img" / "items"
         requests: ResourceList[ImageRequest] = ResourceList()
         for record in records:
             key = record.get("key")

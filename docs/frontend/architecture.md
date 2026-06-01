@@ -28,21 +28,24 @@ Consequences that should guide every choice:
 ## The shape
 
 ```
-   etl repo (Python)                generated/ (shared, not vc'd)            site repo (this, TS)
+   etl repo (Python)                static/ (deploy root, gitignored)        site repo (TS)
  ┌───────────────────┐            ┌────────────────────────────┐         ┌────────────────────────┐
- │ scrape · normalise │  bakes →  │ site/static/*.json (data)  │  reads  │ core/  (pure logic)    │
- │ predict EN dates   │           │ site/img/**     (webp)     │ ──────▶ │   persistence          │
- │ (heavy lifting)    │           │ + schema (contract, TODO)  │         │   projection (ledger)  │
+ │ scrape · normalise │  bakes →  │ json/*.json     (data)     │  reads  │ core/  (pure logic)    │
+ │ predict EN dates   │           │ img/**          (webp)     │ ──────▶ │   persistence          │
+ │ (heavy lifting)    │           │ (schema → config/schema/)  │         │   projection (ledger)  │
  └───────────────────┘            └────────────────────────────┘         │ ui/    (raw DOM)       │
         the ETL owns this data; it is read-only to the site                └────────────────────────┘
-                                                                            build output deploys back
-                                                                            into generated/site/ (js/…)
+                                                                            site build writes index.html
+                                                                            + js/ into the same static/
 ```
 
 The two repos sit side by side under one tree (`horsetrader/` ETL and
-`horsetrader.site/` planner) but stay independent. `generated/` is the bridge: the ETL writes data + images
-there; the site's build writes `index.html` + `js/app.js` there; together they
-form the deployable web root. Cross-repo asks go in `generated/TODO.md`.
+`horsetrader.site/` planner) but stay independent. **`static/`** is the deploy root:
+the ETL bakes data (`json/`) + images (`img/`) there directly, and the site's build
+writes `index.html` + `js/app.js` into the same tree; together they form the
+deployable web root that ships to Cloudflare. There is no cross-repo handoff
+file: a change needing both sides is scope creep — do the other side in a
+separate, single-purpose session (see [../contract.md](../contract.md)).
 
 ## The two pillars
 
@@ -124,7 +127,7 @@ one-directional and the ball of mud can't form. See
 The site does not own the shape of the data — the ETL does. The site **derives**
 its TypeScript types from a contract the ETL publishes: `academy.schema.json` /
 `events.schema.json`, generated from the ETL's bake (from its typed `msgspec`
-DTOs) so they can't drift, shipped beside the data in `generated/site/static/`.
+DTOs) so they can't drift, written to `config/schema/` (out of the deploy dir).
 `npm run gen:types` compiles them into `core/bundle/*.gen.ts` (the only consumer
 of the raw schema) — committed, never hand-edited, re-run when the ETL re-bakes a
 changed shape. The site never re-polices data validity at build time — that's the

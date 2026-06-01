@@ -57,7 +57,7 @@ class CurrenChan:
         outfile: Path,
         width: int | None = None,
     ) -> Image | None:
-        site_root = Config().site
+        site_root = Config().static
         image = Image(source)
         # Curren Chan: "I got this from here!" — stamp the source on the
         # Image so the owning entity can fold it into provenance once

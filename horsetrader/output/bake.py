@@ -83,11 +83,12 @@ class Bake:
         blob = msgspec.json.encode(bundle, enc_hook=_enc_hook)
         msgspec.json.decode(blob, type=schema_type)  # fail loud before writing
 
-        static = Config().site / "static"
-        static.mkdir(parents=True, exist_ok=True)
-        Bake._dump(static / filename, blob)
+        json_dir = Config().static / "json"
+        json_dir.mkdir(parents=True, exist_ok=True)
+        Bake._dump(json_dir / filename, blob)
+        # Schema isn't shippable — it lives in config/schema/, out of the deploy dir.
         Bake._dump(
-            static / f"{Path(filename).stem}.schema.json",
+            Config().schema / f"{Path(filename).stem}.schema.json",
             msgspec.json.encode(msgspec.json.schema(schema_type)),
         )
         return True

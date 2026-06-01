@@ -108,7 +108,7 @@ class Scenarios(Events[Scenario], metaclass=SingletonMeta):
         url_by_key: list[tuple[str, str]],
         width: int | None = None,
     ) -> dict[str, Image | None]:
-        outdir = Config().site / "img" / "scenarios"
+        outdir = Config().static / "img" / "scenarios"
         requests: ResourceList[ImageRequest] = ResourceList()
         for key, art_url in url_by_key:
             stem = f"{key}_thumb" if width else key

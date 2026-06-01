@@ -1,0 +1,505 @@
+{
+  "$ref": "#/$defs/EventsBundle",
+  "$defs": {
+    "EventsBundle": {
+      "title": "EventsBundle",
+      "description": "Top-level shape of ``events.json`` — a flat, tz-start-sorted list.",
+      "type": "object",
+      "properties": {
+        "events": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/SupportBannerRecord"
+              },
+              {
+                "$ref": "#/$defs/TraineeBannerRecord"
+              },
+              {
+                "$ref": "#/$defs/ScenarioRecord"
+              },
+              {
+                "$ref": "#/$defs/StoryRecord"
+              },
+              {
+                "$ref": "#/$defs/CMRecord"
+              },
+              {
+                "$ref": "#/$defs/AnchorRecord"
+              },
+              {
+                "$ref": "#/$defs/AnchoredEventRecord"
+              }
+            ],
+            "discriminator": {
+              "propertyName": "type",
+              "mapping": {
+                "support": "#/$defs/SupportBannerRecord",
+                "trainee": "#/$defs/TraineeBannerRecord",
+                "scenario": "#/$defs/ScenarioRecord",
+                "story": "#/$defs/StoryRecord",
+                "cm": "#/$defs/CMRecord",
+                "anchor": "#/$defs/AnchorRecord",
+                "anchoredevent": "#/$defs/AnchoredEventRecord"
+              }
+            }
+          }
+        }
+      },
+      "required": [
+        "events"
+      ]
+    },
+    "SupportBannerRecord": {
+      "title": "SupportBannerRecord",
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "support"
+          ]
+        },
+        "contents": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "image": {
+          "type": "string"
+        },
+        "start": {
+          "type": "string"
+        },
+        "end": {
+          "type": "string"
+        },
+        "predicted": {
+          "type": "boolean"
+        },
+        "key": {
+          "type": "string"
+        },
+        "rewards": {
+          "type": "object",
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "integer"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "required": [
+        "type",
+        "contents",
+        "image",
+        "start",
+        "end",
+        "predicted",
+        "key"
+      ]
+    },
+    "TraineeBannerRecord": {
+      "title": "TraineeBannerRecord",
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "trainee"
+          ]
+        },
+        "contents": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "image": {
+          "type": "string"
+        },
+        "start": {
+          "type": "string"
+        },
+        "end": {
+          "type": "string"
+        },
+        "predicted": {
+          "type": "boolean"
+        },
+        "key": {
+          "type": "string"
+        },
+        "rewards": {
+          "type": "object",
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "integer"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "required": [
+        "type",
+        "contents",
+        "image",
+        "start",
+        "end",
+        "predicted",
+        "key"
+      ]
+    },
+    "ScenarioRecord": {
+      "title": "ScenarioRecord",
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "scenario"
+          ]
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "image": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "art": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "start": {
+          "type": "string"
+        },
+        "end": {
+          "type": "string"
+        },
+        "predicted": {
+          "type": "boolean"
+        },
+        "key": {
+          "type": "string"
+        },
+        "rewards": {
+          "type": "object",
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "integer"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "required": [
+        "type",
+        "title",
+        "image",
+        "art",
+        "start",
+        "end",
+        "predicted",
+        "key"
+      ]
+    },
+    "StoryRecord": {
+      "title": "StoryRecord",
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "story"
+          ]
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "contents": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "image": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "banner": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "art": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "start": {
+          "type": "string"
+        },
+        "end": {
+          "type": "string"
+        },
+        "predicted": {
+          "type": "boolean"
+        },
+        "key": {
+          "type": "string"
+        },
+        "rewards": {
+          "type": "object",
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "integer"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "required": [
+        "type",
+        "title",
+        "contents",
+        "image",
+        "banner",
+        "art",
+        "start",
+        "end",
+        "predicted",
+        "key"
+      ]
+    },
+    "CMRecord": {
+      "title": "CMRecord",
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "cm"
+          ]
+        },
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "start": {
+          "type": "string"
+        },
+        "end": {
+          "type": "string"
+        },
+        "predicted": {
+          "type": "boolean"
+        },
+        "key": {
+          "type": "string"
+        },
+        "rewards": {
+          "type": "object",
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "integer"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "required": [
+        "type",
+        "name",
+        "start",
+        "end",
+        "predicted",
+        "key"
+      ]
+    },
+    "AnchorRecord": {
+      "title": "AnchorRecord",
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "anchor"
+          ]
+        },
+        "start": {
+          "type": "string"
+        },
+        "end": {
+          "type": "string"
+        },
+        "predicted": {
+          "type": "boolean"
+        },
+        "key": {
+          "type": "string"
+        },
+        "rewards": {
+          "type": "object",
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "integer"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "required": [
+        "type",
+        "start",
+        "end",
+        "predicted",
+        "key"
+      ]
+    },
+    "AnchoredEventRecord": {
+      "title": "AnchoredEventRecord",
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "anchoredevent"
+          ]
+        },
+        "relation": {
+          "type": "string"
+        },
+        "anchor": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "start": {
+          "type": "string"
+        },
+        "end": {
+          "type": "string"
+        },
+        "predicted": {
+          "type": "boolean"
+        },
+        "key": {
+          "type": "string"
+        },
+        "rewards": {
+          "type": "object",
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "integer"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "required": [
+        "type",
+        "relation",
+        "anchor",
+        "start",
+        "end",
+        "predicted",
+        "key"
+      ]
+    }
+  }
+}

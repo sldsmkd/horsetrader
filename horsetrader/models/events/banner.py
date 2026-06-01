@@ -190,7 +190,7 @@ class Banners(Events[Banner], metaclass=SingletonMeta):
 
     @staticmethod
     def _process_images(records: list[dict]) -> dict[str, Image | None]:
-        outdir = Config().site / "img" / "banners"
+        outdir = Config().static / "img" / "banners"
         requests: ResourceList[ImageRequest] = ResourceList()
         for record in records:
             if image_url := record.get("image_url"):

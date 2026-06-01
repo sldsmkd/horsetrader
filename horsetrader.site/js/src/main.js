@@ -1,14 +1,14 @@
 import "../../css/styles.css";
 
 // Minimal smoke test of the ETL → site data bridge: load the static bundle
-// the pipeline writes into generated/site/static and show that it's wired up.
+// the ETL bakes into static/json/ (served at /json) and show that it's wired up.
 async function main() {
   const app = document.querySelector("#app");
 
   try {
     const [academy, events] = await Promise.all([
-      fetch("/static/academy.json").then((r) => r.json()),
-      fetch("/static/events.json").then((r) => r.json()),
+      fetch("/json/academy.json").then((r) => r.json()),
+      fetch("/json/events.json").then((r) => r.json()),
     ]);
 
     const size = (v) => (Array.isArray(v) ? v.length : Object.keys(v ?? {}).length);
@@ -21,7 +21,7 @@ async function main() {
 
     app.innerHTML = `
       <h1>Horsetrader</h1>
-      <p>Data bundle loaded from <code>/static</code>.</p>
+      <p>Data bundle loaded from <code>/json</code>.</p>
       <ul class="counts">
         ${Object.entries(counts)
           .map(([label, n]) => `<li><strong>${n}</strong>${label}</li>`)

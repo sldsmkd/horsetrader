@@ -8,7 +8,7 @@ from horsetrader.semantics import tazuna
 
 from .singleton_meta import SingletonMeta
 
-_TARGET = "HORSETRADER_TARGET"
+# _TARGET = "HORSETRADER_TARGET"
 _SKIP_CACHE_REFRESH = "HORSETRADER_SKIP_CACHE_REFRESH"
 
 _SKELETON = f"""\
@@ -34,7 +34,7 @@ class Config(metaclass=SingletonMeta):
     ``HORSETRADER_TARGET`` isn't exported either, a skeleton ``.env`` is
     written to CWD as a first-run scaffold.
 
-    Path-related state is validated lazily on first ``.cache`` / ``.site``
+    Path-related state is validated lazily on first ``.cache`` / ``.static``
     access so import-time consumers (e.g. Logger) don't force every entry
     point to set the target dir.
 
@@ -99,11 +99,16 @@ class Config(metaclass=SingletonMeta):
         return cache_dir
 
     @property
-    def site(self) -> Path:
-        """Path to the site directory under the target, creating it if missing."""
-        site_dir = self._target() / "site"
-        site_dir.mkdir(parents=True, exist_ok=True)
-        return site_dir
+    def static(self) -> Path:
+        """Path to the static deploy dir (``static/`` at the repo root), creating it if missing.
+
+        The ETL bakes its shippable output here: the JSON bundle under
+        ``static/json/`` and webp under ``static/img/``. This is the deploy root
+        wrangler ships.
+        """
+        static_dir = self._repo_root / "static"
+        static_dir.mkdir(parents=True, exist_ok=True)
+        return static_dir
 
     @property
     def skip_cache_refresh(self) -> bool:
@@ -124,3 +129,15 @@ class Config(metaclass=SingletonMeta):
         instead, outside the loaded set.
         """
         return self.curated / "yaml"
+
+    @property
+    def schema(self) -> Path:
+        """Path to the generated JSON-schema dir (``config/schema/``), creating it if missing.
+
+        The bake writes ``academy.schema.json`` / ``events.schema.json`` here —
+        out of the shippable ``static/`` deploy dir, since the schema isn't shipped
+        (it's the contract the site's ``gen:types`` consumes).
+        """
+        schema_dir = self.curated / "schema"
+        schema_dir.mkdir(parents=True, exist_ok=True)
+        return schema_dir

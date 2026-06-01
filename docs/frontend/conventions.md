@@ -90,14 +90,23 @@ warning there for why incremental recompute in particular is *not* a freebie.
 
 ## Build & tooling
 
-- `npm run dev` — esbuild dev server (serves the combined web root from
-  `../generated/site`, with live rebuild).
-- `npm run build` — minified bundle into `../generated/site/js/app.js`.
-- `npm run deploy` — `wrangler pages deploy ../generated/site` (Cloudflare Pages).
+The shippable web root is the repo-root **`static/`** (gitignored, regenerated),
+assembled by overlaying three stages — `skeleton/` (hand-authored shell) → ETL
+bake (`json/` + `img/`) → this build (`index.html` + `js/`). The root `Makefile`
+orchestrates the full pipeline (`make` / `make deploy`); the npm scripts here are
+the build stage it drives:
+
+- `npm run dev` — esbuild dev server serving the combined web root from
+  `../static`, with live rebuild. (Run `make seed bake` first so the data is
+  there to serve.)
+- `npm run build` — minified bundle into `../static/js/app.js` (+ `index.html`).
+- `npm run deploy` — `wrangler pages deploy ../static` (Cloudflare Pages).
+- `npm run gen:types` — compile the ETL's `config/schema/` into `core/bundle/`.
 
 Source lives here in `src/` (and `index.html` / `css/`); build output deploys
-into `generated/site/` alongside the ETL's `img/` + `static/`. **Never hand-edit
-anything in `generated/site/`** — it's all generated, by the ETL or by our build.
+into the shared `static/` root alongside the ETL's `json/` + `img/`. **Never
+hand-edit anything in `static/`** — it's all regenerated, by the skeleton seed,
+the ETL, or this build.
 
 ## See also
 

@@ -121,7 +121,7 @@ class Characters(Entities[Character], metaclass=SingletonMeta):
 
     @staticmethod
     def _process_images(records: list[dict]) -> dict[str, Image | None]:
-        outdir = Config().site / "img" / "characters"
+        outdir = Config().static / "img" / "characters"
         requests: ResourceList[ImageRequest] = ResourceList()
         for record in records:
             key = record.get("key")

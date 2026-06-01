@@ -190,7 +190,7 @@ class Stories(Events[Story], metaclass=SingletonMeta):
             (s for s in stories if s.periods),
             key=lambda s: min(p.start for p in s.periods),
         )
-        outdir = Config().site / "img" / "stories"
+        outdir = Config().static / "img" / "stories"
         requests: ResourceList[ImageRequest] = ResourceList()
         pairs: list[tuple[Story, Url]] = []
         for story, br in zip(ordered, banner_records):
@@ -211,7 +211,7 @@ class Stories(Events[Story], metaclass=SingletonMeta):
     def _process_images(
         records: list[dict], url_key: str, suffix: str
     ) -> dict[str, Image | None]:
-        outdir = Config().site / "img" / "stories"
+        outdir = Config().static / "img" / "stories"
         requests: ResourceList[ImageRequest] = ResourceList()
         for record in records:
             if url := record.get(url_key):

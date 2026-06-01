@@ -7,7 +7,8 @@ def currenchan(cls):
     (icons, portraits, art) that Shakur has fetched, resizing them to the
     target dimensions, and re-encoding them as WebP for the site to consume.
     Where Eishin produces the final JSON artifacts, Curren Chan produces the
-    final image artifacts — both end up in the shared ``generated/`` tree.
+    final image artifacts — both end up in the ``static/`` deploy tree
+    (``static/json/`` and ``static/img/``).
 
     If code is resizing, re-encoding, or otherwise transforming image bytes
     into their final on-disk form, it's Curren Chan's. The commented-out

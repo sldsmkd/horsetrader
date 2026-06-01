@@ -19,9 +19,6 @@ _horsetrader.old/
 # VSCode workspace settings
 *.code-workspace
 
-# Bake output bridge (regenerated; not version-controlled)
-generated/
-
 # Shippable build artifact — built into, deployed to Cloudflare (regenerated)
 static/
 
