@@ -22,7 +22,9 @@ persistence and projection) are **not yet implemented**. Read these as the
 design the code *will* follow, not as a map of current `src/`.
 
 The UX / widgets are deliberately deferred. This foundation is the keystone; the
-UI sits on top of it once it's laid.
+UI sits on top of it once it's laid. The **view layer** is now being captured
+intent-first, surface by surface, in [ui.md](ui.md) — design, still ahead of
+code.
 
 ## Start here
 
@@ -31,6 +33,7 @@ UI sits on top of it once it's laid.
 | Understand the whole design in one pass | [architecture.md](architecture.md) |
 | Know what we store and why so little | [persistence.md](persistence.md) |
 | Understand the engine that derives everything | [projection.md](projection.md) |
+| Understand how the site presents itself (the view layer) | [ui.md](ui.md) |
 | Know the language, layering, and DOM patterns | [conventions.md](conventions.md) |
 | Know what we trust, validate, and how we fail | [trust-and-failure.md](trust-and-failure.md) |
 
