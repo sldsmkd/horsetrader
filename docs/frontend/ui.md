@@ -516,7 +516,7 @@ sum *is* the total pulls:
 
 | Stream | What it is | Note |
 |---|---|---|
-| **Gift pulls** | free pulls granted by events | **not modelled yet** (known gap) |
+| **Gift pulls** | free pulls granted by events | pending ETL reintegration (root `TODO.md`) |
 | **Carats** | premium currency | *converted* to pulls — carats are the substrate (principle 10) |
 | **Paid daily pulls** | the discounted daily single | |
 | **Tickets** | scout tickets | |
@@ -553,7 +553,8 @@ the tail folds up.
 > but principle 10 makes *pity* the unit of account; this is the **same open
 > question** as principle 10's input-granularity note. (3) The **cost/pity pills**
 > proper (what a pull/pity *costs* — carrots — as distinct from what you *have*).
-> (4) **Gift pulls** need modelling before the readout is complete.
+> (4) **Gift pulls** — pending ETL reintegration (root `TODO.md`); the readout
+> consumes the field once it lands.
 
 ### The value highlight (intrinsic "good place to pull")
 
@@ -579,8 +580,8 @@ simple signal**: *good place to pull.*
   **principle 5** (the glow is a value *language*, meaning not decoration).
 - **Derived from ETL truth, reduced to a simple rule.** Resist re-deriving the meta
   in the UI; the free-pull count already carries it (the work is done upstream).
-- **Shares the gift/free-pulls upstream dependency** flagged in the resource readout
-  — the highlight needs that free-pull number to fire.
+- **Needs the same free-pull number** as the resource readout — pending ETL
+  reintegration (root `TODO.md`); the glow consumes it once it lands.
 
 ---
 
@@ -1024,8 +1025,9 @@ remains is not new surfaces but:
   callouts: the pity-vs-pull input *label* (principle 10), how to render
   source-density on a compact banner, the minimap positive-band buffer, EC3 pill
   ordering.
-- **Cross-side dependencies** (need ETL/core, not frontend-only): rushable-event
-  marking + rushed semantics, **gift pulls** modelling, **League of Heroes**.
+- **Cross-side ETL dependencies** (search, free pulls, rushable) — tracked in the
+  root [`TODO.md`](../../TODO.md). Frontend consumes; don't action from a frontend
+  session.
 - **Then `ui/` code.** With the intent foundation in place, crystallise these
   surfaces into the view layer — the doc's whole purpose. Build on `core/` through
   the coordinator seam ([architecture.md](architecture.md)); state flows one way
