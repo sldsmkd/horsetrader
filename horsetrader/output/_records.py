@@ -58,6 +58,9 @@ class SupportRecord(msgspec.Struct):
     release: str
     thumbnail: str | None
     art: str | None
+    # Community search phrases the front-end typeahead matches on, folded from
+    # this card's own alias entry plus its character's. Always present, often [].
+    aliases: list[str]
 
 
 @eishin
@@ -68,6 +71,9 @@ class TraineeRecord(msgspec.Struct):
     release: str
     thumbnail: str | None
     portrait: str | None
+    # Community search phrases the front-end typeahead matches on, folded from
+    # this card's own alias entry plus its character's. Always present, often [].
+    aliases: list[str]
 
 
 @eishin
@@ -101,13 +107,22 @@ class EventRecord(msgspec.Struct, tag_field="type", kw_only=True):
 
 
 @eishin
-class SupportBannerRecord(EventRecord, tag="support"):
+class RushableEventRecord(EventRecord):
+    """Envelope for events the client can rush — adds the `rushable` capability
+    flag. Only the rushable event records (banners, stories) inherit it, so the
+    key never appears on events that can't be rushed (anchors, CMs, scenarios)."""
+
+    rushable: bool
+
+
+@eishin
+class SupportBannerRecord(RushableEventRecord, tag="support"):
     contents: list[str]
     image: str
 
 
 @eishin
-class TraineeBannerRecord(EventRecord, tag="trainee"):
+class TraineeBannerRecord(RushableEventRecord, tag="trainee"):
     contents: list[str]
     image: str
 
@@ -120,7 +135,7 @@ class ScenarioRecord(EventRecord, tag="scenario"):
 
 
 @eishin
-class StoryRecord(EventRecord, tag="story"):
+class StoryRecord(RushableEventRecord, tag="story"):
     title: str | None
     contents: list[str]
     image: str | None

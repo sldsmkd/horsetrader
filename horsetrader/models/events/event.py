@@ -61,3 +61,22 @@ class Event(TracenModel):
             "key": self.key,
             "rewards": baked if baked else UNSET,
         }
+
+
+@daitaku
+@dataclass
+class RushableEvent(Event):
+    """An event the player can *rush* — post it at its `start` for an efficiency
+    penalty instead of farming it to the last day (banners, story events).
+
+    Subclassing is the capability declaration: only these events carry the baked
+    `rushable` key, so it never appears on an event that can't be rushed (an
+    anchor, a Champions Meeting). The flag is ours to mark; the rushed-state
+    *modelling* — the penalty, the start-post reschedule — is the client's
+    projection job. Defaults `True` (the type *is* rushable); a member that
+    shouldn't be can set it `False`."""
+
+    rushable: bool = field(default=True, kw_only=True)
+
+    def _envelope(self, period: Period) -> dict:
+        return {**super()._envelope(period), "rushable": self.rushable}

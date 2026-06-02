@@ -20,6 +20,7 @@ export interface EventsBundle {
 }
 export interface SupportBannerRecord {
   type: "support";
+  rushable: boolean;
   contents: string[];
   image: string;
   start: string;
@@ -36,6 +37,7 @@ export interface SupportBannerRecord {
 }
 export interface TraineeBannerRecord {
   type: "trainee";
+  rushable: boolean;
   contents: string[];
   image: string;
   start: string;
@@ -69,6 +71,7 @@ export interface ScenarioRecord {
 }
 export interface StoryRecord {
   type: "story";
+  rushable: boolean;
   title: string | null;
   contents: string[];
   image: string | null;

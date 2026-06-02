@@ -162,6 +162,8 @@ banner-30033:
     start: 2025-10-14T22:00:00+00:00
     end: 2025-10-27T22:00:00+00:00
 banner-30034:
+  rewards:
+    pulls: 4  # Meisho Doto (Original) - source HH.5.16
   # Meisho Doto character banner 21 Oct 2025 – 30 Oct 2025
   en:
     start: 2025-10-21T22:00:00+00:00
@@ -172,6 +174,8 @@ banner-30035:
     start: 2025-10-21T22:00:00+00:00
     end: 2025-10-30T22:00:00+00:00
 banner-30036:
+  rewards:
+    pulls: 6  # Eishin Flash (Original) - source HH.5.16
   # Eishin Flash character banner 30 Oct 2025 – 9 Nov 2025
   en:
     start: 2025-10-30T22:00:00+00:00
@@ -187,6 +191,8 @@ banner-30038:
     start: 2025-11-06T22:00:00+00:00
     end: 2025-11-17T22:00:00+00:00
 banner-30039:
+  rewards:
+    pulls: 100  # Riko Kashimoto, Rice Shower (SSR) - source HH.5.16
   # Rice Shower and Riko Kashimoto support banner 6 Nov 2025 – 17 Nov 2025
   en:
     start: 2025-11-06T22:00:00+00:00
@@ -292,6 +298,8 @@ banner-30059:
     start: 2026-01-15T22:00:00+00:00
     end: 2026-01-23T22:00:00+00:00
 banner-30060:
+  rewards:
+    pulls: 50  # Tamamo Cross (Original) - source HH.5.16
   # Tamamo Cross character banner 22 Jan 2026 – 31 Jan 2026
   en:
     start: 2026-01-22T22:00:00+00:00
@@ -307,6 +315,8 @@ banner-30062:
     start: 2026-01-29T22:00:00+00:00
     end: 2026-02-09T22:00:00+00:00
 banner-30063:
+  rewards:
+    pulls: 50  # Matikanefukukitaru (SSR) - source HH.5.16
   # Admire Vega and Matikanefukukitaru support banner 29 Jan 2026 – 9 Feb 2026
   en:
     start: 2026-01-29T22:00:00+00:00
@@ -332,6 +342,8 @@ banner-30067:
     start: 2026-02-11T22:00:00+00:00
     end: 2026-02-19T22:00:00+00:00
 banner-30068:
+  rewards:
+    pulls: 3  # Mihono Bourbon (Valentine) - source HH.5.16
   # Mihono Bourbon and Eishin Flash character banner 18 Feb 2026 – 1 Mar 2026
   en:
     start: 2026-02-18T22:00:00+00:00
@@ -342,6 +354,8 @@ banner-30069:
     start: 2026-02-18T22:00:00+00:00
     end: 2026-03-01T22:00:00+00:00
 banner-30070:
+  rewards:
+    pulls: 3  # Mejiro Ardan (Original) - source HH.5.16
   # Mejiro Ardan character banner 25 Feb 2026 – 5 Mar 2026
   en:
     start: 2026-02-25T22:00:00+00:00
@@ -352,26 +366,36 @@ banner-30071:
     start: 2026-02-25T22:00:00+00:00
     end: 2026-03-05T22:00:00+00:00
 banner-30072:
+  rewards:
+    pulls: 3  # Ayabe (Original) - source HH.5.16
   # Admire Vega character banner 5 Mar 2026 – 13 Mar 2026
   en:
     start: 2026-03-05T22:00:00+00:00
     end: 2026-03-13T22:00:00+00:00
 banner-30073:
+  rewards:
+    pulls: 6  # Fine Motion, Kawakami Princess (SSR) - source HH.5.16
   # Fine Motion and Kawakami Princess support banner 5 Mar 2026 – 13 Mar 2026
   en:
     start: 2026-03-05T22:00:00+00:00
     end: 2026-03-13T22:00:00+00:00
 banner-30074:
+  rewards:
+    pulls: 60  # Kitasan Black (SSR) - source HH.5.16
   # Matikanetannhauser and Kitasan Black character banner 12 Mar 2026 – 23 Mar 2026
   en:
     start: 2026-03-12T22:00:00+00:00
     end: 2026-03-23T22:00:00+00:00
 banner-30075:
+  rewards:
+    pulls: 60  # NTR (SSR) - source HH.5.16
   # Mejiro Ryan, Admire Vega, Sakura Bakushin O, and Narita Top Road support banner 12 Mar 2026 – 23 Mar 2026
   en:
     start: 2026-03-12T22:00:00+00:00
     end: 2026-03-23T22:00:00+00:00
 banner-30076:
+  rewards:
+    pulls: 12  # Satono Diamond (Original) - source HH.5.16
   # Satono Diamond character banner 22 Mar 2026 – 2 Apr 2026
   en:
     start: 2026-03-22T22:00:00+00:00
@@ -387,6 +411,8 @@ banner-30078:
     start: 2026-03-26T22:00:00+00:00
     end: 2026-04-06T22:00:00+00:00
 banner-30079:
+  rewards:
+    pulls: 12  # Curren Chan, Zenno Rob Roy (SSR) - source HH.5.16
   # Zenno Rob Roy and Curren Chan support banner 26 Mar 2026 – 6 Apr 2026
   en:
     start: 2026-03-26T22:00:00+00:00
@@ -422,16 +448,22 @@ banner-30085:
     start: 2026-04-20T22:00:00+00:00
     end: 2026-04-29T22:00:00+00:00
 banner-30086:
+  rewards:
+    pulls: 3  # King Halo, Nice Nature (Cheerleader) - source HH.5.16
   # Nice Nature and King Halo character banner 26 Apr 2026 – 8 May 2026
   en:
     start: 2026-04-26T22:00:00+00:00
     end: 2026-05-08T22:00:00+00:00
 banner-30087:
+  rewards:
+    pulls: 10  # Bamboo Memory, Seeling the Pearl (SSR) - source HH.5.16
   # Bamboo Memory and Seeking the Pearl support banner 26 Apr 2026 – 8 May 2026
   en:
     start: 2026-04-26T22:00:00+00:00
     end: 2026-05-08T22:00:00+00:00
 banner-30088:
+  rewards:
+    pulls: 7  # Ines Fujin (Original) - source HH.5.16
   # Ines Fujin character banner 30 Apr 2026 – 10 May 2026
   en:
     start: 2026-04-30T22:00:00+00:00
@@ -472,3 +504,200 @@ banner-30095:
     start: 2026-05-28T22:00:00+00:00
     end: 2026-06-07T22:00:00+00:00
 
+
+## FUTURE — granted-pull counts ahead of confirmed EN dates (source: HH.5.16).
+## Banner exists as a JP-sourced model (predicted EN window); add an `en:`
+## block here once the EN date confirms. Relocate near a related event freely.
+
+# 1.5 / Grand Live
+banner-30106:
+  rewards:
+    pulls: 4  # Bamboo Memory (Original) - source HH.5.16
+banner-30108:
+  rewards:
+    pulls: 5  # Copano Rickey (Original) - source HH.5.16
+banner-30111:
+  rewards:
+    pulls: 60  # Light Hello, Agnes Tachyon (SSR) - source HH.5.16
+banner-30113:
+  rewards:
+    pulls: 40  # Tokei Teio / Twin Turbo (SSR) - source HH.5.16
+
+# NY 2023
+banner-30138:
+  rewards:
+    pulls: 50  # Kitasan Black and Satono Diamond (NY) - source HH.5.16
+banner-30139:
+  rewards:
+    pulls: 50  # Special Week + Sweep Tosho (SSR) - source HH.5.16
+
+# 2.0 / Grand Masters
+banner-30146:
+  rewards:
+    pulls: 5  # Ines Fujin + Mejiro Ryan (Valentine) - source HH.5.16
+banner-30147:
+  rewards:
+    pulls: 6  # Marvelous Sunday + Biko Pegasus (SSR) - source HH.5.16
+banner-30148:
+  rewards:
+    pulls: 5  # Shinko Windy (Original) - source HH.5.16
+banner-30149:
+  rewards:
+    pulls: 6  # Maruzensky + Nishino Flower (SSR) - source HH.5.16
+banner-30151:
+  rewards:
+    pulls: 120  # Mejiro Ramonu (SSR) - source HH.5.16
+banner-30152:
+  rewards:
+    pulls: 11  # Daiichi Ruby (Original) - source HH.5.16
+banner-30155:
+  rewards:
+    pulls: 10  # Ancestors and Guides (SSR) - source HH.5.16
+
+# Gyaru Week
+banner-30163:
+  rewards:
+    pulls: 80  # Mihono Bourbon + Sakura Laurel Support (SSR) - source HH.5.16
+
+# 2.5 / Project L'Arc
+banner-30182:
+  rewards:
+    pulls: 11  # silence suzuka summer uma - source HH.5.16
+banner-30184:
+  rewards:
+    pulls: 11  # copano rickey rerun - source HH.5.16
+banner-30187:
+  rewards:
+    pulls: 100  # el condor pasa speed + mei satake pal - source HH.5.16
+
+# NY 2024
+banner-30213:
+  rewards:
+    pulls: 100  # duramente - source HH.5.16
+
+# 3.0 / U.A.F Ready GO!
+banner-30218:
+  rewards:
+    pulls: 5  # bijin valentine - source HH.5.16
+banner-30219:
+  rewards:
+    pulls: 6  # tickezo support - source HH.5.16
+banner-30220:
+  rewards:
+    pulls: 5  # biko original - source HH.5.16
+banner-30223:
+  rewards:
+    pulls: 120  # TYRANT OF GUTS - source HH.5.16
+banner-30224:
+  rewards:
+    pulls: 10  # transcend uma - source HH.5.16
+banner-30227:
+  rewards:
+    pulls: 9  # cheval grand stamina - source HH.5.16
+
+# GOCHI week
+banner-30237:
+  rewards:
+    pulls: 80  # Taishin wit and Hishi Miracle stamina - source HH.5.16
+
+# Great Food Festival
+banner-30253:
+  rewards:
+    pulls: 80  # Yayoi Pal and Nishino Flower Power - source HH.5.16
+
+# 3.5
+banner-30265:
+  rewards:
+    pulls: 11  # Fine Motion Guts - source HH.5.16
+banner-30269:
+  rewards:
+    pulls: 100  # Still in Love speed - source HH.5.16
+
+# Hashire! Mecha Umamusume
+banner-30285:
+  rewards:
+    pulls: 80  # Air Shakur Stamina
+
+# NY 2025
+banner-30300:
+  rewards:
+    pulls: 5  # Katsuragi Ace (NY) - source HH.5.16
+banner-30301:
+  rewards:
+    pulls: 100  # Symboli Rudolf / Mejiro Arden (SSR) - source HH.5.16
+banner-30304:
+  rewards:
+    pulls: 5  # Maruzensky (NY) - source HH.5.16
+
+# 4.0 / Twinkle Legends
+banner-30312:
+  rewards:
+    pulls: 5  # Tsumaru Tsuyoshi - source HH.5.16
+banner-30315:
+  rewards:
+    pulls: 100  # Almond Eye Speed / Embodiment of Legends Pal - source HH.5.16
+banner-30318:
+  rewards:
+    pulls: 11  # Gran Allegria - source HH.5.16
+
+# Gray Week
+banner-30331:
+  rewards:
+    pulls: 80  # Buena Vista Power + Transcend Guts - source HH.5.16
+
+# Design Your Island
+banner-30349:
+  rewards:
+    pulls: 80  # Tucker Bryne Pal + Tamamo Cross Power - source HH.5.16
+banner-30356:
+  rewards:
+    pulls: 11  # Cheval Grand + Satono Crown Summer - source HH.5.16
+banner-30360:
+  rewards:
+    pulls: 11  # Vivlos Summer - source HH.5.16
+
+# 4.5
+banner-30363:
+  rewards:
+    pulls: 100  # Stay Gold Guts + Admire Groove Speed - source HH.5.16
+
+# Yukoma Hot Springs
+banner-30383:
+  rewards:
+    pulls: 80  # Kiyoko Hoshino Pal + Tokei Teio Speed - source HH.5.16
+
+# NY 2026
+banner-30398:
+  rewards:
+    pulls: 4  # Ikuno Dictus & Sakura Laurel (NY) - source HH.5.16
+banner-30399:
+  rewards:
+    pulls: 100  # Air Groove Speed & Fine Motion Power - source HH.5.16
+banner-30406:
+  rewards:
+    pulls: 6  # Bubble Gum Fellow (NY) - source HH.5.16
+
+# 5.0 / Beyond Dreams
+banner-30410:
+  rewards:
+    pulls: 5  # Taiki Shuttle + Sounds of Earth (Valentine) - source HH.5.16
+banner-30411:
+  rewards:
+    pulls: 6  # Matikanefukukitaru + Neo Universe (SSR) - source HH.5.16
+banner-30414:
+  rewards:
+    pulls: 5  # Royce & Royce (Original) - source HH.5.16
+banner-30417:
+  rewards:
+    pulls: 120  # Forever Young Wit and Casino Drive Pal - source HH.5.16
+banner-30420:
+  rewards:
+    pulls: 9  # Loves Only You (Original) - source HH.5.16
+banner-30422:
+  rewards:
+    pulls: 2  # Victoire Pisa (Original) - source HH.5.16
+
+# GOLD Week
+banner-30433:
+  rewards:
+    pulls: 80  # Digitan Power and Tap Dance City Speed - source HH.5.16

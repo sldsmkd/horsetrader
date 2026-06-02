@@ -1,10 +1,11 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, ClassVar, Optional
 
 from ethicrawl import ResourceList
 
 from horsetrader.core import Config, Japlish, SingletonMeta, StableKey
 from horsetrader.extractors.gametora import Gametora
+from horsetrader.extractors.static import Static
 from horsetrader.extractors.umapyoi import Umapyoi
 from horsetrader.info import Logger
 from horsetrader.models.core import References
@@ -36,9 +37,14 @@ class Character(Entity):
     icon: Image | None = None
     portrait: Image | None = None
     quote: Optional[Japlish] = None
+    # Community nicknames for this character; the bake folds them onto every one
+    # of the character's trainee + support cards (search atoms). Curated.
+    aliases: list[str] = field(default_factory=list)
 
     def match(self, query: str) -> bool:
         if super().match(query):
+            return True
+        if any(query.lower() in alias.lower() for alias in self.aliases):
             return True
         return bool(self.name) and self.name.match(query)
 
@@ -146,7 +152,23 @@ class Characters(Entities[Character], metaclass=SingletonMeta):
         return CurrenChan().process(requests)
 
     def _enrichers(self):
-        return (self._enrich_with_umapyoi,)
+        return (self._enrich_with_umapyoi, self._enrich_with_aliases)
+
+    def _enrich_with_aliases(self, c: Character) -> None:
+        """Fold curated community nicknames onto the character (search phrases)."""
+        c.aliases = Static().search_aliases().get(c.key, [])
+
+    def _validate_collection(self) -> None:
+        """Every curated `char-` alias target must name a real character."""
+        missing = {
+            target
+            for target in Static().search_aliases()
+            if target.startswith(Character.KEY_PREFIX) and target not in self
+        }
+        if missing:
+            raise ValueError(
+                f"search_aliases.yaml char target(s) match no character: {sorted(missing)}"
+            )
 
     def _enrich_with_umapyoi(self, c: Character) -> None:
         """Fold Umapyoi data into the character's fields.

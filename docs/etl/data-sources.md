@@ -203,10 +203,12 @@ Two homes for YAML the ETL doesn't read:
 - [`config/pending/`](../../config/pending/) — reference docs and anything staged
   for a near-term port (e.g. `_en.schedule.yaml`).
 - [`references/import/`](../references/import/) — loose scraps of pre-split
-  YAML (`missions.yaml`, `login_bonus.yaml`, `free_pulls.yaml`,
-  `cm_tracks.yaml`, `search_aliases.yaml`, `schedule.yaml`): documentation /
-  reference the maintainer will draw on as scope expands, not a structured
-  port-queue. Lives under `references/` (the human-eye grab bag), not `config/`.
+  YAML (`missions.yaml`, `login_bonus.yaml`, `cm_tracks.yaml`, `schedule.yaml`):
+  documentation / reference the maintainer will draw on as scope expands, not a
+  structured port-queue. Lives under `references/` (the human-eye grab bag), not
+  `config/`. (`search_aliases.yaml` and `free_pulls.yaml` have been reintegrated
+  — aliases as their own `config/yaml/` corpus, pull counts folded onto
+  `banner-<id>` entries — so they're no longer staged here.)
 
 When wiring one in, move it into `config/yaml/` (where the store auto-picks it
 up), give it the region-namespace shape, and add a row above describing it.

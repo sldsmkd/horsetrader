@@ -15,11 +15,15 @@ from horsetrader.info import Logger
 from horsetrader.models.core import References
 from horsetrader.models.entities import Character, Support, Supports, Trainee, Trainees
 from horsetrader.models.media import CurrenChan, Image, ImageRequest
-from horsetrader.models.rewards import stamp_first_original_rewards
+from horsetrader.models.rewards import (
+    Rewards,
+    rewards_from_baked,
+    stamp_first_original_rewards,
+)
 from horsetrader.output._records import SupportBannerRecord, TraineeBannerRecord
 from horsetrader.semantics import daitaku
 
-from .event import Event
+from .event import RushableEvent
 from .events import Events
 
 logger = Logger.get(__name__)
@@ -38,7 +42,7 @@ def _canonical(value: str) -> str:
 
 @daitaku
 @dataclass
-class Banner(Event):
+class Banner(RushableEvent):
     """A gacha banner event with a start/end date and a guest list.
 
     Banner is the abstract parent for the two concrete gacha kinds
@@ -150,6 +154,36 @@ class Banners(Events[Banner], metaclass=SingletonMeta):
 
         return (_add_utc_period,)
 
+    def _validate_collection(self) -> None:
+        """Every curated reward block must land on a real banner (a key that
+        matches no banner model is a typo or a stale id — fail loud)."""
+        missing = {key for key in Static().banner_rewards() if key not in self}
+        if missing:
+            raise ValueError(
+                f"curated rewards declared for banner(s) with no model: {sorted(missing)}"
+            )
+
+    @staticmethod
+    def _stamp_curated_rewards(banners: list[Banner]) -> None:
+        """Fold each banner's curated ``rewards`` block (e.g. ``{pulls: 4}``)
+        onto the model, after the computed first-original carats. Parsing goes
+        through the shared ``rewards_from_baked`` so the keys are validated like
+        any other curated event's — runs in the primary build (not an enricher),
+        so a malformed reward key fails the pipeline loud rather than warning."""
+        curated = Static().banner_rewards()
+        if not curated:
+            return
+        by_key = {b.key: b for b in banners}
+        for key, raw in curated.items():
+            banner = by_key.get(key)
+            if banner is None:
+                continue  # existence is the collection's check (_validate_collection)
+            extra = rewards_from_baked(raw)
+            if banner.rewards is None:
+                banner.rewards = Rewards()
+            banner.rewards.extend(extra)
+            banner.references.add(store.source())
+
     _BANNER_CLASSES: dict[str, type[Banner]] = {
         "support": SupportBanner,
         "trainee": TraineeBanner,
@@ -186,6 +220,7 @@ class Banners(Events[Banner], metaclass=SingletonMeta):
                 )
             )
         stamp_first_original_rewards(banners)
+        self._stamp_curated_rewards(banners)
         return banners
 
     @staticmethod

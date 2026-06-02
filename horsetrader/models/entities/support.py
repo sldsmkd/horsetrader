@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, ClassVar
 
 from ethicrawl import ResourceList
@@ -6,6 +6,7 @@ from ethicrawl import ResourceList
 from horsetrader.core import Config, Japlish, Period, SingletonMeta, StableKey
 from horsetrader.enums import Sources, SupportRarity, SupportType
 from horsetrader.extractors.gametora import Gametora
+from horsetrader.extractors.static import Static
 from horsetrader.extractors.umapyoi import Umapyoi
 from horsetrader.info import Logger
 from horsetrader.models.core import References
@@ -31,12 +32,16 @@ class Support(Entity):
     rarity: SupportRarity = SupportRarity.UNKNOWN
     thumbnail: Image | None = None
     art: Image | None = None
+    # Card-specific community nicknames; the bake unions these with the
+    # character's onto this atom's baked search phrases. Curated.
+    aliases: list[str] = field(default_factory=list)
 
     def match(self, query: str) -> bool:
         return (
             super().match(query)
-            or (self.character is not None and self.character.match(query))
+            or (self.character is not None and self.character.match(query))  # incl. character aliases
             or (self.display is not None and self.display.match(query))
+            or any(query.lower() in alias.lower() for alias in self.aliases)
         )
 
 
@@ -122,7 +127,23 @@ class Supports(Entities[Support], metaclass=SingletonMeta):
         return supports
 
     def _enrichers(self):
-        return (self._enrich_with_umapyoi,)
+        return (self._enrich_with_umapyoi, self._enrich_with_aliases)
+
+    def _enrich_with_aliases(self, s: Support) -> None:
+        """Fold curated card-specific nicknames onto the support (search phrases)."""
+        s.aliases = Static().search_aliases().get(s.key, [])
+
+    def _validate_collection(self) -> None:
+        """Every curated `support-` alias target must name a real support."""
+        missing = {
+            target
+            for target in Static().search_aliases()
+            if target.startswith(Support.KEY_PREFIX) and target not in self
+        }
+        if missing:
+            raise ValueError(
+                f"search_aliases.yaml support target(s) match no support: {sorted(missing)}"
+            )
 
     def _enrich_with_umapyoi(self, s: Support) -> None:
         support_id = s.correlations.get(Sources.GAMETORA.value)

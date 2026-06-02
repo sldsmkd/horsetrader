@@ -160,6 +160,15 @@ class TracenModels(ABC, Generic[TEntity]):
         """Per-item validation, called once per merged item during `_fetch()`."""
         ...
 
+    def _validate_collection(self) -> None:
+        """Whole-collection validation, called once after the cache is built.
+
+        The sibling of `_validate_item` for invariants that only hold across the
+        full set — e.g. that every curated key claiming to target a member of
+        this collection actually matched one. Default: no-op. Override to raise
+        (curated-data integrity is fail-loud)."""
+        return None
+
     def _on_enrich_error(
         self,
         entity: TEntity,
@@ -216,4 +225,5 @@ class TracenModels(ABC, Generic[TEntity]):
                 f"Dropped {dropped} unkeyed {type(self).__name__.lower()}"
             )
         self._loaded = True
+        self._validate_collection()
         logger.info(f"Fetched {len(self._cache)} {type(self).__name__.lower()}")

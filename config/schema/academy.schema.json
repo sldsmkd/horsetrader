@@ -159,6 +159,12 @@
               "type": "null"
             }
           ]
+        },
+        "aliases": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "required": [
@@ -169,7 +175,8 @@
         "title",
         "release",
         "thumbnail",
-        "art"
+        "art",
+        "aliases"
       ]
     },
     "TraineeRecord": {
@@ -214,6 +221,12 @@
               "type": "null"
             }
           ]
+        },
+        "aliases": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "required": [
@@ -222,7 +235,8 @@
         "rarity",
         "release",
         "thumbnail",
-        "portrait"
+        "portrait",
+        "aliases"
       ]
     }
   }

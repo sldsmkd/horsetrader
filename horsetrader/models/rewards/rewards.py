@@ -86,6 +86,18 @@ class SupportTicket(CounterReward):
 
 @yayoi
 @dataclass(frozen=True)
+class Pull(CounterReward):
+    """Gacha pulls granted on a specific banner — Cygames' per-banner gift roll
+    (the "gift" column in the pull widgets). No "free" qualifier: a granted pull
+    is always free (you can't be handed a paid one), so the type is just `Pull`.
+    Curated per banner from the community spreadsheet; no inventory item backs a
+    granted roll, so it carries no `item_key` (its `item()` is `None`)."""
+
+    key: ClassVar[str] = "pulls"
+
+
+@yayoi
+@dataclass(frozen=True)
 class RainbowCrystalShard(CounterReward):
     key: ClassVar[str] = "rainbow_crystal_shards"
     item_key: ClassVar[str] = "item-00149"

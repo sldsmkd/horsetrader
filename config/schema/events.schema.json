@@ -60,6 +60,9 @@
             "support"
           ]
         },
+        "rushable": {
+          "type": "boolean"
+        },
         "contents": {
           "type": "array",
           "items": {
@@ -120,6 +123,7 @@
       },
       "required": [
         "type",
+        "rushable",
         "contents",
         "image",
         "start",
@@ -137,6 +141,9 @@
             "trainee"
           ]
         },
+        "rushable": {
+          "type": "boolean"
+        },
         "contents": {
           "type": "array",
           "items": {
@@ -197,6 +204,7 @@
       },
       "required": [
         "type",
+        "rushable",
         "contents",
         "image",
         "start",
@@ -313,6 +321,9 @@
             "story"
           ]
         },
+        "rushable": {
+          "type": "boolean"
+        },
         "title": {
           "anyOf": [
             {
@@ -410,6 +421,7 @@
       },
       "required": [
         "type",
+        "rushable",
         "title",
         "contents",
         "image",

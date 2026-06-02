@@ -198,6 +198,37 @@ The hook `_on_enrich_error` covers actual exceptions.
 This replaces older `_enrich_one` / `_merge_one` patterns. Don't
 reintroduce them.
 
+## Don't bypass the models
+
+Source and curated data about an entity belongs **on the entity**, folded
+in through the enricher seam during load — not side-loaded later by whoever
+happens to need it. If `output/` (or any consumer downstream of the
+pipeline) reaches back into an extractor or `Static` to join data at
+serialisation time, that data never became part of the model: the pipeline
+(`Rudolf`) didn't build it, `_validate_*` never saw it, and nothing that
+holds the entity can rely on it. The bake's job is to **map models into
+records** — if a record field needs a value, that value should already be
+on the model.
+
+Concretely:
+
+- Curated data keyed by stable key (aliases, overrides, supplemental
+  attributes) → a field on the `Character` / `Trainee` / `Support` (etc.),
+  populated by an `_enrich_*` method reading the source. The bake reads the
+  field.
+- Cross-entity integrity that the per-item `_validate_item` can't express
+  (e.g. "every curated key targeting this collection matched a member") →
+  `TracenModels._validate_collection`, the whole-collection hook that runs
+  once after the cache is built. Fail loud there, at load, not at bake.
+- A *view* composed purely from fields already on the model (e.g. unioning
+  a card's aliases with its character's) is fine in the mapper — it's a
+  pure function of model state, not a source-data fetch.
+
+The litmus test: if you're importing an extractor or `Static` from
+`output/`, stop — the data should have entered through a model enricher
+instead. A genuine exception needs a comment saying why the model seam
+didn't fit.
+
 ## Image URL lifecycle
 
 `Image` is the only thing that interprets image URLs, and **it never

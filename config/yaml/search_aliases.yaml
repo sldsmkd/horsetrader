@@ -1,0 +1,42 @@
+# Community search aliases — the nicknames players actually type, which the
+# bake folds onto each atom's `aliases` so the front-end typeahead matches them.
+#
+# Each entry lives in its own `alias-<body>` namespace and points at a `target`
+# stable key (the same indirection anchored events use with `anchor:`):
+#
+#   alias-<body>:
+#     target: <stable-key>      # char- / trainee- / support-
+#     phrases: [phrase, ...]    # what gets typed in the search box
+#
+# A `char-` target applies to EVERY trainee + support of that character; a
+# `trainee-` / `support-` target applies to that one card. Every target must
+# resolve to a baked atom — a dangling target fails the bake loud (a typo'd id
+# or a character with no cards). Copy a neighbour to add more.
+
+# ── character-wide nicknames (any card version) ──────────────────────────────
+alias-admire-vega:        { target: char-admire-vega,        phrases: [ayabe] }
+alias-agnes-digital:      { target: char-agnes-digital,      phrases: [digital, digitan] }
+alias-agnes-tachyon:      { target: char-agnes-tachyon,      phrases: [tachyon, tachy] }
+alias-air-groove:         { target: char-air-groove,         phrases: [groove] }
+alias-daiwa-scarlet:      { target: char-daiwa-scarlet,      phrases: [scarlet, dasuka, daiwa] }
+alias-fine-motion:        { target: char-fine-motion,        phrases: [fimo, fine mo, finemo] }
+alias-gold-ship:          { target: char-gold-ship,          phrases: [golshi] }
+alias-kitasan-black:      { target: char-kitasan-black,      phrases: [kitasan, kita-chan, kitachan] }
+alias-matikanetannhauser: { target: char-matikanetannhauser, phrases: [mambo, machitan] }
+alias-matikanefukukitaru: { target: char-matikanefukukitaru, phrases: [fukukitaru, fuku, machik] }
+alias-mejiro-mcqueen:     { target: char-mejiro-mcqueen,     phrases: [mcqueen, fatty] }
+alias-mr-cb:              { target: char-mr-cb,              phrases: [cb, mr cb] }
+alias-narita-top-road:    { target: char-narita-top-road,    phrases: [topro, ntr] }
+alias-oguri-cap:          { target: char-oguri-cap,          phrases: [oguri] }
+alias-rice-shower:        { target: char-rice-shower,        phrases: [rice] }
+alias-sakura-bakushin-o:  { target: char-sakura-bakushin-o,  phrases: [bakushin] }
+alias-silence-suzuka:     { target: char-silence-suzuka,     phrases: [suzuka] }
+alias-special-week:       { target: char-special-week,       phrases: [spechan, spe] }
+alias-super-creek:        { target: char-super-creek,        phrases: [creek] }
+alias-tokai-teio:         { target: char-tokai-teio,         phrases: [teio] }
+alias-winning-ticket:     { target: char-winning-ticket,     phrases: [ticket, tickezo, chikezo] }
+alias-maruzensky:         { target: char-maruzensky,         phrases: [maru, maruzen, granny, grannie] }
+
+# ── card-specific / seasonal shorthands ──────────────────────────────────────
+alias-maruzensky-summer:        { target: support-30107-maruzensky,       phrases: [smaru, summer maru] }
+alias-mihono-bourbon-valentine: { target: trainee-102602-mihono-bourbon,  phrases: [chocobon] }

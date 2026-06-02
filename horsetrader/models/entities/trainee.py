@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, ClassVar
 
 from ethicrawl import ResourceList
@@ -6,6 +6,7 @@ from ethicrawl import ResourceList
 from horsetrader.core import Config, Japlish, Period, SingletonMeta, StableKey
 from horsetrader.enums import CostumeVariants, Sources
 from horsetrader.extractors.gametora import Gametora
+from horsetrader.extractors.static import Static
 from horsetrader.extractors.umapyoi import Umapyoi
 from horsetrader.info import Logger
 from horsetrader.models.core import References
@@ -45,12 +46,16 @@ class Trainee(Entity):
     variant: TraineeVariant
     thumbnail: Image | None = None
     portrait: Image | None = None
+    # Card-specific community nicknames; the bake unions these with the
+    # character's onto this atom's baked search phrases. Curated.
+    aliases: list[str] = field(default_factory=list)
 
     def match(self, query: str) -> bool:
         return (
             super().match(query)
-            or self.character.match(query)
+            or self.character.match(query)  # includes the character's aliases
             or self.variant.match(query)
+            or any(query.lower() in alias.lower() for alias in self.aliases)
         )
 
 
@@ -178,7 +183,23 @@ class Trainees(Entities[Trainee], metaclass=SingletonMeta):
         return CurrenChan().process(requests)
 
     def _enrichers(self):
-        return (self._enrich_with_umapyoi,)
+        return (self._enrich_with_umapyoi, self._enrich_with_aliases)
+
+    def _enrich_with_aliases(self, t: Trainee) -> None:
+        """Fold curated card-specific nicknames onto the trainee (search phrases)."""
+        t.aliases = Static().search_aliases().get(t.key, [])
+
+    def _validate_collection(self) -> None:
+        """Every curated `trainee-` alias target must name a real trainee."""
+        missing = {
+            target
+            for target in Static().search_aliases()
+            if target.startswith(Trainee.KEY_PREFIX) and target not in self
+        }
+        if missing:
+            raise ValueError(
+                f"search_aliases.yaml trainee target(s) match no trainee: {sorted(missing)}"
+            )
 
     def _enrich_with_umapyoi(self, t: Trainee) -> None:
         """Backfill the EN slot on the trainee's outfit title from Umapyoi.

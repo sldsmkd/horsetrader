@@ -19,7 +19,7 @@ from horsetrader.models.rewards import (
 from horsetrader.output._records import StoryRecord
 from horsetrader.semantics import daitaku
 
-from .event import Event
+from .event import RushableEvent
 from .events import Events
 
 logger = Logger.get(__name__)
@@ -27,7 +27,7 @@ logger = Logger.get(__name__)
 
 @daitaku
 @dataclass
-class Story(Event):
+class Story(RushableEvent):
     """A story-time event with a JP/EN title and run period."""
 
     title: Japlish | None = None

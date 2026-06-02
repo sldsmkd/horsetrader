@@ -35,6 +35,7 @@ export interface SupportRecord {
   release: string;
   thumbnail: string | null;
   art: string | null;
+  aliases: string[];
 }
 export interface TraineeRecord {
   character: string;
@@ -43,4 +44,5 @@ export interface TraineeRecord {
   release: string;
   thumbnail: string | null;
   portrait: string | null;
+  aliases: string[];
 }

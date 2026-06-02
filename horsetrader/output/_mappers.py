@@ -3,6 +3,15 @@ from horsetrader.models.entities import Character, Support, Trainee
 from ._records import CharacterRecord, SupportRecord, TraineeRecord
 
 
+def _search_aliases(character: Character | None, own: list[str]) -> list[str]:
+    """An atom's baked search phrases: its character's nicknames (which apply to
+    every card of that character) then its own card-specific ones, order-
+    preserved and de-duplicated. Both halves are already on the models — Digitan
+    enriches them at load — so this is a pure view, no source-data side-load."""
+    character_aliases = character.aliases if character else []
+    return list(dict.fromkeys([*character_aliases, *own]))
+
+
 def _map_character(c: Character) -> CharacterRecord:
     return CharacterRecord(
         name=c.name.display if c.name else None,
@@ -22,6 +31,7 @@ def _map_support(s: Support) -> SupportRecord:
         release=s.release.isoformat(),
         thumbnail=str(s.thumbnail.url) if s.thumbnail else None,
         art=str(s.art.url) if s.art else None,
+        aliases=_search_aliases(s.character, s.aliases),
     )
 
 
@@ -33,6 +43,7 @@ def _map_trainee(t: Trainee) -> TraineeRecord:
         release=t.release.isoformat(),
         thumbnail=str(t.thumbnail.url) if t.thumbnail else None,
         portrait=str(t.portrait.url) if t.portrait else None,
+        aliases=_search_aliases(t.character, t.aliases),
     )
 
 

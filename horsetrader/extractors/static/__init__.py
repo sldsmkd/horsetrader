@@ -1,6 +1,7 @@
 from horsetrader.core import Period, SingletonMeta
 from horsetrader.semantics import transcend
 
+from . import aliases as _aliases
 from . import anchored as _anchored
 from . import anniversaries as _anniversaries
 from . import banners as _banners
@@ -17,6 +18,15 @@ class Static(metaclass=SingletonMeta):
     Returns raw record dicts and core primitives; entity construction is
     Digitan's responsibility (see [[project-transcend-digitan-boundary]]).
     """
+
+    def search_aliases(self) -> dict[str, list[str]]:
+        """Community search aliases as a ``target -> phrases`` map.
+
+        Targets are stable keys (``char-`` folds onto every atom of that
+        character; ``trainee-`` / ``support-`` apply to one card). The
+        target→atom join and dangling-target check live in the bake.
+        """
+        return _aliases.load()
 
     def anniversaries(self) -> list[dict]:
         """Records from the consolidated anniversaries.yaml (JP + EN)."""
@@ -60,6 +70,16 @@ class Static(metaclass=SingletonMeta):
     def banner_period(self, key: str) -> Period | None:
         """UTC Period for the EN banner with this key, or None if not in banners.yaml."""
         return _banners.load().get(key)
+
+    def banner_rewards(self) -> dict[str, dict]:
+        """Curated per-banner rewards (baked-shape mappings), keyed by
+        ``banner-<id>``.
+
+        The whole map (a banner without curated rewards is absent); the
+        reward-key parse and the target→banner join are the `Banners`
+        collection's.
+        """
+        return _banners.load_rewards()
 
     def cm_period(self, key: str) -> Period | None:
         """UTC Period for the EN Champions Meeting with this key, or None if not curated."""

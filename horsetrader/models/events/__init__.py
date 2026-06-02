@@ -1,4 +1,4 @@
-from .event import Event
+from .event import Event, RushableEvent
 from .events import Events
 
 from .anchor import Anchor, Anchors
@@ -19,6 +19,7 @@ __all__ = [
     "ChampionsMeetings",
     "Event",
     "Events",
+    "RushableEvent",
     "Scenario",
     "Scenarios",
     "Stories",

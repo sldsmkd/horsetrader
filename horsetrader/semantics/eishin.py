@@ -6,10 +6,12 @@ def eishin(cls):
     terminal stage of the pipeline — it takes finalised data, ensures
     it's tidy/consistent, ensures every dated artifact is on time, and
     writes the JSON outputs (the bundle lands in ``static/json/``, the
-    deploy dir). Existing baking patterns include
-    decorate-at-bake (e.g. ``LoginBonuses``, ``SearchAliases``,
-    ``FreePulls`` in CLAUDE.md §4 fold their YAML into the events they
-    touch during the bake).
+    deploy dir). She maps finalised models into their wire records
+    (``output/_records.py`` / ``_mappers.py``) and self-validates the
+    encoded bundle; she does **not** fetch or fold source data herself.
+    Curated values (aliases, pull counts, …) reach the models *upstream*
+    via Digitan's enrichers / Daitaku's event build, and the bake only
+    reads them — see the "Don't bypass the models" standard.
 
     If code is producing the final serialised form, Eishin owns it. If
     it's still transforming/normalising upstream of serialisation, it
