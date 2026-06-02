@@ -79,7 +79,7 @@ always consistent.
               │  on input change (the only expensive step)
               ▼
         project()  ── O(n) fold ──▶  ledger + cached balance series
-                                          │  on scrub / hover (cheap, O(log n))
+                                          │  on scrub / hover (cheap, O(1))
                                           ▼
                                    views: timeline · tooltip · cursor balance · scrubber
 ```

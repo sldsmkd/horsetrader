@@ -4,7 +4,8 @@ How the site *presents itself*: the timeline substrate, the surfaces that float
 over it, and the principles that keep the view layer honest. This is the layer
 [the README](README.md) deliberately deferred — it sits on top of `core/`
 (persistence + projection) and is a pure consumer of the **coordinator seam**
-(`projection`, `balanceAt`, `channels`, `update`, `setEnabled`). Pair with
+(`projection`, `balanceAt`, `channels`, `document`, `recovered`, `update`,
+`setEnabled`). Pair with
 [conventions.md](conventions.md) (language, layering, DOM patterns) and
 [architecture.md](architecture.md) (the no-server driver and the layering rule).
 

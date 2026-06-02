@@ -4,7 +4,7 @@
  * One pure pass: attribute every stream's emissions into the rich ledger, then
  * derive the cached balance series from the snapshot forward. Deterministic and
  * side-effect-free. The result is an immutable value: scrubbing reads its
- * `series` (O(log n) lookups, no refold), and "invalidate + regenerate" is just
+ * `series` (O(1) lookups, no refold), and "invalidate + regenerate" is just
  * calling `project` again with the changed inputs and swapping the value.
  *
  * Streams are independent, composable delta producers, so adding or removing a

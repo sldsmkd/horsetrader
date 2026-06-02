@@ -30,8 +30,8 @@ Partially built under `core/projection/`, all headless-tested (`npm test`):
   persistence to projection. It loads the plan, builds the channels from the
   bundle (`channels.ts` registry), folds the *enabled* ones via `project()`, and
   recomputes on any input or toggle change. The UI drives it (`update`,
-  `setEnabled`) and reads the result (`projection`, `balanceAt`, `channels`); it
-  never touches the DOM. **Stream toggles** live here: disabling a channel drops
+  `setEnabled`) and reads the result and stored plan (`projection`, `balanceAt`,
+  `channels`, `document`, `recovered`); it never touches the DOM. **Stream toggles** live here: disabling a channel drops
   it from the next fold (it keeps existing, just stops contributing) and is
   **ephemeral** — never persisted into the plan (dev/debug isolation). The
   projection origin is the snapshot date, or the injected `now` before a snapshot
@@ -64,8 +64,9 @@ decide what it spends. That coupling — a stream that reads the projection-so-f
 is the real design problem, and is the substance of this slice.
 
 **Persist the intent, derive the resolution.** Only the *commitment* (banner id →
-planned spend) is stored input; the resolved strategy/sequences are **derived
-every recompute** from intent + current running balance, never persisted. This is
+committed pities, the unit of account) is stored input; the resolved carat
+spend/sequences are **derived every recompute** from intent + current running
+balance, never persisted. This is
 what dissolves the old prototype's pain (plans relying on state that no longer
 exists): there is no stored resolution to go stale, so nothing to repair — a
 mutation just re-resolves. And when a downstream plan can no longer afford its
@@ -93,6 +94,14 @@ regardless of the comparator.
    This is the one channel that consumes the fold's own output, so it slots into
    the coordinator's recompute as a second phase *after* the ground-truth fold,
    not as another independent entry in the `channels.ts` registry.
+2. **Rushed-event posting** — the opt-in start-post + efficiency-penalty semantics
+   (see *Transactions post on the last day* above). The stored input is a
+   per-event toggle (persist → derive). **Cross-side**: gated on the ETL marking
+   rushable events first (root `TODO.md`).
+3. **Expected-copies distribution** — the plan surface ([ui.md](ui.md)) wants a
+   probability distribution over outcomes (None / 0LB … MLB) for committed pulls:
+   deterministic derived math over the commitment + **baked drop rates** (the
+   rates are game-data, so they come from the bundle, never a client literal).
 
 ## Mental model: a spreadsheet (with one caveat)
 
@@ -137,9 +146,11 @@ Entries are facts; balances are always derived from them, never stored.
 
 ### It's one pure fold over the merged timeline
 
-`project(snapshot, config, commitments, favourites, bundle) → ledger`. Start at
-the dated snapshot, accumulate each stream's deltas in date order. Deterministic
-and side-effect-free, like the ETL's own discipline.
+`project(snapshot, streams) → ledger` — the coordinator assembles the bundle,
+config, commitments and favourites into those streams (see *Implementation
+status* above; this is the real signature). Start at the dated snapshot,
+accumulate each stream's deltas in date order. Deterministic and side-effect-free,
+like the ETL's own discipline.
 
 ### Resources are a typed, keyed vector — per-dimension arithmetic
 
@@ -174,6 +185,28 @@ decomposes into three ownerships:
 [conventions.md](conventions.md)). The client owns a stream's *shape*, never its
 *numbers* — the `50` belongs in the bundle. This means the bundle must carry the
 parameters/rates for procedural streams, not just the discrete event timeline.
+
+### Transactions post on the last day a stream runs
+
+Each contribution lands on the day a stream has *fully* run — the realised
+moment — not the day it starts. Discrete events credit/debit on their `end`: a
+Championship Meeting's reward is set by final placement; a story's rewards land
+when it finishes; a banner is most efficiently spent at its end, by which point
+the window's tickets + daily + free pulls have accrued. The events stream already
+does exactly this (lands on `event.end`).
+
+- **Exception — sequences/generators post per day.** A daily-cadence stream emits
+  one discrete transaction *each* day across its run, not a single end-post —
+  that is the whole point of those channels.
+- **Future — rushing inverts it.** An opt-in *rushed* event posts at its `start`
+  instead of its `end`, at a derived efficiency penalty (the free/daily pulls
+  forfeited by not waiting). The penalty computation is core/projection logic, but
+  it is **cross-side**: it needs the ETL to mark which events are rushable first
+  (root `TODO.md`). Not built; see the rushable-events section in [ui.md](ui.md).
+
+The UI leans on this rule — the minimap's balance line "lags" the appearance dots
+by design — and [ui.md](ui.md) treats it as a core/projection semantic. This is
+its home.
 
 ### Balances are signed and ALLOWED to go negative — never clamp, never enforce
 

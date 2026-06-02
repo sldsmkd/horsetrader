@@ -25,7 +25,9 @@ is why a flat bag of keys (the old shape) felt wrong:
    tickets, shards, …). The origin point projections run forward from.
 2. **Configuration** — slow-changing account settings (ranks, daily pack,
    weekly-login pattern, monthly flags, whale toggle, display prefs).
-3. **Commitments** — per-banner planned spend / pulls. Keyed by banner id.
+3. **Commitments** — per-banner committed **pities** (the unit of account; the
+   carat cost is *derived*, never stored — see [projection.md](projection.md)).
+   Keyed by banner id.
 4. **Favourites** — the set of entities (supports / trainees) the user marked
    interesting, with an optional note.
 
@@ -102,6 +104,28 @@ This layer reads and writes a document, full stop. It knows nothing about UI or
 about the projection engine. Wiring it to state (e.g. a debounced autosave on
 change) is a thin coordinator's job — `coordinator → persistence`,
 `coordinator → state`, neither of those two aware of the other.
+
+### Beyond the plan: serialise, share, and app-meta
+
+The plan document is the localStorage state, but the UI ([ui.md](ui.md)) raises
+three further consumers of the **same serialise boundary** — captured here so the
+seam is designed once, not three times:
+
+- **JSON export / import** — the dev panel dumps the persisted state as JSON
+  (support diagnosis) and restores it. For a no-account, no-server app this
+  doubles as the user's **only backup** — export-to-keep / re-import is the sole
+  safety net, never nagged.
+- **A URL-serialised shareable plan** — commitments + favourites encoded into a
+  link (the growth loop's clickable channel). This is a **new persistence
+  requirement**: with no account, the URL *is* the transport. Same serialise
+  machinery.
+- **App-meta** — small app-tracked values that are **not** plan input (e.g. the
+  what's-new "last seen version"). Stored through the same module but kept
+  **distinct from the four input sections** and outside the migratable plan shape.
+
+A shared link is **untrusted ingress** — a pasted/shared URL is user-controlled,
+so it is validated like any other user input (see
+[trust-and-failure.md](trust-and-failure.md)), never blind-cast.
 
 ## Notes
 

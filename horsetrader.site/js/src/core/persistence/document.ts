@@ -32,7 +32,11 @@ export interface Snapshot {
  */
 export type Config = { [setting: string]: unknown };
 
-/** Per-banner planned spend / pulls — keyed by banner id, value is the amount. */
+/**
+ * Per-banner committed pities (the unit of account) — keyed by banner id. The
+ * carat cost is *derived* from the pity intent, never stored (see
+ * docs/frontend/projection.md).
+ */
 export type Commitments = { [bannerId: string]: number };
 
 /**
