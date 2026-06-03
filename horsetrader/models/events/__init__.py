@@ -6,6 +6,7 @@ from .anchored import AnchoredEvent, AnchoredEvents
 from .banner import Banner, Banners, SupportBanner, TraineeBanner
 from .champions_meeting import ChampionsMeeting, ChampionsMeetings
 from .scenario import Scenario, Scenarios
+from .showtime import Showtime, Showtimes
 from .story import Stories, Story
 
 __all__ = [
@@ -22,6 +23,8 @@ __all__ = [
     "RushableEvent",
     "Scenario",
     "Scenarios",
+    "Showtime",
+    "Showtimes",
     "Stories",
     "Story",
     "SupportBanner",

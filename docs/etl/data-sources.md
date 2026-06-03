@@ -11,6 +11,7 @@ place that talks to the network — everything else routes through `UmaClient`.
 | --- | --- | --- | --- |
 | Gametora | HTTP + Selenium (some pages are JS-rendered) | Characters, Trainees, Supports, Banners, Stories, JP event dates | `@transcend` (uses `@shakur`) |
 | Umapyoi | HTTP | Character / Trainee enrichment | `@transcend` (uses `@shakur`) |
+| Wikiru | HTTP | JP event dates for the event types Gametora doesn't cover (Showtime, …) | `@transcend` |
 | `config/*.yaml` | Local YAML | Consolidated per-event corpora (JP + EN dates, names, overrides); JP scenarios corpus | `@transcend` (`extractors/static/`) |
 | `references/announcements/*.jpg` | Local images | Human-eye source for `config/en.*.yaml` updates | (manual) |
 | `config/img/stories/*.png` | Local images | Story event banners, consumed by ETL via `extractors/static/stories.py` | (manual) |
@@ -92,6 +93,30 @@ character detail endpoint, list and mapping/tag resolution endpoints, and
 the outfit endpoint during trainee enrichment. Hands records back to the
 appropriate `_enrich_…` method on each `TracenModels`.
 
+## Wikiru
+
+A **fallback** JP source ([`horsetrader/extractors/wikiru/`](../../horsetrader/extractors/wikiru/)),
+used live for the event types Gametora has no structured surface for — Showtime
+today, and the recurring competitive events to come (League of Heroes, Racing
+Carnival, Trainer Skills Test, Aim! Strongest Team, Masters Challenge). One
+static HTML page, the イベント一覧 event-history index, fetched via plain
+`UmaClient.get` (no chrome) and parsed with lxml.
+
+Every event type is anchored under its own heading there, each followed by one
+`style_table` of `No. | 開催期間 | イベント名` rows. The extractor matches a
+section by heading **text**, never by pukiwiki's auto-generated anchor id
+(`#zc99932e` — a content hash that churns when the hand-edited page changes),
+then parses the first table that follows. `_section_rows` is the generic core;
+per-type methods (`showtimes()`, …) are thin wrappers.
+
+Wikiru is **hand-edited, not a database table**, so the scrapers are
+deliberately tolerant: a row whose 開催期間 cell doesn't yield a JST period is
+warned and skipped, the wave dash is matched in all its variants (〜 ～ ~), and
+the routinely-omitted end-year (incl. New-Year rollover) is inferred. This is
+the warn-and-skip stance for scraped input — the EN overlay in `config/yaml/`
+is what fails loud. JP is the substrate; the curated `en:` block is the overlay
+(the Champions Meeting split).
+
 ## Static YAML files
 
 Hand-curated and scraper-immune. The loaded corpus lives under
@@ -107,6 +132,7 @@ outside the loaded set.
 | [`config/yaml/banners.yaml`](../../config/yaml/banners.yaml) | **Consolidated.** | EN confirmed banner periods, keyed by `<id>-banner`, each under an `en:` block with FQ ISO `start` / `end` (22:00 UTC). Read by `extractors/static/banners.py` (via the merged store); stamps a UTC `Period` onto the matching `Banner` at extraction time. A banner absent here stays predicted. |
 | [`config/yaml/scenarios.yaml`](../../config/yaml/scenarios.yaml) | **Consolidated.** | Full JP scenarios corpus + EN overlay, keyed by zero-padded stable key (`scenario-NN`, release order). Each entry has a `jp:` block (`name`, JP `start` 12:00 JST), an `en:` block (`name` = EN title; `start` 22:00 UTC, present only once it's on Global), and a region-agnostic `art:` URL. Read by `extractors/static/scenarios.py`. Used directly because Gametora's scenarios page is JS-rendered, brittle, and not worth scraping. |
 | [`config/yaml/anniversaries.yaml`](../../config/yaml/anniversaries.yaml) | **Consolidated.** | JP anniversary corpus + EN overlay, keyed `anchor-anni-N_M` (e.g. `anchor-anni-1_0`, `anchor-anni-0_5`). Each entry has a `jp:` block (`start` 12:00 JST) and an optional `en:` block (`start` 22:00 UTC, present only once on Global). Read by `extractors/static/anniversaries.py`; loaded with holidays into the unified `Anchors` collection. |
+| [`config/yaml/showtimes.yaml`](../../config/yaml/showtimes.yaml) | **Consolidated.** | EN overlay + region-agnostic `rewards` for the finite Fuji Kiseki Showtime series, keyed `showtime-NNN`. JP runs are scraped from Wikiru; the `en:` block carries the UTC window + EN `name`. Both occurrences are confirmed (the series was never repeated), so there is **no predictor**. Read by `extractors/static/showtimes.py`. |
 | [`config/pending/_en.schedule.yaml`](../../config/pending/_en.schedule.yaml) | **Reference only — out of scope.** | Mainline EN event + CM dates from the Cygames monthly announcements (image archive in [`references/`](../references/)). Lives in `config/pending/`, which is what keeps it out of scope — reference documentation, not pipeline input, not consumed by any loader. |
 
 ### Consolidated yaml shape

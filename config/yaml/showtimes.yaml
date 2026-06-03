@@ -1,0 +1,35 @@
+## FUJI KISEKI SHOWTIME — EN overlay + rewards ##
+#
+# A finite, closed two-event series (Fuji-Kiseki-only; curate, don't predict).
+# JP runs are scraped from wikiru (the イベント一覧 index); this file is the EN
+# overlay, keyed by chronological ordinal (showtime-NNN) — the same stable key
+# the wikiru scraper assigns.
+#
+# WINDOW SEMANTICS — `en.start`/`en.end` are the EN AVAILABILITY windows from
+# Cygames' monthly Release Schedule image: 22:00 UTC drop, 22:00 UTC close
+# (next-morning instant). Both occurrences have confirmed EN dates, so neither
+# is predicted.
+#
+# REWARDS — region-agnostic (same payout both servers): the cumulative event
+# clears, carat-economy items only. Money / Support Pt / Friend Pt and the
+# てるてる坊主 event tokens are intentionally not tracked.
+showtime-001:
+  # Fuji Kiseki's Showtime Event (2021 JP) — EN: Dec 24 2025 – Jan 4 2026 (spans New Year)
+  rewards:
+    carats: 1500
+    rainbow_crystal_shards: 2
+    gold_crystal_shards: 2
+  en:
+    name: Fuji Kiseki's Showtime Event
+    start: 2025-12-24T22:00:00+00:00
+    end: 2026-01-04T22:00:00+00:00
+showtime-002:
+  # Fuji Kiseki's Showtime Event (2022 JP) — EN: Jun 4 – Jun 14 2026
+  rewards:
+    carats: 1500
+    rainbow_crystal_shards: 2
+    gold_crystal_shards: 2
+  en:
+    name: Fuji Kiseki's Showtime Event
+    start: 2026-06-04T22:00:00+00:00
+    end: 2026-06-14T22:00:00+00:00

@@ -149,6 +149,13 @@ class CMRecord(EventRecord, tag="cm"):
 
 
 @eishin
+class ShowtimeRecord(RushableEventRecord, tag="showtime"):
+    # Rushable (post-at-start) + carries rewards via the shared envelope, unlike
+    # a CM. `name` is the EN display label ("Fuji Kiseki's Showtime Event").
+    name: str | None
+
+
+@eishin
 class AnchorRecord(EventRecord, tag="anchor"):
     # Calendar point: nothing past the shared envelope (+ any curated rewards).
     pass
@@ -170,6 +177,7 @@ EventRecordUnion = (
     | ScenarioRecord
     | StoryRecord
     | CMRecord
+    | ShowtimeRecord
     | AnchorRecord
     | AnchoredEventRecord
 )

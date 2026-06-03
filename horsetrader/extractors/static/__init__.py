@@ -8,6 +8,7 @@ from . import banners as _banners
 from . import champions_meetings as _champions_meetings
 from . import holidays as _holidays
 from . import scenarios as _scenarios
+from . import showtimes as _showtimes
 from . import stories as _stories
 
 
@@ -84,6 +85,15 @@ class Static(metaclass=SingletonMeta):
     def cm_period(self, key: str) -> Period | None:
         """UTC Period for the EN Champions Meeting with this key, or None if not curated."""
         return _champions_meetings.load().get(key)
+
+    def showtime(self, key: str) -> dict | None:
+        """EN overlay for the Showtime with this key, or None if not curated.
+
+        The entry carries the EN ``period`` (UTC), the EN ``name``, and the
+        region-agnostic ``rewards`` (baked-shape mapping | None) — the model
+        converts the rewards and joins on the wikiru-scraped JP run.
+        """
+        return _showtimes.load().get(key)
 
     def story_period(self, key: str) -> Period | None:
         """UTC Period for the EN story with this stable key, or None if not in stories.yaml."""
