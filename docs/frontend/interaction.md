@@ -12,11 +12,19 @@ Pair with [conventions.md](conventions.md) (the `h()`/no-framework/unidirectiona
 rules this doc makes concrete) and [projection.md](projection.md) (the perf split
 the two-tier change model below is the UI expression of).
 
-## Status: loop proven, foundation in; surfaces next
+## Status: loop proven, substrate + cards on the canvas; packer next
 
 As of **2026-06-03** `core/` is built and tested, [ui.md](ui.md) has captured
-every surface intent-first, and the view layer's foundation is in: **build-order
-steps 1–3 are done.** The **`h()` helper + `qs()`** and the **formatter**
+every surface intent-first, and the view layer is well underway: **build-order
+steps 1–3 and 4a–4d are done**, plus a **timeline-affordances** pass (see below).
+The axis primitive (4a), the grabbable full-canvas substrate with inertial pan
+(4b + affordances), the bundle data-access + below/above-lane selectors (4c, 4d),
+and the naïvely-placed card views for both lanes (4d) all render from the real
+baked bundle. **Remaining: the packer (4e) — the real algorithmic work — then the
+minimap (4f).** The **timeline-affordances** pass was pulled ahead of the packer
+once there was real data on the canvas to feel them against: the timeline now
+**fills the viewport** (chrome floats over it, principle 1) and pan carries
+**inertial momentum**. The original foundation, for the record: The **`h()` helper + `qs()`** and the **formatter**
 (`format.ts`) — step 1; the coordinator **notify seam** (`subscribe`) and the
 **discrete view-state store** (`state/viewState.ts`) — step 2; and the first
 **DOM views through the whole one-way loop** — the cursor balance readout
@@ -28,10 +36,8 @@ coordinator (snapshot edit → recompute → `subscribe` → render; scrub → d
 `subscribe` → mount/unmount the overlay), the canvas staying live behind the
 overlay (principle 1, via a `pointer-events: none` layer). The two stores compose
 independently — editing carats in the overlay refreshes the canvas behind it while
-the overlay stays open. Still to come: the timeline substrate, the selectors, and
-the packer (step 4, now decomposed into 4a–4f below) — the real work. Read the rest
-of this doc as the architecture those will follow, not yet a full map of current
-`src/`.
+the overlay stays open. (Step 4 was decomposed into 4a–4f below; the packer is the
+one piece of it still to come.)
 
 The step-3 **standalone scrub** (`<input type=range>` in `app.ts`) has served its
 purpose — proving both tiers of the change model end to end — and **retires in 4b**:

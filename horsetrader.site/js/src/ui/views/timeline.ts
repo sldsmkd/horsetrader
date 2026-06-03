@@ -23,6 +23,14 @@ const PX_PER_DAY = 6;
 /** Breathing room (days) padded either side of the data extent. */
 const PAD_DAYS = 14;
 
+/** Pan momentum, tuned for feel: per-ms velocity decay, the flick floor to start
+ *  a glide at release, the floor at which the glide ends, and the pause-before-
+ *  release window past which a lift is not a flick. */
+const FRICTION_PER_MS = 0.9975;
+const MIN_FLING_V = 0.05; // px/ms
+const MIN_GLIDE_V = 0.015; // px/ms
+const STALE_RELEASE_MS = 60;
+
 type Extent = readonly [string, string] | null;
 
 export interface Timeline {
@@ -83,14 +91,42 @@ export function timeline({ onScrub }: TimelineHandlers): Timeline {
     if (axis && cursorDate !== null) cursor.style.left = `${axis.xForDate(cursorDate)}px`;
   };
 
-  // --- pan: grab the world. Horizontal pan is free and unbounded (ui.md EC1). ---
+  // --- pan: grab the world, with inertial momentum on release. Horizontal pan
+  // is free and unbounded (ui.md EC1); the glide is the same transient state
+  // written straight to the transform — still no broadcast. ---
   let dragging = false;
   let grabX = 0;
   let grabPan = 0;
+  let velocity = 0; // px/ms, smoothed across a drag's moves
+  let lastMoveX = 0;
+  let lastMoveT = 0;
+  let glide = 0; // requestAnimationFrame handle; 0 when idle
+
+  const stopGlide = () => {
+    if (glide) cancelAnimationFrame(glide);
+    glide = 0;
+  };
+  const startGlide = () => {
+    let last = performance.now();
+    const step = (t: number) => {
+      const dt = t - last;
+      last = t;
+      panX += velocity * dt;
+      velocity *= Math.pow(FRICTION_PER_MS, dt);
+      applyPan();
+      glide = Math.abs(velocity) > MIN_GLIDE_V ? requestAnimationFrame(step) : 0;
+    };
+    glide = requestAnimationFrame(step);
+  };
+
   el.addEventListener("pointerdown", (ev) => {
+    stopGlide(); // grabbing the world halts any glide in progress
     dragging = true;
     grabX = ev.clientX;
     grabPan = panX;
+    velocity = 0;
+    lastMoveX = ev.clientX;
+    lastMoveT = performance.now();
     el.setPointerCapture(ev.pointerId);
     el.classList.add("timeline--grabbing");
   });
@@ -98,6 +134,13 @@ export function timeline({ onScrub }: TimelineHandlers): Timeline {
     if (dragging) {
       panX = grabPan + (ev.clientX - grabX); // transient → straight to the transform
       applyPan();
+      const now = performance.now();
+      const dt = now - lastMoveT;
+      if (dt > 0) {
+        velocity = velocity * 0.7 + ((ev.clientX - lastMoveX) / dt) * 0.3; // light smoothing
+        lastMoveX = ev.clientX;
+        lastMoveT = now;
+      }
       return;
     }
     // --- scrub: a hover sets the cursor and pushes its date to the readout. ---
@@ -114,6 +157,8 @@ export function timeline({ onScrub }: TimelineHandlers): Timeline {
     dragging = false;
     el.releasePointerCapture(ev.pointerId);
     el.classList.remove("timeline--grabbing");
+    // Fling only when the release follows live motion (not a pause-then-lift).
+    if (performance.now() - lastMoveT < STALE_RELEASE_MS && Math.abs(velocity) > MIN_FLING_V) startGlide();
   };
   el.addEventListener("pointerup", endDrag);
   el.addEventListener("pointercancel", endDrag);

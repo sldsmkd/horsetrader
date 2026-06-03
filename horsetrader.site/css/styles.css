@@ -5,13 +5,17 @@
 
 body {
   margin: 0;
-  padding: 2rem;
+  padding: 0;
+  height: 100vh;
+  overflow: hidden; /* the canvas owns scrolling (pan) — the page never scrolls */
   line-height: 1.5;
 }
 
+/* The app is one full-viewport canvas world (ui.md principle 1): the timeline
+   fills it, chrome floats over it. */
 #app {
-  max-width: 48rem;
-  margin: 0 auto;
+  position: fixed;
+  inset: 0;
 }
 
 .loading {
@@ -58,8 +62,18 @@ body {
   flex: 1;
 }
 
+/* The readout floats over the canvas, bottom-left; display-only, so it never
+   blocks a grab of the world underneath it (principle 1). */
 .cursor-balance {
+  position: absolute;
+  bottom: 0.9rem;
+  left: 0.9rem;
+  z-index: 2;
+  pointer-events: none;
   font-size: 1.25rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, Canvas 72%, transparent);
 }
 
 .cursor-balance__value {
@@ -67,12 +81,14 @@ body {
   font-weight: 600;
 }
 
+/* Persistent chrome floating over the canvas, top-left (principle 1). */
 .menubar {
+  position: absolute;
+  top: 0.9rem;
+  left: 0.9rem;
+  z-index: 2;
   display: flex;
   gap: 0.5rem;
-  margin-bottom: 1.5rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid color-mix(in srgb, currentColor 20%, transparent);
 }
 
 .menubar__item {
@@ -135,12 +151,9 @@ body {
    (ui.md principle 1). The viewport clips; the content layer is wider than it
    and pans behind the clip. `touch-action: none` hands pan gestures to us. */
 .timeline {
-  position: relative;
-  height: 24rem;
-  margin: 1rem 0;
+  position: absolute;
+  inset: 0; /* fill the canvas world */
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
-  border-radius: 0.5rem;
   cursor: grab;
   touch-action: none;
   user-select: none;
