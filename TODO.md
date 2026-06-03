@@ -1,5 +1,14 @@
 # TODO
 
+## Manually added
+
+- model more sources, cms, legends, kisekis - get some depth for testing packing
+- free / paid carats distinction
+- visible flag (some things are hidden as just carry ambient rewards)
+- do all the structured reward cycles; dailies, weeklies, paid, cm, league etc
+- rewards vs gifts (first day vs last day accounting)
+
+
 ## ETL — expected by the frontend
 
 Surfaces in [`docs/frontend/ui.md`](docs/frontend/ui.md) need these from the bake.
