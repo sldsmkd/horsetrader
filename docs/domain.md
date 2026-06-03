@@ -264,6 +264,37 @@ character's stable key. `Trainees().search(char_slug)` hits via
 support stable key. `Supports().get(sup_slug)` is a direct lookup; no fuzzy
 matching.
 
+## Limited Missions
+
+High-volume, **flat catalogue** of dated mission campaigns (the autumn G1
+celebrations, anniversary missions, collab/tie-in mission sets, …). Each is a
+window granting a fixed reward set — a meaningful carat source for below-lane
+timeline density (≈41k carats across the full catalogue). Scraped from
+Gametora's per-year history pages; **no curated YAML** (the EN side is itself a
+live scrape, not a hand-maintained overlay). See
+[`extractors/gametora/missions.py`](../horsetrader/extractors/gametora/missions.py).
+
+**Two surfaces, one shared keyspace.** The JA history (`missions/history-{year}`,
+launch 2021 →) is the substrate — JP title, JST window, and the reward rows. The
+locale-less history (2025 →) is the EN overlay — EN title + UTC window. They
+**join on the logo-image id** (`mission-NNN`): Global launched in 2025 and
+renumbers from a low base, but **replays JP's original ids from the start**, so
+EN's low ids line up with JP's *early-year* ids (EN `00111` = JP `00111` =
+ジャパンC / "Japan Cup", same content). The trap is comparing same-*year* slices
+(EN-2025 vs JP-2025) — that's a mismatch; the join is against the **full JP
+history**, where JP is the substrate and EN the overlay, per the standing model.
+
+**Stable key.** `mission-NNN` from the logo-image id. Not rushable (a mission
+set is farmed across its window). **Rewards** are the scraped carat-economy
+subset — resolved through the same `reward_for_gametora_icon` allowlist as story
+events, so the long tail (manie, friend points) drops at debug. A mission that
+hasn't reached Global has no EN window and stays predicted via the fallthrough;
+those land at plausible-but-far-future EN dates (Global is ~3.7 years behind JP).
+
+**Images deferred.** The JP/EN logo thumbs aren't baked in v1 — missions are the
+highest-volume type, so they'd add the most image weight for the least per-item
+value; the record carries `name` only (consistent with CM). Easy follow-up.
+
 ## Banners
 
 Banner identity and media conventions:

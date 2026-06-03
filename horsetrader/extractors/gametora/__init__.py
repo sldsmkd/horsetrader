@@ -9,6 +9,7 @@ from .character import GametoraCharacter
 from .characters import GametoraCharacters
 from .items import GametoraItems
 from .legend_races import GametoraLegendRaces
+from .missions import GametoraMissions
 from .story import GametoraStories
 from .support import GametoraSupport
 from .supports import GametoraSupports
@@ -31,6 +32,7 @@ class Gametora(metaclass=SingletonMeta):
         self._character_scraper = GametoraCharacter()
         self._items_scraper = GametoraItems()
         self._legend_races_scraper = GametoraLegendRaces()
+        self._missions_scraper = GametoraMissions()
         self._stories_scraper = GametoraStories()
         self._supports_scraper = GametoraSupports()
         self._support_scraper = GametoraSupport()
@@ -53,6 +55,16 @@ class Gametora(metaclass=SingletonMeta):
         """Fetch Legend Race occurrences (JP period + ordered per-trainee legs +
         JP/EN race name, keyed legendrace-NNN)."""
         return self._legend_races_scraper.legend_races()
+
+    def missions(self) -> Sequence[dict]:
+        """Fetch the JP limited-mission catalogue (JP title + JST window + reward
+        items), keyed mission-NNN by logo id, across all JP history years."""
+        return self._missions_scraper.missions()
+
+    def missions_en(self) -> Sequence[dict]:
+        """Fetch the EN limited-mission overlay (EN title + UTC window), keyed by
+        the shared mission-NNN logo id, across Global history years."""
+        return self._missions_scraper.missions_en()
 
     def stories(self) -> Sequence[dict]:
         """Fetch Story event index."""

@@ -2,6 +2,14 @@ from datetime import datetime
 
 from horsetrader.core import JST, UTC, Period
 from horsetrader.info import Logger
+from horsetrader.models.events import (
+    FactorStudies,
+    MastersChallenge,
+    Mission,
+    RacingCarnival,
+    SkillTest,
+    StrongestTeam,
+)
 from horsetrader.semantics import matikanefukukitaru
 
 from ..datemapper import DateMapper
@@ -9,6 +17,23 @@ from ..timeline import Timeline
 from .base import Predictor
 
 logger = Logger.get(__name__)
+
+# Types whose generic interpolation is *accepted* — audited as not warranting a
+# dedicated catcher: each is recurring but carries no confirmed EN anchors and no
+# known EN-specific scheduling rule, so a type-specific mapper couldn't beat the
+# global one (Missions additionally have no cadence at all — a campaign-tied flat
+# catalogue). Their fall-through is expected, so it logs at debug. NOT here on
+# purpose: League of Heroes (CM-anchored, handled by ChampionsMeetingPredictor)
+# and Legend Race (its own LegendRacePredictor) — a fall-through of either would
+# be a real surprise worth the warning.
+_ACCEPTED_FALLTHROUGH = (
+    FactorStudies,
+    MastersChallenge,
+    Mission,
+    RacingCarnival,
+    SkillTest,
+    StrongestTeam,
+)
 
 
 @matikanefukukitaru
@@ -30,6 +55,12 @@ class FallthroughPredictor(Predictor):
     """
 
     def predict(self, timeline: Timeline) -> int:
+        # Split this pass's placements: `uncategorised` = accepted types riding
+        # the catch-all by design (audited as not needing a catcher); `surprises`
+        # = everything else (a type a dedicated pass should have placed). Reported
+        # apart so `fallthrough` in the pipeline stats stays an actionable signal.
+        self.uncategorised = 0
+        self.surprises = 0
         mapper = DateMapper(JST, UTC)
         for event in self._timeline:
             jp = next((p for p in event.periods if p.tzinfo == JST), None)
@@ -53,12 +84,22 @@ class FallthroughPredictor(Predictor):
                 span=jp.span,
                 predicted=True,
             ))
-            # Surfaced per-event on purpose: every line here is something no
-            # dedicated pass placed. Add a mapper/predictor for it, or accept the
-            # generic interpolation — but don't let it pass silently.
-            logger.warning(
-                "%s %s (JP %s) fell through to the generic DateMapper -> EN %s",
-                type(event).__name__, event.key, jp.start.date(), day,
+            # Surfaced per-event on purpose: a line here is something no dedicated
+            # pass placed. Accepted types (audited as not needing a catcher) are
+            # tagged uncategorised and log at debug; anything else is a surprise
+            # and stays a warning — add a mapper/predictor for it or move it into
+            # `_ACCEPTED_FALLTHROUGH`, but don't let it pass silently.
+            if isinstance(event, _ACCEPTED_FALLTHROUGH):
+                self.uncategorised += 1
+                log = logger.debug
+                tag = "uncategorised"
+            else:
+                self.surprises += 1
+                log = logger.warning
+                tag = "SURPRISE"
+            log(
+                "%s %s (JP %s) fell through to the generic DateMapper -> EN %s [%s]",
+                type(event).__name__, event.key, jp.start.date(), day, tag,
             )
             count += 1
         return count

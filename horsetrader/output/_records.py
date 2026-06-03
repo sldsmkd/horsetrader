@@ -218,6 +218,15 @@ class LegendRaceRecord(EventRecord, tag="legendrace"):
 
 
 @eishin
+class MissionRecord(EventRecord, tag="mission"):
+    # A limited-mission campaign window carrying its scraped reward subset (via
+    # the shared envelope). `name` is the EN title when the campaign has reached
+    # Global, else the JP title. Not rushable — a mission set is farmed over its
+    # window, there's no post-at-start choice. High-volume, flat catalogue.
+    name: str | None
+
+
+@eishin
 class AnchorRecord(EventRecord, tag="anchor"):
     # Calendar point: nothing past the shared envelope (+ any curated rewards).
     pass
@@ -247,6 +256,7 @@ EventRecordUnion = (
     | FactorStudiesRecord
     | LeagueOfHeroesRecord
     | LegendRaceRecord
+    | MissionRecord
     | AnchorRecord
     | AnchoredEventRecord
 )

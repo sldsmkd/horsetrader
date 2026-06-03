@@ -84,8 +84,9 @@ class UmapyoiCharacters(metaclass=SingletonMeta):
                 break
         if game_id is None:
             # Umapyoi detail endpoint also accepts web_id when game_id mapping
-            # is temporarily absent from /api/v1/character.
-            logger.warning(
+            # is temporarily absent from /api/v1/character — a handled fallback,
+            # not a surprise, so debug rather than warn.
+            logger.debug(
                 "No game_id mapping found for web_id %s; using web_id as detail id fallback",
                 web_id,
             )

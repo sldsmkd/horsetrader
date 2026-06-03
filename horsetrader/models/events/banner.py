@@ -31,6 +31,10 @@ logger = Logger.get(__name__)
 _NON_ALNUM = re.compile(r"[^a-z0-9]+")
 _NON_ALNUM_STRICT = re.compile(r"[^a-z0-9]")
 
+# Special Golden Week banners Gametora lists with no pickups — expected to be
+# content-less, so they don't trip the "no resolvable contents" check.
+_GOLDEN_WEEK_PICKUPLESS = {"banner-30434", "banner-30264"}
+
 
 def _slugify(value: str) -> str:
     return _NON_ALNUM.sub("-", value.lower()).strip("-")
@@ -133,14 +137,18 @@ class Banners(Events[Banner], metaclass=SingletonMeta):
         if not item.key:
             logger.warning("Banner missing key")
             return
+        # Special Golden Week banners that genuinely list no pickups on Gametora —
+        # whitelisted by id so the "no resolvable contents" check stays a real
+        # data-quality signal for every other banner.
+        pickupless_ok = str(item.key) in _GOLDEN_WEEK_PICKUPLESS
         if isinstance(item, TraineeBanner):
             self._trainee_count += 1
-            if not item.contents:
+            if not item.contents and not pickupless_ok:
                 self._trainee_empty_count += 1
                 logger.warning(f"Trainee banner {item.key} has no resolvable contents")
         elif isinstance(item, SupportBanner):
             self._support_count += 1
-            if not item.contents:
+            if not item.contents and not pickupless_ok:
                 self._support_empty_count += 1
                 logger.warning(f"Support banner {item.key} has no resolvable contents")
 
@@ -341,6 +349,13 @@ class Banners(Events[Banner], metaclass=SingletonMeta):
         name = pickup["name"]
         rarity = pickup["support_rarity"]
         sup_type = pickup["support_type"]
+
+        # GROUP is a collection/obtain label (e.g. "Embodiment of Legends"), not
+        # an individual card — it never resolves to a single Support by design.
+        # The banner's real cards are listed separately, so skip it quietly.
+        if sup_type == SupportType.GROUP:
+            logger.debug("Skipping GROUP pickup %r on %s", name, record_key)
+            return None
 
         if rarity is None or sup_type is None:
             logger.warning(

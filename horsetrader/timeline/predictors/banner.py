@@ -148,7 +148,11 @@ class BannerPredictor(Predictor):
                 continue
             # Bisect assumes EN preserves JP order — if it ever re-orders past a
             # neighbour, interpolation runs backwards. Skip + warn, don't stamp.
-            if right_en <= left_en:
+            # Equal endpoints are a tie, not a re-ordering (both neighbours map to
+            # the same EN day — common far out where predictions collapse); that
+            # interpolates cleanly to the shared date below, so only strict
+            # backwards is the anomaly.
+            if right_en < left_en:
                 logger.warning(
                     "Banner %s: EN bracket not monotonic (left=%s, right=%s); skipping",
                     banner.key, left_en, right_en,

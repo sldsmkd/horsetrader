@@ -1,9 +1,15 @@
+from collections import Counter
 from datetime import datetime, timedelta
 from statistics import mean
 
 from horsetrader.core import JST, UTC, Period
 from horsetrader.info import Logger
-from horsetrader.models.events import ChampionsMeeting, SupportBanner, TraineeBanner
+from horsetrader.models.events import (
+    ChampionsMeeting,
+    LeagueOfHeroes,
+    SupportBanner,
+    TraineeBanner,
+)
 from horsetrader.semantics import matikanefukukitaru
 
 from ..datemapper import DateMapper
@@ -13,6 +19,15 @@ from .base import Predictor
 logger = Logger.get(__name__)
 
 _DEFAULT_EN_SPAN = timedelta(days=10)
+
+# League of Heroes is a quarterly PvP event that *replaces* a Champions Meeting
+# in the same slot — the JP rhythm runs CM, CM, League, CM, CM, League. It's the
+# same kind of competitive window on the same cadence, so it shares this catcher:
+# the final-day mapper places it through the very pairs the CMs anchor (League
+# carries no confirmed EN of its own yet — it hasn't reached Global). The
+# solo-banner anchor pass stays CM-only (it keys on the CM ordinal era); a League
+# with no banner anchor just rides the final-day mapper, the shared mechanism.
+_MEETING_TYPES = (ChampionsMeeting, LeagueOfHeroes)
 
 # Hardened-LiveOps era: from this ordinal on, every late-month CM is preceded
 # by a solo new-character banner ~3 days earlier (see _pass_solo_banner_anchor).
@@ -37,7 +52,12 @@ def _cm_ordinal(key: object) -> int | None:
 
 @matikanefukukitaru
 class ChampionsMeetingPredictor(Predictor):
-    """Predict EN Champions Meeting windows — anchored on the FINAL day.
+    """Predict EN Champions Meeting (and League of Heroes) windows — anchored on
+    the FINAL day.
+
+    League of Heroes shares this catcher: it's the quarterly competitive event
+    that replaces a CM in the same slot (CM, CM, League, …), on the same cadence
+    and rules, so it's placed by the same final-day mapper (`_MEETING_TYPES`).
 
     A CM is two different spans depending on the source (see docs/domain.md):
     Gametora records only competitive play, so the JP scrape is always exactly
@@ -82,13 +102,17 @@ class ChampionsMeetingPredictor(Predictor):
     """
 
     def predict(self, timeline: Timeline) -> int:
+        # CM and League of Heroes share this catcher but are distinct events, so
+        # placements are counted per type (`placed["ChampionsMeeting"]` vs
+        # `placed["LeagueOfHeroes"]`) and reported apart by `Predict`.
+        self.placed: Counter[str] = Counter()
         # Both passes place the EN *availability* window (not the 6-day JP
         # competition span): mean span over confirmed EN CMs, default ~10d until
         # enough are confirmed.
         confirmed_en = [
             en
             for event in self._timeline
-            if isinstance(event, ChampionsMeeting)
+            if isinstance(event, _MEETING_TYPES)
             and next((p for p in event.periods if p.tzinfo == JST), None)
             and (en := next((p for p in event.periods if p.tzinfo == UTC), None))
         ]
@@ -168,13 +192,14 @@ class ChampionsMeetingPredictor(Predictor):
                 + _LEAD_PRESERVATION_NUDGE
             )
             event.periods.append(Period(start=start, span=en_span, predicted=True))
+            self.placed[type(event).__name__] += 1
             count += 1
         return count
 
     def _pass_final_mapper(self, en_span: timedelta) -> int:
         confirmed: list[tuple[Period, Period]] = []
         for event in self._timeline:
-            if not isinstance(event, ChampionsMeeting):
+            if not isinstance(event, _MEETING_TYPES):
                 continue
             jp = next((p for p in event.periods if p.tzinfo == JST), None)
             en = next((p for p in event.periods if p.tzinfo == UTC), None)
@@ -182,7 +207,9 @@ class ChampionsMeetingPredictor(Predictor):
                 confirmed.append((jp, en))
 
         # Need at least two confirmed finals for the DateMapper to interpolate
-        # the JST→UTC warp; with fewer, leave CMs for the fallthrough.
+        # the JST→UTC warp; with fewer, leave the meetings for the fallthrough.
+        # The anchors are CMs today (League has no confirmed EN yet); League
+        # rides the same shared warp once a CM pair or two is in.
         if len(confirmed) < 2:
             return 0
 
@@ -192,7 +219,7 @@ class ChampionsMeetingPredictor(Predictor):
 
         count = 0
         for event in self._timeline:
-            if not isinstance(event, ChampionsMeeting):
+            if not isinstance(event, _MEETING_TYPES):
                 continue
             if any(p.tzinfo == UTC for p in event.periods):
                 continue
@@ -208,5 +235,6 @@ class ChampionsMeetingPredictor(Predictor):
             event.periods.append(
                 Period(start=end - en_span, span=en_span, predicted=True)
             )
+            self.placed[type(event).__name__] += 1
             count += 1
         return count

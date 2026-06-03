@@ -9,6 +9,8 @@ from .predictors import (
     ChampionsMeetingPredictor,
     FallthroughPredictor,
     HolidayPredictor,
+    LegendRacePredictor,
+    MissionPredictor,
     ScenarioPredictor,
     StoryPredictor,
 )
@@ -41,19 +43,44 @@ class Predict:
             ScenarioPredictor(timeline),
             StoryPredictor(timeline),
             BannerPredictor(timeline),
-            # CM windows are final-anchored and longer than their JP scrape, so
-            # they need a dedicated pass before the generic fallthrough would
-            # mis-map them off the opening day with the wrong span.
-            ChampionsMeetingPredictor(timeline),
-            # Anchored campaigns derive their UTC from the anchor dates the
-            # predictors above have just stamped (and chain off one another).
-            AnchorPredictor(timeline),
-            # Dead last: catch-all that maps any event still missing a UTC period
-            # through a DateMapper built from everything scheduled above.
-            FallthroughPredictor(timeline),
         ):
             key = type(predictor).__name__.lower().removesuffix("predictor")
             self._stats[key] = predictor.predict(timeline)
+
+        # CM windows are final-anchored and longer than their JP scrape, so they
+        # need a dedicated pass before the generic fallthrough would mis-map them
+        # off the opening day with the wrong span. League of Heroes shares this
+        # pass (it replaces a CM on the same cadence) — but the two are distinct
+        # events, so their placements are reported apart.
+        meetings = ChampionsMeetingPredictor(timeline)
+        meetings.predict(timeline)
+        self._stats["championsmeeting"] = meetings.placed["ChampionsMeeting"]
+        self._stats["leagueofheroes"] = meetings.placed["LeagueOfHeroes"]
+
+        for predictor in (
+            # Steady ~monthly cadence with curated EN anchors — a type-specific
+            # mapper tracks it better than the cross-type fallthrough.
+            LegendRacePredictor(timeline),
+            # Anchored campaigns derive their UTC from the anchor dates the
+            # predictors above have just stamped (and chain off one another).
+            AnchorPredictor(timeline),
+            # Anniversary missions anchor to the anniversary beat (placed above);
+            # the rest of the catalogue is left for the fallthrough by design.
+            MissionPredictor(timeline),
+        ):
+            key = type(predictor).__name__.lower().removesuffix("predictor")
+            self._stats[key] = predictor.predict(timeline)
+
+        # Dead last: the generic catch-all, mapping anything still missing a UTC
+        # period through a DateMapper built from everything scheduled above. Its
+        # placements split into `uncategorised` (accepted types riding the
+        # catch-all by design) and `fallthrough` (genuine surprises — a type a
+        # dedicated pass should have placed), reported apart so `fallthrough`
+        # stays an actionable signal.
+        fallthrough = FallthroughPredictor(timeline)
+        fallthrough.predict(timeline)
+        self._stats["fallthrough"] = fallthrough.surprises
+        self._stats["uncategorised"] = fallthrough.uncategorised
 
         utc = Timeline(
             timezone.utc,

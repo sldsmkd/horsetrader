@@ -9,6 +9,7 @@ from .factor_studies import FactorStudies, FactorStudiesEvents
 from .league_of_heroes import LeagueOfHeroes, LeaguesOfHeroes
 from .legend_race import LegendLeg, LegendRace, LegendRaces
 from .masters_challenge import MastersChallenge, MastersChallenges
+from .mission import Mission, Missions
 from .racing_carnival import RacingCarnival, RacingCarnivals
 from .scenario import Scenario, Scenarios
 from .showtime import Showtime, Showtimes
@@ -37,6 +38,8 @@ __all__ = [
     "LegendRaces",
     "MastersChallenge",
     "MastersChallenges",
+    "Mission",
+    "Missions",
     "RacingCarnival",
     "RacingCarnivals",
     "RushableEvent",
