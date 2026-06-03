@@ -192,6 +192,11 @@ class FactorStudiesRecord(NamedRushableEventRecord, tag="factorstudies"):
 
 
 @eishin
+class LeagueOfHeroesRecord(NamedRushableEventRecord, tag="leagueofheroes"):
+    pass
+
+
+@eishin
 class AnchorRecord(EventRecord, tag="anchor"):
     # Calendar point: nothing past the shared envelope (+ any curated rewards).
     pass
@@ -219,6 +224,7 @@ EventRecordUnion = (
     | StrongestTeamRecord
     | MastersChallengeRecord
     | FactorStudiesRecord
+    | LeagueOfHeroesRecord
     | AnchorRecord
     | AnchoredEventRecord
 )

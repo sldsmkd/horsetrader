@@ -6,6 +6,7 @@ from .anchored import AnchoredEvent, AnchoredEvents
 from .banner import Banner, Banners, SupportBanner, TraineeBanner
 from .champions_meeting import ChampionsMeeting, ChampionsMeetings
 from .factor_studies import FactorStudies, FactorStudiesEvents
+from .league_of_heroes import LeagueOfHeroes, LeaguesOfHeroes
 from .masters_challenge import MastersChallenge, MastersChallenges
 from .racing_carnival import RacingCarnival, RacingCarnivals
 from .scenario import Scenario, Scenarios
@@ -28,6 +29,8 @@ __all__ = [
     "Events",
     "FactorStudies",
     "FactorStudiesEvents",
+    "LeagueOfHeroes",
+    "LeaguesOfHeroes",
     "MastersChallenge",
     "MastersChallenges",
     "RacingCarnival",
