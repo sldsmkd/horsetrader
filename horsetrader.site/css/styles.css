@@ -130,3 +130,63 @@ body {
 .overlay__body {
   padding: 1rem;
 }
+
+/* The timeline substrate — the always-mounted, grabbable time-as-x canvas
+   (ui.md principle 1). The viewport clips; the content layer is wider than it
+   and pans behind the clip. `touch-action: none` hands pan gestures to us. */
+.timeline {
+  position: relative;
+  height: 16rem;
+  margin: 1rem 0;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+  border-radius: 0.5rem;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.timeline--grabbing {
+  cursor: grabbing;
+}
+
+.timeline__content {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  /* width is set inline from the axis extent */
+  will-change: transform;
+}
+
+/* The home row: the line has gravity (ui.md EC1). */
+.timeline__line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 2px;
+  background: color-mix(in srgb, currentColor 40%, transparent);
+}
+
+/* Today — an engine fact (now) mapped to a pixel on the true-date axis. */
+.timeline__today {
+  position: absolute;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* The scrub cursor — a position on the axis, following the pointer. */
+.timeline__cursor {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  margin-left: -0.5px;
+  background: color-mix(in srgb, red 65%, transparent);
+  pointer-events: none;
+}

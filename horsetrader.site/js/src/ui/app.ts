@@ -1,72 +1,47 @@
 /**
  * The app shell: the one place that knows the wiring. It builds the view tree
- * once, drives the two-tier change model, and owns the transient cursor state.
+ * once and drives the two-tier change model (docs/frontend/interaction.md).
  *
- * The smallest end-to-end slice of the one-way loop (docs/frontend/interaction.md,
- * build order step 3), now exercising **both broadcast stores**:
- *   - the **coordinator** (domain): editing the snapshot carats is a mutation →
- *     `update` → recompute → `subscribe` → `refresh` (the render path); a scrub
- *     is transient interaction-state written straight to the readout off
- *     `balanceAt`, with no broadcast and no rebuild (the cheap path);
- *   - the **view-state store** (discrete UI): the menubar toggles which overlay
- *     is open → `subscribe` → mount/unmount the overlay. The canvas (scrub +
- *     readout) stays live behind it (ui.md principle 1).
+ *   - **Cheap path:** the timeline owns the transient cursor/pan and pushes the
+ *     cursor date straight here via `onScrub`; we read `balanceAt` and write the
+ *     readout — no recompute, no broadcast, no rebuild.
+ *   - **Render path:** a domain mutation (editing the snapshot in the Account
+ *     overlay) recomputes and notifies; we re-lay the timeline for the new
+ *     extent, which re-emits the cursor date through `onScrub` and so refreshes
+ *     the readout against the fresh projection. Rare, so a full re-layout is fine.
+ *   - **Discrete view-state:** the menubar toggles which overlay is open through
+ *     the view-state store's `subscribe`; the timeline stays live behind it
+ *     (ui.md principle 1, via the `pointer-events: none` overlay layer).
  *
- * The two stores are independent: editing carats inside the Account overlay
- * refreshes the canvas behind it (coordinator) while the overlay stays open
- * (view-state untouched). The cursor date is a plain closure variable here,
- * deliberately not in a store with `subscribe`, so a scrub cannot enter the
- * render path. No state is read back out of the DOM.
+ * As of 4b the standalone step-3 scrub `<input>` is gone: the timeline substrate
+ * is the real owner of cursor/scrub. No state is read back out of the DOM.
  */
 
 import { h, qs } from "./h.ts";
 import { cursorBalance } from "./views/cursorBalance.ts";
+import { timeline } from "./views/timeline.ts";
 import { overlay } from "./views/overlay.ts";
 import { createViewStore } from "./state/viewState.ts";
-import { addDays } from "../core/projection/dates.ts";
 import type { Coordinator } from "../core/coordinator/index.ts";
-
-const MS_PER_DAY = 86_400_000;
-
-/** Whole days from `from` to `to` (both ISO dates, UTC) — for sizing the scrub. */
-function daysBetween(from: string, to: string): number {
-  return Math.round((Date.parse(to) - Date.parse(from)) / MS_PER_DAY);
-}
 
 export function mountApp(coord: Coordinator, now: string, root: HTMLElement = qs("#app")): void {
   const view = createViewStore();
   const readout = cursorBalance();
-  const scrub = h("input", { class: "scrub", attr: { type: "range", min: 0 } });
 
-  // Transient interaction-state — the cursor date. Owned here, never broadcast.
-  let cursorDate = now;
-
-  function showCursor(): void {
-    readout.setDate(cursorDate);
-    readout.setBalance(coord.balanceAt(cursorDate));
-  }
-
-  // The cheap path: a scrub maps the slider index to a date off the series extent
-  // and writes the readout directly — no recompute, no broadcast, no rebuild.
-  scrub.addEventListener("input", () => {
-    const extent = coord.projection().series.extent;
-    if (!extent) return;
-    cursorDate = addDays(extent[0], scrub.valueAsNumber);
-    showCursor();
+  // The cheap path: the timeline hands us a cursor date; we read the cached
+  // series and write the readout. No broadcast — a 60 Hz scrub stays off the
+  // render path by construction.
+  const tl = timeline({
+    onScrub: (date) => {
+      readout.setDate(date);
+      readout.setBalance(coord.balanceAt(date));
+    },
   });
 
-  // The render path: editing the snapshot is a domain mutation that recomputes
-  // and notifies. `refresh` re-reads the new extent, re-bounds and re-aligns the
-  // scrub, clamps the cursor, and refreshes the readout. Rare, so this is fine.
+  // The render path: re-lay the timeline for the new extent. `layout` re-emits
+  // the cursor date through `onScrub`, so the readout follows the fresh projection.
   function refresh(): void {
-    const extent = coord.projection().series.extent;
-    if (extent) {
-      scrub.max = String(daysBetween(extent[0], extent[1]));
-      if (cursorDate < extent[0]) cursorDate = extent[0];
-      else if (cursorDate > extent[1]) cursorDate = extent[1];
-      scrub.value = String(daysBetween(extent[0], cursorDate));
-    }
-    showCursor();
+    tl.layout(coord.projection().series.extent, now);
   }
   coord.subscribe(refresh);
 
@@ -109,14 +84,7 @@ export function mountApp(coord: Coordinator, now: string, root: HTMLElement = qs
     ),
   );
 
-  const canvas = h(
-    "section",
-    { class: "panel" },
-    h("label", { class: "field" }, h("span", "Cursor"), scrub),
-    readout.el,
-  );
-
-  root.replaceChildren(menubar, canvas, overlayLayer);
+  root.replaceChildren(menubar, tl.el, readout.el, overlayLayer);
   refresh();
   renderOverlay();
 }
