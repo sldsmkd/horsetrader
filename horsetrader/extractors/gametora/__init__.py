@@ -8,6 +8,7 @@ from .champions_meetings import GametoraChampionsMeetings
 from .character import GametoraCharacter
 from .characters import GametoraCharacters
 from .items import GametoraItems
+from .legend_races import GametoraLegendRaces
 from .story import GametoraStories
 from .support import GametoraSupport
 from .supports import GametoraSupports
@@ -29,6 +30,7 @@ class Gametora(metaclass=SingletonMeta):
         self._characters_scraper = GametoraCharacters()
         self._character_scraper = GametoraCharacter()
         self._items_scraper = GametoraItems()
+        self._legend_races_scraper = GametoraLegendRaces()
         self._stories_scraper = GametoraStories()
         self._supports_scraper = GametoraSupports()
         self._support_scraper = GametoraSupport()
@@ -46,6 +48,11 @@ class Gametora(metaclass=SingletonMeta):
     def items(self) -> Sequence[dict]:
         """Fetch item index (icons + JP/EN names) from the Gametora items page."""
         return self._items_scraper.items()
+
+    def legend_races(self) -> Sequence[dict]:
+        """Fetch Legend Race occurrences (JP period + ordered per-trainee legs +
+        JP/EN race name, keyed legendrace-NNN)."""
+        return self._legend_races_scraper.legend_races()
 
     def stories(self) -> Sequence[dict]:
         """Fetch Story event index."""

@@ -7,6 +7,7 @@ from .banner import Banner, Banners, SupportBanner, TraineeBanner
 from .champions_meeting import ChampionsMeeting, ChampionsMeetings
 from .factor_studies import FactorStudies, FactorStudiesEvents
 from .league_of_heroes import LeagueOfHeroes, LeaguesOfHeroes
+from .legend_race import LegendLeg, LegendRace, LegendRaces
 from .masters_challenge import MastersChallenge, MastersChallenges
 from .racing_carnival import RacingCarnival, RacingCarnivals
 from .scenario import Scenario, Scenarios
@@ -31,6 +32,9 @@ __all__ = [
     "FactorStudiesEvents",
     "LeagueOfHeroes",
     "LeaguesOfHeroes",
+    "LegendLeg",
+    "LegendRace",
+    "LegendRaces",
     "MastersChallenge",
     "MastersChallenges",
     "RacingCarnival",

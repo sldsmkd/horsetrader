@@ -26,6 +26,30 @@
                 "$ref": "#/$defs/CMRecord"
               },
               {
+                "$ref": "#/$defs/ShowtimeRecord"
+              },
+              {
+                "$ref": "#/$defs/SkillTestRecord"
+              },
+              {
+                "$ref": "#/$defs/RacingCarnivalRecord"
+              },
+              {
+                "$ref": "#/$defs/StrongestTeamRecord"
+              },
+              {
+                "$ref": "#/$defs/MastersChallengeRecord"
+              },
+              {
+                "$ref": "#/$defs/FactorStudiesRecord"
+              },
+              {
+                "$ref": "#/$defs/LeagueOfHeroesRecord"
+              },
+              {
+                "$ref": "#/$defs/LegendRaceRecord"
+              },
+              {
                 "$ref": "#/$defs/AnchorRecord"
               },
               {
@@ -40,6 +64,14 @@
                 "scenario": "#/$defs/ScenarioRecord",
                 "story": "#/$defs/StoryRecord",
                 "cm": "#/$defs/CMRecord",
+                "showtime": "#/$defs/ShowtimeRecord",
+                "skilltest": "#/$defs/SkillTestRecord",
+                "racingcarnival": "#/$defs/RacingCarnivalRecord",
+                "strongestteam": "#/$defs/StrongestTeamRecord",
+                "masterschallenge": "#/$defs/MastersChallengeRecord",
+                "factorstudies": "#/$defs/FactorStudiesRecord",
+                "leagueofheroes": "#/$defs/LeagueOfHeroesRecord",
+                "legendrace": "#/$defs/LegendRaceRecord",
                 "anchor": "#/$defs/AnchorRecord",
                 "anchoredevent": "#/$defs/AnchoredEventRecord"
               }
@@ -508,6 +540,678 @@
         "end",
         "predicted",
         "key"
+      ]
+    },
+    "ShowtimeRecord": {
+      "title": "ShowtimeRecord",
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "showtime"
+          ]
+        },
+        "rushable": {
+          "type": "boolean"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "start": {
+          "type": "string"
+        },
+        "end": {
+          "type": "string"
+        },
+        "predicted": {
+          "type": "boolean"
+        },
+        "key": {
+          "type": "string"
+        },
+        "rewards": {
+          "type": "object",
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "object",
+                "additionalProperties": {
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "type": "integer"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      },
+      "required": [
+        "type",
+        "rushable",
+        "name",
+        "start",
+        "end",
+        "predicted",
+        "key"
+      ]
+    },
+    "SkillTestRecord": {
+      "title": "SkillTestRecord",
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "skilltest"
+          ]
+        },
+        "rushable": {
+          "type": "boolean"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "start": {
+          "type": "string"
+        },
+        "end": {
+          "type": "string"
+        },
+        "predicted": {
+          "type": "boolean"
+        },
+        "key": {
+          "type": "string"
+        },
+        "rewards": {
+          "type": "object",
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "object",
+                "additionalProperties": {
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "type": "integer"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      },
+      "required": [
+        "type",
+        "rushable",
+        "name",
+        "start",
+        "end",
+        "predicted",
+        "key"
+      ]
+    },
+    "RacingCarnivalRecord": {
+      "title": "RacingCarnivalRecord",
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "racingcarnival"
+          ]
+        },
+        "rushable": {
+          "type": "boolean"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "start": {
+          "type": "string"
+        },
+        "end": {
+          "type": "string"
+        },
+        "predicted": {
+          "type": "boolean"
+        },
+        "key": {
+          "type": "string"
+        },
+        "rewards": {
+          "type": "object",
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "object",
+                "additionalProperties": {
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "type": "integer"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      },
+      "required": [
+        "type",
+        "rushable",
+        "name",
+        "start",
+        "end",
+        "predicted",
+        "key"
+      ]
+    },
+    "StrongestTeamRecord": {
+      "title": "StrongestTeamRecord",
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "strongestteam"
+          ]
+        },
+        "rushable": {
+          "type": "boolean"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "start": {
+          "type": "string"
+        },
+        "end": {
+          "type": "string"
+        },
+        "predicted": {
+          "type": "boolean"
+        },
+        "key": {
+          "type": "string"
+        },
+        "rewards": {
+          "type": "object",
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "object",
+                "additionalProperties": {
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "type": "integer"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      },
+      "required": [
+        "type",
+        "rushable",
+        "name",
+        "start",
+        "end",
+        "predicted",
+        "key"
+      ]
+    },
+    "MastersChallengeRecord": {
+      "title": "MastersChallengeRecord",
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "masterschallenge"
+          ]
+        },
+        "rushable": {
+          "type": "boolean"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "start": {
+          "type": "string"
+        },
+        "end": {
+          "type": "string"
+        },
+        "predicted": {
+          "type": "boolean"
+        },
+        "key": {
+          "type": "string"
+        },
+        "rewards": {
+          "type": "object",
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "object",
+                "additionalProperties": {
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "type": "integer"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      },
+      "required": [
+        "type",
+        "rushable",
+        "name",
+        "start",
+        "end",
+        "predicted",
+        "key"
+      ]
+    },
+    "FactorStudiesRecord": {
+      "title": "FactorStudiesRecord",
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "factorstudies"
+          ]
+        },
+        "rushable": {
+          "type": "boolean"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "start": {
+          "type": "string"
+        },
+        "end": {
+          "type": "string"
+        },
+        "predicted": {
+          "type": "boolean"
+        },
+        "key": {
+          "type": "string"
+        },
+        "rewards": {
+          "type": "object",
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "object",
+                "additionalProperties": {
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "type": "integer"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      },
+      "required": [
+        "type",
+        "rushable",
+        "name",
+        "start",
+        "end",
+        "predicted",
+        "key"
+      ]
+    },
+    "LeagueOfHeroesRecord": {
+      "title": "LeagueOfHeroesRecord",
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "leagueofheroes"
+          ]
+        },
+        "rushable": {
+          "type": "boolean"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "start": {
+          "type": "string"
+        },
+        "end": {
+          "type": "string"
+        },
+        "predicted": {
+          "type": "boolean"
+        },
+        "key": {
+          "type": "string"
+        },
+        "rewards": {
+          "type": "object",
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "object",
+                "additionalProperties": {
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "type": "integer"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      },
+      "required": [
+        "type",
+        "rushable",
+        "name",
+        "start",
+        "end",
+        "predicted",
+        "key"
+      ]
+    },
+    "LegendRaceRecord": {
+      "title": "LegendRaceRecord",
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "legendrace"
+          ]
+        },
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "legs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/LegendLegRecord"
+          }
+        },
+        "start": {
+          "type": "string"
+        },
+        "end": {
+          "type": "string"
+        },
+        "predicted": {
+          "type": "boolean"
+        },
+        "key": {
+          "type": "string"
+        },
+        "rewards": {
+          "type": "object",
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "object",
+                "additionalProperties": {
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "type": "integer"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      },
+      "required": [
+        "type",
+        "name",
+        "legs",
+        "start",
+        "end",
+        "predicted",
+        "key"
+      ]
+    },
+    "LegendLegRecord": {
+      "title": "LegendLegRecord",
+      "description": "One leg of a Legend Race: a ~3-day sub-window pitting the player against a\nsingle trainee variant. `trainee` is that trainee's academy stable key;\n`start`/`end` are the leg's EN dates (the matched window subdivided in JP-leg\nproportion). Legs are emitted in race order and tile the parent window.",
+      "type": "object",
+      "properties": {
+        "trainee": {
+          "type": "string"
+        },
+        "start": {
+          "type": "string"
+        },
+        "end": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "trainee",
+        "start",
+        "end"
       ]
     },
     "AnchorRecord": {

@@ -7,6 +7,7 @@ from . import anniversaries as _anniversaries
 from . import banners as _banners
 from . import champions_meetings as _champions_meetings
 from . import holidays as _holidays
+from . import legend_races as _legend_races
 from . import scenarios as _scenarios
 from . import showtimes as _showtimes
 from . import stories as _stories
@@ -85,6 +86,10 @@ class Static(metaclass=SingletonMeta):
     def cm_period(self, key: str) -> Period | None:
         """UTC Period for the EN Champions Meeting with this key, or None if not curated."""
         return _champions_meetings.load().get(key)
+
+    def legend_race_period(self, key: str) -> Period | None:
+        """UTC Period for the EN Legend Race with this key, or None if not curated."""
+        return _legend_races.load().get(key)
 
     def showtime(self, key: str) -> dict | None:
         """EN overlay for the Showtime with this key, or None if not curated.

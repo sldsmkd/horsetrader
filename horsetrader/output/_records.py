@@ -197,6 +197,27 @@ class LeagueOfHeroesRecord(NamedRushableEventRecord, tag="leagueofheroes"):
 
 
 @eishin
+class LegendLegRecord(msgspec.Struct):
+    """One leg of a Legend Race: a ~3-day sub-window pitting the player against a
+    single trainee variant. `trainee` is that trainee's academy stable key;
+    `start`/`end` are the leg's EN dates (the matched window subdivided in JP-leg
+    proportion). Legs are emitted in race order and tile the parent window."""
+
+    trainee: str
+    start: str
+    end: str
+
+
+@eishin
+class LegendRaceRecord(EventRecord, tag="legendrace"):
+    # A real-world race (Japan Cup, Satsuki Sho, …) run as an ordered sequence of
+    # per-trainee legs. `name` is the EN race label (None until it reaches Global).
+    # Not rushable — the legs are date-pinned, so there's no post-at-start choice.
+    name: str | None
+    legs: list[LegendLegRecord]
+
+
+@eishin
 class AnchorRecord(EventRecord, tag="anchor"):
     # Calendar point: nothing past the shared envelope (+ any curated rewards).
     pass
@@ -225,6 +246,7 @@ EventRecordUnion = (
     | MastersChallengeRecord
     | FactorStudiesRecord
     | LeagueOfHeroesRecord
+    | LegendRaceRecord
     | AnchorRecord
     | AnchoredEventRecord
 )

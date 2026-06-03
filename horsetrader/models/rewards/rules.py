@@ -21,12 +21,13 @@ from .rewards import (
     GoldCrystalShard,
     RainbowCrystalShard,
     Rewards,
+    SequenceReward,
     SupportTicket,
     TraineeTicket,
 )
 
 if TYPE_CHECKING:
-    from horsetrader.models.events import Banner, Story, WikiruEvent
+    from horsetrader.models.events import Banner, LegendRace, Story, WikiruEvent
 
 
 logger = Logger.get(__name__)
@@ -131,6 +132,45 @@ def stamp_racing_carnival_rewards(carnivals: "Iterable[WikiruEvent]") -> None:
             TraineeTicket(3),
             SupportTicket(3),
         ])
+
+
+def stamp_legend_race_rewards(races: "Iterable[LegendRace]") -> None:
+    """Stamp each Legend Race's reward heuristic.
+
+    The carat payout is temporal, not a lump sum: **250 carats land on the first
+    day of each set** (leg), nothing in between — so it's modelled as a
+    `SequenceReward(Carats)` over the race's JST window, with 250 at each leg's
+    first-day offset and `None` for the off days. The day offsets are taken from
+    the JST legs (the same basis `LegendRace._baked_legs` re-anchors onto the EN
+    window), so the sequence index lines up with the baked legs.
+
+    On top of the carats: from the 8th occurrence onward (when the reward tier
+    improved) every race also grants 2 gold + 1 rainbow crystal shard, awarded at
+    the end — plain counters, since the envelope doesn't position them by day.
+    """
+    from horsetrader.core import JST
+
+    for race in races:
+        jp = next((p for p in race.periods if p.tzinfo == JST), None)
+        if jp is not None and jp.span and race.legs:
+            span_days = (jp.end.date() - jp.start.date()).days + 1
+            sequence: list[int | None] = [None] * span_days
+            for leg in race.legs:
+                offset = (leg.period.start.date() - jp.start.date()).days
+                if 0 <= offset < span_days:
+                    sequence[offset] = 250
+            rewards = Rewards(
+                [SequenceReward(reward_type=Carats, sequence=tuple(sequence))]
+            )
+        else:
+            # No JST anchor (shouldn't happen): fall back to the lump total.
+            rewards = Rewards([Carats(250 * len(race.legs))])
+
+        ordinal = int(str(race.key).rsplit("-", 1)[-1])
+        if ordinal >= 8:
+            rewards.append(GoldCrystalShard(2))
+            rewards.append(RainbowCrystalShard(1))
+        race.rewards = rewards
 
 
 def stamp_factor_studies_rewards(studies: "Iterable[WikiruEvent]") -> None:

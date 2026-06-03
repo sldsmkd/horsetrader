@@ -195,6 +195,42 @@ Implications for prediction:
   user research — they need context (track, banner type, format) to
   decide if they're true exceptions to the rule.
 
+## Legend Races
+
+Recurring PvE events, each a **real-world race** (Japan Cup, Satsuki Sho, Arima
+Kinen, …) run as an **ordered sequence of per-trainee legs**. Each leg pits the
+player against one *specific trainee variant* (not just a character — e.g.
+Winning Ticket (Steampunk)) for a contiguous **~3-day set**; when one set ends
+the next begins, so the legs tile the overall window. 2–4 sets per race is
+normal (≈120 total legs across the 53 JP occurrences so far). Sourced richer
+than the wikiru event types — from Gametora's
+[legend-race](https://gametora.com/ja/umamusume/events/legend-race) index
+(JA page: JP window + legs + JP name; locale-less page: EN race name, joined by
+the card's trainee set). See
+[`extractors/gametora/legend_races.py`](../horsetrader/extractors/gametora/legend_races.py).
+
+**Stable key.** `legendrace-NNN` by JP chronological ordinal (the same
+order EN replays, so the EN overlay joins on it — like CM). Not rushable: the
+legs are date-pinned daily windows, so there's no post-at-start choice (same
+fixed-duration stance as a CM).
+
+**Rewards (heuristic).** Carats are *temporal*, not a lump sum: **250 carats on
+the first day of each set**, nothing between — modelled as a
+`SequenceReward(Carats)` over the window (250 at each leg's first-day offset,
+`None` for off days). From the **8th occurrence onward** (when the reward tier
+improved) each race also grants **2 gold + 1 rainbow crystal shard** at the end
+(plain counters). Stamped in
+[`rewards/rules.py`](../horsetrader/models/rewards/rules.py).
+
+**Leg projection.** The scraped legs are JST; EN runs on different dates, so
+`LegendRace._baked_legs` re-anchors each leg by its whole-day offset from the
+JST window start onto the matched EN window's start date — the same offset basis
+the carat sequence uses, so sequence index *i* lines up with leg *i*'s first
+day. EN windows are curated in
+[`config/yaml/legend_races.yaml`](../config/yaml/legend_races.yaml) (transcribed
+from the maintainer's `config/pending/` capture); a race absent there stays
+predicted via the fallthrough.
+
 ## Story Events
 
 Time-limited narrative events featuring a themed group of trainees (up to

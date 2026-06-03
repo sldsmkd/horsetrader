@@ -1,0 +1,70 @@
+## LEGEND RACES — EN overlay ##
+#
+# EN-server release windows for Legend Races, keyed by the Gametora chronological
+# occurrence ordinal, zero-padded to 3 (legendrace-NNN) — the same stable key the
+# scraper assigns (see extractors/gametora/legend_races.py). The EN server replays
+# JP's Legend Race sequence in order, so legendrace-001 (Japan Cup, JP 2021-03)
+# reached Global in Jul 2025.
+#
+# A race absent here has no confirmed EN window and stays predicted; one that IS
+# present but malformed fails loud (curated data) — incl. en.end <= en.start.
+#
+# TIME-OF-DAY NOTE: these were hand-captured as bare dates (config/pending/
+# _en.schedule.yaml). The bake serialises every event date-granular, so the time
+# is immaterial to output — they're stamped at the EN-availability 22:00 UTC drop
+# convention (same as champions_meetings.yaml). If the exact Legend Race open/close
+# instants are ever confirmed, refine them here. `start` = availability open,
+# `end` = availability close; the per-leg ~3-day cadence is derived at bake time
+# from the JP-scraped legs, not curated here.
+legendrace-001:
+  # Japan Cup (Hard)
+  en:
+    start: 2025-07-06T22:00:00+00:00
+    end: 2025-07-15T22:00:00+00:00
+legendrace-002:
+  # Sprinters Stakes (Hard)
+  en:
+    start: 2025-07-27T22:00:00+00:00
+    end: 2025-08-08T22:00:00+00:00
+legendrace-003:
+  en:
+    start: 2025-08-21T22:00:00+00:00
+    end: 2025-08-30T22:00:00+00:00
+legendrace-004:
+  en:
+    start: 2025-09-11T22:00:00+00:00
+    end: 2025-09-23T22:00:00+00:00
+legendrace-005:
+  en:
+    start: 2025-10-26T22:00:00+00:00
+    end: 2025-11-04T22:00:00+00:00
+legendrace-006:
+  en:
+    start: 2025-11-13T22:00:00+00:00
+    end: 2025-11-22T22:00:00+00:00
+legendrace-007:
+  en:
+    start: 2025-12-04T22:00:00+00:00
+    end: 2025-12-13T22:00:00+00:00
+legendrace-008:
+  # pending capture had end 2026-12-31 — a year typo (start is 2025-12-22, every
+  # other window is ~9-13 days); corrected to 2025-12-31.
+  en:
+    start: 2025-12-22T22:00:00+00:00
+    end: 2025-12-31T22:00:00+00:00
+legendrace-009:
+  en:
+    start: 2026-01-22T22:00:00+00:00
+    end: 2026-01-31T22:00:00+00:00
+legendrace-010:
+  en:
+    start: 2026-02-26T22:00:00+00:00
+    end: 2026-03-07T22:00:00+00:00
+legendrace-011:
+  en:
+    start: 2026-03-23T22:00:00+00:00
+    end: 2026-04-01T22:00:00+00:00
+legendrace-012:
+  en:
+    start: 2026-05-07T22:00:00+00:00
+    end: 2026-05-16T22:00:00+00:00
