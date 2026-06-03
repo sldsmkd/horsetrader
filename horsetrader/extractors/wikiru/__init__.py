@@ -23,3 +23,7 @@ class Wikiru(metaclass=SingletonMeta):
     def showtimes(self) -> Sequence[dict]:
         """Fetch Fuji Kiseki Showtime occurrences (JP period + name, keyed showtime-NNN)."""
         return self._events_scraper.showtimes()
+
+    def skill_tests(self) -> Sequence[dict]:
+        """Fetch Trainer Skills Test occurrences (JP period + name, keyed skilltest-NNN)."""
+        return self._events_scraper.skill_tests()

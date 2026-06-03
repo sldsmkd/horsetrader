@@ -16,7 +16,11 @@ from .rewards import (
     rewards_from_baked,
     rewards_to_baked,
 )
-from .rules import stamp_first_original_rewards, stamp_story_off_table_extras
+from .rules import (
+    stamp_first_original_rewards,
+    stamp_skill_test_rewards,
+    stamp_story_off_table_extras,
+)
 
 __all__ = [
     "Carats",
@@ -37,5 +41,6 @@ __all__ = [
     "rewards_from_baked",
     "rewards_to_baked",
     "stamp_first_original_rewards",
+    "stamp_skill_test_rewards",
     "stamp_story_off_table_extras",
 ]

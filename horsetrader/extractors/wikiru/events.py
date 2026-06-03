@@ -123,20 +123,29 @@ class WikiruEvents(metaclass=SingletonMeta):
         rows.sort(key=lambda r: r["period"].start)
         return rows
 
-    def showtimes(self) -> Sequence[dict]:
-        """Fuji Kiseki Showtime occurrences (JP period + JP name, keyed showtime-NNN).
-
-        A finite, closed two-event series; keyed by chronological ordinal (the
-        same scheme as Champions Meetings — JP order is the stable anchor, and
-        the EN overlay in ``showtimes.yaml`` joins on this key).
+    def _occurrences(self, heading: str, key_prefix: str) -> list[dict]:
+        """Section rows as occurrence records keyed ``<key_prefix>-NNN`` by
+        chronological ordinal — the shared scheme for every event type on the
+        index (JP order is the stable anchor; an EN overlay or the predictor
+        chain joins on this key). Each record is ``{key, period, name, references}``.
         """
         records: list[dict] = []
-        for ordinal, row in enumerate(self._section_rows("フジキセキのショータイム"), start=1):
+        for ordinal, row in enumerate(self._section_rows(heading), start=1):
             records.append({
-                "key": f"showtime-{ordinal:03d}",
+                "key": f"{key_prefix}-{ordinal:03d}",
                 "period": row["period"],
                 "name": row["name"],
                 "references": [_EVENT_INDEX_URL],
             })
-        logger.info("Extracted %d Showtime occurrences from wikiru", len(records))
+        logger.info("Extracted %d %s occurrences from wikiru", len(records), key_prefix)
         return records
+
+    def showtimes(self) -> Sequence[dict]:
+        """Fuji Kiseki Showtime occurrences (keyed showtime-NNN) — a finite,
+        closed two-event series; EN dates curated in ``showtimes.yaml``."""
+        return self._occurrences("フジキセキのショータイム", "showtime")
+
+    def skill_tests(self) -> Sequence[dict]:
+        """Trainer Skills Test occurrences (keyed skilltest-NNN) — a recurring
+        event (~3×/year); EN dates left to the fallthrough predictor."""
+        return self._occurrences("トレーナー技能試験", "skilltest")

@@ -15,10 +15,17 @@ from typing import TYPE_CHECKING
 from horsetrader.enums import CostumeVariants
 from horsetrader.info import Logger
 
-from .rewards import Carats, GoldCrystalShard, Rewards
+from .rewards import (
+    Carats,
+    GoldCrystalShard,
+    RainbowCrystalShard,
+    Rewards,
+    SupportTicket,
+    TraineeTicket,
+)
 
 if TYPE_CHECKING:
-    from horsetrader.models.events import Banner, Story
+    from horsetrader.models.events import Banner, SkillTest, Story
 
 
 logger = Logger.get(__name__)
@@ -83,3 +90,31 @@ def stamp_story_off_table_extras(stories: "list[Story]") -> None:
             s.rewards = Rewards()
         s.rewards.append(Carats(660))
         s.rewards.append(GoldCrystalShard(3))
+
+
+def stamp_skill_test_rewards(skill_tests: "list[SkillTest]") -> None:
+    """Every Trainer Skills Test grants the same fixed, full-clear reward set.
+
+    The event follows one settled pattern across occurrences (wikiru stopped
+    itemising after the 5th once it was clearly fixed), so the ceiling is
+    stamped uniformly rather than curated per occurrence. Two sources, summed
+    into the carat total:
+
+    - **Trial Coin exchange** (max-clear, carat-economy items only): Jewels
+      150 × 3 = 450 carats, 1 rainbow + 1 gold crystal shard, 3 trainee +
+      3 support gacha tickets. The coins themselves and non-economy items
+      (manie, support/friend points) aren't tracked.
+    - **7 escalating challenges**: 800 carats for completing all of them.
+
+    Non-carat-economy exchange items are out by the same rule that drops them
+    from Showtime. If a future occurrence breaks the pattern, this is where
+    the rule splits.
+    """
+    for st in skill_tests:
+        st.rewards = Rewards([
+            Carats(1250),  # 450 exchange Jewels (150×3) + 800 from clearing all 7 challenges
+            RainbowCrystalShard(1),
+            GoldCrystalShard(1),
+            TraineeTicket(3),
+            SupportTicket(3),
+        ])

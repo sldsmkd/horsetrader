@@ -156,6 +156,13 @@ class ShowtimeRecord(RushableEventRecord, tag="showtime"):
 
 
 @eishin
+class SkillTestRecord(RushableEventRecord, tag="skilltest"):
+    # Recurring Trainer Skills Test; rushable, carries the fixed full-clear
+    # rewards. `name` is the (uniform) EN display label.
+    name: str | None
+
+
+@eishin
 class AnchorRecord(EventRecord, tag="anchor"):
     # Calendar point: nothing past the shared envelope (+ any curated rewards).
     pass
@@ -178,6 +185,7 @@ EventRecordUnion = (
     | StoryRecord
     | CMRecord
     | ShowtimeRecord
+    | SkillTestRecord
     | AnchorRecord
     | AnchoredEventRecord
 )

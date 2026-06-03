@@ -7,6 +7,7 @@ from .banner import Banner, Banners, SupportBanner, TraineeBanner
 from .champions_meeting import ChampionsMeeting, ChampionsMeetings
 from .scenario import Scenario, Scenarios
 from .showtime import Showtime, Showtimes
+from .skill_test import SkillTest, SkillTests
 from .story import Stories, Story
 
 __all__ = [
@@ -25,6 +26,8 @@ __all__ = [
     "Scenarios",
     "Showtime",
     "Showtimes",
+    "SkillTest",
+    "SkillTests",
     "Stories",
     "Story",
     "SupportBanner",
