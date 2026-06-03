@@ -1,18 +1,18 @@
 ---
 name: feedback-git-workflow-phase
-description: "During rapid pre-client iteration, commit straight to main with no branch/commit ceremony. Don't proactively offer feature branches or elaborate commit messages yet."
+description: "Frontend view layer now uses branch-per-feature (the end-to-end loop is proven). ETL/other rapid work still commits straight to main with no ceremony."
 metadata: 
   node_type: memory
   type: feedback
   originSessionId: 93535408-1a74-4f43-b0b7-917f27b9dbd8
 ---
 
-The codebase is under **rapid iteration with no real client yet**, so git formalities are unwanted at this stage. The user commits straight to `main` (e.g. `git commit -m YOLO`) and is fine with that.
+The workflow split by **2026-06-03**: the trigger that flips main-YOLO → branches turned out to be **reaching a stable end-to-end path**, not getting a real client. The frontend view layer now has a proven one-way loop (interaction.md steps 1–3), so **frontend feature work goes on a branch per feature** (e.g. `4a-xfordate`; see the 4a–4f decomposition in interaction.md). Still-churning work without an end-to-end path (ETL, exploratory) **keeps committing straight to `main` with no ceremony**.
 
-**Why:** branches + careful commit messages are overhead during exploration; they slow the loop without payoff while there's no client and the surface is still churning. The user will switch to **lightweight feature branches once the codebase is stable and there's an actual client** — not before.
+**Why:** branches earn their keep once there's a working baseline a feature can be measured against and could regress; before that they were pure overhead. The user named this explicitly when the timeline-substrate work began.
 
 **How to apply:**
-- Don't proactively offer to branch off `main` or propose elaborate multi-paragraph commit messages.
-- When the user says "commit" / "lock this down" in this phase, just stage and commit to `main` simply (or note they can) — skip the branch-first dance.
-- Verifying the commit captured everything and builds is still welcome; the ceremony around *how* to commit is not.
-- Revisit when the user signals the project is stabilising / has users.
+- **Frontend `ui/` features:** cut a short-named branch (`4a-xfordate`-style) per feature; merge to `main` when green. Commit messages stay lightweight — no elaborate multi-paragraph ceremony.
+- **ETL / pre-baseline work:** still fine to commit straight to `main` simply; don't push branches on it.
+- When unsure which side a change is on, the test is "does a proven end-to-end path exist here that this could break?" — if yes, branch.
+- Verifying the commit captured everything and builds is always welcome.

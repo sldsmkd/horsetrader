@@ -29,8 +29,17 @@ coordinator (snapshot edit → recompute → `subscribe` → render; scrub → d
 overlay (principle 1, via a `pointer-events: none` layer). The two stores compose
 independently — editing carats in the overlay refreshes the canvas behind it while
 the overlay stays open. Still to come: the timeline substrate, the selectors, and
-the packer (step 4) — the real work. Read the rest of this doc as the architecture
-those will follow, not yet a full map of current `src/`.
+the packer (step 4, now decomposed into 4a–4f below) — the real work. Read the rest
+of this doc as the architecture those will follow, not yet a full map of current
+`src/`.
+
+The step-3 **standalone scrub** (`<input type=range>` in `app.ts`) has served its
+purpose — proving both tiers of the change model end to end — and **retires in 4b**:
+the timeline substrate becomes the real owner of cursor/scrub (the cheap path), with
+the cursor a position on the axis rather than a slider index. The `cursorBalance`
+readout survives as a genuine surface (it is the one view both tiers feed); only the
+slider scaffolding goes. From here the project moves to a **branch-per-feature** git
+model (4a–4f are branches) now that an end-to-end path exists.
 
 ## The layer cake
 
@@ -242,7 +251,42 @@ it:
    directly off `balanceAt` with no broadcast. That one view exercises **both**
    tiers of the change model — the cheap path and the render path — in the
    smallest possible space, proving the loop end to end with zero framework.
-4. **Then the timeline substrate and the packer** — where the real work is.
+4. **Then the timeline substrate and the packer** — where the real work is. This is
+   not one task; it is the same "thin slice, breadth after" rule applied one level
+   down, and decomposes into six branches (4a–4f) in dependency order:
+
+   - **4a — `xForDate`, the axis primitive.** A pure `(date, scale, origin) → x`
+     mapping (and inverse for hit-testing), true-to-date so spacing carries
+     information (ui.md principle 2). Lives in `ui/` beside `h()`/`format.ts`, **not
+     in `core/`**: the px-per-day scale is a fact about *how you're looking*, not
+     about your account — the same class as a future theme toggle (projection is
+     account state only). Its *state* splits on the existing tiers: pan offset =
+     transient interaction-state (cheap path), zoom/scale = discrete view-state.
+     Headless-tested. Everything spatial sits on this.
+   - **4b — the substrate canvas + pan.** The always-mounted, grabbable, inertial
+     time-as-x world (principle 1). Owns the pan offset as transient
+     interaction-state written straight to a CSS transform — the *same cheap-path
+     machinery proven in step 3*, a second consumer. **The standalone step-3 scrub
+     retires here**; the cursor becomes a position on the axis (`xForDate`), and the
+     surviving `cursorBalance` readout is driven by the timeline.
+   - **4c — bundle data-access + the first card selector.** The id-keyed `Map`s /
+     `getX(id)` queries (the typed bundle primitive) and the first pure selector
+     `(projection, bundle) → card props` (resolve ids, attach the per-date subtotal,
+     compute true-date x via 4a). No DOM → `core/`-grade tests; this is where
+     view-layer correctness is proven.
+   - **4d — card views, placed naïvely.** `(props) → HTMLElement` for one above-lane
+     banner and one below-lane card, stems pinned to the true tick (principle 4).
+     **No packing yet** — place at true x and let them overlap, so 4e has real
+     collisions to fix and the ledger→selector→view path is proven first.
+   - **4e — the packer.** The one genuinely algorithmic module (principle 8): render →
+     measure heights once → pure `(x-positions, heights) → offsets` → apply transforms;
+     two lane strategies (above: group-by-shared-start + horizontal nudge with elbowed
+     stems; below: vertical collision-stacking). Fully covered `pack.test.ts`. Edge
+     cases EC1–EC3 (ui.md) are follow-on test cases, not the first cut. **Where the
+     real work is.**
+   - **4f — the minimap.** The consolidated balance instrument (fret-lined, favourite
+     pips, centred window) — another view over the *same* ledger + a minimap-scale
+     axis. Separable and lower-risk, so it lands after the main canvas reads right.
 
 This is the "add complexity only when warranted" rule ([conventions.md](conventions.md))
 applied to bring-up: a thin vertical slice through every layer first, breadth
