@@ -1,9 +1,9 @@
 # Agent memory — lives HERE, in the repo
 
 This is the source of truth for Claude's persistent memory for this project.
-It is intentionally **tracked in git** (the rest of `.claude/` is ignored; see
-`.gitignore`) because these notes are knowledge *about this repo* and should be
-portable.
+It lives **in the repo but stays local** — `.claude/` (and `.copilot/`) are
+gitignored, so these notes are not pushed to GitHub; they're knowledge *about
+this repo* kept on the user's machine.
 
 ## How it's wired
 

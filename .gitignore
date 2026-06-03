@@ -1,8 +1,6 @@
-# Tooling
+# Tooling - AI agents - keep this local, doesn't need to go to github
 .claude/*
-# ...but the agent memory IS tracked: it's repo knowledge, portable to other tools.
-# The global auto-memory path (~/.claude/projects/.../memory) is a symlink to here.
-!.claude/memory/
+.copilot/*
 
 # Python
 venv/
