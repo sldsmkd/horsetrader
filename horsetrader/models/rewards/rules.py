@@ -10,6 +10,7 @@ event types at module load would close the cycle. Inside a function
 body the events package is fully loaded by the time a rule runs.
 """
 
+from collections.abc import Iterable
 from typing import TYPE_CHECKING
 
 from horsetrader.enums import CostumeVariants
@@ -25,7 +26,7 @@ from .rewards import (
 )
 
 if TYPE_CHECKING:
-    from horsetrader.models.events import Banner, SkillTest, Story
+    from horsetrader.models.events import Banner, Story, WikiruEvent
 
 
 logger = Logger.get(__name__)
@@ -92,7 +93,7 @@ def stamp_story_off_table_extras(stories: "list[Story]") -> None:
         s.rewards.append(GoldCrystalShard(3))
 
 
-def stamp_skill_test_rewards(skill_tests: "list[SkillTest]") -> None:
+def stamp_skill_test_rewards(skill_tests: "Iterable[WikiruEvent]") -> None:
     """Every Trainer Skills Test grants the same fixed, full-clear reward set.
 
     The event follows one settled pattern across occurrences (wikiru stopped
@@ -117,4 +118,30 @@ def stamp_skill_test_rewards(skill_tests: "list[SkillTest]") -> None:
             GoldCrystalShard(1),
             TraineeTicket(3),
             SupportTicket(3),
+        ])
+
+
+def stamp_racing_carnival_rewards(carnivals: "Iterable[WikiruEvent]") -> None:
+    """Every Racing Carnival grants the same fixed reward set."""
+    for c in carnivals:
+        c.rewards = Rewards([
+            Carats(850),
+            RainbowCrystalShard(2),
+            GoldCrystalShard(2),
+            TraineeTicket(3),
+            SupportTicket(3),
+        ])
+
+
+def stamp_factor_studies_rewards(studies: "Iterable[WikiruEvent]") -> None:
+    """Every Agnes Tachyon Factor Studies occurrence grants the same fixed set.
+
+    The movie-tie-in variant (劇場版… in JP) is the same event under a renamed
+    banner — same payout, so it's stamped uniformly like the rest.
+    """
+    for s in studies:
+        s.rewards = Rewards([
+            Carats(900),
+            RainbowCrystalShard(1),
+            GoldCrystalShard(1),
         ])

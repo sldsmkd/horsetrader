@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+from horsetrader.models.rewards import stamp_racing_carnival_rewards
 from horsetrader.output._records import RacingCarnivalRecord
 from horsetrader.semantics import daitaku
 
@@ -26,6 +27,6 @@ class RacingCarnivals(WikiruEvents[RacingCarnival]):
         return super().search(query)
 
     def _fetch_primary(self) -> list[RacingCarnival]:
-        # TODO(#12): once the reward pattern is curated, add a
-        # `stamp_racing_carnival_rewards` rule and stamp it here (see SkillTests).
-        return self._build_events()
+        carnivals = self._build_events()
+        stamp_racing_carnival_rewards(carnivals)
+        return carnivals

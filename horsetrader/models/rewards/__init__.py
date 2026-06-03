@@ -17,7 +17,9 @@ from .rewards import (
     rewards_to_baked,
 )
 from .rules import (
+    stamp_factor_studies_rewards,
     stamp_first_original_rewards,
+    stamp_racing_carnival_rewards,
     stamp_skill_test_rewards,
     stamp_story_off_table_extras,
 )
@@ -40,7 +42,9 @@ __all__ = [
     "reward_for_key",
     "rewards_from_baked",
     "rewards_to_baked",
+    "stamp_factor_studies_rewards",
     "stamp_first_original_rewards",
+    "stamp_racing_carnival_rewards",
     "stamp_skill_test_rewards",
     "stamp_story_off_table_extras",
 ]

@@ -9,13 +9,13 @@ from .wikiru_event import WikiruEvent, WikiruEvents
 @daitaku
 @dataclass
 class MastersChallenge(WikiruEvent):
-    """A Masters Challenge occurrence — recurring, but a long ~3-month *season*
-    window rather than the ~1-week competitions.
+    """A Masters Challenge occurrence — recurring, a long ~3-month *season*
+    window (vs the ~1-week competitions). Rushable (confirmed).
 
-    Scaffolded as rushable for parity with its siblings, but a 3-month window
-    almost certainly isn't a post-at-start-to-skip-the-grind event — **confirm
-    rushability**; if not, rebase this on `Event` (and the record on
-    `EventRecord`) instead of the rushable base.
+    **Rewards HELD (#15):** this is a PvP event with *graded* rewards — payout
+    scales with the player's rank, so a flat full-clear set would overstate it
+    (the Champions Meeting problem). Left unstamped pending a decision on how to
+    model graded/performance-dependent payouts.
     """
 
     _RECORD = MastersChallengeRecord
@@ -33,6 +33,6 @@ class MastersChallenges(WikiruEvents[MastersChallenge]):
         return super().search(query)
 
     def _fetch_primary(self) -> list[MastersChallenge]:
-        # TODO(#15): once the reward pattern is curated, add a
-        # `stamp_masters_challenge_rewards` rule and stamp it here (see SkillTests).
+        # Rewards HELD (#15): PvP graded payout — see class docstring. Raw data
+        # for when we return: 900 carats, 1 rainbow + 1 gold shard (full clear).
         return self._build_events()

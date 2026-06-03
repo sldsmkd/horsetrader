@@ -5,6 +5,7 @@ from .anchor import Anchor, Anchors
 from .anchored import AnchoredEvent, AnchoredEvents
 from .banner import Banner, Banners, SupportBanner, TraineeBanner
 from .champions_meeting import ChampionsMeeting, ChampionsMeetings
+from .factor_studies import FactorStudies, FactorStudiesEvents
 from .masters_challenge import MastersChallenge, MastersChallenges
 from .racing_carnival import RacingCarnival, RacingCarnivals
 from .scenario import Scenario, Scenarios
@@ -25,6 +26,8 @@ __all__ = [
     "ChampionsMeetings",
     "Event",
     "Events",
+    "FactorStudies",
+    "FactorStudiesEvents",
     "MastersChallenge",
     "MastersChallenges",
     "RacingCarnival",

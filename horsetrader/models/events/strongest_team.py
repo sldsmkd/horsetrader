@@ -12,6 +12,10 @@ class StrongestTeam(WikiruEvent):
     """An Aim! Strongest Team occurrence — recurring competition (~1-week window), rushable.
 
     Distinct from League of Heroes (#9) — confirmed not the same event.
+
+    **Rewards HELD (#13):** PvP event with *graded* rewards (payout scales with
+    rank), so a flat full-clear set would overstate it (the Champions Meeting
+    problem). Left unstamped pending a decision on modelling graded payouts.
     """
 
     _RECORD = StrongestTeamRecord
@@ -29,6 +33,7 @@ class StrongestTeams(WikiruEvents[StrongestTeam]):
         return super().search(query)
 
     def _fetch_primary(self) -> list[StrongestTeam]:
-        # TODO(#13): once the reward pattern is curated, add a
-        # `stamp_strongest_team_rewards` rule and stamp it here (see SkillTests).
+        # Rewards HELD (#13): PvP graded payout — see class docstring. Raw data
+        # for when we return: 1300 carats (first occurrence) → 1500 thereafter,
+        # 2 rainbow + 2 gold shards, 2 trainee + 2 support tickets (full clear).
         return self._build_events()
