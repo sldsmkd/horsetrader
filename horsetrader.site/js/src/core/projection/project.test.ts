@@ -7,7 +7,7 @@ import type { Snapshot } from "../persistence/document.ts";
 import type { EventsBundle, TraineeBannerRecord } from "../bundle/events.gen.ts";
 
 function banner(key: string, end: string, rewards: NonNullable<TraineeBannerRecord["rewards"]>): TraineeBannerRecord {
-  return { type: "trainee", contents: [], image: "", start: end, end, predicted: false, key, rewards };
+  return { type: "trainee", contents: [], image: "", start: end, end, predicted: false, rushable: false, key, rewards };
 }
 
 const snapshot: Snapshot = { date: "2026-06-01", resources: { carats_free: 1000 } };

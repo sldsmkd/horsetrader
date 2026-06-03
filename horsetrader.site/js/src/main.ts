@@ -1,14 +1,15 @@
 /**
- * Entry point: bootstrap the headless core. Fetch the baked event bundle, build
- * the coordinator (which loads any saved plan and folds the projection from the
- * snapshot, or today, forward), and expose it for inspection. No UI yet — this
- * only lands the engine in the build and proves it runs end to end. See
- * core/coordinator.
+ * Entry point: fetch the baked event bundle, build the headless coordinator
+ * (which loads any saved plan and folds the projection from the snapshot, or
+ * today, forward), and hand it to the app shell to mount the UI. The shell owns
+ * all wiring; this file only does bootstrap + fail-soft. See core/coordinator and
+ * ui/app.
  */
 
 import "../../css/styles.css";
 
 import { createCoordinator } from "./core/coordinator/index.ts";
+import { mountApp } from "./ui/app.ts";
 import type { EventsBundle } from "./core/bundle/events.gen.ts";
 
 async function bootstrap(): Promise<void> {
@@ -17,9 +18,11 @@ async function bootstrap(): Promise<void> {
   const now = new Date().toISOString().slice(0, 10);
 
   const coordinator = createCoordinator({ bundle, now });
-  (globalThis as Record<string, unknown>)["horsetrader"] = coordinator;
-
-  console.info("core bootstrapped —", coordinator.channels().length, "channels");
+  mountApp(coordinator, now);
 }
 
-bootstrap().catch((err) => console.error("core bootstrap failed:", err));
+bootstrap().catch((err) => {
+  console.error("bootstrap failed:", err);
+  const root = document.getElementById("app");
+  if (root) root.textContent = "Failed to load — see the console.";
+});

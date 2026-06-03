@@ -51,6 +51,14 @@ export interface Coordinator {
   update(patch: Partial<PlanPatch>): void;
   /** Enable/disable a channel's contribution (ephemeral) and recompute. */
   setEnabled(channel: string, enabled: boolean): void;
+  /**
+   * Register a listener fired once after each recompute (an `update` or a
+   * `setEnabled`); returns an unsubscribe. Reads — `projection`, `balanceAt`,
+   * `document`, `channels` — never notify, so the cheap scrub path stays
+   * broadcast-free. A bare callback keeps this DOM-agnostic. See
+   * docs/frontend/interaction.md (the notify seam).
+   */
+  subscribe(listener: () => void): () => void;
 }
 
 export interface CoordinatorOptions {
@@ -71,6 +79,11 @@ export function createCoordinator(options: CoordinatorOptions): Coordinator {
   const loaded = load(store);
   let doc = loaded.doc;
   const enabled = new Map<string, boolean>(registry.map((ch) => [ch.name, true]));
+  const listeners = new Set<() => void>();
+
+  function notify(): void {
+    for (const listener of listeners) listener();
+  }
 
   function fold(): Projection {
     const after = doc.snapshot?.date ?? now;
@@ -93,11 +106,17 @@ export function createCoordinator(options: CoordinatorOptions): Coordinator {
       doc = { ...doc, ...patch };
       save(doc, store);
       current = fold();
+      notify();
     },
     setEnabled(channel, isEnabled) {
-      if (!enabled.has(channel)) return; // unknown channel — nothing to toggle
+      if (!enabled.has(channel)) return; // unknown channel — nothing to toggle (no recompute, no notify)
       enabled.set(channel, isEnabled);
       current = fold();
+      notify();
+    },
+    subscribe(listener) {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
     },
   };
 }

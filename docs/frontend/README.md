@@ -6,25 +6,42 @@ contradicts a stale comment, an old branch, or an LLM's memory, **this folder
 wins**.
 
 Scope: the site — the raw-DOM TypeScript planner that consumes the static JSON +
-image bundle baked by the **etl**. The site is its own repo (`horsetrader.site/`),
-but its docs now live alongside the ETL's under one tree: the ETL is in
-[`../etl/`](../etl/) and the shared interface in [`../contract.md`](../contract.md).
-Editing ETL *code* from a site session is still a boundary crossing — but the docs
-are shared.
+image bundle baked by the **etl**. The site lives at `horsetrader.site/` as a
+tracked subtree of the monorepo; its docs live alongside the ETL's under one tree:
+the ETL is in [`../etl/`](../etl/) and the shared interface in
+[`../contract.md`](../contract.md). Editing ETL *code* from a site session is
+still a boundary crossing — but the docs are shared.
 
-## ⚠️ Status: design ahead of code
+## Status: `core/` built, `ui/` is captured intent next to code
 
-Unlike the ETL docs (which describe code that exists), **these are design docs
-written before the foundation is built.** As of 2026-05-31 the site is a thin
-scaffold — an esbuild + (soon) TypeScript toolchain and a smoke-test entry that
-just proves the data bundle loads. The two pillars described here (`core/`
-persistence and projection) are **not yet implemented**. Read these as the
-design the code *will* follow, not as a map of current `src/`.
+As of **2026-06-02** the keystone is laid — both `core/` pillars exist under
+`horsetrader.site/js/src/core/` and are headless-tested (`npm test`):
 
-The UX / widgets are deliberately deferred. This foundation is the keystone; the
-UI sits on top of it once it's laid. The **view layer** is now being captured
-intent-first, surface by surface, in [ui.md](ui.md) — design, still ahead of
-code.
+- **Persistence** (pillar 1) — the four-section document, storage module, and
+  validation/recovery. See [persistence.md](persistence.md).
+- **Projection** (pillar 2) — the pure fold, the rich ledger + its folds, the
+  dense balance-series scrub cache, and three ground-truth channels (events,
+  generator, sequence). See [projection.md](projection.md).
+- **The coordinator** — the headless seam joining the two: it loads the plan,
+  builds channels from the bundle, folds the enabled ones, and recomputes on any
+  change. The UI will be a pure consumer of this seam.
+
+Two slices of projection are **still to come** (now unblocked — see below):
+the **spends/commitments** channel (the one stream that consumes the fold's own
+output for affordability), **rushed-event posting**, and the **expected-copies
+distribution**. [projection.md](projection.md) has the ordered next-steps.
+
+The **view layer** is fully captured intent-first, surface by surface, in
+[ui.md](ui.md) — **every surface is documented** as of 2026-06-02, but `ui/`
+*code* is not yet written. That doc is the settled design the widgets will follow.
+
+### ETL cross-side blockers: resolved / tracked
+
+The sequence value type that projection's daily-login channel needs **shipped**
+from the ETL (`SequenceReward`), so the spends/commitments work is now a pure
+frontend task. The remaining cross-side asks — **procedural stream rates** and
+**baked drop rates** — are tracked in the root [`TODO.md`](../../TODO.md); the
+contract is settled in [`../contract.md`](../contract.md).
 
 ## Start here
 
@@ -34,6 +51,7 @@ code.
 | Know what we store and why so little | [persistence.md](persistence.md) |
 | Understand the engine that derives everything | [projection.md](projection.md) |
 | Understand how the site presents itself (the view layer) | [ui.md](ui.md) |
+| Know how the interactive `ui/` layer is wired (implementation) | [interaction.md](interaction.md) |
 | Know the language, layering, and DOM patterns | [conventions.md](conventions.md) |
 | Know what we trust, validate, and how we fail | [trust-and-failure.md](trust-and-failure.md) |
 

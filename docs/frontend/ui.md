@@ -1030,9 +1030,12 @@ remains is not new surfaces but:
   root [`TODO.md`](../../TODO.md). Frontend consumes; don't action from a frontend
   session.
 - **Then `ui/` code.** With the intent foundation in place, crystallise these
-  surfaces into the view layer — the doc's whole purpose. Build on `core/` through
-  the coordinator seam ([architecture.md](architecture.md)); state flows one way
-  (principle 7); the packer is pure and headless-testable (principle 8).
+  surfaces into the view layer — the doc's whole purpose. The **implementation
+  architecture** for that — the layer cake, the subscribe seam, the two-tier change
+  model, the pure packer — is captured in [interaction.md](interaction.md). Build
+  on `core/` through the coordinator seam ([architecture.md](architecture.md));
+  state flows one way (principle 7); the packer is pure and headless-testable
+  (principle 8).
 
 ## See also
 

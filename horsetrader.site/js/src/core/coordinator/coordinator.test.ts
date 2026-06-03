@@ -15,7 +15,7 @@ import type { EventsBundle } from "../bundle/events.gen.ts";
 function bundle(): EventsBundle {
   return {
     events: [
-      { type: "trainee", contents: [], image: "", start: "2026-06-10", end: "2026-06-10", predicted: false, key: "banner-1", rewards: { carats: 100 } },
+      { type: "trainee", contents: [], image: "", start: "2026-06-10", end: "2026-06-10", predicted: false, rushable: false, key: "banner-1", rewards: { carats: 100 } },
       { type: "anchor", start: "2026-06-09", end: "2026-06-09", predicted: false, key: "anchor-1", rewards: { generator: { carats: 50, repeat: 3 } } },
       { type: "anchoredevent", relation: "after", anchor: "x", start: "2026-06-09", end: "2026-06-09", predicted: false, key: "seq-1", rewards: { sequence: { type: "carats", sequence: [10, 10] } } },
     ],
@@ -92,6 +92,31 @@ test("update persists the plan and recomputes against the new base", () => {
   coord.update({ snapshot: { date: "2026-06-01", resources: { carats_free: 5000 } } });
   assert.deepEqual(coord.balanceAt(FAR), { carats_free: 5270 });
   assert.equal(load(store).doc.snapshot?.resources.carats_free, 5000);
+});
+
+test("subscribers fire on a mutation, exactly once, and never on a read", () => {
+  const coord = createCoordinator({ bundle: bundle(), now: "2026-06-01", store: memoryStore() });
+  let notals = 0;
+  const off = coord.subscribe(() => notals++);
+
+  coord.balanceAt(FAR);
+  coord.projection();
+  coord.document();
+  coord.channels();
+  assert.equal(notals, 0); // reads never broadcast — the scrub path stays safe
+
+  coord.update({ snapshot });
+  assert.equal(notals, 1); // a mutation fires exactly once, never twice
+
+  coord.setEnabled("generator", false);
+  assert.equal(notals, 2); // a toggle is a recompute too
+
+  coord.setEnabled("nonsense", false);
+  assert.equal(notals, 2); // an unknown channel does not recompute, so does not notify
+
+  off();
+  coord.update({ snapshot });
+  assert.equal(notals, 2); // unsubscribe stops delivery
 });
 
 test("an unreadable stored plan surfaces recovered and still folds (clean base)", () => {

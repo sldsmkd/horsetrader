@@ -93,18 +93,25 @@ silent miscalculation or a bricked save just *is* the bug. So the burden of
 proving stability and correctness moves **earlier** — onto tests — for exactly the
 foundational layers where it matters.
 
-- **`core/` is the test target; `ui/` is not (yet).** `core/` is pure, headless,
-  deterministic, and it's where correctness lives (persistence integrity,
-  projection arithmetic, the bundle loader). Test it well. UI rendering and event
-  wiring are deliberately left out of the net — keep logic *in* `core/` so it's
-  the part under test, and keep `ui/` thin enough to eyeball.
+- **Pure logic is the test target — `core/` and the pure `ui/` modules; the
+  DOM-touching layer is not.** `core/` is where most correctness lives
+  (persistence integrity, projection arithmetic, the bundle loader) — test it
+  well. The pure `ui/` modules that hold real logic but touch no DOM — the
+  formatter, the view-state store, the packer, the selectors — are headless for
+  the same reason and **are** tested too. What stays out of the net is the
+  DOM-touching layer (`h()`, views, event wiring, the app shell): keep it thin
+  enough to eyeball, and keep the logic in the pure modules so it's the part under
+  test.
 - **Zero test tooling.** Tests use the built-in `node:test` + `node:assert/strict`
   and Node's native TS type-stripping — **no Vitest/Jest/ts-node**, no transform
   step, no config. The only dep this needs is `@types/node` (so the test files
   stay inside the `tsc --noEmit` net). This is the "add complexity only when
   warranted" rule applied to the test stack itself.
-- **`npm test`** runs `node --test` over `js/src/core/**/*.test.ts`. Tests live
-  beside the code they cover (`persistence.test.ts` next to the module).
+- **`npm test`** runs `node --test` over `js/src/**/*.test.ts` — `core/` and the
+  pure `ui/` modules alike. Tests live beside the code they cover
+  (`persistence.test.ts` next to the module). A `*.test.ts` must import only pure
+  modules; importing a DOM-touching one (`h()`, a view) would crash the runner
+  (no `document`) — which is exactly the boundary, enforced by the runtime.
 - **Pure `core/` is what makes this cheap.** Modules take their dependencies as
   arguments (e.g. persistence takes an injectable key/value store, so a test uses
   an in-memory one) rather than reaching for globals. That headless discipline —

@@ -13,6 +13,7 @@ function banner(key: string, end: string, rewards?: TraineeBannerRecord["rewards
     start: end,
     end,
     predicted: false,
+    rushable: false,
     key,
     ...(rewards ? { rewards } : {}),
   };

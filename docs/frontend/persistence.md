@@ -4,8 +4,10 @@ Persistence stores the user's inputs and **nothing derived**. It is pure
 `core/`, headless, and knows nothing about the UI. Pair with
 [projection.md](projection.md), which consumes what this stores.
 
-> Status: design, not yet implemented. Field-level schema is deliberately *not*
-> specified here — it's settled at build time. This doc is the principles.
+> Status: built under `core/persistence/` and headless-tested (`npm test`) —
+> the document, storage module, and validation/recovery. Field-level schema is
+> deliberately *not* specified here — it's settled in code. This doc is the
+> principles.
 
 ## The governing principle: persist inputs, derive the rest
 
