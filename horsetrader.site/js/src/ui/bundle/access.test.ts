@@ -27,3 +27,8 @@ test("a miss throws — the ETL guarantees referential integrity, so it's a bug,
   assert.throws(() => bundle.character("nope"), /no character for "nope"/);
   assert.throws(() => bundle.trainee("nope"), /no trainee for "nope"/);
 });
+
+test("all() returns every event in bake order — for selectors that scan", () => {
+  const bundle = createBundle(EVENTS, ACADEMY);
+  assert.deepEqual(bundle.all().map((e) => e.key), ["cm-1"]);
+});

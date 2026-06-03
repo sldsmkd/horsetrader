@@ -9,16 +9,21 @@
 import "../../css/styles.css";
 
 import { createCoordinator } from "./core/coordinator/index.ts";
+import { createBundle } from "./ui/bundle/access.ts";
 import { mountApp } from "./ui/app.ts";
 import type { EventsBundle } from "./core/bundle/events.gen.ts";
+import type { Academy } from "./core/bundle/academy.gen.ts";
 
 async function bootstrap(): Promise<void> {
-  const response = await fetch("/json/events.json");
-  const bundle = (await response.json()) as EventsBundle; // upstream-validated bundle — plain cast
+  // Both baked bundles — upstream-validated, so a plain cast (trust the bake).
+  const [events, academy] = (await Promise.all([
+    fetch("/json/events.json").then((r) => r.json()),
+    fetch("/json/academy.json").then((r) => r.json()),
+  ])) as [EventsBundle, Academy];
   const now = new Date().toISOString().slice(0, 10);
 
-  const coordinator = createCoordinator({ bundle, now });
-  mountApp(coordinator, now);
+  const coordinator = createCoordinator({ bundle: events, now });
+  mountApp(coordinator, createBundle(events, academy), now);
 }
 
 bootstrap().catch((err) => {

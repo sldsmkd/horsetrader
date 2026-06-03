@@ -20,11 +20,16 @@
 import { h, qs } from "./h.ts";
 import { cursorBalance } from "./views/cursorBalance.ts";
 import { timeline } from "./views/timeline.ts";
+import { belowCard } from "./views/belowCard.ts";
+import { bannerCard } from "./views/bannerCard.ts";
 import { overlay } from "./views/overlay.ts";
+import { belowLaneCards } from "./select/belowLane.ts";
+import { aboveLaneBanners } from "./select/aboveLane.ts";
 import { createViewStore } from "./state/viewState.ts";
 import type { Coordinator } from "../core/coordinator/index.ts";
+import type { Bundle } from "./bundle/access.ts";
 
-export function mountApp(coord: Coordinator, now: string, root: HTMLElement = qs("#app")): void {
+export function mountApp(coord: Coordinator, bundle: Bundle, now: string, root: HTMLElement = qs("#app")): void {
   const view = createViewStore();
   const readout = cursorBalance();
 
@@ -38,10 +43,21 @@ export function mountApp(coord: Coordinator, now: string, root: HTMLElement = qs
     },
   });
 
-  // The render path: re-lay the timeline for the new extent. `layout` re-emits
-  // the cursor date through `onScrub`, so the readout follows the fresh projection.
+  // The render path: re-lay the substrate, then rebuild the cards from the
+  // selectors on the *same* axis the timeline drew (the shared seam, `tl.axis`)
+  // and mount them. `layout` re-emits the cursor date through `onScrub`, so the
+  // readout follows the fresh projection. 4d places cards at their true x and
+  // lets them overlap — the packer (4e) resolves collisions.
   function refresh(): void {
-    tl.layout(coord.projection().series.extent, now);
+    const projection = coord.projection();
+    tl.layout(projection.series.extent, now);
+    const axis = tl.axis();
+    if (!axis) return tl.setCards([]);
+    const after = coord.document().snapshot?.date ?? now;
+    tl.setCards([
+      ...belowLaneCards(projection, bundle, axis).map(belowCard),
+      ...aboveLaneBanners(bundle, axis, after).map(bannerCard),
+    ]);
   }
   coord.subscribe(refresh);
 

@@ -35,6 +35,18 @@ export interface Timeline {
    * Called on mount and after every recompute — the render path. Rare.
    */
   layout(extent: Extent, today: string): void;
+  /**
+   * The axis the last `layout` built (origin/scale), or `null` before the first
+   * layout / on an empty extent. The **shared seam**: the shell reads it so the
+   * card selectors position on the *same* true-date axis the substrate draws.
+   */
+  axis(): Axis | null;
+  /**
+   * Mount positioned card elements into the panning content layer, so they pan
+   * with the world. The shell builds them from selectors + card views; the
+   * timeline only hosts them (it stays dumb about what a card is).
+   */
+  setCards(elements: HTMLElement[]): void;
 }
 
 export interface TimelineHandlers {
@@ -60,7 +72,8 @@ export function timeline({ onScrub }: TimelineHandlers): Timeline {
   const line = h("div", { class: "timeline__line" });
   const today = h("div", { class: "timeline__today" });
   const cursor = h("div", { class: "timeline__cursor" });
-  const content = h("div", { class: "timeline__content" }, line, today, cursor);
+  const cards = h("div", { class: "timeline__cards" }); // hosts the positioned card views
+  const content = h("div", { class: "timeline__content" }, line, today, cursor, cards);
   const el = h("section", { class: "timeline", attr: { "aria-label": "Timeline" } }, content);
 
   const applyPan = () => {
@@ -107,6 +120,8 @@ export function timeline({ onScrub }: TimelineHandlers): Timeline {
 
   return {
     el,
+    axis: () => axis,
+    setCards: (elements) => cards.replaceChildren(...elements),
     layout(nextExtent, todayDate) {
       extent = nextExtent;
       if (!extent) {

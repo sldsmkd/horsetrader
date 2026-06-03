@@ -23,6 +23,8 @@ import type { Academy, CharacterRecord, SupportRecord, TraineeRecord } from "../
 export type EventRecord = EventsBundle["events"][number];
 
 export interface Bundle {
+  /** Every event, bake order (tz-start-sorted) — for selectors that scan, e.g. banners. */
+  all(): readonly EventRecord[];
   /** The event with this `key` (= a ledger entry's `source`). Throws if absent. */
   event(key: string): EventRecord;
   /** Academy lookups — the entities a banner's `contents` resolve to. Throw if absent. */
@@ -40,6 +42,7 @@ function must<T>(value: T | undefined, kind: string, id: string): T {
 export function createBundle(events: EventsBundle, academy: Academy): Bundle {
   const byKey = new Map<string, EventRecord>(events.events.map((e) => [e.key, e]));
   return {
+    all: () => events.events,
     event: (key) => must(byKey.get(key), "event", key),
     character: (id) => must(academy.characters[id], "character", id),
     support: (id) => must(academy.supports[id], "support", id),
