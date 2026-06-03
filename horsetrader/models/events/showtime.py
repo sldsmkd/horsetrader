@@ -70,7 +70,7 @@ class Showtimes(Events[Showtime], metaclass=SingletonMeta):
         return (_add_en_overlay,)
 
     def _fetch_primary(self) -> list[Showtime]:
-        records = Wikiru().showtimes()
+        records = Wikiru().occurrences("フジキセキのショータイム", "showtime")
         return [
             Showtime(
                 key=StableKey(record["key"]),

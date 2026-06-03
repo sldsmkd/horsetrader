@@ -20,10 +20,10 @@ class Wikiru(metaclass=SingletonMeta):
     def __init__(self):
         self._events_scraper = WikiruEvents()
 
-    def showtimes(self) -> Sequence[dict]:
-        """Fetch Fuji Kiseki Showtime occurrences (JP period + name, keyed showtime-NNN)."""
-        return self._events_scraper.showtimes()
+    def occurrences(self, heading: str, key_prefix: str) -> Sequence[dict]:
+        """Fetch a section's occurrences (JP period + name, keyed ``<key_prefix>-NNN``).
 
-    def skill_tests(self) -> Sequence[dict]:
-        """Fetch Trainer Skills Test occurrences (JP period + name, keyed skilltest-NNN)."""
-        return self._events_scraper.skill_tests()
+        Generic over the wikiru event-index sections — the caller supplies the
+        heading text and key prefix (e.g. ``"トレーナー技能試験", "skilltest"``).
+        """
+        return self._events_scraper.occurrences(heading, key_prefix)

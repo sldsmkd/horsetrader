@@ -156,10 +156,34 @@ class ShowtimeRecord(RushableEventRecord, tag="showtime"):
 
 
 @eishin
-class SkillTestRecord(RushableEventRecord, tag="skilltest"):
-    # Recurring Trainer Skills Test; rushable, carries the fixed full-clear
-    # rewards. `name` is the (uniform) EN display label.
+class NamedRushableEventRecord(RushableEventRecord):
+    """A rushable event record carrying a display `name` — the shared wire shape
+    for the recurring wikiru event types (Trainer Skills Test, Racing Carnival,
+    Aim! Strongest Team, Masters Challenge). Untagged intermediate; concrete
+    subclasses supply the discriminator tag."""
+
     name: str | None
+
+
+@eishin
+class SkillTestRecord(NamedRushableEventRecord, tag="skilltest"):
+    # Recurring Trainer Skills Test; carries the fixed full-clear rewards.
+    pass
+
+
+@eishin
+class RacingCarnivalRecord(NamedRushableEventRecord, tag="racingcarnival"):
+    pass
+
+
+@eishin
+class StrongestTeamRecord(NamedRushableEventRecord, tag="strongestteam"):
+    pass
+
+
+@eishin
+class MastersChallengeRecord(NamedRushableEventRecord, tag="masterschallenge"):
+    pass
 
 
 @eishin
@@ -186,6 +210,9 @@ EventRecordUnion = (
     | CMRecord
     | ShowtimeRecord
     | SkillTestRecord
+    | RacingCarnivalRecord
+    | StrongestTeamRecord
+    | MastersChallengeRecord
     | AnchorRecord
     | AnchoredEventRecord
 )

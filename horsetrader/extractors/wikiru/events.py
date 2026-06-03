@@ -123,11 +123,15 @@ class WikiruEvents(metaclass=SingletonMeta):
         rows.sort(key=lambda r: r["period"].start)
         return rows
 
-    def _occurrences(self, heading: str, key_prefix: str) -> list[dict]:
+    def occurrences(self, heading: str, key_prefix: str) -> list[dict]:
         """Section rows as occurrence records keyed ``<key_prefix>-NNN`` by
         chronological ordinal — the shared scheme for every event type on the
         index (JP order is the stable anchor; an EN overlay or the predictor
         chain joins on this key). Each record is ``{key, period, name, references}``.
+
+        The one generic entry point: callers pass the section heading text and a
+        key prefix (e.g. ``"フジキセキのショータイム", "showtime"``). Per-type
+        knowledge lives at the model layer, not here.
         """
         records: list[dict] = []
         for ordinal, row in enumerate(self._section_rows(heading), start=1):
@@ -139,13 +143,3 @@ class WikiruEvents(metaclass=SingletonMeta):
             })
         logger.info("Extracted %d %s occurrences from wikiru", len(records), key_prefix)
         return records
-
-    def showtimes(self) -> Sequence[dict]:
-        """Fuji Kiseki Showtime occurrences (keyed showtime-NNN) — a finite,
-        closed two-event series; EN dates curated in ``showtimes.yaml``."""
-        return self._occurrences("フジキセキのショータイム", "showtime")
-
-    def skill_tests(self) -> Sequence[dict]:
-        """Trainer Skills Test occurrences (keyed skilltest-NNN) — a recurring
-        event (~3×/year); EN dates left to the fallthrough predictor."""
-        return self._occurrences("トレーナー技能試験", "skilltest")
