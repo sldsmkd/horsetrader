@@ -20,8 +20,14 @@ _horsetrader.old/
 # VSCode workspace settings
 *.code-workspace
 
-# Shippable build artifact — built into, deployed to Cloudflare (regenerated)
-static/
+# Shippable build artifact — built into, deployed to Cloudflare (regenerated).
+# Anchored to repo root so it ignores only the build output, NOT the
+# `horsetrader/extractors/static/` package (an unanchored `static/` matched
+# any dir of that name and silently dropped new files there).
+/static/
 
 # .cache for caching data
 .cache/
+
+# scratcpad
+scratch.txt
