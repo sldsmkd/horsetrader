@@ -12,17 +12,48 @@
  *     not the whole day's subtotal;
  *   - resolves each key to its bundle event (its kind → accent, name, predicted);
  *   - keeps only the below-lane kinds (banners are above-lane, handled later);
- *   - computes the true-date x off the axis (posting date = the event's `end`,
- *     the realised moment the ledger fact and balance reaction both sit on).
+ *   - computes the true-date x off the axis at the event's `start` — when it
+ *     *arrives* on the timeline. (The reward still posts on `end` in the ledger;
+ *     the card shows up when the event lands, "the line lags the dots".)
  */
 
 import type { Projection, ResourceVector } from "../../core/projection/index.ts";
 import type { Axis } from "../axis.ts";
 import type { Bundle, EventRecord } from "../bundle/access.ts";
 
-/** The below-lane (income / "doing") event kinds — banners (trainee/support) are above. */
-export type BelowKind = "cm" | "story" | "scenario" | "anchor" | "anchoredevent";
-const BELOW_LANE = new Set<string>(["cm", "story", "scenario", "anchor", "anchoredevent"]);
+/** The below-lane (income / "doing") event kinds — everything that isn't a
+ *  banner (trainee/support, the two above-lane kinds). */
+export type BelowKind =
+  | "cm"
+  | "story"
+  | "scenario"
+  | "anchor"
+  | "anchoredevent"
+  | "mission"
+  | "legendrace"
+  | "factorstudies"
+  | "skilltest"
+  | "strongestteam"
+  | "masterschallenge"
+  | "racingcarnival"
+  | "showtime"
+  | "leagueofheroes";
+const BELOW_LANE = new Set<string>([
+  "cm",
+  "story",
+  "scenario",
+  "anchor",
+  "anchoredevent",
+  "mission",
+  "legendrace",
+  "factorstudies",
+  "skilltest",
+  "strongestteam",
+  "masterschallenge",
+  "racingcarnival",
+  "showtime",
+  "leagueofheroes",
+]);
 
 export interface BelowCard {
   /** The event key — the stable id, used as the card's identity. */
@@ -31,7 +62,8 @@ export interface BelowCard {
   kind: BelowKind;
   /** Display name, falling back to the key when the source carries none. */
   label: string;
-  /** The posting date — the stem's true date (principle 4). */
+  /** The arrival date — when the event shows up on the timeline; the stem's true
+   *  date (principle 4). The reward still posts on `end` in the ledger. */
   date: string;
   /** Content-space x for `date` off the axis (true-to-date, principle 2). */
   x: number;
@@ -41,21 +73,14 @@ export interface BelowCard {
   reward: ResourceVector;
 }
 
-/** The display name for an event, by kind; `undefined`/`null` falls back to its key. */
+/** The display name for an event; the `name`/`title` it carries, else its key. */
 function labelOf(ev: EventRecord): string {
-  switch (ev.type) {
-    case "cm":
-    case "anchoredevent":
-      return ev.name ?? ev.key;
-    case "story":
-    case "scenario":
-      return ev.title ?? ev.key;
-    default:
-      return ev.key;
-  }
+  if ("name" in ev && ev.name) return ev.name;
+  if ("title" in ev && ev.title) return ev.title;
+  return ev.key;
 }
 
-export function belowLaneCards(projection: Projection, bundle: Bundle, axis: Axis): BelowCard[] {
+export function belowLaneCards(projection: Projection, bundle: Bundle, axis: Axis, after: string): BelowCard[] {
   // Each below-lane event posts once (on its `end`), so a source maps to one
   // reward bag; accumulate per source across its single-resource ledger entries.
   const rewardBySource = new Map<string, ResourceVector>();
@@ -66,6 +91,17 @@ export function belowLaneCards(projection: Projection, bundle: Bundle, axis: Axi
     bag[entry.resource] = (bag[entry.resource] ?? 0) + entry.amount;
   }
 
+  // Placeholder backfill: the reward-less below-lane kinds (PvP, scenario
+  // generators, most anchors) produce no events-stream entry, so they'd never
+  // get a card. Give each an empty reward so every kind is *present* on the lane
+  // for packing; the real reward stays the height signal where one exists.
+  // TODO(4e+): proper reward-less card rendering instead of a zero placeholder.
+  for (const ev of bundle.all()) {
+    if (!BELOW_LANE.has(ev.type)) continue; // above-lane banner
+    if (ev.end <= after) continue; // before the horizon — out of scope (mirrors the ledger)
+    if (!rewardBySource.has(ev.key)) rewardBySource.set(ev.key, {});
+  }
+
   const cards: BelowCard[] = [];
   for (const [key, reward] of rewardBySource) {
     const ev = bundle.event(key); // resolves or throws — sources are bundle keys (ETL-guaranteed)
@@ -74,8 +110,8 @@ export function belowLaneCards(projection: Projection, bundle: Bundle, axis: Axi
       key,
       kind: ev.type as BelowKind,
       label: labelOf(ev),
-      date: ev.end,
-      x: axis.xForDate(ev.end),
+      date: ev.start,
+      x: axis.xForDate(ev.start),
       predicted: ev.predicted,
       reward,
     });

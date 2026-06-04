@@ -211,14 +211,16 @@ body {
   pointer-events: none;
 }
 
-/* A card positions itself at its true-date x (left); the packer (4e) will add a
-   y-offset transform. 4d places them naïvely — overlaps are expected, and are
-   exactly the collisions the packer exists to resolve. */
+/* A card positions itself at its true-date x (left) and straddles it: centring
+   the column + shifting left by half its width puts the stem — a centred child —
+   on the tick while the body sits evenly either side (principle 4). The packer
+   grows the stem to drop the body to its packed row; the stem never leaves x. */
 .card {
   position: absolute;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
+  transform: translateX(-50%);
 }
 
 .card--below {

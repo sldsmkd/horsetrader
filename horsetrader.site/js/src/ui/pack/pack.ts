@@ -47,7 +47,10 @@ export interface BelowConfig {
  * caller zips them straight back onto its cards.
  */
 export function packBelow(boxes: readonly Box[], { width, gapX, gapY }: BelowConfig): number[] {
-  // Place tallest-first; x-order and index break ties so the result is deterministic.
+  // Placement priority — the one tuning knob. Tallest-first today (big cards
+  // anchor the line, small ones fill the gaps); could become fattest-loot-first
+  // or another key without touching the geometry below. x then index break ties
+  // so the result is deterministic.
   const order = boxes.map((_, i) => i);
   order.sort((a, b) => boxes[b].height - boxes[a].height || boxes[a].x - boxes[b].x || a - b);
 

@@ -18,10 +18,13 @@ import { createAxis } from "../axis.ts";
 import type { Axis } from "../axis.ts";
 import { addDays } from "../../core/projection/dates.ts";
 
-/** The fixed zoom for now — px per day. Becomes discrete view-state when zoom lands. */
-const PX_PER_DAY = 6;
-/** Breathing room (days) padded either side of the data extent. */
-const PAD_DAYS = 14;
+/** Px per day — the fixed true-to-date scale (ui.md principle 2). We don't zoom
+ *  beyond browser ctrl-+/-, so this is a constant, not view-state. Matches the
+ *  prototype's spacing so a date-gap reads as room, not a crush. */
+const PX_PER_DAY = 100;
+/** Breathing room (days) padded either side of the data extent — the prototype's
+ *  fixed buffer before the first card and after the last. */
+const PAD_DAYS = 3;
 
 /** Pan momentum, tuned for feel: per-ms velocity decay, the flick floor to start
  *  a glide at release, the floor at which the glide ends, and the pause-before-
