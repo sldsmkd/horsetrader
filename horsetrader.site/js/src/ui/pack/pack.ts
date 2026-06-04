@@ -79,3 +79,36 @@ export function packBelow(boxes: readonly Box[], { width, gapX, gapY }: BelowCon
 
   return offsets;
 }
+
+/** One above-lane group to place: its true-date centre x and its measured width. */
+export interface AboveBox {
+  /** Content-space centre x (off the axis) — the group's shared start, never moved. */
+  x: number;
+  /** Measured group width in px. */
+  width: number;
+}
+
+/**
+ * Above-lane horizontal nudge. Above the line is the appearance axis: banner
+ * *groups* (banners sharing a start) sit at their true date. Where neighbours
+ * would overlap, a left-to-right sweep pushes each group **right** just enough to
+ * clear the one before it (plus `gap`) — bodies drift right under crowding while
+ * their stems stay pinned to the true tick (principle 4).
+ *
+ * Returns nudges **aligned to input order** (`boxes[i] → nudges[i]`); the caller
+ * applies each as a translateX on the group body. Boxes are centred on `x`.
+ */
+export function packAbove(boxes: readonly AboveBox[], gap: number): number[] {
+  const order = boxes.map((_, i) => i).sort((a, b) => boxes[a].x - boxes[b].x);
+  const nudges = new Array<number>(boxes.length).fill(0);
+
+  for (let k = 1; k < order.length; k++) {
+    const cur = order[k];
+    const prev = order[k - 1];
+    const prevRight = boxes[prev].x + nudges[prev] + boxes[prev].width / 2 + gap;
+    const curLeft = boxes[cur].x + nudges[cur] - boxes[cur].width / 2;
+    if (curLeft < prevRight) nudges[cur] += prevRight - curLeft;
+  }
+
+  return nudges;
+}

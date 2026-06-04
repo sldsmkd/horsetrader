@@ -80,7 +80,7 @@ function labelOf(ev: EventRecord): string {
   return ev.key;
 }
 
-export function belowLaneCards(projection: Projection, bundle: Bundle, axis: Axis, after: string): BelowCard[] {
+export function belowLaneCards(projection: Projection, bundle: Bundle, axis: Axis): BelowCard[] {
   // Each below-lane event posts once (on its `end`), so a source maps to one
   // reward bag; accumulate per source across its single-resource ledger entries.
   const rewardBySource = new Map<string, ResourceVector>();
@@ -98,7 +98,6 @@ export function belowLaneCards(projection: Projection, bundle: Bundle, axis: Axi
   // TODO(4e+): proper reward-less card rendering instead of a zero placeholder.
   for (const ev of bundle.all()) {
     if (!BELOW_LANE.has(ev.type)) continue; // above-lane banner
-    if (ev.end <= after) continue; // before the horizon — out of scope (mirrors the ledger)
     if (!rewardBySource.has(ev.key)) rewardBySource.set(ev.key, {});
   }
 

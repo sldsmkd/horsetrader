@@ -10,6 +10,13 @@
 
 const plain = new Intl.NumberFormat("en-US");
 const signed = new Intl.NumberFormat("en-US", { signDisplay: "exceptZero" });
+const date = new Intl.DateTimeFormat("en-US", { day: "numeric", month: "short", year: "2-digit", timeZone: "UTC" });
+
+/** An ISO date (`2026-06-10`) → a compact label (`Jun 10, 26`), formatted in UTC
+ *  so the calendar day never shifts under a local timezone. */
+export function formatDate(iso: string): string {
+  return date.format(new Date(`${iso}T00:00:00Z`));
+}
 
 /** A balance / magnitude: grouped, a minus only when negative. `1,250` · `-50` · `0`. */
 export function formatBalance(amount: number): string {

@@ -230,7 +230,7 @@ body {
 
 .card--above {
   bottom: 50%; /* anchor at the line, grow up: body then stem */
-  width: 10rem;
+  /* width comes from the .banner-group body; the stem stays centred on the tick */
 }
 
 /* The stem pins the card to its true-date tick on the line (principle 4). */
@@ -266,20 +266,48 @@ body {
   font-weight: 600;
 }
 
-/* Above-lane banner: art identity on top, content atoms as pills below. */
-.card__image {
+/* Above-lane banner group: a container of banners sharing a start date. The body
+   is what the packer nudges horizontally (translateX) — the stem stays on the tick. */
+.banner-group {
+  position: relative; /* anchors the date label */
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  width: 10rem;
+  padding: 0.4rem;
+  padding-bottom: 1.1rem; /* room for the date label */
+  border: 1px solid color-mix(in srgb, currentColor 35%, transparent);
+  border-radius: 0.5rem;
+  background: Canvas;
+  will-change: transform;
+}
+
+/* One banner within the group: art identity on top, content atoms as pills below. */
+.banner {
+  border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+  border-radius: 0.3rem;
+  overflow: hidden;
+}
+.banner__image {
   display: block;
   width: 100%;
   height: auto;
-  border-radius: 0.3rem;
 }
-.card__atoms {
-  margin: 0.25rem 0 0;
-  padding: 0;
+.banner__atoms {
+  margin: 0.2rem 0 0;
+  padding: 0 0.3rem 0.2rem;
   list-style: none;
   max-height: 5rem;
   overflow: hidden;
   font-size: 0.7rem;
+}
+.banner-group__date {
+  position: absolute;
+  right: 0.5rem;
+  bottom: 0.3rem;
+  font-size: 0.65rem;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.7;
 }
 .atom {
   display: flex;

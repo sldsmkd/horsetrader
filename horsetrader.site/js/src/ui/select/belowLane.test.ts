@@ -30,7 +30,7 @@ function projectFixture() {
 }
 
 test("below-lane cards: below-lane events only, resolved + positioned, sorted by date", () => {
-  const cards = belowLaneCards(projectFixture(), createBundle(EVENTS, EMPTY_ACADEMY), createAxis({ origin: "2026-06-01", pxPerDay: 10 }), "2026-01-01");
+  const cards = belowLaneCards(projectFixture(), createBundle(EVENTS, EMPTY_ACADEMY), createAxis({ origin: "2026-06-01", pxPerDay: 10 }));
 
   // The trainee banner (above-lane) and the daily-login (generators stream) are excluded.
   assert.deepEqual(cards.map((c) => c.key), ["story-1", "anchor-1", "cm-1", "sce-1"]);
@@ -38,7 +38,7 @@ test("below-lane cards: below-lane events only, resolved + positioned, sorted by
 });
 
 test("each card resolves its label (name/title, falling back to key) and predicted flag", () => {
-  const cards = belowLaneCards(projectFixture(), createBundle(EVENTS, EMPTY_ACADEMY), createAxis({ origin: "2026-06-01", pxPerDay: 10 }), "2026-01-01");
+  const cards = belowLaneCards(projectFixture(), createBundle(EVENTS, EMPTY_ACADEMY), createAxis({ origin: "2026-06-01", pxPerDay: 10 }));
   const byKey = new Map(cards.map((c) => [c.key, c]));
 
   assert.equal(byKey.get("cm-1")!.label, "Summer CM");
@@ -50,7 +50,7 @@ test("each card resolves its label (name/title, falling back to key) and predict
 });
 
 test("x is true-to-date off the axis (arrival date = start) and reward is the event's own delta", () => {
-  const cards = belowLaneCards(projectFixture(), createBundle(EVENTS, EMPTY_ACADEMY), createAxis({ origin: "2026-06-01", pxPerDay: 10 }), "2026-01-01");
+  const cards = belowLaneCards(projectFixture(), createBundle(EVENTS, EMPTY_ACADEMY), createAxis({ origin: "2026-06-01", pxPerDay: 10 }));
   const byKey = new Map(cards.map((c) => [c.key, c]));
 
   assert.equal(byKey.get("story-1")!.date, "2026-06-14"); // start, not end

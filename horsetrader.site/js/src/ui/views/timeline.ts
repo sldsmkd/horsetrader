@@ -34,6 +34,20 @@ const MIN_FLING_V = 0.05; // px/ms
 const MIN_GLIDE_V = 0.015; // px/ms
 const STALE_RELEASE_MS = 60;
 
+/** Elastic walls: the rubber-band tension when dragging past an end (lower =
+ *  stiffer), the per-frame ease fraction the spring-back uses to recentre on the
+ *  wall, and the px within which the spring snaps home. */
+const RUBBER_TENSION = 0.55;
+const SPRING_EASE = 0.18;
+const SPRING_SNAP_PX = 0.5;
+
+/** Axis-intent lock: a drag commits to an axis after this much travel, and the
+ *  vertical peek only engages when the drag is this many times steeper than it is
+ *  wide — so a left/right pan can't slip into a vertical peek. Horizontal is the
+ *  default; vertical must be asked for deliberately. */
+const AXIS_COMMIT_PX = 8;
+const VERTICAL_BIAS = 2.8;
+
 type Extent = readonly [string, string] | null;
 
 export interface Timeline {
@@ -58,6 +72,12 @@ export interface Timeline {
    * timeline only hosts them (it stays dumb about what a card is).
    */
   setCards(elements: HTMLElement[]): void;
+  /**
+   * Report how far the packed cards reach above and below the centre line (px),
+   * measured after a pack. Sets the dynamic vertical roof/floor — only the depth
+   * past the viewport half becomes a peekable region.
+   */
+  setContentDepth(above: number, below: number): void;
 }
 
 export interface TimelineHandlers {
@@ -76,9 +96,15 @@ function clampDate(date: string, [lo, hi]: readonly [string, string]): string {
 export function timeline({ onScrub }: TimelineHandlers): Timeline {
   // Transient interaction-state, owned here and written directly — never broadcast.
   let panX = 0;
+  let panY = 0; // vertical peek offset; rests at 0 (the line recentred)
   let axis: Axis | null = null;
   let extent: Extent = null;
   let cursorDate: string | null = null;
+  let centered = false; // first layout centres the view on today; later ones keep the pan
+  // How far cards reach above / below the centre line (px), set after each pack.
+  // The dynamic roof and floor: only the overflow past the viewport half is pannable.
+  let aboveDepth = 0;
+  let belowDepth = 0;
 
   const line = h("div", { class: "timeline__line" });
   const today = h("div", { class: "timeline__today" });
@@ -88,45 +114,110 @@ export function timeline({ onScrub }: TimelineHandlers): Timeline {
   const el = h("section", { class: "timeline", attr: { "aria-label": "Timeline" } }, content);
 
   const applyPan = () => {
-    content.style.transform = `translateX(${panX}px)`;
+    content.style.transform = `translate(${panX}px, ${panY}px)`;
   };
   const placeCursor = () => {
     if (axis && cursorDate !== null) cursor.style.left = `${axis.xForDate(cursorDate)}px`;
   };
 
-  // --- pan: grab the world, with inertial momentum on release. Horizontal pan
-  // is free and unbounded (ui.md EC1); the glide is the same transient state
-  // written straight to the transform — still no broadcast. ---
+  // --- pan: grab the world, bounded by elastic walls. `panX` is the *applied*
+  // offset; dragging past an end meets rubber-band resistance, and release/glide
+  // springs back to recentre on the wall (the content's start or end edge). Still
+  // transient state written straight to the transform — no broadcast. ---
   let dragging = false;
   let grabX = 0;
+  let grabY = 0;
   let grabPan = 0;
-  let velocity = 0; // px/ms, smoothed across a drag's moves
+  let grabPanY = 0;
+  let velocity = 0; // px/ms, smoothed across a drag's moves (horizontal only)
+  let axisLock: "none" | "horizontal" | "free" = "none"; // gesture intent, per drag
   let lastMoveX = 0;
   let lastMoveT = 0;
-  let glide = 0; // requestAnimationFrame handle; 0 when idle
+  let anim = 0; // requestAnimationFrame handle; 0 when idle
 
-  const stopGlide = () => {
-    if (glide) cancelAnimationFrame(glide);
-    glide = 0;
+  // The horizontal pan range that keeps content on screen: 0 holds the start edge
+  // at the viewport's left; the (negative) min holds the end edge at its right.
+  // Content narrower than the viewport has no travel — both clamp to 0.
+  const panBounds = () => {
+    const min = Math.min(0, el.clientWidth - content.offsetWidth);
+    return { min, max: 0 };
   };
-  const startGlide = () => {
+  // The vertical peek range — the dynamic roof and floor. Only the lane depth that
+  // overflows the viewport half is reachable: pan down (positive) to peek the
+  // above lane, up (negative) for the below lane. No overflow → no travel (rubber
+  // from 0). Rest is always 0 (the line recentred).
+  const panBoundsY = () => {
+    const half = el.clientHeight / 2;
+    return { min: -Math.max(0, belowDepth - half), max: Math.max(0, aboveDepth - half) };
+  };
+  // Diminishing-returns overscroll: the further past a wall, the less it gives —
+  // an asymptote at `dim`, so the wall stiffens but never locks.
+  const rubber = (over: number, dim: number) => (1 - 1 / ((over / (dim || 1)) * RUBBER_TENSION + 1)) * dim;
+  // Map an intended pan to its applied value, rubber-damped beyond the walls.
+  const dampWith = (raw: number, min: number, max: number, dim: number) => {
+    if (raw > max) return max + rubber(raw - max, dim);
+    if (raw < min) return min - rubber(min - raw, dim);
+    return raw;
+  };
+  const damp = (raw: number) => {
+    const { min, max } = panBounds();
+    return dampWith(raw, min, max, el.clientWidth);
+  };
+  const dampY = (raw: number) => {
+    const { min, max } = panBoundsY();
+    return dampWith(raw, min, max, el.clientHeight);
+  };
+
+  const stopAnim = () => {
+    if (anim) cancelAnimationFrame(anim);
+    anim = 0;
+  };
+  // One loop for both axes. Horizontal: past a wall it eases home (killing
+  // momentum), within bounds it coasts on friction until it stalls or hits a wall.
+  // Vertical always eases back to 0 — the peek recentres on the timeline. Runs
+  // until both axes have settled.
+  const startAnim = () => {
+    stopAnim();
     let last = performance.now();
     const step = (t: number) => {
-      const dt = t - last;
+      const dt = Math.min(t - last, 64); // clamp so a backgrounded tab doesn't lurch
       last = t;
-      panX += velocity * dt;
-      velocity *= Math.pow(FRICTION_PER_MS, dt);
+      const ease = 1 - Math.pow(1 - SPRING_EASE, dt / 16); // frame-rate-correct
+
+      // Horizontal.
+      const { min, max } = panBounds();
+      let xActive: boolean;
+      if (panX > max || panX < min) {
+        const wall = panX > max ? max : min;
+        panX += (wall - panX) * ease;
+        velocity = 0;
+        xActive = Math.abs(panX - wall) >= SPRING_SNAP_PX;
+        if (!xActive) panX = wall;
+      } else {
+        panX += velocity * dt;
+        velocity *= Math.pow(FRICTION_PER_MS, dt);
+        xActive = Math.abs(velocity) > MIN_GLIDE_V || panX < min || panX > max;
+      }
+
+      // Vertical — recentre on the line.
+      panY += (0 - panY) * ease;
+      const yActive = Math.abs(panY) >= SPRING_SNAP_PX;
+      if (!yActive) panY = 0;
+
       applyPan();
-      glide = Math.abs(velocity) > MIN_GLIDE_V ? requestAnimationFrame(step) : 0;
+      anim = xActive || yActive ? requestAnimationFrame(step) : 0;
     };
-    glide = requestAnimationFrame(step);
+    anim = requestAnimationFrame(step);
   };
 
   el.addEventListener("pointerdown", (ev) => {
-    stopGlide(); // grabbing the world halts any glide in progress
+    stopAnim(); // grabbing the world halts any glide/spring in progress
     dragging = true;
+    axisLock = "none";
     grabX = ev.clientX;
+    grabY = ev.clientY;
     grabPan = panX;
+    grabPanY = panY;
     velocity = 0;
     lastMoveX = ev.clientX;
     lastMoveT = performance.now();
@@ -135,7 +226,16 @@ export function timeline({ onScrub }: TimelineHandlers): Timeline {
   });
   el.addEventListener("pointermove", (ev) => {
     if (dragging) {
-      panX = grabPan + (ev.clientX - grabX); // transient → straight to the transform
+      const dx = ev.clientX - grabX;
+      const dy = ev.clientY - grabY;
+      // Commit the gesture to an axis once it's travelled enough to read intent.
+      // Vertical only wins when the drag is clearly steeper than wide; otherwise
+      // it's a horizontal pan and the vertical peek stays locked out.
+      if (axisLock === "none" && Math.hypot(dx, dy) > AXIS_COMMIT_PX) {
+        axisLock = Math.abs(dy) > Math.abs(dx) * VERTICAL_BIAS ? "free" : "horizontal";
+      }
+      panX = damp(grabPan + dx); // horizontal always pans (the primary gesture)
+      if (axisLock === "free") panY = dampY(grabPanY + dy); // vertical only once asked for
       applyPan();
       const now = performance.now();
       const dt = now - lastMoveT;
@@ -160,8 +260,11 @@ export function timeline({ onScrub }: TimelineHandlers): Timeline {
     dragging = false;
     el.releasePointerCapture(ev.pointerId);
     el.classList.remove("timeline--grabbing");
-    // Fling only when the release follows live motion (not a pause-then-lift).
-    if (performance.now() - lastMoveT < STALE_RELEASE_MS && Math.abs(velocity) > MIN_FLING_V) startGlide();
+    // Carry a fling only when the release follows live motion (not a pause-lift);
+    // otherwise rest. Either way the loop springs back if we're past a wall.
+    const fling = performance.now() - lastMoveT < STALE_RELEASE_MS && Math.abs(velocity) > MIN_FLING_V;
+    if (!fling) velocity = 0;
+    startAnim();
   };
   el.addEventListener("pointerup", endDrag);
   el.addEventListener("pointercancel", endDrag);
@@ -170,6 +273,10 @@ export function timeline({ onScrub }: TimelineHandlers): Timeline {
     el,
     axis: () => axis,
     setCards: (elements) => cards.replaceChildren(...elements),
+    setContentDepth: (above, below) => {
+      aboveDepth = above;
+      belowDepth = below;
+    },
     layout(nextExtent, todayDate) {
       extent = nextExtent;
       if (!extent) {
@@ -183,6 +290,16 @@ export function timeline({ onScrub }: TimelineHandlers): Timeline {
       // Pad the origin so the first event isn't flush against the left edge.
       axis = createAxis({ origin: addDays(extent[0], -PAD_DAYS), pxPerDay: PX_PER_DAY });
       content.style.width = `${axis.xForDate(extent[1]) + PAD_DAYS * PX_PER_DAY}px`;
+
+      // First load lands centred on today; later recomputes keep the user's pan.
+      // Either way clamp inside the walls (hard, no spring — the rare render path).
+      if (!centered) {
+        panX = el.clientWidth / 2 - axis.xForDate(todayDate);
+        centered = true;
+      }
+      const { min, max } = panBounds();
+      panX = Math.max(min, Math.min(max, panX));
+      applyPan();
 
       today.style.display = "";
       today.style.left = `${axis.xForDate(todayDate)}px`;

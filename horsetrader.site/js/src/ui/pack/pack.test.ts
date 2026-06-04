@@ -1,8 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { packBelow } from "./pack.ts";
-import type { Box, BelowConfig } from "./pack.ts";
+import { packBelow, packAbove } from "./pack.ts";
+import type { Box, BelowConfig, AboveBox } from "./pack.ts";
 
 /** A square-ish collision box: width 100, gaps 10 — so centres ≥ 110 apart don't x-collide. */
 const CFG: BelowConfig = { width: 100, gapX: 10, gapY: 10 };
@@ -82,4 +82,52 @@ test("below: offsets are aligned to input order, not placement order", () => {
 
 test("below: empty input → empty offsets", () => {
   assert.deepEqual(packBelow([], CFG), []);
+});
+
+test("above: groups with room keep their true x (no nudge)", () => {
+  // Centres 200 apart, width 100 + gap 8 → no overlap.
+  const boxes: AboveBox[] = [
+    { x: 0, width: 100 },
+    { x: 200, width: 100 },
+    { x: 400, width: 100 },
+  ];
+  assert.deepEqual(packAbove(boxes, 8), [0, 0, 0]);
+});
+
+test("above: overlapping groups push right to clear (left-to-right sweep)", () => {
+  // Two 100-wide groups 60 apart: edges overlap; the right one nudges to clear.
+  const boxes: AboveBox[] = [
+    { x: 0, width: 100 },
+    { x: 60, width: 100 },
+  ];
+  // prevRight = 0 + 50 + 8 = 58; curLeft = 60 - 50 = 10; nudge = 58 - 10 = 48.
+  assert.deepEqual(packAbove(boxes, 8), [0, 48]);
+});
+
+test("above: a nudge cascades — each push shifts the running right edge", () => {
+  const boxes: AboveBox[] = [
+    { x: 0, width: 100 },
+    { x: 60, width: 100 }, // → nudged to clear #0
+    { x: 120, width: 100 }, // → must clear #1's *nudged* right edge, not its true x
+  ];
+  const nudges = packAbove(boxes, 8);
+  assert.equal(nudges[0], 0);
+  assert.equal(nudges[1], 48); // as above
+  // prevRight = (60 + 48) + 50 + 8 = 166; curLeft = 120 - 50 = 70; nudge = 96.
+  assert.equal(nudges[2], 96);
+});
+
+test("above: nudges are aligned to input order, not sweep order", () => {
+  // Index 0 sits to the right of index 1; the sweep orders by x but results map back.
+  const boxes: AboveBox[] = [
+    { x: 60, width: 100 },
+    { x: 0, width: 100 },
+  ];
+  const nudges = packAbove(boxes, 8);
+  assert.equal(nudges[1], 0); // leftmost (index 1) is the anchor
+  assert.equal(nudges[0], 48); // index 0, pushed right
+});
+
+test("above: empty input → empty nudges", () => {
+  assert.deepEqual(packAbove([], 8), []);
 });
