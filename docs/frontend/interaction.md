@@ -14,14 +14,15 @@ the two-tier change model below is the UI expression of).
 
 ## Status: loop proven, substrate + cards on the canvas; packer next
 
-As of **2026-06-03** `core/` is built and tested, [ui.md](ui.md) has captured
+As of **2026-06-04** `core/` is built and tested, [ui.md](ui.md) has captured
 every surface intent-first, and the view layer is well underway: **build-order
-steps 1–3 and 4a–4d are done**, plus a **timeline-affordances** pass (see below).
+steps 1–3 and 4a–4e are done**, plus a **timeline-affordances** pass (see below).
 The axis primitive (4a), the grabbable full-canvas substrate with inertial pan
 (4b + affordances), the bundle data-access + below/above-lane selectors (4c, 4d),
-and the naïvely-placed card views for both lanes (4d) all render from the real
-baked bundle. **Remaining: the packer (4e) — the real algorithmic work — then the
-minimap (4f).** The **timeline-affordances** pass was pulled ahead of the packer
+the card views for both lanes (4d), and **the packer (4e) — the real algorithmic
+work — with both lane strategies (below-lane vertical collision-stacking, above-lane
+group-and-nudge) and elastic-wall pan with vertical peek** all render from the real
+baked bundle. **Remaining: the minimap (4f).** The **timeline-affordances** pass was pulled ahead of the packer
 once there was real data on the canvas to feel them against: the timeline now
 **fills the viewport** (chrome floats over it, principle 1) and pan carries
 **inertial momentum**. The original foundation, for the record: The **`h()` helper + `qs()`** and the **formatter**
@@ -36,8 +37,8 @@ coordinator (snapshot edit → recompute → `subscribe` → render; scrub → d
 `subscribe` → mount/unmount the overlay), the canvas staying live behind the
 overlay (principle 1, via a `pointer-events: none` layer). The two stores compose
 independently — editing carats in the overlay refreshes the canvas behind it while
-the overlay stays open. (Step 4 was decomposed into 4a–4f below; the packer is the
-one piece of it still to come.)
+the overlay stays open. (Step 4 was decomposed into 4a–4f below; the packer (4e)
+landed 2026-06-04, so the minimap (4f) is the one piece of it still to come.)
 
 The step-3 **standalone scrub** (`<input type=range>` in `app.ts`) has served its
 purpose — proving both tiers of the change model end to end — and **retires in 4b**:
@@ -284,12 +285,13 @@ it:
      banner and one below-lane card, stems pinned to the true tick (principle 4).
      **No packing yet** — place at true x and let them overlap, so 4e has real
      collisions to fix and the ledger→selector→view path is proven first.
-   - **4e — the packer.** The one genuinely algorithmic module (principle 8): render →
-     measure heights once → pure `(x-positions, heights) → offsets` → apply transforms;
-     two lane strategies (above: group-by-shared-start + horizontal nudge with elbowed
-     stems; below: vertical collision-stacking). Fully covered `pack.test.ts`. Edge
-     cases EC1–EC3 (ui.md) are follow-on test cases, not the first cut. **Where the
-     real work is.**
+   - **4e — the packer. DONE (2026-06-04).** The one genuinely algorithmic module
+     (principle 8): render → measure heights once → pure `(x-positions, heights) →
+     offsets` → apply transforms; two lane strategies (above: group-by-shared-start +
+     horizontal nudge; below: vertical collision-stacking, tallest-first). Pure geometry
+     in `pack/pack.ts`, impure measure-and-apply bookends in `app.ts`; the timeline gained
+     elastic-wall pan (rubber-band + spring-back) and a vertical peek bounded by each
+     lane's measured depth. Fully covered `pack.test.ts`.
    - **4f — the minimap.** The consolidated balance instrument (fret-lined, favourite
      pips, centred window) — another view over the *same* ledger + a minimap-scale
      axis. Separable and lower-risk, so it lands after the main canvas reads right.

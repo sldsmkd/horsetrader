@@ -76,13 +76,16 @@ function packBelowLane(cards: readonly BelowCard[], els: readonly HTMLElement[])
 function packAboveLane(groups: readonly BannerGroup[], els: readonly HTMLElement[]): number {
   if (els.length === 0) return 0;
   const bodies = els.map((el) => el.querySelector(".banner-group") as HTMLElement);
+  const stem = (els[0].querySelector(".card__stem") as HTMLElement).getBoundingClientRect().height;
   const boxes = groups.map((group, i) => ({ x: group.x, width: bodies[i].getBoundingClientRect().width }));
 
   const nudges = packAbove(boxes, ABOVE_GAP);
   let roof = 0;
   nudges.forEach((nudge, i) => {
     bodies[i].style.transform = nudge ? `translateX(${nudge}px)` : "";
-    roof = Math.max(roof, bodies[i].getBoundingClientRect().height);
+    // The lane reaches stem + body above the line — same stem+body measure the
+    // below bookend uses for its floor, so the two peek bounds stay symmetric.
+    roof = Math.max(roof, stem + bodies[i].getBoundingClientRect().height);
   });
   return roof;
 }
