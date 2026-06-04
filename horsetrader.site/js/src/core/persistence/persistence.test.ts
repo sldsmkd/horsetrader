@@ -29,7 +29,7 @@ test("inputs round-trip through save → load", () => {
   save(
     {
       version: 1,
-      snapshot: { date: "2026-05-28", resources: { carats_free: 1200 } },
+      snapshot: { date: "2026-05-28", resources: { free_carats: 1200 } },
       commitments: { "30096": 50 },
       favourites: { "108301": { note: "save him" } },
     },
@@ -38,7 +38,7 @@ test("inputs round-trip through save → load", () => {
   const { doc, recovered } = load(store);
   assert.equal(recovered, false);
   assert.equal(doc.snapshot?.date, "2026-05-28");
-  assert.equal(doc.snapshot?.resources.carats_free, 1200);
+  assert.equal(doc.snapshot?.resources.free_carats, 1200);
   assert.equal(doc.commitments?.["30096"], 50);
   assert.equal(doc.favourites?.["108301"]?.note, "save him");
 });
@@ -49,12 +49,12 @@ test("non-finite resource and commitment values are dropped, not kept", () => {
     DOCUMENT_KEY,
     JSON.stringify({
       version: 1,
-      snapshot: { date: "2026-05-28", resources: { carats_free: 1200, bad: null } },
+      snapshot: { date: "2026-05-28", resources: { free_carats: 1200, bad: null } },
       commitments: { "30096": 50, broken: "x" },
     }),
   );
   const { doc } = quietly(() => load(store));
-  assert.deepEqual(doc.snapshot?.resources, { carats_free: 1200 });
+  assert.deepEqual(doc.snapshot?.resources, { free_carats: 1200 });
   assert.deepEqual(doc.commitments, { "30096": 50 });
 });
 

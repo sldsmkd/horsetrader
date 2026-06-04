@@ -216,7 +216,7 @@ fixed-duration stance as a CM).
 
 **Rewards (heuristic).** Carats are *temporal*, not a lump sum: **250 carats on
 the first day of each set**, nothing between — modelled as a
-`SequenceReward(Carats)` over the window (250 at each leg's first-day offset,
+`SequenceReward(FreeCarats)` over the window (250 at each leg's first-day offset,
 `None` for off days). From the **8th occurrence onward** (when the reward tier
 improved) each race also grants **2 gold + 1 rainbow crystal shard** at the end
 (plain counters). Stamped in
@@ -327,13 +327,20 @@ but the primary lookup surface is the key.
 Events hand out rewards — carats, scout tickets, crystal shards — modelled
 in `models/rewards/`. Two shapes matter to the domain:
 
-- **Counter rewards** (`CounterReward` subclasses: `Carats`, `TraineeTicket`,
+- **Counter rewards** (`CounterReward` subclasses: `FreeCarats`, `TraineeTicket`,
   `SupportTicket`, `RainbowCrystalShard`, `GoldCrystalShard`) are a flat
-  `amount` of one item. They add and scale *by type* — `Carats(150) +
-  Carats(150) == Carats(300)`, `Carats(150) * 5 == Carats(750)` — and
+  `amount` of one item. They add and scale *by type* — `FreeCarats(150) +
+  FreeCarats(150) == FreeCarats(300)`, `FreeCarats(150) * 5 == FreeCarats(750)` — and
   adding two different counters raises rather than silently merging. This
-  is what lets rules stamp `[Carats(80), Carats(80)]` or `[Carats(160)]`
+  is what lets rules stamp `[FreeCarats(80), FreeCarats(80)]` or `[FreeCarats(160)]`
   interchangeably and lets bake fold them to the same `{key: amount}`.
+  `PaidCarats` is the corollary type — a *distinct* currency (some purchases
+  need paid carats specifically, e.g. a banner's discounted single pull at 50
+  paid vs 150 free), sharing only the icon (`item-00043`). It's never *handed
+  out*, so it's never scraped (`from_icon = False`) and no event bakes it today.
+  It exists so `paid_carats` is a first-class resource; paid *sources* (e.g. a
+  £5 daily pack granting paid + free carats) are a later ticket, and paid-only
+  *spends* are a client-side concern.
 
 - **`RewardGenerator`** wraps one counter plus a `repeat` count — a reward
   paid out repeatedly, typically a **daily login bonus** over an event's
@@ -358,8 +365,8 @@ in `models/rewards/`. Two shapes matter to the domain:
   no end. `total()` sums the paying days.
 
   Note the two reward shapes coexist on an anniversary event: a one-time
-  `carats` gift at the start (a plain counter) sits beside the `sequence` daily
-  login table — `{ "carats": 3000, "sequence": { "type": "carats", … } }`.
+  `free_carats` gift at the start (a plain counter) sits beside the `sequence` daily
+  login table — `{ "free_carats": 3000, "sequence": { "type": "free_carats", … } }`.
 
 **Baked shape.** A `Rewards` list folds (in
 `models/rewards/rewards.py::rewards_to_baked`) to a JSON object — the value of an
@@ -369,10 +376,10 @@ event's `rewards` key: counters become `{key: amount}` (same keys summed); a
 the repeat separate so the client multiplies; a `SequenceReward` serialises
 under `sequence` as `{"type": <reward key>, "sequence": [...]}` with absent days
 as `null`. Keys are bare + pluralised
-(`carats`, `gold_crystal_shards`, …); the `rewards` wrapper namespaces them.
+(`free_carats`, `gold_crystal_shards`, …); the `rewards` wrapper namespaces them.
 
 ```json
-{ "carats": 660, "gold_crystal_shards": 3,
+{ "free_carats": 660, "gold_crystal_shards": 3,
   "generator": { "gold_crystal_shards": 3, "repeat": 5 } }
 ```
 
@@ -393,7 +400,7 @@ as `null`. Keys are bare + pluralised
   anchor-golden-week-2021:
     rewards:
       generator:
-        carats: 564
+        free_carats: 564
         repeat: 10
     jp: { start: 2021-04-30T12:00:00+09:00 }
     en: { start: 2025-08-07T22:00:00+00:00 }

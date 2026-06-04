@@ -17,10 +17,16 @@ class Reward:
     serialises under in the baked JSON; `item_key` points into the
     `Items` collection so identity, JP/EN name, and icon come from a
     first-class Tracen model rather than a constant table.
+
+    `from_icon` says whether a scraped Gametora handout icon can resolve to
+    this type. It's `True` for everything that's ever actually handed out;
+    `PaidCarats` sets it `False` because it shares `FreeCarats`' icon but is
+    never a handout, so the icon lookup must resolve to the free variant.
     """
 
     key: ClassVar[str]
     item_key: ClassVar[str] = ""
+    from_icon: ClassVar[bool] = True
 
     @classmethod
     def item(cls) -> Item | None:
@@ -46,8 +52,8 @@ class CounterReward(Reward):
     so the bake step and `RewardGenerator` can treat any of them uniformly
     rather than re-declaring the field five times over.
 
-    Counters of the *same* type add and scale by amount — `Carats(150) +
-    Carats(150) == Carats(300)`, `Carats(150) * 5 == Carats(750)` — which
+    Counters of the *same* type add and scale by amount — `FreeCarats(150) +
+    FreeCarats(150) == FreeCarats(300)`, `FreeCarats(150) * 5 == FreeCarats(750)` — which
     is what lets the bake step fold a list and `RewardGenerator` compute a
     total without caring which counter it's holding.
     """
@@ -65,9 +71,31 @@ class CounterReward(Reward):
 
 @yayoi
 @dataclass(frozen=True)
-class Carats(CounterReward):
-    key: ClassVar[str] = "carats"
+class FreeCarats(CounterReward):
+    key: ClassVar[str] = "free_carats"
     item_key: ClassVar[str] = "item-00043"
+
+
+@yayoi
+@dataclass(frozen=True)
+class PaidCarats(CounterReward):
+    """Carats bought with money — a *distinct* currency from `FreeCarats`, not
+    just the same item acquired differently: some purchases require paid carats
+    specifically (e.g. a banner's discounted single pull, 50 paid vs 150 free).
+    They share only the icon, so this type reuses `item-00043` for name/icon.
+
+    No event ever *hands out* paid carats, so this type is never scraped from
+    an icon (`from_icon = False`, which keeps the carat icon resolving to
+    `FreeCarats`) and isn't baked from any event reward today. It exists so
+    `paid_carats` is a first-class resource in the vocabulary. Paid *sources*
+    (e.g. a £5 daily pack granting 500 paid + 50 free carats/day for 30 days)
+    are a later ticket; paid-only *spends* are a client concern resolved when
+    spending plans are drawn up.
+    """
+
+    key: ClassVar[str] = "paid_carats"
+    item_key: ClassVar[str] = "item-00043"
+    from_icon: ClassVar[bool] = False
 
 
 @yayoi
@@ -158,7 +186,7 @@ class SequenceReward(Reward):
 class Rewards(list[Reward]):
     """In-event handouts attached to an `Event` — a list of typed `Reward`s.
 
-    Heterogeneous on purpose: plain counter rewards (`Carats`, the scout
+    Heterogeneous on purpose: plain counter rewards (`FreeCarats`, the scout
     tickets, gold shards) sit alongside the still-being-scoped
     sequence-shaped reward without anything special-casing them at the
     container level. The bake step folds the list into the
@@ -181,7 +209,7 @@ def _reward_subclasses(root: type[Reward] = Reward) -> Iterator[type[Reward]]:
 
 
 def reward_for_key(key: str) -> type[Reward] | None:
-    """Resolve a serialised reward `key` (e.g. `"carats"`) to the Reward class
+    """Resolve a serialised reward `key` (e.g. `"free_carats"`) to the Reward class
     that bakes under it, or `None`. Walks the subclass tree so new rewards
     register on definition; intermediate bases like `CounterReward` carry no
     `key` and so never match.
@@ -278,8 +306,8 @@ def rewards_to_baked(rewards: "Rewards | None") -> dict[str, object] | None:
     """Fold a `Rewards` list into the baked `{key: value}` shape — the inverse
     of `rewards_from_baked`, and what `Event.bake` stamps under `rewards`.
 
-    Same-keyed counters sum, so callers can stamp `[Carats(80), Carats(80)]`
-    *or* `[Carats(160)]` and get the same output. A `RewardGenerator` keeps its
+    Same-keyed counters sum, so callers can stamp `[FreeCarats(80), FreeCarats(80)]`
+    *or* `[FreeCarats(160)]` and get the same output. A `RewardGenerator` keeps its
     repeat structure rather than being summed away — the client owns the payout
     cadence — so it serialises under `generator` as a `{<reward key>:
     amount, "repeat": n}` object. One generator per event (a weekly, new-player,
@@ -324,11 +352,15 @@ def reward_for_gametora_icon(icon_id: str) -> type[CounterReward] | None:
     concrete counters set an `item_key`, but the guard keeps callers sound: a
     future non-counter reward that happened to carry one is skipped, never
     constructed with an `amount` it doesn't have.
+
+    `from_icon` resolves the one shared-icon case: `FreeCarats` and `PaidCarats`
+    both carry `item-00043`, but only the free variant is ever handed out, so
+    the paid one (`from_icon = False`) is skipped here.
     """
     if not icon_id:
         return None
     item_key = f"item-{icon_id}"
     for cls in _reward_subclasses():
-        if cls.item_key == item_key and issubclass(cls, CounterReward):
+        if cls.item_key == item_key and issubclass(cls, CounterReward) and cls.from_icon:
             return cls
     return None

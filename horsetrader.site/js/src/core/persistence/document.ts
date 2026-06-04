@@ -12,7 +12,7 @@
 /** Bump when the on-disk shape changes; pair with a migration in `migrations`. */
 export const CURRENT_VERSION = 1;
 
-/** A resource reading is a keyed vector — carats free/paid, tickets, shards, … */
+/** A resource reading is a keyed vector — free/paid carats, tickets, shards, … */
 export type ResourceVector = { [resource: string]: number };
 
 /**

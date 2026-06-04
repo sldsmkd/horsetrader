@@ -16,7 +16,7 @@
 showtime-001:
   # Fuji Kiseki's Showtime Event (2021 JP) — EN: Dec 24 2025 – Jan 4 2026 (spans New Year)
   rewards:
-    carats: 1500
+    free_carats: 1500
     rainbow_crystal_shards: 2
     gold_crystal_shards: 2
   en:
@@ -26,7 +26,7 @@ showtime-001:
 showtime-002:
   # Fuji Kiseki's Showtime Event (2022 JP) — EN: Jun 4 – Jun 14 2026
   rewards:
-    carats: 1500
+    free_carats: 1500
     rainbow_crystal_shards: 2
     gold_crystal_shards: 2
   en:

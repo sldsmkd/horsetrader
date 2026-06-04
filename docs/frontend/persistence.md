@@ -23,7 +23,7 @@ planner-table numbers.
 The inputs split into four sections with genuinely different lifecycles — which
 is why a flat bag of keys (the old shape) felt wrong:
 
-1. **Snapshot** — a *dated* point-in-time reading of resources (carats free/paid,
+1. **Snapshot** — a *dated* point-in-time reading of resources (free/paid carats,
    tickets, shards, …). The origin point projections run forward from.
 2. **Configuration** — slow-changing account settings (ranks, daily pack,
    weekly-login pattern, monthly flags, whale toggle, display prefs).

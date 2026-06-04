@@ -1,8 +1,9 @@
 from .items import Item, Items
 from .rewards import (
-    Carats,
+    FreeCarats,
     CounterReward,
     GoldCrystalShard,
+    PaidCarats,
     Pull,
     RainbowCrystalShard,
     Reward,
@@ -26,11 +27,12 @@ from .rules import (
 )
 
 __all__ = [
-    "Carats",
+    "FreeCarats",
     "CounterReward",
     "GoldCrystalShard",
     "Item",
     "Items",
+    "PaidCarats",
     "Pull",
     "RainbowCrystalShard",
     "Reward",
