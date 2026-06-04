@@ -2,24 +2,27 @@
  * The app shell: the one place that knows the wiring. It builds the view tree
  * once and drives the two-tier change model (docs/frontend/interaction.md).
  *
- *   - **Cheap path:** the timeline owns the transient cursor/pan and pushes the
- *     cursor date straight here via `onScrub`; we read `balanceAt` and write the
- *     readout — no recompute, no broadcast, no rebuild.
+ *   - **Cheap path:** the timeline owns the transient pan and pushes the
+ *     view-centre date straight here via `onView`; we read `balanceAt` into the
+ *     readout and move the minimap window — no recompute, no broadcast, no rebuild.
  *   - **Render path:** a domain mutation (editing the snapshot in the Account
  *     overlay) recomputes and notifies; we re-lay the timeline for the new
- *     extent, which re-emits the cursor date through `onScrub` and so refreshes
+ *     extent, which re-emits the centre date through `onView` and so refreshes
  *     the readout against the fresh projection. Rare, so a full re-layout is fine.
  *   - **Discrete view-state:** the menubar toggles which overlay is open through
  *     the view-state store's `subscribe`; the timeline stays live behind it
  *     (ui.md principle 1, via the `pointer-events: none` overlay layer).
  *
  * As of 4b the standalone step-3 scrub `<input>` is gone: the timeline substrate
- * is the real owner of cursor/scrub. No state is read back out of the DOM.
+ * is the real owner of pan/focus. No state is read back out of the DOM. As of 4f
+ * the focus is the view centre itself (no separate cursor) — `onView` drives both
+ * the readout and the minimap window.
  */
 
 import { h, qs } from "./h.ts";
 import { cursorBalance } from "./views/cursorBalance.ts";
 import { timeline } from "./views/timeline.ts";
+import { minimap } from "./views/minimap.ts";
 import { belowCard } from "./views/belowCard.ts";
 import { bannerGroup } from "./views/bannerGroup.ts";
 import { overlay } from "./views/overlay.ts";
@@ -111,28 +114,40 @@ export function mountApp(coord: Coordinator, bundle: Bundle, now: string, root: 
   const view = createViewStore();
   const readout = cursorBalance();
 
-  // The cheap path: the timeline hands us a cursor date; we read the cached
-  // series and write the readout. No broadcast — a 60 Hz scrub stays off the
-  // render path by construction.
+  // The minimap is the primary navigation: dragging its track seeks, which pans
+  // the timeline (`centerOn`); the timeline pushes its view-centre date back so
+  // the window tracks the pan — a two-way cheap-path binding, no broadcast.
+  const mini = minimap({ onSeek: (date) => tl.centerOn(date) });
+
+  // The cheap path: the view centre *is* the focus. The timeline hands us the
+  // centre date on every pan; we read the cached series into the readout and move
+  // the minimap window. No broadcast — a 60 Hz pan stays off the render path.
   const tl = timeline({
-    onScrub: (date) => {
+    onView: (date) => {
       readout.setDate(date);
       readout.setBalance(coord.balanceAt(date));
+      mini.setView(date);
     },
   });
 
   // The render path: re-lay the substrate, then rebuild the cards from the
   // selectors on the *same* axis the timeline drew (the shared seam, `tl.axis`)
-  // and mount them. `layout` re-emits the cursor date through `onScrub`, so the
+  // and mount them. `layout` re-emits the centre date through `onView`, so the
   // readout follows the fresh projection. The below-lane packer (4e) runs after
   // mount, once heights can be measured, and resolve overlaps without moving any
   // stem off-tick: below stacks vertically, above nudges groups horizontally.
   function refresh(): void {
     const projection = coord.projection();
+    const extent = displayExtent(bundle);
+    // The minimap is another view over the same projection. Repaint it *before*
+    // the timeline lays out: `tl.layout` emits the initial view-centre date
+    // through `onView → mini.setView`, which needs the minimap's axis already
+    // built (otherwise the first window placement is dropped).
+    mini.refresh({ series: projection.series, bundle, favourites: coord.document().favourites ?? {}, extent, now });
     // The extent is the displayed card range — all known time, first arrival to
     // last — so every card fits the canvas. `layout` pads PAD_DAYS either side
     // (the prototype's fixed buffer) and centres on today on first load.
-    tl.layout(displayExtent(bundle), now);
+    tl.layout(extent, now);
     const axis = tl.axis();
     if (!axis) return tl.setCards([]);
     const below = belowLaneCards(projection, bundle, axis);
@@ -148,6 +163,19 @@ export function mountApp(coord: Coordinator, bundle: Bundle, now: string, root: 
     tl.setContentDepth(aboveDepth, belowDepth);
   }
   coord.subscribe(refresh);
+
+  // Viewport resize is a render-path event: the minimap axis/viewBox, the pan
+  // bounds and the centred markers are all measured off clientWidth/Height, so a
+  // resize must re-lay everything. rAF-coalesced so a drag-resize runs at most
+  // once per frame rather than per resize tick.
+  let resizePending = 0;
+  window.addEventListener("resize", () => {
+    if (resizePending) return;
+    resizePending = requestAnimationFrame(() => {
+      resizePending = 0;
+      refresh();
+    });
+  });
 
   // The Account overlay's body: the snapshot editor — the domain mutation source.
   function snapshotEditor(): HTMLElement {
@@ -188,7 +216,7 @@ export function mountApp(coord: Coordinator, bundle: Bundle, now: string, root: 
     ),
   );
 
-  root.replaceChildren(menubar, tl.el, readout.el, overlayLayer);
+  root.replaceChildren(menubar, tl.el, mini.el, readout.el, overlayLayer);
   refresh();
   renderOverlay();
 }

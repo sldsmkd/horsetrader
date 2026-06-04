@@ -3,14 +3,15 @@
  * the core representation *and* the primary navigation (ui.md principle 1). x is
  * true-to-date through the axis primitive (principle 2): a gap is a real gap.
  * This is the first real consumer of `axis.ts`, and where the step-3 standalone
- * scrub retires — the cursor is now a position on the axis, not a slider index.
+ * scrub retires. As of 4f the focus is the view centre itself — there is no
+ * separate cursor; panning *is* re-focusing.
  *
- * It owns the two pieces of **transient interaction-state** — the pan offset and
- * the cursor date — and writes them **straight to the DOM** (a CSS transform; the
- * cursor marker + the readout via `onScrub`). There is deliberately no broadcast
- * `subscribe` here, so a 60 Hz pan/scrub **structurally cannot** enter the render
- * path (docs/frontend/interaction.md, the two-tier change model). The render path
- * is the separate `layout()`, driven by the coordinator subscription.
+ * It owns the **transient interaction-state** — the pan offset — and writes it
+ * **straight to the DOM** (a CSS transform), emitting the view-centre date via
+ * `onView` for the readout + minimap window. There is deliberately no broadcast
+ * `subscribe` here, so a 60 Hz pan **structurally cannot** enter the render path
+ * (docs/frontend/interaction.md, the two-tier change model). The render path is
+ * the separate `layout()`, driven by the coordinator subscription.
  */
 
 import { h } from "../h.ts";
@@ -78,14 +79,22 @@ export interface Timeline {
    * past the viewport half becomes a peekable region.
    */
   setContentDepth(above: number, below: number): void;
+  /**
+   * Pan so `date` sits at the viewport centre, clamped to the walls — the minimap
+   * seek's target. Halts any glide so the navigation is authoritative; emits the
+   * new view date through `onView` (via the pan), closing the two-way binding.
+   */
+  centerOn(date: string): void;
 }
 
 export interface TimelineHandlers {
   /**
-   * Fired when the cursor lands on a date — the cheap path. The shell turns this
-   * into `balanceAt` + a readout write; the timeline itself never broadcasts.
+   * Fired when the *view centre* moves (any pan: drag, glide, layout, seek) — the
+   * date at the middle of the viewport, which is the focus. The shell turns it
+   * into a `balanceAt` + readout write and routes it to the minimap window, so
+   * both track the pan. Cheap path, deduped by date; never broadcasts.
    */
-  onScrub(date: string): void;
+  onView(date: string): void;
 }
 
 /** Clamp an ISO date into `[lo, hi]` — lexical compare is correct for `YYYY-MM-DD`. */
@@ -93,13 +102,14 @@ function clampDate(date: string, [lo, hi]: readonly [string, string]): string {
   return date < lo ? lo : date > hi ? hi : date;
 }
 
-export function timeline({ onScrub }: TimelineHandlers): Timeline {
+export function timeline({ onView }: TimelineHandlers): Timeline {
   // Transient interaction-state, owned here and written directly — never broadcast.
   let panX = 0;
   let panY = 0; // vertical peek offset; rests at 0 (the line recentred)
   let axis: Axis | null = null;
   let extent: Extent = null;
-  let cursorDate: string | null = null;
+  let viewDate: string | null = null; // last emitted view-centre date, for dedupe
+  let centerX = 0; // exact content-space x at the viewport middle — preserved across resizes
   let centered = false; // first layout centres the view on today; later ones keep the pan
   // How far cards reach above / below the centre line (px), set after each pack.
   // The dynamic roof and floor: only the overflow past the viewport half is pannable.
@@ -108,16 +118,22 @@ export function timeline({ onScrub }: TimelineHandlers): Timeline {
 
   const line = h("div", { class: "timeline__line" });
   const today = h("div", { class: "timeline__today" });
-  const cursor = h("div", { class: "timeline__cursor" });
   const cards = h("div", { class: "timeline__cards" }); // hosts the positioned card views
-  const content = h("div", { class: "timeline__content" }, line, today, cursor, cards);
+  const content = h("div", { class: "timeline__content" }, line, today, cards);
   const el = h("section", { class: "timeline", attr: { "aria-label": "Timeline" } }, content);
 
   const applyPan = () => {
     content.style.transform = `translate(${panX}px, ${panY}px)`;
-  };
-  const placeCursor = () => {
-    if (axis && cursorDate !== null) cursor.style.left = `${axis.xForDate(cursorDate)}px`;
+    // Track the exact content-space x under the viewport middle, so a resize can
+    // re-centre on it (grow out from the centre, not pad the right edge).
+    centerX = el.clientWidth / 2 - panX;
+    // The view centre *is* the focus: its date drives the readout and the minimap
+    // window (cheap path, deduped). There is no separate cursor — the anchor is
+    // always the middle of the view. Guarded by the axis; clamped into the extent.
+    if (axis && extent) {
+      const date = clampDate(axis.dateForX(centerX), extent);
+      if (date !== viewDate) onView((viewDate = date));
+    }
   };
 
   // --- pan: grab the world, bounded by elastic walls. `panX` is the *applied*
@@ -244,16 +260,8 @@ export function timeline({ onScrub }: TimelineHandlers): Timeline {
         lastMoveX = ev.clientX;
         lastMoveT = now;
       }
-      return;
     }
-    // --- scrub: a hover sets the cursor and pushes its date to the readout. ---
-    if (!axis || !extent) return;
-    const contentX = ev.clientX - el.getBoundingClientRect().left - panX;
-    const date = clampDate(axis.dateForX(contentX), extent);
-    if (date === cursorDate) return; // same day — nothing changed, skip the write
-    cursorDate = date;
-    placeCursor();
-    onScrub(date);
+    // A bare hover does nothing: the focus is the view centre, not the pointer.
   });
   const endDrag = (ev: PointerEvent) => {
     if (!dragging) return;
@@ -277,37 +285,43 @@ export function timeline({ onScrub }: TimelineHandlers): Timeline {
       aboveDepth = above;
       belowDepth = below;
     },
+    centerOn(date) {
+      if (!axis) return;
+      stopAnim(); // navigation is authoritative — kill any glide/spring in flight
+      const { min, max } = panBounds();
+      panX = Math.max(min, Math.min(max, el.clientWidth / 2 - axis.xForDate(date)));
+      applyPan(); // emits the new view date through onView
+    },
     layout(nextExtent, todayDate) {
       extent = nextExtent;
       if (!extent) {
         axis = null;
-        cursorDate = null;
         content.style.width = "0px";
         today.style.display = "none";
-        cursor.style.display = "none";
         return;
       }
       // Pad the origin so the first event isn't flush against the left edge.
       axis = createAxis({ origin: addDays(extent[0], -PAD_DAYS), pxPerDay: PX_PER_DAY });
       content.style.width = `${axis.xForDate(extent[1]) + PAD_DAYS * PX_PER_DAY}px`;
 
-      // First load lands centred on today; later recomputes keep the user's pan.
-      // Either way clamp inside the walls (hard, no spring — the rare render path).
+      // First load lands centred on today; later layouts (recompute or resize)
+      // re-centre on the held centre — so growing the window expands out from the
+      // middle instead of padding the right edge, and the pan is otherwise kept.
       if (!centered) {
-        panX = el.clientWidth / 2 - axis.xForDate(todayDate);
+        centerX = axis.xForDate(todayDate);
         centered = true;
       }
+      panX = el.clientWidth / 2 - centerX;
       const { min, max } = panBounds();
-      panX = Math.max(min, Math.min(max, panX));
-      applyPan();
+      panX = Math.max(min, Math.min(max, panX)); // clamp inside the walls (hard, no spring)
+      // Force `onView` to re-fire even if the centre date is unchanged: a resize
+      // rebuilds the minimap axis, so its window must re-sync against the new
+      // scale regardless of whether the date rounded the same.
+      viewDate = null;
+      applyPan(); // emits the centre date → refreshes the readout + minimap window
 
       today.style.display = "";
       today.style.left = `${axis.xForDate(todayDate)}px`;
-
-      cursor.style.display = "";
-      cursorDate = clampDate(cursorDate ?? todayDate, extent);
-      placeCursor();
-      onScrub(cursorDate); // refresh the readout against the (possibly new) projection
     },
   };
 }
