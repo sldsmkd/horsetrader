@@ -49,14 +49,14 @@ test("each card resolves its label (name/title, falling back to key) and predict
   assert.equal(byKey.get("cm-1")!.predicted, false);
 });
 
-test("x is true-to-date off the axis (posting date = end) and reward is the event's own delta", () => {
+test("x is true-to-date off the axis (arrival date = start) and reward is the event's own delta", () => {
   const cards = belowLaneCards(projectFixture(), createBundle(EVENTS, EMPTY_ACADEMY), createAxis({ origin: "2026-06-01", pxPerDay: 10 }));
   const byKey = new Map(cards.map((c) => [c.key, c]));
 
-  assert.equal(byKey.get("story-1")!.date, "2026-06-20");
-  assert.equal(byKey.get("story-1")!.x, 190); // 19 days × 10px
-  assert.equal(byKey.get("cm-1")!.x, 300); // 2026-07-01 → 30 days
-  assert.equal(byKey.get("sce-1")!.x, 610); // 2026-08-01 → 61 days
+  assert.equal(byKey.get("story-1")!.date, "2026-06-14"); // start, not end
+  assert.equal(byKey.get("story-1")!.x, 130); // 13 days × 10px
+  assert.equal(byKey.get("cm-1")!.x, 260); // 2026-06-27 → 26 days
+  assert.equal(byKey.get("sce-1")!.x, 490); // 2026-07-20 → 49 days
 
   // The card carries its own reward, not the day's subtotal.
   assert.deepEqual(byKey.get("cm-1")!.reward, { free_carats: 1000 });

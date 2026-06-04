@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { aboveLaneBanners } from "./aboveLane.ts";
+import { aboveLaneGroups } from "./aboveLane.ts";
 import { createBundle } from "../bundle/access.ts";
 import { createAxis } from "../axis.ts";
 import type { EventsBundle } from "../../core/bundle/events.gen.ts";
@@ -9,11 +9,12 @@ import type { Academy } from "../../core/bundle/academy.gen.ts";
 
 const EVENTS: EventsBundle = {
   events: [
-    // A past banner (ended before the horizon) — must be excluded.
+    // A past banner — now shown too (the timeline spans all known time).
     { type: "trainee", rushable: true, contents: ["t-spe"], image: "/i/past.webp", start: "2026-01-01", end: "2026-01-07", predicted: false, key: "banner-past" },
-    // A future trainee banner.
+    // A trainee + support banner sharing a start — must collapse into one group.
+    { type: "support", rushable: false, contents: ["s-spe"], image: "/i/sb2.webp", start: "2026-06-10", end: "2026-06-16", predicted: false, key: "banner-s2" },
     { type: "trainee", rushable: true, contents: ["t-spe", "t-suzuka"], image: "/i/tb.webp", start: "2026-06-10", end: "2026-06-16", predicted: false, key: "banner-t" },
-    // A future support banner, predicted.
+    // A later support banner, predicted.
     { type: "support", rushable: false, contents: ["s-spe"], image: "/i/sb.webp", start: "2026-06-25", end: "2026-07-01", predicted: true, key: "banner-s" },
     // A below-lane event — not a banner, must be excluded.
     { type: "cm", name: "CM", start: "2026-06-27", end: "2026-07-01", predicted: false, key: "cm-1" },
@@ -32,23 +33,28 @@ const ACADEMY: Academy = {
 const bundle = () => createBundle(EVENTS, ACADEMY);
 const axis = () => createAxis({ origin: "2026-06-01", pxPerDay: 10 });
 
-test("above-lane: banners only, future-scoped, positioned at appearance (start), sorted", () => {
-  const cards = aboveLaneBanners(bundle(), axis(), "2026-06-01");
-  // banner-past (ended pre-horizon) and cm-1 (not a banner) are excluded.
-  assert.deepEqual(cards.map((c) => c.key), ["banner-t", "banner-s"]);
-  assert.deepEqual(cards.map((c) => c.kind), ["trainee", "support"]);
-  assert.equal(cards[0]!.date, "2026-06-10"); // the start, not the end
-  assert.equal(cards[0]!.x, 90); // 9 days × 10px
-  assert.equal(cards[1]!.predicted, true);
+test("above-lane: groups by start (all known time), banners only, sorted; shared start → one group", () => {
+  const groups = aboveLaneGroups(bundle(), axis());
+  // cm-1 (not a banner) excluded; one group per distinct start, sorted left→right.
+  assert.deepEqual(groups.map((g) => g.date), ["2026-01-01", "2026-06-10", "2026-06-25"]);
+
+  const shared = groups[1]!; // the two banners on 2026-06-10 collapse here
+  assert.equal(shared.x, 90); // 9 days × 10px, at the shared start
+  assert.deepEqual(shared.banners.map((b) => b.key), ["banner-t", "banner-s2"]); // trainee before support
+  assert.deepEqual(shared.banners.map((b) => b.kind), ["trainee", "support"]);
+
+  assert.equal(groups[2]!.predicted, true); // any predicted banner → group predicted
 });
 
 test("contents resolve to atoms in the kind's grammar — trainee stars, support tier", () => {
-  const cards = aboveLaneBanners(bundle(), axis(), "2026-06-01");
-  const trainee = cards.find((c) => c.key === "banner-t")!;
+  const groups = aboveLaneGroups(bundle(), axis());
+  const shared = groups.find((g) => g.date === "2026-06-10")!;
+
+  const trainee = shared.banners.find((b) => b.key === "banner-t")!;
   assert.deepEqual(trainee.atoms, [
     { id: "t-spe", name: "Special Week", rarity: "3★" },
     { id: "t-suzuka", name: "Silence Suzuka", rarity: "3★" },
   ]);
-  const support = cards.find((c) => c.key === "banner-s")!;
+  const support = shared.banners.find((b) => b.key === "banner-s2")!;
   assert.deepEqual(support.atoms, [{ id: "s-spe", name: "Special Week", rarity: "SSR" }]);
 });
