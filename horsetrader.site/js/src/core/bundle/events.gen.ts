@@ -14,6 +14,15 @@ export interface EventsBundle {
     | ScenarioRecord
     | StoryRecord
     | CMRecord
+    | ShowtimeRecord
+    | SkillTestRecord
+    | RacingCarnivalRecord
+    | StrongestTeamRecord
+    | MastersChallengeRecord
+    | FactorStudiesRecord
+    | LeagueOfHeroesRecord
+    | LegendRaceRecord
+    | MissionRecord
     | AnchorRecord
     | AnchoredEventRecord
   )[];
@@ -91,6 +100,160 @@ export interface StoryRecord {
 }
 export interface CMRecord {
   type: "cm";
+  name: string | null;
+  start: string;
+  end: string;
+  predicted: boolean;
+  key: string;
+  rewards?: {
+    [k: string]:
+      | number
+      | {
+          [k: string]: number | string | (number | null)[];
+        };
+  };
+}
+export interface ShowtimeRecord {
+  type: "showtime";
+  rushable: boolean;
+  name: string | null;
+  start: string;
+  end: string;
+  predicted: boolean;
+  key: string;
+  rewards?: {
+    [k: string]:
+      | number
+      | {
+          [k: string]: number | string | (number | null)[];
+        };
+  };
+}
+export interface SkillTestRecord {
+  type: "skilltest";
+  rushable: boolean;
+  name: string | null;
+  start: string;
+  end: string;
+  predicted: boolean;
+  key: string;
+  rewards?: {
+    [k: string]:
+      | number
+      | {
+          [k: string]: number | string | (number | null)[];
+        };
+  };
+}
+export interface RacingCarnivalRecord {
+  type: "racingcarnival";
+  rushable: boolean;
+  name: string | null;
+  start: string;
+  end: string;
+  predicted: boolean;
+  key: string;
+  rewards?: {
+    [k: string]:
+      | number
+      | {
+          [k: string]: number | string | (number | null)[];
+        };
+  };
+}
+export interface StrongestTeamRecord {
+  type: "strongestteam";
+  rushable: boolean;
+  name: string | null;
+  start: string;
+  end: string;
+  predicted: boolean;
+  key: string;
+  rewards?: {
+    [k: string]:
+      | number
+      | {
+          [k: string]: number | string | (number | null)[];
+        };
+  };
+}
+export interface MastersChallengeRecord {
+  type: "masterschallenge";
+  rushable: boolean;
+  name: string | null;
+  start: string;
+  end: string;
+  predicted: boolean;
+  key: string;
+  rewards?: {
+    [k: string]:
+      | number
+      | {
+          [k: string]: number | string | (number | null)[];
+        };
+  };
+}
+export interface FactorStudiesRecord {
+  type: "factorstudies";
+  rushable: boolean;
+  name: string | null;
+  start: string;
+  end: string;
+  predicted: boolean;
+  key: string;
+  rewards?: {
+    [k: string]:
+      | number
+      | {
+          [k: string]: number | string | (number | null)[];
+        };
+  };
+}
+export interface LeagueOfHeroesRecord {
+  type: "leagueofheroes";
+  rushable: boolean;
+  name: string | null;
+  start: string;
+  end: string;
+  predicted: boolean;
+  key: string;
+  rewards?: {
+    [k: string]:
+      | number
+      | {
+          [k: string]: number | string | (number | null)[];
+        };
+  };
+}
+export interface LegendRaceRecord {
+  type: "legendrace";
+  name: string | null;
+  legs: LegendLegRecord[];
+  start: string;
+  end: string;
+  predicted: boolean;
+  key: string;
+  rewards?: {
+    [k: string]:
+      | number
+      | {
+          [k: string]: number | string | (number | null)[];
+        };
+  };
+}
+/**
+ * One leg of a Legend Race: a ~3-day sub-window pitting the player against a
+ * single trainee variant. `trainee` is that trainee's academy stable key;
+ * `start`/`end` are the leg's EN dates (the matched window subdivided in JP-leg
+ * proportion). Legs are emitted in race order and tile the parent window.
+ */
+export interface LegendLegRecord {
+  trainee: string;
+  start: string;
+  end: string;
+}
+export interface MissionRecord {
+  type: "mission";
   name: string | null;
   start: string;
   end: string;
