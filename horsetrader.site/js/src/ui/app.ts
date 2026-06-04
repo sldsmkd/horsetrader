@@ -19,6 +19,8 @@
  * the readout and the minimap window.
  */
 
+import "./app.css";
+
 import { h, qs } from "./h.ts";
 import { cursorBalance } from "./views/cursorBalance.ts";
 import { timeline } from "./views/timeline.ts";

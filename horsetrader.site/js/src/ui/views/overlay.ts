@@ -10,6 +10,8 @@
  * state and reads nothing back out of the DOM.
  */
 
+import "./overlay.css";
+
 import { h } from "../h.ts";
 
 export interface OverlayOpts {

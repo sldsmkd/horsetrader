@@ -14,6 +14,8 @@
  * path (docs/frontend/interaction.md, the two-tier change model).
  */
 
+import "./minimap.css";
+
 import { h } from "../h.ts";
 import { createAxis } from "../axis.ts";
 import type { Axis } from "../axis.ts";

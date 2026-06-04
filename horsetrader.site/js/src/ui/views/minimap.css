@@ -1,0 +1,103 @@
+/* The minimap — the fret-lined balance instrument and primary navigation
+   (ui.md "The minimap, consolidated"). A fixed strip along the bottom edge; it
+   is interactive (it's navigation), so it owns its pointer events. */
+.minimap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--minimap-h);
+  z-index: 3; /* above the timeline canvas + readout */
+  background: color-mix(in srgb, Canvas 82%, transparent);
+  border-top: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  overflow: hidden;
+}
+.minimap--grabbing {
+  cursor: grabbing;
+}
+
+/* The SVG holds the frets + the balance line; it stretches to the strip box. */
+.minimap__canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Frets quantise the balance — a faint line per pity boundary; the origin reads
+   a touch stronger (the zero the sign-colour pivots around). */
+.minimap__fret {
+  stroke: color-mix(in srgb, currentColor 14%, transparent);
+  stroke-width: 1;
+}
+.minimap__fret--origin {
+  stroke: color-mix(in srgb, currentColor 32%, transparent);
+}
+
+/* The balance line is a white instrument needle; the *background* carries the
+   sign (below). */
+.minimap__line {
+  stroke: #fff;
+  stroke-width: 1.5;
+}
+
+/* Sign-tinted background bands — low-opacity blue while healthy, red on a
+   deficit (danger information, principle 6 — not a nag). */
+.minimap__band--positive {
+  fill: #2d7dd2;
+  opacity: 0.14;
+}
+.minimap__band--negative {
+  fill: #e74c3c;
+  opacity: 0.22;
+}
+
+/* The white "now" line — a fixed orientation marker (the minimap doesn't pan). */
+.minimap__today {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1.5px;
+  margin-left: -0.75px;
+  background: #fff;
+  pointer-events: none;
+}
+
+/* Favourite pips — the bookmarks' list-twin. Green mirrors trainee, blue
+   support; a row near the top edge so clusters read as pressure at a glance. */
+.minimap__dots {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.minimap__dot {
+  position: absolute;
+  top: 7px;
+  width: 7px;
+  height: 7px;
+  margin-left: -3.5px;
+  border-radius: 50%;
+}
+.minimap__dot--trainee {
+  background: #27ae60;
+}
+.minimap__dot--support {
+  background: #2980b9;
+}
+
+/* The window — a grab handle sized for the hand, centred on the view (not a
+   to-scale viewport mirror). Tracks the pan; drag it to navigate. */
+.minimap__window {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 56px;
+  border: 1px solid color-mix(in srgb, currentColor 45%, transparent);
+  border-radius: 3px;
+  background: color-mix(in srgb, currentColor 8%, transparent);
+  pointer-events: none; /* the strip owns the gesture; the window just reflects it */
+}

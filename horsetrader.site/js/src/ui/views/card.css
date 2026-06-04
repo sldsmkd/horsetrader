@@ -1,0 +1,33 @@
+/* Shared card primitives — the skeleton both lanes reuse. The below lane
+   (belowCard.css) and the above lane's banner-group wrapper (bannerGroup.css)
+   each build on `.card`; below adds `.card--below`, above adds `.card--above`.
+   Imported by both view modules. */
+
+/* A card positions itself at its true-date x (left) and straddles it: centring
+   the column + shifting left by half its width puts the stem — a centred child —
+   on the tick while the body sits evenly either side (principle 4). The packer
+   grows the stem to drop the body to its packed row; the stem never leaves x. */
+.card {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translateX(-50%);
+}
+
+/* The stem pins the card to its true-date tick on the line (principle 4).
+   TODO(styling): same-date below-lane events each draw their own stem, so they
+   overlap in one column near the line; the 50% transparency + a half-device-pixel
+   straddle splits that into a faint "double line". Fix in the styling pass — make
+   the stem opaque (`background: currentColor`) and/or render one shared trunk per
+   same-date cluster instead of a stem per card. Cosmetic only; deferred. */
+.card__stem {
+  width: 2px;
+  height: 1.1rem;
+  background: color-mix(in srgb, currentColor 50%, transparent);
+}
+
+/* Grey = trust this less: predicted dates (principle 5). */
+.card--predicted {
+  opacity: 0.55;
+}

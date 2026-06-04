@@ -54,6 +54,40 @@ core/ ──never imports──▶ ui/   (and never touches the DOM)
 important rule for preventing mud. This mirrors the ETL's hard ownership
 boundaries — don't smuggle DOM code into `core/` to "co-locate" it.
 
+## Styling: plain CSS, co-located per view
+
+There's no CSS framework either, for the same reason there's no JS one — and the
+same small disciplines keep "plain CSS" from becoming a specificity war:
+
+- **BEM naming, flat specificity.** Every selector is a single class
+  (`.minimap__fret--origin`, `.banner-group__date`); the rare contextual rule
+  stays shallow (`.card--below .card__body`). No id selectors, no deep descendant
+  chains, no `!important`. A flat specificity landscape is the no-framework cure
+  for both diseases — escalation wars and action-at-a-distance. Inheritance is for
+  *theme only* (`currentColor`, the `Canvas` system colour, `:root` custom props);
+  class names carry structure explicitly.
+- **One stylesheet per view, co-located and imported by it.** Each view module
+  imports its own `.css` (`minimap.ts` → `import "./minimap.css"`); esbuild's CSS
+  loader concatenates them through the JS import graph into the single `app.css`.
+  Open a view and its styles are right there; delete the view and its CSS leaves
+  with it. `css/base.css` holds only the page shell (`body`, `#app`) and tokens
+  more than one view reads (`--minimap-h`); a genuinely shared primitive gets its
+  own file imported by each user (`views/card.css`, the skeleton both lanes build
+  on). This is the CSS face of the Layering rule above — co-locate by ownership.
+  Note co-location is organisation, not isolation: the global namespace is still
+  global, so BEM discipline is what actually prevents collisions. Reach for CSS
+  Modules only if a real collision ever bites (per *add complexity only when
+  warranted*).
+- **CSS owns static layout and theme; JS owns geometry.** This is the load-bearing
+  line — the thing that turns component CSS into mud in a canvas app is layout
+  values leaking between the stylesheet and the render loop. Anything driven by the
+  axis, pan, or packer math is set inline from JS (the timeline content `width`
+  from the axis extent, the packer's `translateX` on a card/group); everything
+  static — box model, colour, the anchor geometry (`transform: translateX(-50%)`
+  that straddles a card on its tick) — lives in CSS. If you're tempted to write a
+  fixed pixel into JS or a computed value into CSS, you're on the wrong side of
+  this line.
+
 ## Game-data values live in the bundle, never in code
 
 The ETL is the single source of truth for **all game-data values** — including

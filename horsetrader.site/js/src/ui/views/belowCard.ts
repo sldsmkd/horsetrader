@@ -9,6 +9,9 @@
  * y-offset transform to resolve overlaps without ever moving the stem off-tick.
  */
 
+import "./card.css";
+import "./belowCard.css";
+
 import { h } from "../h.ts";
 import { formatDelta } from "../format.ts";
 import type { BelowCard } from "../select/belowLane.ts";

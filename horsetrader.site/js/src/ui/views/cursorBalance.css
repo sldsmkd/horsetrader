@@ -1,0 +1,19 @@
+/* The readout floats over the canvas, bottom-left; display-only, so it never
+   blocks a grab of the world underneath it (principle 1). Lifted clear of the
+   minimap strip that sits along the bottom edge. */
+.cursor-balance {
+  position: absolute;
+  bottom: calc(var(--minimap-h) + 0.9rem);
+  left: 0.9rem;
+  z-index: 2;
+  pointer-events: none;
+  font-size: 1.25rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, Canvas 72%, transparent);
+}
+
+.cursor-balance__value {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}

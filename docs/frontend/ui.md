@@ -228,7 +228,9 @@ prototype's sprawl). The clean shape:
 1. Render cards, **measure heights once**.
 2. A **pure geometry function**: `(x-positions, heights) → offsets`. No DOM, no
    measurement — just the packing math. **Headless-testable.**
-3. Apply the result as transforms.
+3. Apply the result as transforms, set inline from JS — geometry driven by the
+   axis/pan/packer is JS-owned, static layout and theme are CSS-owned (see
+   *Styling* in [conventions.md](conventions.md)).
 
 It is **one layout module with two lane strategies**, and that asymmetry is
 *correct* (different semantics, different data shapes):

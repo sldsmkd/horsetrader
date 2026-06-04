@@ -1,0 +1,28 @@
+/* Global scaffolding + shared theme tokens. Everything component-specific lives
+   next to its view (ui/views/*.css); this file is only the page shell and the
+   tokens more than one component reads. */
+:root {
+  color-scheme: light dark;
+  font-family: system-ui, sans-serif;
+  --minimap-h: 64px; /* shared: the minimap strip height; the readout lifts clear of it */
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  overflow: hidden; /* the canvas owns scrolling (pan) — the page never scrolls */
+  line-height: 1.5;
+}
+
+/* The app is one full-viewport canvas world (ui.md principle 1): the timeline
+   fills it, chrome floats over it. */
+#app {
+  position: fixed;
+  inset: 0;
+}
+
+/* The pre-hydration splash in index.html. */
+.loading {
+  opacity: 0.6;
+}

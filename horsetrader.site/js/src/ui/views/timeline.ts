@@ -14,6 +14,8 @@
  * the separate `layout()`, driven by the coordinator subscription.
  */
 
+import "./timeline.css";
+
 import { h } from "../h.ts";
 import { createAxis } from "../axis.ts";
 import type { Axis } from "../axis.ts";

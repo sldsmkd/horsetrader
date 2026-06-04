@@ -1,0 +1,34 @@
+/* Below-lane card: an income atom anchored at the line, growing down. Builds on
+   the shared `.card` skeleton (card.css). */
+.card--below {
+  top: 50%; /* anchor at the line, grow down: stem then body */
+  width: 9rem;
+}
+
+.card__body {
+  border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
+  border-radius: 0.4rem;
+  background: Canvas;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.8rem;
+}
+
+/* Below-lane: a per-kind left-border accent — read the kind before the word.
+   This sets the default gray; the per-kind rules below override the colour, so
+   they must stay after it (equal specificity, source order decides). */
+.card--below .card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  border-left: 3px solid gray;
+}
+.card--cm .card__body { border-left-color: #c0392b; }
+.card--story .card__body { border-left-color: #2980b9; }
+.card--scenario .card__body { border-left-color: #27ae60; }
+.card--anchor .card__body { border-left-color: #8e44ad; }
+.card--anchoredevent .card__body { border-left-color: #d35400; }
+
+.card__reward {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}

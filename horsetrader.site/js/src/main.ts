@@ -6,7 +6,8 @@
  * ui/app.
  */
 
-import "../../css/styles.css";
+// Global shell + tokens; each view co-locates its own styles (ui/**/*.css).
+import "../../css/base.css";
 
 import { createCoordinator } from "./core/coordinator/index.ts";
 import { createBundle } from "./ui/bundle/access.ts";

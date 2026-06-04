@@ -1,0 +1,45 @@
+/* The overlay layer + card. The layer spans the viewport but never blocks the
+   live canvas (principle 1); only the overlay card itself is interactive. */
+.overlay-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+.overlay {
+  pointer-events: auto;
+  position: absolute;
+  top: 4.5rem;
+  right: 2rem;
+  width: 20rem;
+  border: 1px solid currentColor;
+  border-radius: 0.75rem;
+  background: Canvas;
+  box-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.35);
+}
+
+.overlay__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+}
+
+.overlay__title {
+  font-weight: 600;
+}
+
+.overlay__close {
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+}
+
+.overlay__body {
+  padding: 1rem;
+}

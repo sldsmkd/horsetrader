@@ -11,6 +11,8 @@
  * of the DOM; the shell hands it the numbers.
  */
 
+import "./cursorBalance.css";
+
 import { h } from "../h.ts";
 import { formatBalance } from "../format.ts";
 import type { ResourceVector } from "../../core/projection/index.ts";
