@@ -1,0 +1,107 @@
+# Standing reward structures — the procedural recipes the client expands itself.
+# We bake the per-occurrence *numbers*; the client owns the *cadence* (how often
+# the recipe pays, and when), keyed off the structure's stable key. Baked to
+# config.json. See docs/contract.md "What crosses the wire" and #6.
+#
+# Region-agnostic (no jp:/en: blocks) — identical across regions. Keyed
+# reward-structure-<slug>; the `rewards` block is the baked-shape mapping (same
+# as an event's rewards). Copy a neighbour to add one.
+
+reward-structure-dailies: # daily missions — a flat per-day grant; client fills the cadence
+  rewards:
+    free_carats: 75
+
+reward-structure-daily-carats: # £5 30-day pack — 500 paid up front + 50 free carats/day for 30 days
+  rewards:
+    paid_carats: 500
+    generator: # the free daily login bonus; client owns which 30 days
+      free_carats: 50
+      repeat: 30
+
+reward-structure-weekly-login: # 7-day login week — free carats; days 1/3/5 = 25, day 7 = 75
+  rewards:
+    sequence:
+      type: free_carats
+      sequence: [25, Null, 25, Null, 25, Null, 75]
+
+reward-structure-strongest-team: # limited mission component — baseline everyone who enters gets
+  # Paired with reward-map-strongest-team (the rank component); client sums baseline + rank.
+  rewards:
+    free_carats: 300 # 50 × 6 scouts
+    gold_crystal_shards: 1
+    rainbow_crystal_shards: 1
+    support_tickets: 1
+    trainee_tickets: 1
+
+# Rank-graded rewards (RewardMap) — keyed reward-map-<slug>; `tiers` maps each
+# rank label to a baked-shape rewards block. The client selects the rank
+# (sweatiness / account state); we don't care about frequency.
+
+reward-map-team-trials: # Team Trials weekly income, graded by class (5.5 = flapping)
+  tiers:
+    "1": { free_carats: 0 }
+    "2": { free_carats: 35 }
+    "3": { free_carats: 75 }
+    "4": { free_carats: 150 }
+    "5": { free_carats: 225 }
+    "5.5": { free_carats: 262 }
+    "6": { free_carats: 375 }
+
+reward-map-club-rank: # Club Rank monthly income, graded by rank (placement is the client's selector)
+  tiers:
+    "SS": { free_carats: 4500 }
+    "S+": { free_carats: 3600 }
+    "S": { free_carats: 3150 }
+    "A+": { free_carats: 2700 }
+    "A": { free_carats: 2250 }
+    "B+": { free_carats: 1800 }
+    "B": { free_carats: 1350 }
+    "C+": { free_carats: 900 }
+    "C": { free_carats: 450 }
+    "D+": { free_carats: 225 }
+
+# CM / League pull tickets are split 50/50 into trainee_tickets + support_tickets
+# (the scout tickets); all counts are even, so clean halves, written explicitly.
+reward-map-champions-meeting: # graded by placement
+  tiers:
+    "Champion":        { free_carats: 3300, trainee_tickets: 5, support_tickets: 5 }
+    "Second":          { free_carats: 2400, trainee_tickets: 4, support_tickets: 4 }
+    "Third":           { free_carats: 1600, trainee_tickets: 3, support_tickets: 3 }
+    "Group B 1st":     { free_carats: 1800, trainee_tickets: 3, support_tickets: 3 }
+    "Group B 2nd":     { free_carats: 1250, trainee_tickets: 2, support_tickets: 2 }
+    "Group B 3rd":     { free_carats: 1000, trainee_tickets: 1, support_tickets: 1 }
+    "Open League 1st": { free_carats: 1500, trainee_tickets: 3, support_tickets: 3 }
+    "Open League 2nd": { free_carats: 1250, trainee_tickets: 2, support_tickets: 2 }
+    "Open League 3rd": { free_carats: 1000, trainee_tickets: 1, support_tickets: 1 }
+
+reward-map-league-of-heroes: # graded by tier
+  tiers:
+    "Platinum 4": { free_carats: 3300, trainee_tickets: 2, support_tickets: 2 }
+    "Platinum 3": { free_carats: 2800, trainee_tickets: 2, support_tickets: 2 }
+    "Platinum 2": { free_carats: 2300, trainee_tickets: 2, support_tickets: 2 }
+    "Platinum 1": { free_carats: 1800, trainee_tickets: 2, support_tickets: 2 }
+    "Gold 4":     { free_carats: 1300, trainee_tickets: 2, support_tickets: 2 }
+    "Gold 3":     { free_carats: 1000, trainee_tickets: 1, support_tickets: 1 }
+    "Gold 2":     { free_carats: 700,  trainee_tickets: 1, support_tickets: 1 }
+    "Gold 1":     { free_carats: 550 }
+    "Silver 4":   { free_carats: 400 }
+
+reward-map-strongest-team: # rank component, graded E→SS (paired with reward-structure-strongest-team baseline)
+  tiers:
+    "E":  { free_carats: 100 }
+    "D":  { free_carats: 200 }
+    "C":  { free_carats: 300 }
+    "B":  { free_carats: 400 }
+    "A":  { free_carats: 400,  support_tickets: 1, trainee_tickets: 1, gold_crystal_shards: 1 }
+    "S":  { free_carats: 900,  support_tickets: 1, trainee_tickets: 1, gold_crystal_shards: 1, rainbow_crystal_shards: 1 }
+    "SS": { free_carats: 1200, support_tickets: 1, trainee_tickets: 1, gold_crystal_shards: 1, rainbow_crystal_shards: 1 }
+
+reward-map-masters: # Masters Challenge, graded by level (EX = L3 payout + intangible "bragging rights", not baked)
+  tiers:
+    "1":  { free_carats: 1500, gold_crystal_shards: 5 }
+    "2":  { free_carats: 3000, gold_crystal_shards: 5, rainbow_crystal_shards: 5 }
+    "3":  { free_carats: 4500, gold_crystal_shards: 5, rainbow_crystal_shards: 5 }
+    "EX": { free_carats: 4500, gold_crystal_shards: 5, rainbow_crystal_shards: 5 }
+
+# No monthly sub today. The future "training pass" battle-pass (two versions)
+# waits on the reward mappers before it lands here.

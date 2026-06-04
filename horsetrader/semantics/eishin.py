@@ -13,9 +13,17 @@ def eishin(cls):
     via Digitan's enrichers / Daitaku's event build, and the bake only
     reads them — see the "Don't bypass the models" standard.
 
-    If code is producing the final serialised form, Eishin owns it. If
-    it's still transforming/normalising upstream of serialisation, it
-    doesn't.
+    She also owns the **contract** for what crosses the wire, not just the
+    code that writes it: the wire records here, and ``TracenObject`` — the
+    model apex whose sole meaning is "this gets baked" (its only field is the
+    ``StableKey`` every record is addressed by). The leaves below it are
+    produced by other characters (Digitan/Daitaku/Yayoi); the marker that
+    *admits* a model to the bundle is Eishin's, because defining the baked set
+    is the serialiser's contract.
+
+    If code is producing the final serialised form — or defining what may
+    enter it — Eishin owns it. If it's still transforming/normalising upstream
+    of serialisation, it doesn't.
 
     Character bio: see ``eishin.md`` alongside this file.
     """

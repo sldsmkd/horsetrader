@@ -8,11 +8,12 @@ from horsetrader.core import Config, JST
 from horsetrader.models.core import TracenModel, TracenModels
 from horsetrader.models.entities.entities import Entities
 from horsetrader.models.events.events import Events
+from horsetrader.models.rewards import RewardMap, RewardStructure
 from horsetrader.semantics import eishin
 from horsetrader.timeline import Timeline
 
 from ._mappers import MAPPERS
-from ._records import Academy, EventsBundle
+from ._records import Academy, ConfigBundle, EventsBundle
 
 
 def _enc_hook(obj: object) -> object:
@@ -57,6 +58,34 @@ class Bake:
             period = next(p for p in event.periods if p.tzinfo == timeline.tz)
             records.append(event.bake(period))
         return Bake._write(EventsBundle(events=records), EventsBundle, "events.json")
+
+    @staticmethod
+    def config(
+        structures: dict[str, RewardStructure],
+        maps: dict[str, RewardMap],
+    ) -> bool:
+        """Write config.json (+ schema) — the non-timeline baked-config channel.
+
+        Folds the flat structures and the rank-graded maps into their respective
+        buckets (`RewardStructure.bake` / `RewardMap.bake`), sorted by key for
+        stable output. The bucket already namespaces each entry, so the wire key
+        drops the matching stable-key prefix (`reward-structure-dailies` →
+        `dailies`) — the curated key keeps it for keystore `select()`. Eishin only
+        serialises here; both are loaded upstream (Rudolf) and handed in, never
+        fetched by the bake.
+        """
+        reward_structures = {
+            key.removeprefix("reward-structure-"): s.bake()
+            for key, s in sorted(structures.items())
+        }
+        reward_maps = {
+            key.removeprefix("reward-map-"): m.bake() for key, m in sorted(maps.items())
+        }
+        return Bake._write(
+            ConfigBundle(reward_structures=reward_structures, reward_maps=reward_maps),
+            ConfigBundle,
+            "config.json",
+        )
 
     @staticmethod
     def timeline(models: list[TracenModels]) -> Timeline:

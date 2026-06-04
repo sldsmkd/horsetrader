@@ -267,3 +267,24 @@ class EventsBundle(msgspec.Struct):
     """Top-level shape of ``events.json`` — a flat, tz-start-sorted list."""
 
     events: list[EventRecordUnion]
+
+
+# ── config.json ───────────────────────────────────────────────────────────────
+
+@eishin
+class ConfigBundle(msgspec.Struct):
+    """Top-level shape of ``config.json`` — the non-timeline baked-config channel.
+
+    ``reward_structures`` is a stable-key → baked-rewards map: each value is the
+    same ``Baked`` shape an event's ``rewards`` carries (the per-occurrence
+    numbers for a procedural stream the client expands on its own cadence).
+    ``reward_maps`` adds the *rank-graded* recipes: each is a rank-label →
+    baked-rewards map (e.g. Team Trials by class), the rank selected client-side.
+    Future baked config rides as sibling top-level keys.
+
+    Keys are the stable-key *body* — the bucket already namespaces them, so the
+    wire drops the redundant `reward-structure-` / `reward-map-` prefix the
+    curated key carries (`reward-structure-dailies` → `dailies`)."""
+
+    reward_structures: dict[str, Baked]
+    reward_maps: dict[str, dict[str, Baked]]

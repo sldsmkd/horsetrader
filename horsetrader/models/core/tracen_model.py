@@ -1,16 +1,25 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from dataclasses import dataclass, field
 
-from horsetrader.core import StableKey
 from horsetrader.semantics import tazuna
 
 from .references import References
+from .tracen_object import TracenObject
 
 
 @tazuna
 @dataclass
-class TracenModel(ABC):
-    key: StableKey
+class TracenModel(TracenObject):
+    """A `TracenObject` that participates in the referential graph.
+
+    Adds what entities and events share beyond bare identity: `references` (the
+    cross-reference graph), `correlations`, and a `match` search surface. Config
+    objects are `TracenObject`s but not `TracenModel`s — they have a stable key
+    yet none of this graph machinery (see `TracenObject` for the cut).
+
+    `key` is inherited from `TracenObject`.
+    """
+
     correlations: dict[str, int] = field(default_factory=dict, kw_only=True)
     references: References = field(default_factory=References, kw_only=True)
 

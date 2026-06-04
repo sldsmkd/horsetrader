@@ -8,6 +8,8 @@ from . import banners as _banners
 from . import champions_meetings as _champions_meetings
 from . import holidays as _holidays
 from . import legend_races as _legend_races
+from . import reward_maps as _reward_maps
+from . import reward_structures as _reward_structures
 from . import scenarios as _scenarios
 from . import showtimes as _showtimes
 from . import stories as _stories
@@ -99,6 +101,24 @@ class Static(metaclass=SingletonMeta):
         converts the rewards and joins on the wikiru-scraped JP run.
         """
         return _showtimes.load().get(key)
+
+    def reward_structures(self) -> dict[str, dict]:
+        """Curated standing reward structures, keyed ``reward-structure-<slug>``.
+
+        Each entry carries a region-agnostic ``rewards`` block (baked-shape
+        mapping); Yayoi builds the `RewardStructure`s and Eishin bakes them to
+        ``config.json``.
+        """
+        return _reward_structures.load()
+
+    def reward_maps(self) -> dict[str, dict]:
+        """Curated rank-graded reward maps, keyed ``reward-map-<slug>``.
+
+        Each entry carries a ``tiers`` block (rank-label → baked-shape rewards);
+        Yayoi builds a `RewardStructure` per tier into a `RewardMap`, and Eishin
+        bakes them under ``reward_maps`` in ``config.json``.
+        """
+        return _reward_maps.load()
 
     def story_period(self, key: str) -> Period | None:
         """UTC Period for the EN story with this stable key, or None if not in stories.yaml."""

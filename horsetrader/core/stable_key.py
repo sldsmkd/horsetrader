@@ -19,9 +19,13 @@ class StableKey(str):
         the namespace; ``during-`` is YAML authoring sugar normalised to
         ``after-`` at load)
       - ``item-<id>``
+      - config — ``reward-structure-<slug>`` (a standing reward structure) and
+        ``reward-map-<slug>`` (a rank-graded reward, whose per-tier structures
+        carry derived ``reward-structure-<body>-<rank>`` keys); both baked to
+        ``config.json``, identity only, never referenced by the timeline
 
     Reward keys are *not* stable keys — they're a fixed serialisation vocab
-    bundled under an event's ``rewards`` object (``{"carats": 2160,
+    bundled under an event's ``rewards`` object (``{"free_carats": 2160,
     "support_tickets": 2, …}``), bare + pluralised, since the wrapper already
     namespaces them.
     """

@@ -89,3 +89,19 @@ class Character(TracenModel):
 ```
 
 The decorators are runtime no-ops — they're metadata for humans (and possibly tooling later). Read top-down as *"semantic role: digitan; structure: dataclass."* Each decorator carries its role description in its docstring, so IDE hover on `@digitan` (or `help(digitan)`) is the fastest way to look up what a marker means.
+
+---
+
+## The model apex: `TracenObject`
+
+Every model that crosses the wire is a **`TracenObject`** — an empty abstract marker **owned by `@eishin`**, not by a domain character. Its only content is `key: StableKey`, because Eishin's bundle is `stable-key → record` maps: *to be baked is to be stable-keyed.* Ownership flips at this apex — the leaves are owned by their **producers** (`@digitan` / `@daitaku` / `@yayoi`), the root by the **consumer** (`@eishin`), since the one universal fact about every node is "it gets serialised," which is Eishin's concern.
+
+`TracenObject` splits **identity** from **the graph**:
+
+- `key: StableKey` lives on `TracenObject` — universal.
+- `references`, `correlations`, `match` stay on `TracenModel` (which subclasses `TracenObject`) — the cross-referencing + searchability that `Entity` (`@digitan`) and `Event` (`@daitaku`) have and config doesn't.
+
+This makes room for config as a **sibling of `TracenModel`, not a child of it**. Two `@yayoi` `TracenObject` config types, both baked to **`config.json`** by `Bake.config` (the third wire file, alongside `academy.json`/`events.json`), loaded from the curated keystore (not the `TracenModels` scrape pipeline):
+
+- `RewardStructure` (**#6**) — a *flat* recipe: a stable key + one `Rewards`. Bakes under `reward_structures`. (`dailies`, `daily-carats`, `weekly-login`.)
+- `RewardMap` (**#4**) — a *rank-graded* recipe: `tiers` maps each rank label → its own `RewardStructure`. Bakes under `reward_maps`, keyed by rank. (`team-trials`, by class.) Neither is an *Entity* (nothing in the world *is* a recipe); which rank applies is the client's call (sweatiness / account state — #19).

@@ -1,0 +1,97 @@
+{
+  "$ref": "#/$defs/ConfigBundle",
+  "$defs": {
+    "ConfigBundle": {
+      "title": "ConfigBundle",
+      "description": "Top-level shape of ``config.json`` — the non-timeline baked-config channel.\n\n``reward_structures`` is a stable-key → baked-rewards map: each value is the\nsame ``Baked`` shape an event's ``rewards`` carries (the per-occurrence\nnumbers for a procedural stream the client expands on its own cadence).\n``reward_maps`` adds the *rank-graded* recipes: each is a rank-label →\nbaked-rewards map (e.g. Team Trials by class), the rank selected client-side.\nFuture baked config rides as sibling top-level keys.\n\nKeys are the stable-key *body* — the bucket already namespaces them, so the\nwire drops the redundant `reward-structure-` / `reward-map-` prefix the\ncurated key carries (`reward-structure-dailies` → `dailies`).",
+      "type": "object",
+      "properties": {
+        "reward_structures": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": {
+                    "anyOf": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "anyOf": [
+                            {
+                              "type": "integer"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "reward_maps": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": {
+                      "anyOf": [
+                        {
+                          "type": "integer"
+                        },
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "anyOf": [
+                              {
+                                "type": "integer"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "required": [
+        "reward_structures",
+        "reward_maps"
+      ]
+    }
+  }
+}

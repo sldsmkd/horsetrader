@@ -4,6 +4,7 @@ from typing import Any
 from horsetrader.core import SingletonMeta
 from horsetrader.info import Logger
 from horsetrader.models import TracenModels
+from horsetrader.models.rewards import load_reward_maps, load_reward_structures
 from horsetrader.output import Bake
 from horsetrader.semantics import rudolf
 from horsetrader.timeline import Predict
@@ -64,7 +65,20 @@ class Pipeline(metaclass=SingletonMeta):
         predict = Predict()
         self._timeline = predict.predict(jst_timeline)
         self._metrics["_predict"] = predict.stats()
-        return Bake.academy(stages) and Bake.events(self._timeline)
+        # Reward structures + maps are curated config, not TracenModels stages, so
+        # they don't ride the auto-discovery registry — load them here (upstream
+        # of the bake) and hand them to Eishin.
+        structures = load_reward_structures()
+        maps = load_reward_maps()
+        self._metrics["_config"] = {
+            "reward_structures": len(structures),
+            "reward_maps": len(maps),
+        }
+        return (
+            Bake.academy(stages)
+            and Bake.events(self._timeline)
+            and Bake.config(structures, maps)
+        )
 
     def _ensure_loaded(self) -> None:
         if self._loaded:

@@ -17,6 +17,12 @@ from .rewards import (
     rewards_from_baked,
     rewards_to_baked,
 )
+from .reward_structure import (
+    RewardMap,
+    RewardStructure,
+    load_reward_maps,
+    load_reward_structures,
+)
 from .rules import (
     stamp_factor_studies_rewards,
     stamp_first_original_rewards,
@@ -37,10 +43,14 @@ __all__ = [
     "RainbowCrystalShard",
     "Reward",
     "RewardGenerator",
+    "RewardMap",
+    "RewardStructure",
     "Rewards",
     "SequenceReward",
     "SupportTicket",
     "TraineeTicket",
+    "load_reward_maps",
+    "load_reward_structures",
     "reward_for_gametora_icon",
     "reward_for_key",
     "rewards_from_baked",
