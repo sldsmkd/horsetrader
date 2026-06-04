@@ -64,10 +64,10 @@ export function mountApp(coord: Coordinator, bundle: Bundle, now: string, root: 
   // The Account overlay's body: the snapshot editor — the domain mutation source.
   function snapshotEditor(): HTMLElement {
     const carats = h("input", { class: "snapshot-carats", attr: { type: "number", min: 0, step: 100 } });
-    const saved = coord.document().snapshot?.resources.carats_free;
+    const saved = coord.document().snapshot?.resources.free_carats;
     if (saved !== undefined) carats.value = String(saved);
     carats.addEventListener("change", () => {
-      coord.update({ snapshot: { date: now, resources: { carats_free: carats.valueAsNumber || 0 } } });
+      coord.update({ snapshot: { date: now, resources: { free_carats: carats.valueAsNumber || 0 } } });
     });
     return h("label", { class: "field" }, h("span", "Carats now"), carats);
   }

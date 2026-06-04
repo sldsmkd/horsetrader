@@ -24,8 +24,9 @@ Partially built under `core/projection/`, all headless-tested (`npm test`):
     this shape: the ETL bakes income sequences (this channel), the client will
     generate *spending* strategies in the same shape (a separate channel — below).
 
-  Shared reward-vocab mapping in `streams/rewards.ts`; shared UTC date arithmetic
-  in `dates.ts`.
+  Reward keys *are* the engine's resource dimensions (the ETL bakes `free_carats`,
+  `paid_carats`, … directly), so the channels read them unchanged — no vocab
+  mapping layer. Shared UTC date arithmetic in `dates.ts`.
 - **The coordinator** (`core/coordinator/`) — the headless seam joining
   persistence to projection. It loads the plan, builds the channels from the
   bundle (`channels.ts` registry), folds the *enabled* ones via `project()`, and
@@ -123,8 +124,8 @@ The engine's output is a **ledger**: a list of attributed, dated, signed entries
 
 ```
 (date, source-stream, resource-type, signed-amount)
-  e.g.  Daily Missions            → +75  carats_free
-        spends·spend-30096-banner → -50  carats_paid
+  e.g.  Daily Missions            → +75  free_carats
+        spends·spend-30096-banner → -50  paid_carats
 ```
 
 The ledger is **sparse and entry-keyed** — a list of entries, not a per-day grid.
@@ -154,9 +155,9 @@ like the ETL's own discipline.
 
 ### Resources are a typed, keyed vector — per-dimension arithmetic
 
-The accumulator is a map of named resources (carats free/paid, trainee/support
-tickets, gold/rainbow uncap + shards, …), **not** a scalar. `carats_free` never
-combines with `carats_paid`; there is a sum per dimension.
+The accumulator is a map of named resources (free/paid carats, trainee/support
+tickets, gold/rainbow uncap + shards, …), **not** a scalar. `free_carats` never
+combines with `paid_carats`; there is a sum per dimension.
 
 ### Streams are independent, composable delta producers
 

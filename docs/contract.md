@@ -81,9 +81,9 @@ invented slug/sequence. Both sides join bundle data on these keys.
 | item | `item-<id>` | `item-00043` |
 
 **Reward keys are not stable keys.** Rewards are a fixed serialisation vocab
-bundled under an event's `rewards` object (`{"carats": 2160, "support_tickets": 2,
+bundled under an event's `rewards` object (`{"free_carats": 2160, "support_tickets": 2,
 …}`) — bare + pluralised; the client reads one object rather than scanning
-top-level keys. A repeating bonus appears under `generator` (`{"carats": 564,
+top-level keys. A repeating bonus appears under `generator` (`{"free_carats": 564,
 "repeat": 10}`).
 
 ETL-side rules for *assigning* these keys (the `KEY_PREFIX` ClassVar, anchor

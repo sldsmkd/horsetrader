@@ -23,21 +23,21 @@ function bundle(...events: EventsBundle["events"]): EventsBundle {
   return { events };
 }
 
-test("rewards land on the event end as one delta vector; bare carats become carats_free", () => {
+test("rewards land on the event end as one delta vector", () => {
   const b = bundle(
-    banner("banner-1", "2026-06-10", { carats: 720, trainee_tickets: 2 }),
+    banner("banner-1", "2026-06-10", { free_carats: 720, trainee_tickets: 2 }),
   );
   const out = eventStream(b, "2026-06-01");
   assert.deepEqual(out, [
-    { date: "2026-06-10", source: "banner-1", deltas: { carats_free: 720, trainee_tickets: 2 } },
+    { date: "2026-06-10", source: "banner-1", deltas: { free_carats: 720, trainee_tickets: 2 } },
   ]);
 });
 
 test("only events landing strictly after the snapshot date are emitted", () => {
   const b = bundle(
-    banner("before", "2026-05-30", { carats: 100 }),
-    banner("on-snapshot", "2026-06-01", { carats: 100 }),
-    banner("after", "2026-06-02", { carats: 100 }),
+    banner("before", "2026-05-30", { free_carats: 100 }),
+    banner("on-snapshot", "2026-06-01", { free_carats: 100 }),
+    banner("after", "2026-06-02", { free_carats: 100 }),
   );
   const out = eventStream(b, "2026-06-01");
   assert.deepEqual(out.map((e) => e.date), ["2026-06-02"]);
@@ -50,16 +50,16 @@ test("events without rewards emit nothing", () => {
 
 test("the events channel ignores generators (own channel) — its nested value is skipped", () => {
   const b = bundle(
-    banner("anchor", "2026-06-10", { generator: { carats: 564, repeat: 10 } }),
+    banner("anchor", "2026-06-10", { generator: { free_carats: 564, repeat: 10 } }),
   );
   assert.deepEqual(eventStream(b, "2026-06-01"), []);
 });
 
 test("flat rewards alongside a generator keep the flat deltas and drop only the generator", () => {
   const b = bundle(
-    banner("mixed", "2026-06-10", { carats: 50, generator: { carats: 564, repeat: 10 } }),
+    banner("mixed", "2026-06-10", { free_carats: 50, generator: { free_carats: 564, repeat: 10 } }),
   );
   assert.deepEqual(eventStream(b, "2026-06-01"), [
-    { date: "2026-06-10", source: "mixed", deltas: { carats_free: 50 } },
+    { date: "2026-06-10", source: "mixed", deltas: { free_carats: 50 } },
   ]);
 });

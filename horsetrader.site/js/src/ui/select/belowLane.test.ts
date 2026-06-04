@@ -11,11 +11,11 @@ import type { Academy } from "../../core/bundle/academy.gen.ts";
 
 const EVENTS: EventsBundle = {
   events: [
-    { type: "trainee", rushable: true, contents: [], image: "/i.webp", start: "2026-06-10", end: "2026-06-15", predicted: false, key: "banner-1", rewards: { carats: 720 } },
-    { type: "story", rushable: true, title: "A Story", contents: [], image: null, banner: null, art: null, start: "2026-06-14", end: "2026-06-20", predicted: true, key: "story-1", rewards: { carats: 200 } },
-    { type: "anchor", start: "2026-06-25", end: "2026-06-25", predicted: false, key: "anchor-1", rewards: { carats: 50 } },
-    { type: "cm", name: "Summer CM", start: "2026-06-27", end: "2026-07-01", predicted: false, key: "cm-1", rewards: { carats: 1000 } },
-    { type: "scenario", title: null, image: null, art: null, start: "2026-07-20", end: "2026-08-01", predicted: false, key: "sce-1", rewards: { carats: 300 } },
+    { type: "trainee", rushable: true, contents: [], image: "/i.webp", start: "2026-06-10", end: "2026-06-15", predicted: false, key: "banner-1", rewards: { free_carats: 720 } },
+    { type: "story", rushable: true, title: "A Story", contents: [], image: null, banner: null, art: null, start: "2026-06-14", end: "2026-06-20", predicted: true, key: "story-1", rewards: { free_carats: 200 } },
+    { type: "anchor", start: "2026-06-25", end: "2026-06-25", predicted: false, key: "anchor-1", rewards: { free_carats: 50 } },
+    { type: "cm", name: "Summer CM", start: "2026-06-27", end: "2026-07-01", predicted: false, key: "cm-1", rewards: { free_carats: 1000 } },
+    { type: "scenario", title: null, image: null, art: null, start: "2026-07-20", end: "2026-08-01", predicted: false, key: "sce-1", rewards: { free_carats: 300 } },
   ],
 };
 
@@ -25,7 +25,7 @@ const EMPTY_ACADEMY: Academy = { characters: {}, supports: {}, trainees: {} };
 function projectFixture() {
   return project({ date: "2026-01-01", resources: {} }, [
     { stream: "events", emissions: eventStream(EVENTS, "2026-01-01") },
-    { stream: "generators", emissions: [{ date: "2026-06-12", source: "daily-login", deltas: { carats_free: 50 } }] },
+    { stream: "generators", emissions: [{ date: "2026-06-12", source: "daily-login", deltas: { free_carats: 50 } }] },
   ]);
 }
 
@@ -58,7 +58,7 @@ test("x is true-to-date off the axis (posting date = end) and reward is the even
   assert.equal(byKey.get("cm-1")!.x, 300); // 2026-07-01 → 30 days
   assert.equal(byKey.get("sce-1")!.x, 610); // 2026-08-01 → 61 days
 
-  // The card carries its own reward, not the day's subtotal — carats → carats_free.
-  assert.deepEqual(byKey.get("cm-1")!.reward, { carats_free: 1000 });
-  assert.deepEqual(byKey.get("anchor-1")!.reward, { carats_free: 50 });
+  // The card carries its own reward, not the day's subtotal.
+  assert.deepEqual(byKey.get("cm-1")!.reward, { free_carats: 1000 });
+  assert.deepEqual(byKey.get("anchor-1")!.reward, { free_carats: 50 });
 });

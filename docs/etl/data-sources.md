@@ -49,11 +49,11 @@ Notes that are load-bearing, not cosmetic:
   `_KEY_PATTERN` selects each corpus's rows by this shape — change a key format
   and its pattern moves with it.
 - **Reward keys are not stable keys.** They're a fixed serialisation vocab
-  bundled under an event's `rewards` object (`{"carats": 2160,
+  bundled under an event's `rewards` object (`{"free_carats": 2160,
   "support_tickets": 2, …}`) — bare + pluralised, since the `rewards` wrapper
   already namespaces them, so the client reads one object rather than scanning
   top-level keys. A repeating bonus appears under `generator`
-  (`{"carats": 564, "repeat": 10}`).
+  (`{"free_carats": 564, "repeat": 10}`).
 
 ## Gametora
 

@@ -37,7 +37,7 @@ export function cursorBalance(): CursorBalance {
   return {
     el,
     setBalance: (balance) => {
-      value.textContent = formatBalance(balance.carats_free ?? 0);
+      value.textContent = formatBalance(balance.free_carats ?? 0);
     },
     setDate: (d) => {
       date.textContent = d;

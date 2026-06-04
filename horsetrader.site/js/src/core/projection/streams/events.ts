@@ -12,7 +12,6 @@
 
 import type { EventsBundle } from "../../bundle/events.gen.ts";
 import type { ResourceVector, StreamEmission } from "../ledger.ts";
-import { resourceOf } from "./rewards.ts";
 
 /**
  * Emit the timeline's discrete rewards as dated deltas. Rewards land on an
@@ -35,8 +34,7 @@ export function eventStream(bundle: EventsBundle, after: string): StreamEmission
     const deltas: ResourceVector = {};
     for (const [key, value] of Object.entries(event.rewards)) {
       if (typeof value !== "number") continue; // generator (nested) — separate channel
-      const resource = resourceOf(key);
-      deltas[resource] = (deltas[resource] ?? 0) + value;
+      deltas[key] = (deltas[key] ?? 0) + value;
     }
     if (Object.keys(deltas).length) emissions.push({ date, source: event.key, deltas });
   }

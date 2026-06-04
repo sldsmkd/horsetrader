@@ -23,7 +23,7 @@ export function belowCard(card: BelowCard): HTMLElement {
       "div",
       { class: "card__body" },
       h("span", { class: "card__label" }, card.label),
-      h("span", { class: "card__reward" }, formatDelta(card.reward.carats_free ?? 0)),
+      h("span", { class: "card__reward" }, formatDelta(card.reward.free_carats ?? 0)),
     ),
   );
   el.style.left = `${card.x}px`;

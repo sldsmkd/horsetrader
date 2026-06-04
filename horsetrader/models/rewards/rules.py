@@ -17,7 +17,7 @@ from horsetrader.enums import CostumeVariants
 from horsetrader.info import Logger
 
 from .rewards import (
-    Carats,
+    FreeCarats,
     GoldCrystalShard,
     RainbowCrystalShard,
     Rewards,
@@ -73,7 +73,7 @@ def stamp_first_original_rewards(banners: "list[Banner]") -> None:
             debut_counts[ident] = (banner, 1)
 
     for banner, count in debut_counts.values():
-        banner.rewards = Rewards([Carats(80 * count)])
+        banner.rewards = Rewards([FreeCarats(80 * count)])
 
 
 def stamp_story_off_table_extras(stories: "list[Story]") -> None:
@@ -90,7 +90,7 @@ def stamp_story_off_table_extras(stories: "list[Story]") -> None:
     for s in stories:
         if s.rewards is None:
             s.rewards = Rewards()
-        s.rewards.append(Carats(660))
+        s.rewards.append(FreeCarats(660))
         s.rewards.append(GoldCrystalShard(3))
 
 
@@ -114,7 +114,7 @@ def stamp_skill_test_rewards(skill_tests: "Iterable[WikiruEvent]") -> None:
     """
     for st in skill_tests:
         st.rewards = Rewards([
-            Carats(1250),  # 450 exchange Jewels (150×3) + 800 from clearing all 7 challenges
+            FreeCarats(1250),  # 450 exchange Jewels (150×3) + 800 from clearing all 7 challenges
             RainbowCrystalShard(1),
             GoldCrystalShard(1),
             TraineeTicket(3),
@@ -126,7 +126,7 @@ def stamp_racing_carnival_rewards(carnivals: "Iterable[WikiruEvent]") -> None:
     """Every Racing Carnival grants the same fixed reward set."""
     for c in carnivals:
         c.rewards = Rewards([
-            Carats(850),
+            FreeCarats(850),
             RainbowCrystalShard(2),
             GoldCrystalShard(2),
             TraineeTicket(3),
@@ -139,7 +139,7 @@ def stamp_legend_race_rewards(races: "Iterable[LegendRace]") -> None:
 
     The carat payout is temporal, not a lump sum: **250 carats land on the first
     day of each set** (leg), nothing in between — so it's modelled as a
-    `SequenceReward(Carats)` over the race's JST window, with 250 at each leg's
+    `SequenceReward(FreeCarats)` over the race's JST window, with 250 at each leg's
     first-day offset and `None` for the off days. The day offsets are taken from
     the JST legs (the same basis `LegendRace._baked_legs` re-anchors onto the EN
     window), so the sequence index lines up with the baked legs.
@@ -160,11 +160,11 @@ def stamp_legend_race_rewards(races: "Iterable[LegendRace]") -> None:
                 if 0 <= offset < span_days:
                     sequence[offset] = 250
             rewards = Rewards(
-                [SequenceReward(reward_type=Carats, sequence=tuple(sequence))]
+                [SequenceReward(reward_type=FreeCarats, sequence=tuple(sequence))]
             )
         else:
             # No JST anchor (shouldn't happen): fall back to the lump total.
-            rewards = Rewards([Carats(250 * len(race.legs))])
+            rewards = Rewards([FreeCarats(250 * len(race.legs))])
 
         ordinal = int(str(race.key).rsplit("-", 1)[-1])
         if ordinal >= 8:
@@ -181,7 +181,7 @@ def stamp_factor_studies_rewards(studies: "Iterable[WikiruEvent]") -> None:
     """
     for s in studies:
         s.rewards = Rewards([
-            Carats(900),
+            FreeCarats(900),
             RainbowCrystalShard(1),
             GoldCrystalShard(1),
         ])

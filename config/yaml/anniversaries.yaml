@@ -18,9 +18,9 @@ during-anni-1_5: # Part 2
   name: 1.5th Anniversary Celebration Part 2
   duration: P28D
   rewards:
-    carats: 3000
+    free_carats: 3000
     sequence:
-      type: carats
+      type: free_carats
       sequence: [150,150,Null,150,150,150,150,150,Null,150,150,150]
 after-anni-1_5p2: # Part 3 starts 9/2
   anchor: during-anni-1_5
