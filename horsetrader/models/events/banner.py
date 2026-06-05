@@ -23,7 +23,7 @@ from horsetrader.models.rewards import (
 from horsetrader.output._records import SupportBannerRecord, TraineeBannerRecord
 from horsetrader.semantics import daitaku
 
-from .event import RushableEvent
+from .event import Event, Rushable
 from .events import Events
 
 logger = Logger.get(__name__)
@@ -46,7 +46,7 @@ def _canonical(value: str) -> str:
 
 @daitaku
 @dataclass
-class Banner(RushableEvent):
+class Banner(Rushable, Event):
     """A gacha banner event with a start/end date and a guest list.
 
     Banner is the abstract parent for the two concrete gacha kinds
@@ -158,6 +158,10 @@ class Banners(Events[Banner], metaclass=SingletonMeta):
             period = Static().banner_period(banner.key)
             if period is not None:
                 banner.periods.append(period)
+                banner.references.add(store.source())
+            flags = Static().event_flags(str(banner.key))
+            if flags:
+                banner.apply_flags(flags)
                 banner.references.add(store.source())
 
         return (_add_utc_period,)

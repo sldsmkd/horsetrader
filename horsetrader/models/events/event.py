@@ -28,6 +28,9 @@ class Event(TracenModel):
 
     periods: Periods
     rewards: Rewards | None = field(default=None, kw_only=True)
+    _flag_overrides: dict[str, bool] = field(
+        default_factory=dict, init=False, repr=False
+    )
 
     @abstractmethod
     def bake(self, period: Period) -> EventRecord:
@@ -54,29 +57,55 @@ class Event(TracenModel):
         skipping the assignment.
         """
         baked = rewards_to_baked(self.rewards)
-        return {
+        envelope = {
             "start": period.start.date().isoformat(),
             "end": period.end.date().isoformat(),
             "predicted": period.predicted,
             "key": self.key,
             "rewards": baked if baked else UNSET,
         }
+        if not self.visible:
+            envelope["visible"] = False
+        if self.rushable:
+            envelope["rushable"] = True
+        return envelope
+
+    def _flag(self, name: str, default: bool) -> bool:
+        return self._flag_overrides.get(name, default)
+
+    @property
+    def visible(self) -> bool:
+        return self._flag("visible", True)
+
+    @property
+    def rushable(self) -> bool:
+        return self._flag("rushable", False)
+
+    def apply_flags(self, flags: dict[str, bool]) -> None:
+        """Apply curated optional event flags to this model."""
+        self._flag_overrides.update(flags)
 
 
 @daitaku
-@dataclass
-class RushableEvent(Event):
-    """An event the player can *rush* — post it at its `start` for an efficiency
-    penalty instead of farming it to the last day (banners, story events).
+class Rushable:
+    """Mixin for events the player can *rush*.
 
-    Subclassing is the capability declaration: only these events carry the baked
-    `rushable` key, so it never appears on an event that can't be rushed (an
-    anchor, a Champions Meeting). The flag is ours to mark; the rushed-state
-    *modelling* — the penalty, the start-post reschedule — is the client's
-    projection job. Defaults `True` (the type *is* rushable); a member that
-    shouldn't be can set it `False`."""
+    Composition is the authoring-side capability declaration. On the wire the
+    flag is presence-encoded: `rushable: true` appears only for events that can
+    be rushed, while absence means the shared contract default (`false`). The
+    rushed-state *modelling* — the penalty, the start-post reschedule — is the
+    client's projection job.
+    """
 
-    rushable: bool = field(default=True, kw_only=True)
+    @property
+    def rushable(self) -> bool:
+        return self._flag("rushable", True)
 
-    def _envelope(self, period: Period) -> dict:
-        return {**super()._envelope(period), "rushable": self.rushable}
+
+@daitaku
+class Invisible:
+    """Mixin for events hidden from the timeline unless curated otherwise."""
+
+    @property
+    def visible(self) -> bool:
+        return self._flag("visible", False)

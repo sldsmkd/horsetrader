@@ -88,6 +88,7 @@ def load() -> list[dict]:
 
         where = f"{source}: anchored event {raw_key!r}"
         fields = store.find(raw_key) or {}
+        visible = store.optional_bool(fields, "visible", where)
 
         anchor = fields.get("anchor")
         if not isinstance(anchor, str) or not anchor:
@@ -107,6 +108,7 @@ def load() -> list[dict]:
             "name": str(fields.get("name", "")).strip() or None,
             "duration": _parse_duration(fields.get("duration"), where),
             "rewards": rewards,
+            "visible": visible,
             "source": source,
         })
     logger.info("Loaded %d anchored events from the merged static corpus", len(records))

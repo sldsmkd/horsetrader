@@ -9,7 +9,7 @@ from horsetrader.models.rewards import rewards_from_baked
 from horsetrader.output._records import ShowtimeRecord
 from horsetrader.semantics import daitaku
 
-from .event import RushableEvent
+from .event import Event, Rushable
 from .events import Events
 
 logger = Logger.get(__name__)
@@ -17,7 +17,7 @@ logger = Logger.get(__name__)
 
 @daitaku
 @dataclass
-class Showtime(RushableEvent):
+class Showtime(Rushable, Event):
     """A Fuji Kiseki Showtime event occurrence — a dated availability window.
 
     The JP `Period` and JP `name` come from the wikiru event-index scrape; the
@@ -65,6 +65,7 @@ class Showtimes(Events[Showtime], metaclass=SingletonMeta):
                 showtime.name = entry["name"]
             if entry.get("rewards"):
                 showtime.rewards = rewards_from_baked(entry["rewards"])
+            showtime.apply_flags(Static().event_flags(str(showtime.key)))
             showtime.references.add(store.source())
 
         return (_add_en_overlay,)

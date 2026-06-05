@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 from horsetrader.core import Japlish, Period, Periods, SingletonMeta, StableKey
 from horsetrader.extractors.gametora import Gametora
+from horsetrader.extractors.static import Static, store
 from horsetrader.info import Logger
 from horsetrader.models.core import References
 from horsetrader.models.rewards import Rewards, reward_for_gametora_icon
@@ -24,7 +25,7 @@ class Mission(Event):
     reached Global, joined on the shared logo-id key. `title` is JP-by-default
     with the EN slot filled when known.
 
-    Not a `RushableEvent`: a mission set is farmed across its window, there's no
+    Not `Rushable`: a mission set is farmed across its window, there's no
     post-at-start choice. Rewards are the scraped carat-economy subset (the long
     tail — manie, friend points — is dropped by the `reward_for_gametora_icon`
     allowlist, same as story events), not a heuristic.
@@ -74,15 +75,18 @@ class Missions(Events[Mission], metaclass=SingletonMeta):
                 periods.append(en["period"])
                 references.add(en.get("references", []))
 
-            missions.append(
-                Mission(
-                    key=StableKey(key),
-                    periods=periods,
-                    title=title,
-                    rewards=self._resolve_rewards(record.get("reward_items", []), key),
-                    references=references,
-                )
+            mission = Mission(
+                key=StableKey(key),
+                periods=periods,
+                title=title,
+                rewards=self._resolve_rewards(record.get("reward_items", []), key),
+                references=references,
             )
+            flags = Static().event_flags(str(mission.key))
+            if flags:
+                mission.apply_flags(flags)
+                mission.references.add(store.source())
+            missions.append(mission)
         return missions
 
     @staticmethod

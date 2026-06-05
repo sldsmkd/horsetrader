@@ -31,7 +31,9 @@ def load() -> list[dict]:
             )
             en = {"period": Period(start=en_start), "source": source}
 
+        where = f"{source}: holiday {key!r}"
         top = store.shared(key)
+        visible = store.optional_bool(top, "visible", where)
         rewards = top.get("rewards")
         if rewards is not None and not isinstance(rewards, dict):
             raise ValueError(f"{source}: holiday {key!r} rewards must be a mapping")
@@ -40,6 +42,7 @@ def load() -> list[dict]:
             "period": Period(start=jp_start),
             "source": source,
             "rewards": rewards,
+            "visible": visible,
             "en": en,
         })
     logger.info("Loaded %d holidays", len(records))

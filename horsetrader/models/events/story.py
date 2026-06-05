@@ -19,7 +19,7 @@ from horsetrader.models.rewards import (
 from horsetrader.output._records import StoryRecord
 from horsetrader.semantics import daitaku
 
-from .event import RushableEvent
+from .event import Event, Rushable
 from .events import Events
 
 logger = Logger.get(__name__)
@@ -27,7 +27,7 @@ logger = Logger.get(__name__)
 
 @daitaku
 @dataclass
-class Story(RushableEvent):
+class Story(Rushable, Event):
     """A story-time event with a JP/EN title and run period."""
 
     title: Japlish | None = None
@@ -73,7 +73,8 @@ class Stories(Events[Story], metaclass=SingletonMeta):
             key = str(story.key)
             period = Static().story_period(key)
             name_override = Static().story_name_override(key)
-            if period is None and name_override is None:
+            flags = Static().event_flags(key)
+            if period is None and name_override is None and not flags:
                 return
             if period is not None:
                 story.periods.append(period)
@@ -84,6 +85,8 @@ class Stories(Events[Story], metaclass=SingletonMeta):
                     logger.warning(
                         "EN name override for %s ignored: no Gametora title to override", key
                     )
+            if flags:
+                story.apply_flags(flags)
             story.references.add(store.source())
 
         return (_apply_en_overlay,)

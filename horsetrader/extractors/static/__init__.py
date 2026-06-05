@@ -71,6 +71,21 @@ class Static(metaclass=SingletonMeta):
         """
         return _stories.load()
 
+    def event_flags(self, key: str) -> dict[str, bool]:
+        """Curated optional event flags for ``key``.
+
+        Flags are region-agnostic and presence-encoded at bake time. Returning
+        only authored booleans lets model defaults keep doing the right thing
+        when a key has no static overlay.
+        """
+        fields = store.shared(str(key))
+        label = f"{store.source()}: event {key!r}"
+        return {
+            name: value
+            for name in ("visible", "rushable")
+            if (value := store.optional_bool(fields, name, label)) is not None
+        }
+
     def banner_period(self, key: str) -> Period | None:
         """UTC Period for the EN banner with this key, or None if not in banners.yaml."""
         return _banners.load().get(key)

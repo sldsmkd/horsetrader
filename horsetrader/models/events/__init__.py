@@ -1,4 +1,4 @@
-from .event import Event, RushableEvent
+from .event import Event, Invisible, Rushable
 from .events import Events
 
 from .anchor import Anchor, Anchors
@@ -42,7 +42,8 @@ __all__ = [
     "Missions",
     "RacingCarnival",
     "RacingCarnivals",
-    "RushableEvent",
+    "Invisible",
+    "Rushable",
     "Scenario",
     "Scenarios",
     "Showtime",

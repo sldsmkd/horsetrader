@@ -104,25 +104,18 @@ class EventRecord(msgspec.Struct, tag_field="type", kw_only=True):
     predicted: bool
     key: str
     rewards: Baked | UnsetType = UNSET
+    visible: bool | UnsetType = UNSET
+    rushable: bool | UnsetType = UNSET
 
 
 @eishin
-class RushableEventRecord(EventRecord):
-    """Envelope for events the client can rush — adds the `rushable` capability
-    flag. Only the rushable event records (banners, stories) inherit it, so the
-    key never appears on events that can't be rushed (anchors, CMs, scenarios)."""
-
-    rushable: bool
-
-
-@eishin
-class SupportBannerRecord(RushableEventRecord, tag="support"):
+class SupportBannerRecord(EventRecord, tag="support"):
     contents: list[str]
     image: str
 
 
 @eishin
-class TraineeBannerRecord(RushableEventRecord, tag="trainee"):
+class TraineeBannerRecord(EventRecord, tag="trainee"):
     contents: list[str]
     image: str
 
@@ -135,7 +128,7 @@ class ScenarioRecord(EventRecord, tag="scenario"):
 
 
 @eishin
-class StoryRecord(RushableEventRecord, tag="story"):
+class StoryRecord(EventRecord, tag="story"):
     title: str | None
     contents: list[str]
     image: str | None
@@ -149,50 +142,51 @@ class CMRecord(EventRecord, tag="cm"):
 
 
 @eishin
-class ShowtimeRecord(RushableEventRecord, tag="showtime"):
+class ShowtimeRecord(EventRecord, tag="showtime"):
     # Rushable (post-at-start) + carries rewards via the shared envelope, unlike
     # a CM. `name` is the EN display label ("Fuji Kiseki's Showtime Event").
     name: str | None
 
 
 @eishin
-class NamedRushableEventRecord(RushableEventRecord):
-    """A rushable event record carrying a display `name` — the shared wire shape
+class NamedEventRecord(EventRecord):
+    """An event record carrying a display `name` — the shared wire shape
     for the recurring wikiru event types (Trainer Skills Test, Racing Carnival,
-    Aim! Strongest Team, Masters Challenge). Untagged intermediate; concrete
-    subclasses supply the discriminator tag."""
+    Aim! Strongest Team, Masters Challenge, …). Untagged intermediate; concrete
+    subclasses supply the discriminator tag. Rushability is the shared optional
+    flag from ``EventRecord``, not a distinct record subtype."""
 
     name: str | None
 
 
 @eishin
-class SkillTestRecord(NamedRushableEventRecord, tag="skilltest"):
+class SkillTestRecord(NamedEventRecord, tag="skilltest"):
     # Recurring Trainer Skills Test; carries the fixed full-clear rewards.
     pass
 
 
 @eishin
-class RacingCarnivalRecord(NamedRushableEventRecord, tag="racingcarnival"):
+class RacingCarnivalRecord(NamedEventRecord, tag="racingcarnival"):
     pass
 
 
 @eishin
-class StrongestTeamRecord(NamedRushableEventRecord, tag="strongestteam"):
+class StrongestTeamRecord(NamedEventRecord, tag="strongestteam"):
     pass
 
 
 @eishin
-class MastersChallengeRecord(NamedRushableEventRecord, tag="masterschallenge"):
+class MastersChallengeRecord(NamedEventRecord, tag="masterschallenge"):
     pass
 
 
 @eishin
-class FactorStudiesRecord(NamedRushableEventRecord, tag="factorstudies"):
+class FactorStudiesRecord(NamedEventRecord, tag="factorstudies"):
     pass
 
 
 @eishin
-class LeagueOfHeroesRecord(NamedRushableEventRecord, tag="leagueofheroes"):
+class LeagueOfHeroesRecord(NamedEventRecord, tag="leagueofheroes"):
     pass
 
 

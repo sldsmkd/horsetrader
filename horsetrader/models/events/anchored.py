@@ -151,18 +151,19 @@ class AnchoredEvents(Events[AnchoredEvent], metaclass=SingletonMeta):
         for record in records:
             key = StableKey(record["key"])
             raw_rewards = record.get("rewards")
-            events.append(
-                AnchoredEvent(
-                    key=key,
-                    periods=Periods([resolved[key]]),
-                    name=record.get("name"),
-                    anchor=StableKey(record["anchor"]),
-                    relation=record["relation"],
-                    duration=record["duration"],
-                    references=References([record["source"]]),
-                    rewards=rewards_from_baked(raw_rewards) if raw_rewards else None,
-                )
+            event = AnchoredEvent(
+                key=key,
+                periods=Periods([resolved[key]]),
+                name=record.get("name"),
+                anchor=StableKey(record["anchor"]),
+                relation=record["relation"],
+                duration=record["duration"],
+                references=References([record["source"]]),
+                rewards=rewards_from_baked(raw_rewards) if raw_rewards else None,
             )
+            if (visible := record.get("visible")) is not None:
+                event.apply_flags({"visible": visible})
+            events.append(event)
         return events
 
     def _anchor_jst(self, key: StableKey) -> Period | None:

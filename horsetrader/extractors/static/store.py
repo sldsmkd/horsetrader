@@ -160,6 +160,16 @@ def shared(key: str) -> dict:
     return {k: v for k, v in entry.data.items() if k not in LOCALES}
 
 
+def optional_bool(fields: dict, name: str, label: str) -> bool | None:
+    """Validate an optional boolean field from a curated mapping."""
+    value = fields.get(name)
+    if value is None:
+        return None
+    if not isinstance(value, bool):
+        raise ValueError(f"{label}: {name} must be a boolean; got {value!r}")
+    return value
+
+
 def require_zone(value, expected: tzinfo, label: str) -> datetime:
     """Validate ``value`` is a tz-aware datetime in ``expected``, or raise."""
     if not isinstance(value, datetime) or value.tzinfo != expected:

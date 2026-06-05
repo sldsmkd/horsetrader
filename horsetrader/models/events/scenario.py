@@ -91,16 +91,17 @@ class Scenarios(Events[Scenario], metaclass=SingletonMeta):
             if art is not None:
                 references.add(art.references)
 
-            scenarios.append(
-                Scenario(
-                    key=StableKey(record["key"]),
-                    periods=periods,
-                    title=title,
-                    art=art,
-                    thumb=thumb,
-                    references=references,
-                )
+            scenario = Scenario(
+                key=StableKey(record["key"]),
+                periods=periods,
+                title=title,
+                art=art,
+                thumb=thumb,
+                references=references,
             )
+            if (visible := record.get("visible")) is not None:
+                scenario.apply_flags({"visible": visible})
+            scenarios.append(scenario)
         return scenarios
 
     @staticmethod

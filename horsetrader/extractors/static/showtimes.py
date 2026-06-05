@@ -42,10 +42,11 @@ def load() -> dict[str, dict]:
             raise ValueError(
                 f"{source}: showtime {key!r} en.end {end} must be after en.start {start}"
             )
+        top = store.shared(key)
         out[str(key)] = {
             "period": Period(start=start, span=end - start),
             "name": en_block.get("name"),
-            "rewards": store.shared(key).get("rewards"),
+            "rewards": top.get("rewards"),
         }
     logger.info("Loaded %d EN showtime periods", len(out))
     return out

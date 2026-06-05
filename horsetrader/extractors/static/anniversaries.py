@@ -38,10 +38,12 @@ def load() -> list[dict]:
             )
             en = {"period": Period(start=en_start), "source": source}
 
+        top = store.shared(key)
         records.append({
             "key": str(key),
             "period": Period(start=jp_start),
             "source": source,
+            "visible": store.optional_bool(top, "visible", f"{source}: anniversary {key!r}"),
             "en": en,
         })
     logger.info("Loaded %d anniversaries", len(records))

@@ -57,7 +57,9 @@ def load() -> list[dict]:
                     "source": source,
                 }
 
-        art = store.shared(key).get("art")
+        top = store.shared(key)
+        visible = store.optional_bool(top, "visible", f"{source}: scenario {key!r}")
+        art = top.get("art")
         art_url = str(art).strip() if art else None
 
         records.append({
@@ -67,6 +69,7 @@ def load() -> list[dict]:
             "art_url": art_url,
             "period": Period(start=jp_start),
             "source": source,
+            "visible": visible,
             "en": en,
         })
     logger.info("Loaded %d scenarios", len(records))

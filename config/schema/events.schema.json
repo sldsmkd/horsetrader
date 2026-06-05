@@ -96,9 +96,6 @@
             "support"
           ]
         },
-        "rushable": {
-          "type": "boolean"
-        },
         "contents": {
           "type": "array",
           "items": {
@@ -155,11 +152,16 @@
               }
             ]
           }
+        },
+        "visible": {
+          "type": "boolean"
+        },
+        "rushable": {
+          "type": "boolean"
         }
       },
       "required": [
         "type",
-        "rushable",
         "contents",
         "image",
         "start",
@@ -177,9 +179,6 @@
             "trainee"
           ]
         },
-        "rushable": {
-          "type": "boolean"
-        },
         "contents": {
           "type": "array",
           "items": {
@@ -236,11 +235,16 @@
               }
             ]
           }
+        },
+        "visible": {
+          "type": "boolean"
+        },
+        "rushable": {
+          "type": "boolean"
         }
       },
       "required": [
         "type",
-        "rushable",
         "contents",
         "image",
         "start",
@@ -335,6 +339,12 @@
               }
             ]
           }
+        },
+        "visible": {
+          "type": "boolean"
+        },
+        "rushable": {
+          "type": "boolean"
         }
       },
       "required": [
@@ -356,9 +366,6 @@
           "enum": [
             "story"
           ]
-        },
-        "rushable": {
-          "type": "boolean"
         },
         "title": {
           "anyOf": [
@@ -453,11 +460,16 @@
               }
             ]
           }
+        },
+        "visible": {
+          "type": "boolean"
+        },
+        "rushable": {
+          "type": "boolean"
         }
       },
       "required": [
         "type",
-        "rushable",
         "title",
         "contents",
         "image",
@@ -535,6 +547,12 @@
               }
             ]
           }
+        },
+        "visible": {
+          "type": "boolean"
+        },
+        "rushable": {
+          "type": "boolean"
         }
       },
       "required": [
@@ -555,9 +573,6 @@
             "showtime"
           ]
         },
-        "rushable": {
-          "type": "boolean"
-        },
         "name": {
           "anyOf": [
             {
@@ -615,11 +630,16 @@
               }
             ]
           }
+        },
+        "visible": {
+          "type": "boolean"
+        },
+        "rushable": {
+          "type": "boolean"
         }
       },
       "required": [
         "type",
-        "rushable",
         "name",
         "start",
         "end",
@@ -636,9 +656,6 @@
             "skilltest"
           ]
         },
-        "rushable": {
-          "type": "boolean"
-        },
         "name": {
           "anyOf": [
             {
@@ -696,11 +713,16 @@
               }
             ]
           }
+        },
+        "visible": {
+          "type": "boolean"
+        },
+        "rushable": {
+          "type": "boolean"
         }
       },
       "required": [
         "type",
-        "rushable",
         "name",
         "start",
         "end",
@@ -717,9 +739,6 @@
             "racingcarnival"
           ]
         },
-        "rushable": {
-          "type": "boolean"
-        },
         "name": {
           "anyOf": [
             {
@@ -777,11 +796,16 @@
               }
             ]
           }
+        },
+        "visible": {
+          "type": "boolean"
+        },
+        "rushable": {
+          "type": "boolean"
         }
       },
       "required": [
         "type",
-        "rushable",
         "name",
         "start",
         "end",
@@ -798,9 +822,6 @@
             "strongestteam"
           ]
         },
-        "rushable": {
-          "type": "boolean"
-        },
         "name": {
           "anyOf": [
             {
@@ -858,11 +879,16 @@
               }
             ]
           }
+        },
+        "visible": {
+          "type": "boolean"
+        },
+        "rushable": {
+          "type": "boolean"
         }
       },
       "required": [
         "type",
-        "rushable",
         "name",
         "start",
         "end",
@@ -879,9 +905,6 @@
             "masterschallenge"
           ]
         },
-        "rushable": {
-          "type": "boolean"
-        },
         "name": {
           "anyOf": [
             {
@@ -939,11 +962,16 @@
               }
             ]
           }
+        },
+        "visible": {
+          "type": "boolean"
+        },
+        "rushable": {
+          "type": "boolean"
         }
       },
       "required": [
         "type",
-        "rushable",
         "name",
         "start",
         "end",
@@ -960,9 +988,6 @@
             "factorstudies"
           ]
         },
-        "rushable": {
-          "type": "boolean"
-        },
         "name": {
           "anyOf": [
             {
@@ -1020,11 +1045,16 @@
               }
             ]
           }
+        },
+        "visible": {
+          "type": "boolean"
+        },
+        "rushable": {
+          "type": "boolean"
         }
       },
       "required": [
         "type",
-        "rushable",
         "name",
         "start",
         "end",
@@ -1041,9 +1071,6 @@
             "leagueofheroes"
           ]
         },
-        "rushable": {
-          "type": "boolean"
-        },
         "name": {
           "anyOf": [
             {
@@ -1101,11 +1128,16 @@
               }
             ]
           }
+        },
+        "visible": {
+          "type": "boolean"
+        },
+        "rushable": {
+          "type": "boolean"
         }
       },
       "required": [
         "type",
-        "rushable",
         "name",
         "start",
         "end",
@@ -1185,6 +1217,12 @@
               }
             ]
           }
+        },
+        "visible": {
+          "type": "boolean"
+        },
+        "rushable": {
+          "type": "boolean"
         }
       },
       "required": [
@@ -1284,6 +1322,12 @@
               }
             ]
           }
+        },
+        "visible": {
+          "type": "boolean"
+        },
+        "rushable": {
+          "type": "boolean"
         }
       },
       "required": [
@@ -1351,6 +1395,12 @@
               }
             ]
           }
+        },
+        "visible": {
+          "type": "boolean"
+        },
+        "rushable": {
+          "type": "boolean"
         }
       },
       "required": [
@@ -1426,6 +1476,12 @@
               }
             ]
           }
+        },
+        "visible": {
+          "type": "boolean"
+        },
+        "rushable": {
+          "type": "boolean"
         }
       },
       "required": [

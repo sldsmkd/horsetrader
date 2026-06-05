@@ -35,7 +35,7 @@ class LegendRace(Event):
     overall window. `title` is the race name (JP from extraction, EN joined from
     the locale-less index when it has reached Global).
 
-    Not a `RushableEvent`: the legs are date-pinned daily windows, so there's no
+    Not `Rushable`: the legs are date-pinned daily windows, so there's no
     post-at-start choice to model — same fixed-duration stance as a Champions
     Meeting. Rewards are a stamped heuristic (carats per leg, plus crystal shards
     once the reward tier improved at the 8th occurrence); see `rewards/rules.py`.
@@ -102,6 +102,10 @@ class LegendRaces(Events[LegendRace], metaclass=SingletonMeta):
             period = Static().legend_race_period(str(race.key))
             if period is not None:
                 race.periods.append(period)
+                race.references.add(store.source())
+            flags = Static().event_flags(str(race.key))
+            if flags:
+                race.apply_flags(flags)
                 race.references.add(store.source())
 
         return (_add_utc_period,)

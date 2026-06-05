@@ -59,6 +59,10 @@ class ChampionsMeetings(Events[ChampionsMeeting], metaclass=SingletonMeta):
             if period is not None:
                 cm.periods.append(period)
                 cm.references.add(store.source())
+            flags = Static().event_flags(str(cm.key))
+            if flags:
+                cm.apply_flags(flags)
+                cm.references.add(store.source())
 
         return (_add_utc_period,)
 

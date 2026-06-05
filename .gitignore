@@ -1,6 +1,10 @@
 # Tooling - AI agents - keep this local, doesn't need to go to github
 .claude/*
 .copilot/*
+.agents/*
+.codex/*
+.codex.local/*
+.codex.local.md
 
 # Python
 venv/

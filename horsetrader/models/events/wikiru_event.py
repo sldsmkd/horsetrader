@@ -2,13 +2,14 @@ from dataclasses import dataclass
 from typing import ClassVar, TypeVar, cast
 
 from horsetrader.core import Period, Periods, SingletonMeta, StableKey
+from horsetrader.extractors.static import Static, store
 from horsetrader.extractors.wikiru import Wikiru
 from horsetrader.info import Logger
 from horsetrader.models.core import References
-from horsetrader.output._records import NamedRushableEventRecord
+from horsetrader.output._records import NamedEventRecord
 from horsetrader.semantics import daitaku
 
-from .event import RushableEvent
+from .event import Event, Rushable
 from .events import Events
 
 logger = Logger.get(__name__)
@@ -16,7 +17,7 @@ logger = Logger.get(__name__)
 
 @daitaku
 @dataclass
-class WikiruEvent(RushableEvent):
+class WikiruEvent(Rushable, Event):
     """Base for a *recurring* wikiru-scraped event (Trainer Skills Test, Racing
     Carnival, Aim! Strongest Team, Masters Challenge, …).
 
@@ -33,14 +34,14 @@ class WikiruEvent(RushableEvent):
     """
 
     name: str | None = None
-    _RECORD: ClassVar[type[NamedRushableEventRecord]]
+    _RECORD: ClassVar[type[NamedEventRecord]]
 
     def match(self, query: str) -> bool:
         return super().match(query) or (
             self.name is not None and query.lower() in self.name.lower()
         )
 
-    def bake(self, period: Period) -> NamedRushableEventRecord:
+    def bake(self, period: Period) -> NamedEventRecord:
         return self._RECORD(**self._envelope(period), name=self.name)
 
 
@@ -75,15 +76,19 @@ class WikiruEvents(Events[TWikiruEvent], metaclass=SingletonMeta):
         subclass provides a one-line `_fetch_primary` delegating here, and
         stamps its own rewards on the result once the pattern is curated.
         """
-        events = [
-            self._MODEL(
+        events = []
+        for record in Wikiru().occurrences(self._HEADING, self._KEY_PREFIX):
+            event = self._MODEL(
                 key=StableKey(record["key"]),
                 periods=Periods([record["period"]]),
                 name=self._EN_NAME,
                 references=References(record.get("references", [])),
             )
-            for record in Wikiru().occurrences(self._HEADING, self._KEY_PREFIX)
-        ]
+            flags = Static().event_flags(str(event.key))
+            if flags:
+                event.apply_flags(flags)
+                event.references.add(store.source())
+            events.append(event)
         # `_MODEL` is the concrete subclass's own model (bound to TWikiruEvent),
         # but it's typed `type[WikiruEvent]` because a ClassVar can't carry a
         # TypeVar; the cast restores the subclass-specific element type.

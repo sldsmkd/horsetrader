@@ -110,12 +110,13 @@ class Anchors(Events[Anchor], metaclass=SingletonMeta):
             raw_rewards = record.get("rewards")
             rewards = rewards_from_baked(raw_rewards) if raw_rewards else None
 
-            anchors.append(
-                Anchor(
-                    key=StableKey(str(record["key"])),
-                    periods=periods,
-                    references=references,
-                    rewards=rewards,
-                )
+            anchor = Anchor(
+                key=StableKey(str(record["key"])),
+                periods=periods,
+                references=references,
+                rewards=rewards,
             )
+            if (visible := record.get("visible")) is not None:
+                anchor.apply_flags({"visible": visible})
+            anchors.append(anchor)
         return anchors
