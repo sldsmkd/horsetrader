@@ -711,8 +711,9 @@ is a primary verb, not an overlay tucked behind an icon. It is deliberately
 - **Results stay on the live axis.** Committing a search **re-scopes the timeline
   in situ** rather than opening a separate results page — matches keep their **true
   dates**, so you read *when* they land, not merely *that* they exist. Even
-  find-results obey "we're a planner, not a browser" (principle 2). *(The count —
-  e.g. "27 results found" — is matching atoms across all time.)*
+  find-results obey "we're a planner, not a browser" (principle 2). Search only
+  offers actionable, active-or-future atoms; broad queries over the result cap
+  collapse to a passive count like "27 results found" until the user narrows.
 - **Typeahead in the game's naming grammar.** The autocomplete spans **both atom
   kinds and all alt-versions**, labelled the way the game names them (principle 5):
   trainees as bare-name + costume (`Mejiro Ramonu (Wedding)`), supports as

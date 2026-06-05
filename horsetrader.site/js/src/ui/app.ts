@@ -31,6 +31,7 @@ import { menubar } from "./views/menubar.ts";
 import type { MenubarOverlay } from "./views/menubar.ts";
 import { belowLaneCards } from "./select/belowLane.ts";
 import { aboveLaneGroups } from "./select/aboveLane.ts";
+import { createSearchIndex } from "./search/index.ts";
 import { packBelow, packAbove } from "./pack/pack.ts";
 import type { BelowCard } from "./select/belowLane.ts";
 import type { BannerGroup } from "./select/aboveLane.ts";
@@ -115,6 +116,7 @@ function displayExtent(bundle: Bundle): readonly [string, string] | null {
 
 export function mountApp(coord: Coordinator, bundle: Bundle, now: string, root: HTMLElement = qs("#app")): void {
   const view = createViewStore();
+  const search = createSearchIndex(bundle, now);
   const toggleOverlay = (overlay: Exclude<MenubarOverlay, null>) => {
     view.set({ overlay: view.get().overlay === overlay ? null : overlay });
   };
@@ -145,7 +147,11 @@ export function mountApp(coord: Coordinator, bundle: Bundle, now: string, root: 
     onPlan: () => toggleOverlay("plan"),
     onResources: () => toggleOverlay("resources"),
     onTazuna: () => toggleOverlay("tazuna"),
-    onSearch: (query) => view.set({ search: query }),
+    search,
+    onSearch: (result) => {
+      view.set({ search: result.label, selection: result.id });
+      tl.warpTo(result.date);
+    },
   });
 
   // The render path: re-lay the substrate, then rebuild the cards from the

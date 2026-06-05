@@ -9,6 +9,8 @@ import "./menubar.css";
 
 import { h } from "../h.ts";
 import { formatBalance, formatDate } from "../format.ts";
+import { searchBox } from "./searchBox.ts";
+import type { SearchIndex, SearchResult } from "../search/index.ts";
 
 export type MenubarOverlay = "identity" | "plan" | "resources" | "tazuna" | null;
 
@@ -28,7 +30,8 @@ export interface MenubarOpts {
   onPlan: () => void;
   onResources: () => void;
   onTazuna: () => void;
-  onSearch: (query: string) => void;
+  search: SearchIndex;
+  onSearch: (result: SearchResult) => void;
 }
 
 function menuButton(label: string, overlay: Exclude<MenubarOverlay, null>, onClick: () => void): HTMLButtonElement {
@@ -55,24 +58,7 @@ export function menubar(opts: MenubarOpts): Menubar {
     h("span", { class: "menubar__balance-value" }, formatBalance(opts.initialBalance)),
     h("span", { class: "menubar__balance-unit" }, "carats"),
   );
-  const search = h("input", {
-    class: "menubar__search-input",
-    attr: { type: "search", placeholder: "Search", "aria-label": "Search timeline" },
-  });
-  const form = h(
-    "form",
-    {
-      class: "menubar__item menubar__search",
-      attr: { role: "search" },
-      on: {
-        submit: (ev) => {
-          ev.preventDefault();
-          opts.onSearch(search.value.trim());
-        },
-      },
-    },
-    search,
-  );
+  const search = searchBox({ search: opts.search, onSearch: opts.onSearch });
 
   const identity = menuButton("Sweep Tosho v", "identity", opts.onIdentity);
   const plan = menuButton("Plan", "plan", opts.onPlan);
@@ -96,7 +82,7 @@ export function menubar(opts: MenubarOpts): Menubar {
       date,
       identity,
     ),
-    form,
+    search,
     h("div", { class: "menubar__cluster menubar__cluster--right" }, plan, balance, tazuna),
   );
 

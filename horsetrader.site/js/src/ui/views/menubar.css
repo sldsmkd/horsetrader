@@ -66,23 +66,6 @@
   white-space: nowrap;
 }
 
-.menubar__search {
-  display: flex;
-  min-width: 0;
-  overflow: hidden;
-}
-
-.menubar__search-input {
-  width: 100%;
-  min-width: 0;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  outline: 0;
-  padding: 0 0.8rem;
-}
-
 .menubar__balance {
   min-width: 8.5rem;
 }
@@ -117,7 +100,7 @@
     align-items: start;
   }
 
-  .menubar__search {
+  .search-box {
     grid-column: 1 / -1;
     order: 3;
   }

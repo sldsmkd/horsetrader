@@ -236,6 +236,7 @@ js/src/ui/
   bundle/access.ts  id-keyed Maps + getX(id) queries  (or fold into core/bundle)
   state/viewState.ts   discrete view-state store (overlay/search/selection) + subscribe
   interact/*.ts        pan/scrub/hover handlers: own transient state, write directly (no broadcast)
+  search/*.ts       pure find-and-warp indexes; no DOM, no UI behavior
   select/*.ts       pure view-models (+ *.test.ts beside them)
   pack/pack.ts      the pure packer (+ pack.test.ts)
   views/*.ts        (props) → HTMLElement
