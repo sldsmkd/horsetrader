@@ -91,6 +91,29 @@ ETL-side rules for *assigning* these keys (the `KEY_PREFIX` ClassVar, anchor
 curated YAML keys) live in
 [etl/data-sources.md](etl/data-sources.md#stable-key-scheme).
 
+## Optional flags (presence-encoded, absence-defaulted)
+
+Some event properties are **optional booleans**. The bake ships the flag only when
+it *diverges from the default*, so the common case carries nothing. The client must
+read each by an **explicit comparison against that flag's default** — never by
+truthiness on a possibly-absent key (`if (ev.flag)` mis-reads absence and assumes
+presence the contract doesn't promise).
+
+The default is **per-flag, not global** — read the table, don't guess:
+
+| Flag | Present means | Absent means | Client reads |
+| --- | --- | --- | --- |
+| `visible` | as set | **visible** (default true) | `ev.visible !== false` |
+| `rushable` | as set | **not rushable** (default false) | `ev.rushable === true` |
+
+Note the asymmetry: `visible` defaults *true* (opt-out — you mark the rare hidden
+event), `rushable` defaults *false* (opt-in — you mark the subset that can be
+rushed). Optionality keeps the bundle terse and is backward-compatible: an older
+bake missing a newer flag simply reads as that flag's default.
+
+> On the ETL side these are composed as mixins; that's an authoring detail invisible
+> across the wire — all the client sees is the optional field (or its absence).
+
 ## Failure model handoff
 
 The ETL has three failure tiers; the site keeps the same three, relocated to where

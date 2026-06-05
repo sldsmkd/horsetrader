@@ -7,17 +7,21 @@
  * Below the line is the P&L *sources* axis (ui.md principle 3): CMs, stories,
  * scenarios, anchored events — "what I'm doing / what generates income". Each is
  * a single atom on its own true date (principle 4). The selector:
- *   - reads the ledger's `events`-stream facts and groups them by `source` (=
- *     event key) into each event's own attributed reward — the card's signal,
- *     not the whole day's subtotal;
- *   - resolves each key to its bundle event (its kind → accent, name, predicted);
- *   - keeps only the below-lane kinds (banners are above-lane, handled later);
+ *   - iterates the bundle for the below-lane kinds — a card's existence is the
+ *     event's *appearance* (its `start`), mirroring the above-lane selector, not
+ *     whether it posted a reward. Most below-lane kinds (CMs, PvP, scenarios,
+ *     anchors) grant nothing and still get a card. Visibility is **opt-out**:
+ *     only an explicit `visible: false` hides a card; absence means visible;
+ *   - attaches each event's own attributed reward from the ledger's `events`-
+ *     stream facts — the card's height/breakdown signal, not the whole day's
+ *     subtotal, and `{}` for the (many) kinds that grant nothing;
  *   - computes the true-date x off the axis at the event's `start` — when it
  *     *arrives* on the timeline. (The reward still posts on `end` in the ledger;
  *     the card shows up when the event lands, "the line lags the dots".)
  */
 
 import type { Projection, ResourceVector } from "../../core/projection/index.ts";
+import { isVisible } from "../../core/bundle/flags.ts";
 import type { Axis } from "../axis.ts";
 import type { Bundle, EventRecord } from "../bundle/access.ts";
 
@@ -83,6 +87,7 @@ function labelOf(ev: EventRecord): string {
 export function belowLaneCards(projection: Projection, bundle: Bundle, axis: Axis): BelowCard[] {
   // Each below-lane event posts once (on its `end`), so a source maps to one
   // reward bag; accumulate per source across its single-resource ledger entries.
+  // Many below-lane kinds post nothing — that's normal, not a missing card.
   const rewardBySource = new Map<string, ResourceVector>();
   for (const entry of projection.ledger) {
     if (entry.stream !== "events") continue; // generators/sequences (logins) resolve differently — later
@@ -91,28 +96,21 @@ export function belowLaneCards(projection: Projection, bundle: Bundle, axis: Axi
     bag[entry.resource] = (bag[entry.resource] ?? 0) + entry.amount;
   }
 
-  // Placeholder backfill: the reward-less below-lane kinds (PvP, scenario
-  // generators, most anchors) produce no events-stream entry, so they'd never
-  // get a card. Give each an empty reward so every kind is *present* on the lane
-  // for packing; the real reward stays the height signal where one exists.
-  // TODO(4e+): proper reward-less card rendering instead of a zero placeholder.
-  for (const ev of bundle.all()) {
-    if (!BELOW_LANE.has(ev.type)) continue; // above-lane banner
-    if (!rewardBySource.has(ev.key)) rewardBySource.set(ev.key, {});
-  }
-
+  // The card's *existence* is the event's appearance, not a reward fact (the same
+  // stance as the above-lane selector): scan the bundle, keep the below-lane kinds,
+  // and attach the posted reward — `{}` where the event grants nothing.
   const cards: BelowCard[] = [];
-  for (const [key, reward] of rewardBySource) {
-    const ev = bundle.event(key); // resolves or throws — sources are bundle keys (ETL-guaranteed)
-    if (!BELOW_LANE.has(ev.type)) continue; // an above-lane banner — handled later
+  for (const ev of bundle.all()) {
+    if (!BELOW_LANE.has(ev.type)) continue; // above-lane banner or unknown kind
+    if (!isVisible(ev)) continue; // opt-out flag: explicit `visible: false` hides
     cards.push({
-      key,
+      key: ev.key,
       kind: ev.type as BelowKind,
       label: labelOf(ev),
       date: ev.start,
       x: axis.xForDate(ev.start),
       predicted: ev.predicted,
-      reward,
+      reward: rewardBySource.get(ev.key) ?? {},
     });
   }
   cards.sort((a, b) => a.x - b.x); // left-to-right, i.e. by date

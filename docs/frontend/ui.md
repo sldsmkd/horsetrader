@@ -405,7 +405,10 @@ around.
 
 The default is last-day posting; **rushing is the player's opt-in inversion of it**,
 and the *semi-fix* for the lag above. Some events are **rushable**, some aren't (a
-per-event property — **needs upstream/ETL marking**). Toggling a rushable event
+per-event property — **needs upstream/ETL marking**). The marking is an *optional*
+flag: read it `ev.rushable === true`, absence means not rushable (the
+[contract's optional-flag convention](../contract.md#optional-flags-presence-encoded-absence-defaulted)).
+Toggling a rushable event
 into a **rushed** state **flips the semantics**: rewards/costs post at the **start**
 instead of the end, **at an efficiency cost**.
 
@@ -1009,6 +1012,10 @@ it's the **container/atom asymmetry**, not a contradiction:
   scroll. You don't need every pill on-screen to read what the card *is*.
 - **Below-lane card = a single atom**, whose height *is* its reward breakdown — its
   own signal. Capping that would hide the signal; hence EC1's "don't starve."
+  (Height is the *signal*, not the *gate*: a card's existence is the event's
+  appearance, not whether it pays out. Most below-lane kinds — CMs, PvP,
+  scenarios, anchors — grant nothing and still get a card; a reward-less card just
+  has zero height. Visibility is opt-out — an explicit `visible: false` hides it.)
 
 What's clipped below the fold is **not load-bearing**, because **banner value is
 derived** (see [the banner card](#the-banner-card-above-lane-contents)): "delivers
