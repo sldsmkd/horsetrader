@@ -24,7 +24,7 @@ this into `ui/` code — see [Roadmap](#roadmap).
   (above-lane contents: pills, favouriting, borrowed rarity grammar, the resource
   readout, the value highlight), bookmarks (favourites as navigation), the menubar
   (persistent chrome + the shared warp primitive), search (find-and-warp), the
-  account overlay (snapshot + income config), the dev/debug panel (force-date
+  menu surfaces (Identity, Resources, Tazuna), the dev/debug panel (force-date
   interlock + devdots), the what's-new overlay (minimal, deferred), the plan
   (read-only, commitment-scoped), pity as the unit of account, the three layout
   edge cases, the target-device constraint.
@@ -42,8 +42,8 @@ Ten principles, in dependency order. Everything else hangs off these.
 
 There is **one canvas, always mounted, always interactive** — a horizontal,
 grabbable, inertial time-as-x world. It is the core representation *and* the
-primary navigation of the whole site. Everything else (search, account, the plan,
-a card lightbox) is a **non-blocking overlay floating over a still-live canvas**:
+primary navigation of the whole site. Everything else (search, menu surfaces, the
+plan, a card lightbox) is a **non-blocking overlay floating over a still-live canvas**:
 overlays are fixed-position siblings, mounted/unmounted independently; they never
 replace, pause, or tear down the timeline. The user can always grab the world and
 move it.
@@ -116,10 +116,11 @@ with a shared end time, and caps concurrent banners so the marketing beat stays
 surfaceable. So "banners starting on date X" is a *naturally bounded, meaningful
 unit*, not an arbitrary collision bucket.
 
-> Resolved (lean): the [account overlay](#the-account-overlay) settles this —
-> income is configured **parametrically and globally** (ranks, a single CM target
-> tier, a login cadence), *not* via per-event below-lane toggles. The below lane
-> stays **passive sources**; per-instance reconciliation rides the
+> Resolved (lean): the [menu](menu.md) settles this — player-facing setup is split
+> between Identity, Resources, and advanced configuration. Income is configured
+> **parametrically and globally** (ranks/presets, a login cadence), *not* via
+> per-event below-lane toggles. The below lane stays **passive sources**;
+> per-instance reconciliation rides the
 > [rushable toggle](#rushable-events-the-opt-in-inversion) instead. The P&L frame
 > was the right way to reason about it; the answer is "no new below-lane input."
 
@@ -649,7 +650,10 @@ stays honest.)
 The top bar is **always-mounted chrome floating over the live canvas** (principle
 1): it never owns or blocks the timeline — the world stays grabbable beneath it.
 It sits at the timeline's x-origin so its readouts read as **state sampled at
-where you're looking**, not free-floating numbers. Left → right:
+where you're looking**, not free-floating numbers. It is the visual counterpoint
+to the minimap: top strip for local controls/readouts, bottom strip for whole-axis
+summary/navigation. The detailed menubar design and terminology live in
+[menu.md](menu.md); this section pins the timeline-level intent. Left → right:
 
 - **Home — a warp to *today*.** It is **the one permanent
   [bookmark](#bookmarks-favourites-as-navigation)**: the same accelerated-but-
@@ -659,33 +663,38 @@ where you're looking**, not free-floating numbers. Left → right:
   always-available answer to principle 2's parked panning problem.
 - **The date chip — the date you are currently viewing.** A live readout of the
   view-centre, updating as you pan/scrub.
+- **Representative Uma — Identity.** Opens the lightweight Stable Card surface:
+  representative Uma, club, play style, and optional Trainer ID. This is "who is
+  looking at the timeline?", not the forecasting spreadsheet.
 - **Search — a find-and-warp lens** (its own section below).
-- **The plan toggle** — opens/closes the [plan](#the-plan) overlay. *(Its icon
-  is a placeholder emoji — the alarm-clock glyph is not semantic; see the
-  icon-sourcing note under principle 5.)*
-- **The carat readout — `balanceAt(dateChip)`.** Projected carats **at the date
-  you're viewing**, **linked to the date chip** so scrubbing the timeline moves
-  both together. It reads in **carats — the substrate** (principle 10), *not* pity:
-  the menubar is the raw-substrate sample, while the planning surfaces (the banner
-  readout, the minimap frets) translate to pity. It **carries the grey
+- **The plan item — pending UX.** Opens/closes the [plan](#the-plan) overlay, but
+  the exact affordance and icon are not settled. *(The old alarm-clock glyph is
+  not semantic; see the icon-sourcing note under principle 5.)*
+- **The Balance item — `balanceAt(dateChip)`.** A carat readout for projected
+  carats **at the date you're viewing**, **linked to the date chip** so scrubbing
+  the timeline moves both together. It reads in **carats — the substrate**
+  (principle 10), *not* pity: the menubar is the raw-substrate sample, while the
+  planning surfaces (the banner readout, the minimap frets) translate to pity. It
+  **carries the grey
   trust-language** (principle 5), and **bidirectionally**: scroll back to the
-  **anchor** (the saved account marker) and the carats render **white + bold —
+  **anchor** (the saved snapshot marker) and the carats render **white + bold —
   confidence**, because that balance is *known* truth; scroll forward past the
   anchor and the projected number **greys** as it leaves the known region, exactly
   as predicted dates and the staleness trend grey elsewhere. The readout doesn't
   merely fade when uncertain — it *asserts* confidence where the balance is the
   saved snapshot, and withdraws it as the projection runs into prediction.
-  **Clicking it opens the [account overlay](#the-account-overlay)** — the number
-  you read is the door to the input that sets it (display and its own editing
-  surface, one control).
+  **Clicking it opens Resources** — the number you read is the door to the input
+  that sets it (display and its own editing surface, one control).
 - **The avatar (Tazuna) — Help / onboarding** (hover: "Help"; *not wired in
   yet*). It wears **Tazuna**, the game's in-game secretary-guide — the NPC players
   already associate with *being shown the ropes*: she welcomes new trainers, coaches
   them (often uselessly — "skill issue") after a lost race, and hypes the gacha
   reveal. Making her the Help affordance is principle 5's borrowed grammar at its
   limit — **persona**, past colour and icon: players reach for the guide-character
-  to be guided, no legend needed. The wink (her in-game pointers are famously
-  unhelpful) is an in-joke, not the reason; recognition is.
+  to be guided, no legend needed. She is the persistent answer to "what does this
+  mean?", including first-run onboarding and the recurring info-circle ask from
+  user testing. The wink (her in-game pointers are famously unhelpful) is an
+  in-joke, not the reason; recognition is.
 
 The unifying thread: **Home, bookmarks, and search are all the same warp
 primitive** — one accelerated inertial scroll to a target x — surfaced three ways.
@@ -724,100 +733,79 @@ is a primary verb, not an overlay tucked behind an icon. It is deliberately
 
 ---
 
-## The account overlay
+## The menu surfaces
 
-The account overlay is **the single most important *input* surface** — where the
-player tells the engine *what they have* and *how their income behaves*. It opens
-by **clicking the carat readout** in the menubar: the number you *read* is the door
-to the input that *sets* it — display and its own editing surface are one control.
-(This resolves the open entry-point question; the avatar stays **Help/Tazuna**, not
-account.) Like every overlay it floats over the still-live canvas (principle 1),
-anchored under the menubar at the x-origin.
+The old account overlay split into three menu-attached surfaces. The detailed
+design lives in [menu.md](menu.md); the view-layer invariant is that all three
+are **non-blocking overlays** over the still-live canvas.
 
-**Prior art — it mirrors the Henry Handsome Carat Calculator.** The account model
-is deliberately shaped like the **community's de-facto planning spreadsheet** (the
-widely-shared *Henry Handsome Derby's Carat Calculator*): the same inputs players
-already fill in — Team Trial / Club / Champion's Meeting / League of Heroes tiers,
-Daily Carat Pack, Training Pass, monthly income, crystal/shard balances, per-banner
-carat estimates and MLB odds. Anyone who already plans has **been taught these
-concepts**, so the surface costs them no new vocabulary. This is principle 5's
-meet-them-where-they-are instinct **one level up**: not borrowing the *game's*
-visual grammar but the **community's learned planning model**. It also makes
-principle 2 / [architecture's](architecture.md) "edge over a spreadsheet" concrete
-— *this* is the spreadsheet; horsetrader is its better-UX, true-to-date successor.
+### Identity
 
-It holds **two stacked concerns**, and the split matters.
+Identity answers **"who is looking at this timeline?"** It contains the
+representative Uma, club affiliation, play style, and optional Trainer ID. It is
+closer to a Trainer Card or Stable Card than account settings.
 
-### Balance — the snapshot (re-anchor)
+The representative Uma is distinct from Tazuna. The representative says "this is
+me"; Tazuna says "what does this mean?"
 
-Headed **BALANCE ON <date>**, this *is* the **anchor** the engine projects forward
-from (the [anchor bar](#the-line-is-an-instrument)). Re-anchoring = updating it to
-today — exactly what the staleness grey-trend gently nudges toward (principle 6),
-and why the carat readout reads white/bold here (known) and greys into the future
-(predicted).
+Play Style is the friendly front door to forecast assumptions. It can seed the
+stored configuration without making first-run users understand every income
+stream up front.
+
+### Resources
+
+Resources answers **"what can I spend?"** It owns the dated resource snapshot the
+engine projects forward from (the [anchor bar](#the-line-is-an-instrument)).
+Re-anchoring = updating that snapshot to today, exactly what the staleness
+grey-trend gently nudges toward (principle 6).
+
+The top level is the pull economy: carats plus trainee/support tickets. Recovery
+assets such as crystals and shards are secondary and collapsed by default because
+they answer "what happens if the banner goes badly?", not "can I pull?"
+
+Resources should visually separate **entered snapshot inputs** from **projected
+readouts**. First-run testing showed users expected balance fields to recompute
+when scrubbing the timeline; the UI needs to make the dated snapshot feel like an
+anchor the player controls, not a live output from the current cursor date.
 
 **First run — the empty balance is a CTA.** A brand-new player has never set a
 balance, so there is no anchor and nothing to project. That empty state turns the
-carat readout into a **call to action** — an invitation to set up, the app's
-**bootstrap input**. It is the one empty-state that *invites* rather than recedes:
-contrast the [bookmark drawer](#bookmarks-favourites-as-navigation), which greys
-and recedes when empty ("nothing to navigate to"). Both are principle-6 honest
-(inform, never nag), but the snapshot is the single **load-bearing** input the
-whole projection hangs on, so its absence earns a gentle prompt, not silence.
-(Pairs with the Tazuna/Help onboarding beat.)
+balance readout into a gentle setup invitation. It is the one empty state that
+invites rather than recedes because the snapshot is the load-bearing input the
+whole projection hangs on.
 
-Crucially the balance is **decomposed into the real in-game resource pools**, not a
-single scalar:
+### Advanced Configuration
 
-- **Carats — free vs paid** (the paid split is what the *whale / include-paid-pulls*
-  config below toggles on).
-- **Rainbow (SSR) and Gold (SR) — uncap copies + shards** (the limit-break
-  currency).
-- **Tickets — trainee vs support**, the two *separate* scout pools.
+Forecast details still exist, but they are advanced overrides rather than the
+front door. These are **configuration**, not settings: they describe the user's
+account/forecast model and feed projection. Settings are presentation or behavior
+preferences such as theme or animation, and do not describe the stable.
 
-This decomposition **is the evidence behind the minimap's carats-not-pities
-choice**: trainee tickets ≠ support tickets, rainbow ≠ gold — there is no single
-pity scalar, so carats are the shared denominator the balance line plots. The
-account surface is where the player enters the pools; the
-[projection](projection.md) collapses them to the carat substrate for the line, and
-the frets translate back to pity (principle 10).
+- Team Trial / Club rank and Champion's Meeting target assumptions.
+- Daily Pack and remaining days.
+- Weekly Login cadence.
+- Monthly ticket assumptions.
+- Paid-currency inclusion.
+- Participation scales, where "do not participate" is the zero end rather than a
+  separate stream toggle.
 
-### Configuration — the income model
+These are **stored config inputs** ([persistence.md](persistence.md)); saving
+Resources or advanced configuration commits the relevant input changes and fires
+**one** recompute (principle 7), after which every view re-derives. Save must give
+visible feedback, and Tazuna should explain the first successful save.
 
-The lower half parameterises **how much each income stream generates** — the
-sources (principle 3) the banner readout sums and principle 10 reconciles spend
-against:
+> Leans resolved — principle 3's open question. Income config is **parametric and
+> global** (presets/ranks, a login cadence), *not* a set of per-event below-lane
+> toggles ("did I run *this* CM?"). The below lane stays **passive sources**;
+> per-instance reconciliation rides the
+> [rushable toggle](#rushable-events-the-opt-in-inversion) ("I already finished
+> that story"), not a separate did-I-run-it input.
 
-- **Team Trial / Club rank** and **Champ. Meet target tier** — recurring PvE
-  payouts scale with the tier you assume you'll place at (a CM's reward is set by
-  final placement — see
-  [last-day posting](#transactions-post-on-their-last-day-the-line-lags-the-dots)).
-- **Daily Pack (active + days)** — the discounted daily single, one of the four
-  streams.
-- **Weekly Login cadence** — the login-reward pattern.
-- **Monthly passes** (Friendship / Silver / Gold / Rainbow) — recurring purchases
-  that feed the streams.
-- **Whale → include paid pulls** — whether paid currency counts toward
-  affordability.
-- **Dev → Open advanced…** — the door to the
-  [dev/debug panel](#the-dev--debug-panel-developer-tools) (stream toggles, devdots).
-
-These are **stored config inputs** ([persistence.md](persistence.md)); **Save**
-commits balance + config together and fires **one** recompute (principle 7), after
-which every view re-derives.
-
-> Leans resolved — principle 3's open question. The income config is **parametric
-> and global** (ranks, a single CM *target tier*, a login cadence), *not* a set of
-> per-event below-lane toggles ("did I run *this* CM?"). The below lane stays
-> **passive sources**; per-instance reconciliation rides the
-> [rushable toggle](#rushable-events-the-opt-in-inversion) ("I already finished that
-> story"), not a separate did-I-run-it input.
-
-> Forward-pointer: the [Henry Handsome calculator](#the-account-overlay) also
-> carries **League of Heroes** and **Training Pass** rows (dated "Implemented
-> Jan/Aug 2027" as Global catches up). Horsetrader's config will likely grow to
-> match — but **League of Heroes is ETL-unmodelled today** (a quarterly PvP that
-> replaces a CM), so it's a cross-side dependency, not a frontend-only add.
+> Forward-pointer: the Henry Handsome calculator also carries **League of Heroes**
+> and **Training Pass** rows (dated "Implemented Jan/Aug 2027" as Global catches
+> up). Horsetrader's config will likely grow to match — but **League of Heroes is
+> ETL-unmodelled today** (a quarterly PvP that replaces a CM), so it's a
+> cross-side dependency, not a frontend-only add.
 
 ---
 
@@ -825,8 +813,8 @@ which every view re-derives.
 
 A **grab-bag of developer/debug utilities**, deliberately held to a *lower bar*
 than the product surfaces — where ephemeral switches live, not a designed
-experience. Reached via the **hammer icon** (the account overlay's *Dev → Open
-advanced…* door); there's an in-game hammer/tool asset to source for it (principle
+experience. Reached via the **hammer icon** (the Resources / Advanced Configuration
+door); there's an in-game hammer/tool asset to source for it (principle
 5), not the placeholder. Like everything else it's a non-blocking overlay
 (principle 1). What's in the bag today:
 
@@ -836,7 +824,7 @@ advanced…* door); there's an in-game hammer/tool asset to source for it (princ
   not persisted state). *(Stream toggles — the coordinator's `setEnabled` channels
   — belong here too.)*
 - **Force date** — override "today" to an arbitrary date, to test the projection /
-  prediction at any point. **Interlock: while a forced date is set, account saving
+  prediction at any point. **Interlock: while a forced date is set, Resources saving
   is disabled** — a debug clock must never be able to **poison the real snapshot**
   (you would re-anchor against a fake today). The amber warning *informs*
   (principle 6); the interlock makes the unsafe action *impossible*, not merely
@@ -870,7 +858,7 @@ does *not* steal focus**, containing release notes / a bug-and-feedback funnel �
 consistent with every other overlay (non-blocking, the canvas stays live, principle
 1). Contents and trigger cadence are unsettled; the only decision so far is *don't
 make it a modal*. Its persistence hook (a stored "last seen version" vs current) is
-the same machinery the account [export](#the-dev--debug-panel-developer-tools) and
+the same machinery the state [export](#the-dev--debug-panel-developer-tools) and
 the [plan's](#the-plan) shareable link reuse.
 
 > Resolved: the focus-taking exception is **retired**. Nothing takes over the user's
@@ -1053,6 +1041,7 @@ remains is not new surfaces but:
 
 - [architecture.md](architecture.md) — the no-server driver, the layering rule,
   the coordinator seam this layer consumes.
+- [menu.md](menu.md) — the menubar, Identity, Resources, and Tazuna.
 - [projection.md](projection.md) — the ledger and fold every view renders.
 - [persistence.md](persistence.md) — the inputs (snapshot, config, commitments,
   favourites) the input surfaces collect.

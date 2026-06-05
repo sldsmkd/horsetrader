@@ -33,7 +33,8 @@ distribution**. [projection.md](projection.md) has the ordered next-steps.
 
 The **view layer** is fully captured intent-first, surface by surface, in
 [ui.md](ui.md) — **every surface is documented** as of 2026-06-02, but `ui/`
-*code* is not yet written. That doc is the settled design the widgets will follow.
+*code* is not yet written. That doc is the settled design the view layer will
+follow.
 
 ### ETL cross-side blockers: resolved / tracked
 
@@ -52,6 +53,7 @@ contract is settled in [`../contract.md`](../contract.md).
 | Know what we store and why so little | [persistence.md](persistence.md) |
 | Understand the engine that derives everything | [projection.md](projection.md) |
 | Understand how the site presents itself (the view layer) | [ui.md](ui.md) |
+| Understand the menubar, Identity, Resources, and Tazuna | [menu.md](menu.md) |
 | Know how the interactive `ui/` layer is wired (implementation) | [interaction.md](interaction.md) |
 | Know the language, layering, and DOM patterns | [conventions.md](conventions.md) |
 | Know what we trust, validate, and how we fail | [trust-and-failure.md](trust-and-failure.md) |

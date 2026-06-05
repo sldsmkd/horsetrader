@@ -25,13 +25,18 @@ is why a flat bag of keys (the old shape) felt wrong:
 
 1. **Snapshot** — a *dated* point-in-time reading of resources (free/paid carats,
    tickets, shards, …). The origin point projections run forward from.
-2. **Configuration** — slow-changing account settings (ranks, daily pack,
-   weekly-login pattern, monthly flags, whale toggle, display prefs).
+2. **Configuration** — slow-changing account/forecast inputs (ranks, daily pack,
+   weekly-login pattern, monthly flags, paid-currency inclusion, participation
+   scales).
 3. **Commitments** — per-banner committed **pities** (the unit of account; the
    carat cost is *derived*, never stored — see [projection.md](projection.md)).
    Keyed by banner id.
 4. **Favourites** — the set of entities (supports / trainees) the user marked
    interesting, with an optional note.
+
+Presentation **Settings** are a separate bucket if/when they need persistence:
+theme, animation preference, and similar UI behavior. They do not feed
+projection and should not be filed under account Configuration.
 
 ## Principles
 

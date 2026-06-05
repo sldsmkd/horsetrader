@@ -29,8 +29,9 @@ once there was real data on the canvas to feel them against: the timeline now
 (`format.ts`) — step 1; the coordinator **notify seam** (`subscribe`) and the
 **discrete view-state store** (`state/viewState.ts`) — step 2; and the first
 **DOM views through the whole one-way loop** — the cursor balance readout
-(`views/cursorBalance.ts`) and a floating **Account overlay** (`views/overlay.ts`)
-toggled from a menubar, all wired by the **app shell** (`app.ts`). Proven end to
+(`views/cursorBalance.ts`) and a floating menu-overlay scaffold
+(`views/overlay.ts`) toggled from a menubar, all wired by the **app shell**
+(`app.ts`). Proven end to
 end against the real baked bundle, exercising **both broadcast stores**: the
 coordinator (snapshot edit → recompute → `subscribe` → render; scrub → direct
 `balanceAt` write, no broadcast) *and* the view-state store (menubar → `set` →
@@ -40,7 +41,9 @@ independently — editing carats in the overlay refreshes the canvas behind it w
 the overlay stays open. (Step 4 was decomposed into 4a–4f below; the packer (4e)
 landed 2026-06-04, so the minimap (4f) is the one piece of it still to come.)
 
-The step-3 **standalone scrub** (`<input type=range>` in `app.ts`) has served its
+The product design for that scaffold is now split into Identity, Resources, and
+Tazuna; see [menu.md](menu.md). The step-3 **standalone scrub** (`<input
+type=range>` in `app.ts`) has served its
 purpose — proving both tiers of the change model end to end — and **retires in 4b**:
 the timeline substrate becomes the real owner of cursor/scrub (the cheap path), with
 the cursor a position on the axis rather than a slider index. The `cursorBalance`
@@ -303,6 +306,7 @@ after.
 ## See also
 
 - [ui.md](ui.md) — the surfaces this layer renders, from the user's perspective.
+- [menu.md](menu.md) — the menubar-specific Identity, Resources, and Tazuna design.
 - [projection.md](projection.md) — the ledger/fold every view reads, and the
   cache/query split the two-tier change model mirrors.
 - [persistence.md](persistence.md) — the plan the coordinator persists; why
