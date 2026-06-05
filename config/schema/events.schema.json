@@ -105,6 +105,12 @@
         "image": {
           "type": "string"
         },
+        "rate_overrides": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "number"
+          }
+        },
         "start": {
           "type": "string"
         },
@@ -187,6 +193,12 @@
         },
         "image": {
           "type": "string"
+        },
+        "rate_overrides": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "number"
+          }
         },
         "start": {
           "type": "string"

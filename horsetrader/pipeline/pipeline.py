@@ -4,6 +4,7 @@ from typing import Any
 from horsetrader.core import SingletonMeta
 from horsetrader.info import Logger
 from horsetrader.models import TracenModels
+from horsetrader.models.config import load_gacha_config
 from horsetrader.models.rewards import load_reward_maps, load_reward_structures
 from horsetrader.output import Bake
 from horsetrader.semantics import rudolf
@@ -70,14 +71,16 @@ class Pipeline(metaclass=SingletonMeta):
         # of the bake) and hand them to Eishin.
         structures = load_reward_structures()
         maps = load_reward_maps()
+        gacha = load_gacha_config()
         self._metrics["_config"] = {
             "reward_structures": len(structures),
             "reward_maps": len(maps),
+            "gacha": 1,
         }
         return (
             Bake.academy(stages)
             and Bake.events(self._timeline)
-            and Bake.config(structures, maps)
+            and Bake.config(structures, maps, gacha)
         )
 
     def _ensure_loaded(self) -> None:

@@ -14,6 +14,8 @@ The ETL bakes a static, read-only bundle into the repo-root **`static/`** deploy
 
 - `static/json/academy.json` — entity reference data (characters, trainees, supports, items).
 - `static/json/events.json` — the dated event timeline (the forecast).
+- `static/json/config.json` — non-timeline game constants and recipes the client
+  expands procedurally (reward structures, rank maps, gacha rates).
 - `static/img/**` — webp images, referenced by the JSON.
 
 `static/` is the **deploy root** wrangler ships (gitignored, regenerated): the ETL
@@ -24,9 +26,9 @@ site** — the ETL owns it.
 ## The schema (types can't drift)
 
 The ETL publishes a JSON Schema for the bundle — `academy.schema.json` /
-`events.schema.json` — generated from its typed `msgspec` DTOs and written to
-`config/schema/` (out of the shippable `static/` deploy dir — it's the contract,
-not a deploy asset). The site runs `npm run gen:types` to compile those into
+`events.schema.json` / `config.schema.json` — generated from its typed `msgspec`
+DTOs and written to `config/schema/` (out of the shippable `static/` deploy dir —
+it's the contract, not a deploy asset). The site runs `npm run gen:types` to compile those into
 `core/bundle/*.gen.ts` (committed, never hand-edited; re-run when the ETL re-bakes
 a changed shape). Because the site's types are *derived from* the ETL's schema,
 the consuming cast cannot silently drift from the bake.
@@ -59,6 +61,12 @@ of client-generated streams (e.g. the carats from a daily login) — is the ETL'
 supply. A game-data literal hard-coded in client code is a smell; that value
 belongs in the bake. So the bundle must carry those rates/parameters even for
 streams the client expands on its own.
+
+Gacha pull math follows the same rule. `config.json` carries the normal
+game-wide pull constants (`spark_threshold`, `carats_per_pull`,
+`paid_daily_pull`, rarity-pool rates, and featured pickup defaults using the UI's
+`crystal` / `gold` / `silver` rarity language). A banner only needs to carry
+per-pickup rate overrides when its rate differs from those defaults.
 
 ## Stable-key scheme (shared id vocabulary)
 

@@ -1,5 +1,6 @@
 from .cache_time import CacheTime
 from .costume_variants import CostumeVariants
+from .gacha import GachaDefaults, GachaRarityTier
 from .japlish_encoding import JaplishEncoding
 from .output_format import OutputFormat
 from .sources import Sources
@@ -9,6 +10,8 @@ from .support_type import SupportType
 __all__ = [
     "CacheTime",
     "CostumeVariants",
+    "GachaDefaults",
+    "GachaRarityTier",
     "JaplishEncoding",
     "OutputFormat",
     "Sources",

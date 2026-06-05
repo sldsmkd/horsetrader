@@ -57,6 +57,14 @@ _SUPPORT_DESCRIPTOR_PATTERN = re.compile(
     r"^(?P<rarity>SSR|SR|R)\s+(?P<type>Speed|Stamina|Power|Guts|Wit|Pal|Group|Friend)$",
     re.IGNORECASE,
 )
+_RATE_PATTERN = re.compile(r"(?P<rate>\d+(?:\.\d+)?)\s*%")
+
+
+def _parse_rate(raw: str) -> float | None:
+    match = _RATE_PATTERN.search(raw)
+    if match is None:
+        return None
+    return round(float(match.group("rate")) / 100, 8)
 
 
 def parse_pickups(node: html.HtmlElement) -> list[dict]:
@@ -75,7 +83,8 @@ def parse_pickups(node: html.HtmlElement) -> list[dict]:
         if not raw_name:
             continue
 
-        is_new = bool(re.search(r"\bnew\b", row.text_content(), re.IGNORECASE))
+        row_text = row.text_content()
+        is_new = bool(re.search(r"\bnew\b", row_text, re.IGNORECASE))
 
         name = raw_name
         descriptor: str | None = None
@@ -97,6 +106,7 @@ def parse_pickups(node: html.HtmlElement) -> list[dict]:
                 "name": name,
                 "descriptor": descriptor,
                 "is_new": is_new,
+                "rate": _parse_rate(row_text),
                 "support_rarity": support_rarity,
                 "support_type": support_type,
             }

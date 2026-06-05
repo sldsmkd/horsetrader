@@ -4,7 +4,7 @@ from typing import Type
 import msgspec
 
 from horsetrader.core import Config, JST
-
+from horsetrader.models.config import GachaConfig
 from horsetrader.models.core import TracenModel, TracenModels
 from horsetrader.models.entities.entities import Entities
 from horsetrader.models.events.events import Events
@@ -63,6 +63,7 @@ class Bake:
     def config(
         structures: dict[str, RewardStructure],
         maps: dict[str, RewardMap],
+        gacha: GachaConfig,
     ) -> bool:
         """Write config.json (+ schema) — the non-timeline baked-config channel.
 
@@ -70,9 +71,9 @@ class Bake:
         buckets (`RewardStructure.bake` / `RewardMap.bake`), sorted by key for
         stable output. The bucket already namespaces each entry, so the wire key
         drops the matching stable-key prefix (`reward-structure-dailies` →
-        `dailies`) — the curated key keeps it for keystore `select()`. Eishin only
-        serialises here; both are loaded upstream (Rudolf) and handed in, never
-        fetched by the bake.
+        `dailies`) — the curated key keeps it for keystore `select()`. The gacha
+        config is already built upstream too. Eishin only serialises here; config
+        is loaded upstream (Rudolf) and handed in, never fetched by the bake.
         """
         reward_structures = {
             key.removeprefix("reward-structure-"): s.bake()
@@ -82,7 +83,11 @@ class Bake:
             key.removeprefix("reward-map-"): m.bake() for key, m in sorted(maps.items())
         }
         return Bake._write(
-            ConfigBundle(reward_structures=reward_structures, reward_maps=reward_maps),
+            ConfigBundle(
+                reward_structures=reward_structures,
+                reward_maps=reward_maps,
+                gacha=gacha.bake(),
+            ),
             ConfigBundle,
             "config.json",
         )

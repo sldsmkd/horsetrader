@@ -3,7 +3,7 @@
   "$defs": {
     "ConfigBundle": {
       "title": "ConfigBundle",
-      "description": "Top-level shape of ``config.json`` — the non-timeline baked-config channel.\n\n``reward_structures`` is a stable-key → baked-rewards map: each value is the\nsame ``Baked`` shape an event's ``rewards`` carries (the per-occurrence\nnumbers for a procedural stream the client expands on its own cadence).\n``reward_maps`` adds the *rank-graded* recipes: each is a rank-label →\nbaked-rewards map (e.g. Team Trials by class), the rank selected client-side.\nFuture baked config rides as sibling top-level keys.\n\nKeys are the stable-key *body* — the bucket already namespaces them, so the\nwire drops the redundant `reward-structure-` / `reward-map-` prefix the\ncurated key carries (`reward-structure-dailies` → `dailies`).",
+      "description": "Top-level shape of ``config.json`` — the non-timeline baked-config channel.\n\n``reward_structures`` is a stable-key → baked-rewards map: each value is the\nsame ``Baked`` shape an event's ``rewards`` carries (the per-occurrence\nnumbers for a procedural stream the client expands on its own cadence).\n``reward_maps`` adds the *rank-graded* recipes: each is a rank-label →\nbaked-rewards map (e.g. Team Trials by class), the rank selected client-side.\n``gacha`` carries standing pull-math constants: pity/spark threshold, pull\ncost, normal rarity rates, and normal featured pickup rates. Banner-local\noverrides only carry exceptions to these normal rates.\nFuture baked config rides as sibling top-level keys.\n\nKeys are the stable-key *body* — the bucket already namespaces them, so the\nwire drops the redundant `reward-structure-` / `reward-map-` prefix the\ncurated key carries (`reward-structure-dailies` → `dailies`).",
       "type": "object",
       "properties": {
         "reward_structures": {
@@ -86,11 +86,50 @@
               }
             }
           }
+        },
+        "gacha": {
+          "$ref": "#/$defs/GachaConfig"
         }
       },
       "required": [
         "reward_structures",
-        "reward_maps"
+        "reward_maps",
+        "gacha"
+      ]
+    },
+    "GachaConfig": {
+      "title": "GachaConfig",
+      "description": "Game gacha constants consumed by planner-side pull math.\n\nRates are decimal probabilities, not percentages: ``0.0075`` = 0.75%.\n``featured_rates`` are the normal per-atom pickup rates by UI rarity tier;\nbanner-local overrides carry exceptions when a specific pickup is compressed\nor otherwise special.",
+      "type": "object",
+      "properties": {
+        "spark_threshold": {
+          "type": "integer"
+        },
+        "carats_per_pull": {
+          "type": "integer"
+        },
+        "paid_daily_pull": {
+          "type": "integer"
+        },
+        "rarity_rates": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "number"
+          }
+        },
+        "featured_rates": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "number"
+          }
+        }
+      },
+      "required": [
+        "spark_threshold",
+        "carats_per_pull",
+        "paid_daily_pull",
+        "rarity_rates",
+        "featured_rates"
       ]
     }
   }

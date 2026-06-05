@@ -101,7 +101,14 @@ Every model that crosses the wire is a **`TracenObject`** — an empty abstract 
 - `key: StableKey` lives on `TracenObject` — universal.
 - `references`, `correlations`, `match` stay on `TracenModel` (which subclasses `TracenObject`) — the cross-referencing + searchability that `Entity` (`@digitan`) and `Event` (`@daitaku`) have and config doesn't.
 
-This makes room for config as a **sibling of `TracenModel`, not a child of it**. Two `@yayoi` `TracenObject` config types, both baked to **`config.json`** by `Bake.config` (the third wire file, alongside `academy.json`/`events.json`), loaded from the curated keystore (not the `TracenModels` scrape pipeline):
+This makes room for config as a **sibling of `TracenModel`, not a child of it**.
+`@yayoi` config objects are baked to **`config.json`** by `Bake.config` (the third
+wire file, alongside `academy.json`/`events.json`) and loaded upstream of Eishin,
+not invented in the output layer:
 
 - `RewardStructure` (**#6**) — a *flat* recipe: a stable key + one `Rewards`. Bakes under `reward_structures`. (`dailies`, `daily-carats`, `weekly-login`.)
 - `RewardMap` (**#4**) — a *rank-graded* recipe: `tiers` maps each rank label → its own `RewardStructure`. Bakes under `reward_maps`, keyed by rank. (`team-trials`, by class.) Neither is an *Entity* (nothing in the world *is* a recipe); which rank applies is the client's call (sweatiness / account state — #19).
+- `GachaConfig` — singleton game-economy constants for pull math, in
+  `models/config/gacha_config.py`. Bakes under `gacha`; banner-local rates only
+  carry exceptions to these defaults. The default dials live in
+  `enums/gacha.py`.

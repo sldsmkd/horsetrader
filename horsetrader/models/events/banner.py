@@ -2,9 +2,11 @@ import re
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime
+from math import isclose
 from typing import Any
 
 from ethicrawl import ResourceList
+from msgspec import UNSET
 
 from horsetrader.core import Config, Period, Periods, SingletonMeta, StableKey
 from horsetrader.enums import CostumeVariants, SupportRarity, SupportType
@@ -12,6 +14,7 @@ from horsetrader.extractors.gametora import Gametora
 from horsetrader.extractors.gametora.banners import BANNER_INDEX_URL
 from horsetrader.extractors.static import Static, store
 from horsetrader.info import Logger
+from horsetrader.models.config import load_gacha_config
 from horsetrader.models.core import References
 from horsetrader.models.entities import Character, Support, Supports, Trainee, Trainees
 from horsetrader.models.media import CurrenChan, Image, ImageRequest
@@ -57,6 +60,7 @@ class Banner(Rushable, Event):
     """
 
     contents: list[Trainee | Support] = field(default_factory=list, kw_only=True)
+    rate_overrides: dict[str, float] = field(default_factory=dict, kw_only=True)
     art: Image | None = field(default=None, kw_only=True)
 
     def match(self, query: str) -> bool:
@@ -73,6 +77,7 @@ class Banner(Rushable, Event):
             **self._envelope(period),
             "contents": [c.key for c in self.contents],
             "image": f"/img/banners/{self.key}.webp",
+            "rate_overrides": self.rate_overrides if self.rate_overrides else UNSET,
         }
 
 
@@ -216,7 +221,9 @@ class Banners(Events[Banner], metaclass=SingletonMeta):
                     record.get("banner_type"), record.get("key"),
                 )
                 continue
-            contents = self._resolve_contents(banner_class, record, trainee_idx, support_idx)
+            contents, rate_overrides = self._resolve_contents(
+                banner_class, record, trainee_idx, support_idx
+            )
             art = images.get(record["image_url"])
             references = References(record.get("references", []))
             if art is not None:
@@ -226,6 +233,7 @@ class Banners(Events[Banner], metaclass=SingletonMeta):
                     key=StableKey(record["key"]),
                     periods=Periods([record["period"]]),
                     contents=contents,
+                    rate_overrides=rate_overrides,
                     art=art,
                     correlations=dict(record.get("correlations", {})),
                     references=references,
@@ -257,15 +265,18 @@ class Banners(Events[Banner], metaclass=SingletonMeta):
         record: dict,
         trainee_idx: _TraineeIndexes,
         support_idx: _SupportIndexes,
-    ) -> list[Trainee | Support]:
+    ) -> tuple[list[Trainee | Support], dict[str, float]]:
         record_key = record["key"]
         contents: list[Trainee | Support] = []
+        rate_overrides: dict[str, float] = {}
 
         if banner_class is TraineeBanner:
             for pickup in record.get("pickups", []):
                 trainee = self._resolve_trainee_pickup(pickup, record_key, trainee_idx)
                 if trainee is not None:
                     contents.append(trainee)
+                    if override := self._rate_override(pickup, trainee):
+                        rate_overrides.update(override)
         elif banner_class is SupportBanner:
             banner_start = record["period"].start
             for pickup in record.get("pickups", []):
@@ -274,8 +285,49 @@ class Banners(Events[Banner], metaclass=SingletonMeta):
                 )
                 if support is not None:
                     contents.append(support)
+                    if override := self._rate_override(pickup, support):
+                        rate_overrides.update(override)
 
-        return contents
+        return contents, dict(sorted(rate_overrides.items()))
+
+    @staticmethod
+    def _rate_override(pickup: dict, atom: Trainee | Support) -> dict[str, float]:
+        """Return this pickup's rate when it differs from the standing default.
+
+        Gametora stores the rate next to each pickup label, but the frontend
+        consumes banner contents by stable key. The resolution point is
+        therefore the safest place to carry the percentage across.
+        """
+        rate = pickup.get("rate")
+        if rate is None:
+            return {}
+        tier = Banners._rarity_tier(atom)
+        if tier is None:
+            return {}
+        config = load_gacha_config()
+        defaults = config.effective_featured_rates()
+        default_rate = defaults.get(tier)
+        if default_rate is not None and isclose(rate, default_rate, abs_tol=1e-9):
+            return {}
+        return {str(atom.key): rate}
+
+    @staticmethod
+    def _rarity_tier(atom: Trainee | Support) -> str | None:
+        if isinstance(atom, Support):
+            if atom.rarity == SupportRarity.SSR:
+                return "crystal"
+            if atom.rarity == SupportRarity.SR:
+                return "gold"
+            if atom.rarity == SupportRarity.R:
+                return "silver"
+            return None
+        if atom.variant.rarity == 3:
+            return "crystal"
+        if atom.variant.rarity == 2:
+            return "gold"
+        if atom.variant.rarity == 1:
+            return "silver"
+        return None
 
     @staticmethod
     def _build_trainee_indexes() -> _TraineeIndexes:

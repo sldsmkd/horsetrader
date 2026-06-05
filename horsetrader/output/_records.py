@@ -38,6 +38,23 @@ from horsetrader.semantics import eishin
 Baked = dict[str, int | dict[str, int | str | list[int | None]]]
 
 
+@eishin
+class GachaConfig(msgspec.Struct):
+    """Game gacha constants consumed by planner-side pull math.
+
+    Rates are decimal probabilities, not percentages: ``0.0075`` = 0.75%.
+    ``featured_rates`` are the normal per-atom pickup rates by UI rarity tier;
+    banner-local overrides carry exceptions when a specific pickup is compressed
+    or otherwise special.
+    """
+
+    spark_threshold: int
+    carats_per_pull: int
+    paid_daily_pull: int
+    rarity_rates: dict[str, float]
+    featured_rates: dict[str, float]
+
+
 # ── academy.json ──────────────────────────────────────────────────────────────
 
 @eishin
@@ -112,12 +129,14 @@ class EventRecord(msgspec.Struct, tag_field="type", kw_only=True):
 class SupportBannerRecord(EventRecord, tag="support"):
     contents: list[str]
     image: str
+    rate_overrides: dict[str, float] | UnsetType = UNSET
 
 
 @eishin
 class TraineeBannerRecord(EventRecord, tag="trainee"):
     contents: list[str]
     image: str
+    rate_overrides: dict[str, float] | UnsetType = UNSET
 
 
 @eishin
@@ -274,6 +293,9 @@ class ConfigBundle(msgspec.Struct):
     numbers for a procedural stream the client expands on its own cadence).
     ``reward_maps`` adds the *rank-graded* recipes: each is a rank-label →
     baked-rewards map (e.g. Team Trials by class), the rank selected client-side.
+    ``gacha`` carries standing pull-math constants: pity/spark threshold, pull
+    cost, normal rarity rates, and normal featured pickup rates. Banner-local
+    overrides only carry exceptions to these normal rates.
     Future baked config rides as sibling top-level keys.
 
     Keys are the stable-key *body* — the bucket already namespaces them, so the
@@ -282,3 +304,4 @@ class ConfigBundle(msgspec.Struct):
 
     reward_structures: dict[str, Baked]
     reward_maps: dict[str, dict[str, Baked]]
+    gacha: GachaConfig
