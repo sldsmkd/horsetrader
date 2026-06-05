@@ -98,7 +98,8 @@ regardless of the comparator.
 2. **Rushed-event posting** — the opt-in start-post + efficiency-penalty semantics
    (see *Transactions post on the last day* above). The stored input is a
    per-event toggle (persist → derive). **Cross-side**: gated on the ETL marking
-   rushable events first (root `TODO.md`).
+  rushable events first (live tracker: GitHub issues / board on
+  `sldsmkd/horsetrader`).
 3. **Expected-copies distribution** — the plan surface ([ui.md](ui.md)) wants a
    probability distribution over outcomes (None / 0LB … MLB) for committed pulls:
    deterministic derived math over the commitment + **baked drop rates** (the
@@ -203,7 +204,8 @@ does exactly this (lands on `event.end`).
   instead of its `end`, at a derived efficiency penalty (the free/daily pulls
   forfeited by not waiting). The penalty computation is core/projection logic, but
   it is **cross-side**: it needs the ETL to mark which events are rushable first
-  (root `TODO.md`). Not built; see the rushable-events section in [ui.md](ui.md).
+  (live tracker: GitHub issues / board on `sldsmkd/horsetrader`). Not built; see
+  the rushable-events section in [ui.md](ui.md).
 
 The UI leans on this rule — the minimap's balance line "lags" the appearance dots
 by design — and [ui.md](ui.md) treats it as a core/projection semantic. This is

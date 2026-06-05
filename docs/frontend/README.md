@@ -40,7 +40,8 @@ The **view layer** is fully captured intent-first, surface by surface, in
 The sequence value type that projection's daily-login channel needs **shipped**
 from the ETL (`SequenceReward`), so the spends/commitments work is now a pure
 frontend task. The remaining cross-side asks — **procedural stream rates** and
-**baked drop rates** — are tracked in the root [`TODO.md`](../../TODO.md); the
+**baked drop rates** — are tracked on the live tracker (GitHub issues / board on
+`sldsmkd/horsetrader`); the
 contract is settled in [`../contract.md`](../contract.md).
 
 ## Start here
