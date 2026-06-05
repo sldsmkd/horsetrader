@@ -140,7 +140,7 @@ export function mountApp(coord: Coordinator, bundle: Bundle, now: string, root: 
     initialDate: now,
     initialBalance: coord.balanceAt(now).free_carats ?? 0,
     openOverlay: null,
-    onHome: () => tl.centerOn(now),
+    onHome: () => tl.warpTo(now),
     onIdentity: () => toggleOverlay("identity"),
     onPlan: () => toggleOverlay("plan"),
     onResources: () => toggleOverlay("resources"),

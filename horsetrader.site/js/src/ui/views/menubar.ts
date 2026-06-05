@@ -86,8 +86,12 @@ export function menubar(opts: MenubarOpts): Menubar {
       { class: "menubar__cluster menubar__cluster--left" },
       h(
         "button",
-        { class: "menubar__item menubar__button menubar__home", attr: { type: "button" }, on: { click: opts.onHome } },
-        "Home",
+        {
+          class: "menubar__item menubar__button menubar__home",
+          attr: { type: "button", "aria-label": "Home", title: "Home" },
+          on: { click: opts.onHome },
+        },
+        "🏠",
       ),
       date,
       identity,

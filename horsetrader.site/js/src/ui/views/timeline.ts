@@ -51,6 +51,14 @@ const SPRING_SNAP_PX = 0.5;
 const AXIS_COMMIT_PX = 8;
 const VERTICAL_BIAS = 2.8;
 
+/** Deliberate navigation ("warp") timing. Short hops should feel crisp; long
+ *  jumps should visibly travel without making the user wait through the whole
+ *  distance. The exponential distance curve approaches the max instead of
+ *  growing without bound. */
+const WARP_MIN_MS = 650;
+const WARP_MAX_MS = 1500;
+const WARP_DISTANCE_SCALE_PX = 4000;
+
 type Extent = readonly [string, string] | null;
 
 export interface Timeline {
@@ -87,6 +95,12 @@ export interface Timeline {
    * new view date through `onView` (via the pan), closing the two-way binding.
    */
   centerOn(date: string): void;
+  /**
+   * Smoothly travel so `date` sits at the viewport centre. This is the shared
+   * deliberate-navigation primitive for Home, bookmarks, and search: accelerated,
+   * bounded by distance, and still cheap-path only.
+   */
+  warpTo(date: string): void;
 }
 
 export interface TimelineHandlers {
@@ -102,6 +116,15 @@ export interface TimelineHandlers {
 /** Clamp an ISO date into `[lo, hi]` — lexical compare is correct for `YYYY-MM-DD`. */
 function clampDate(date: string, [lo, hi]: readonly [string, string]): string {
   return date < lo ? lo : date > hi ? hi : date;
+}
+
+function easeInOutSmootherstep(t: number): number {
+  return t * t * t * (t * (t * 6 - 15) + 10);
+}
+
+function warpDuration(distancePx: number): number {
+  const scaled = 1 - Math.exp(-Math.abs(distancePx) / WARP_DISTANCE_SCALE_PX);
+  return WARP_MIN_MS + (WARP_MAX_MS - WARP_MIN_MS) * scaled;
 }
 
 export function timeline({ onView }: TimelineHandlers): Timeline {
@@ -189,6 +212,11 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
   const stopAnim = () => {
     if (anim) cancelAnimationFrame(anim);
     anim = 0;
+  };
+  const targetPanForDate = (date: string) => {
+    if (!axis) return null;
+    const { min, max } = panBounds();
+    return Math.max(min, Math.min(max, el.clientWidth / 2 - axis.xForDate(date)));
   };
   // One loop for both axes. Horizontal: past a wall it eases home (killing
   // momentum), within bounds it coasts on friction until it stalls or hits a wall.
@@ -288,11 +316,38 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
       belowDepth = below;
     },
     centerOn(date) {
-      if (!axis) return;
+      const target = targetPanForDate(date);
+      if (target === null) return;
       stopAnim(); // navigation is authoritative — kill any glide/spring in flight
-      const { min, max } = panBounds();
-      panX = Math.max(min, Math.min(max, el.clientWidth / 2 - axis.xForDate(date)));
+      panX = target;
       applyPan(); // emits the new view date through onView
+    },
+    warpTo(date) {
+      const target = targetPanForDate(date);
+      if (target === null) return;
+      stopAnim();
+      velocity = 0;
+      const startX = panX;
+      const startY = panY;
+      const distance = target - startX;
+      if (Math.abs(distance) < SPRING_SNAP_PX && Math.abs(startY) < SPRING_SNAP_PX) {
+        panX = target;
+        panY = 0;
+        applyPan();
+        return;
+      }
+
+      const duration = warpDuration(distance);
+      const startT = performance.now();
+      const step = (t: number) => {
+        const progress = Math.min(1, (t - startT) / duration);
+        const eased = easeInOutSmootherstep(progress);
+        panX = startX + distance * eased;
+        panY = startY * (1 - eased);
+        applyPan();
+        anim = progress < 1 ? requestAnimationFrame(step) : 0;
+      };
+      anim = requestAnimationFrame(step);
     },
     layout(nextExtent, todayDate) {
       extent = nextExtent;
