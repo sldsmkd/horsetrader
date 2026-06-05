@@ -33,6 +33,8 @@ const ACADEMY: Academy = {
 const bundle = () => createBundle(EVENTS, ACADEMY);
 const axis = () => createAxis({ origin: "2026-06-01", pxPerDay: 10 });
 
+const EMPTY_EVENTS: EventsBundle = { events: [] };
+
 test("above-lane: groups by start (all known time), banners only, sorted; shared start → one group", () => {
   const groups = aboveLaneGroups(bundle(), axis());
   // cm-1 (not a banner) excluded; one group per distinct start, sorted left→right.
@@ -57,4 +59,9 @@ test("contents resolve to atoms in the kind's grammar — trainee stars, support
   ]);
   const support = shared.banners.find((b) => b.key === "banner-s2")!;
   assert.deepEqual(support.atoms, [{ id: "s-spe", name: "Special Week", rarity: "SSR" }]);
+});
+
+test("empty bundle input returns no groups", () => {
+  const groups = aboveLaneGroups(createBundle(EMPTY_EVENTS, ACADEMY), axis());
+  assert.deepEqual(groups, []);
 });

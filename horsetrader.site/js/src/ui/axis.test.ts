@@ -28,6 +28,13 @@ test("dateForX snaps to the nearest day's tick — the cursor hit-test", () => {
   assert.equal(axis.dateForX(-6), "2026-06-02"); // negative x rounds the same way
 });
 
+test("dateForX uses JS half-tick rounding at exact 0.5-day boundaries", () => {
+  const axis = createAxis({ origin: "2026-06-03", pxPerDay: 10 });
+  assert.equal(axis.dateForX(5), "2026-06-04");
+  assert.equal(axis.dateForX(-5), "2026-06-03");
+  assert.equal(axis.dateForX(-15), "2026-06-02");
+});
+
 test("date → x → date round-trips exactly", () => {
   const axis = createAxis({ origin: "2026-06-03", pxPerDay: 17 });
   for (const date of ["2026-06-03", "2026-06-04", "2026-07-01", "2026-05-20", "2027-01-01"]) {
@@ -40,4 +47,10 @@ test("pxPerDay is the zoom: the same date maps proportionally to the scale", () 
   const wide = createAxis({ origin: "2026-06-03", pxPerDay: 40 });
   assert.equal(tight.xForDate("2026-06-13"), 40);
   assert.equal(wide.xForDate("2026-06-13"), 400); // 10× the zoom, 10× the x
+});
+
+test("non-integer pxPerDay still round-trips on exact tick multiples", () => {
+  const axis = createAxis({ origin: "2026-06-03", pxPerDay: 2.5 });
+  assert.equal(axis.xForDate("2026-06-07"), 10);
+  assert.equal(axis.dateForX(10), "2026-06-07");
 });

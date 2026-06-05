@@ -44,3 +44,11 @@ test("adding a stream is a change to the input list, not the fold; balances comb
   const after = project(snapshot, [events, spends]);
   assert.deepEqual(after.series.balanceAt("2026-06-10"), { free_carats: 950 });
 });
+
+test("project with no streams yields an empty ledger and base-only balances", () => {
+  const out = project(snapshot, []);
+  assert.deepEqual(out.ledger, []);
+  assert.deepEqual(out.series.dates, []);
+  assert.equal(out.series.extent, null);
+  assert.deepEqual(out.series.balanceAt("2026-06-30"), { free_carats: 1000 });
+});
