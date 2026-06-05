@@ -1,25 +1,6 @@
-/* The app shell chrome built in app.ts: the persistent menubar and the carats
-   input field. Floats over the canvas; never the canvas itself. */
-
-/* Persistent chrome floating over the canvas, top-left (principle 1). */
-.menubar {
-  position: absolute;
-  top: 0.9rem;
-  left: 0.9rem;
-  z-index: 2;
-  display: flex;
-  gap: 0.5rem;
-}
-
-.menubar__item {
-  font: inherit;
-  padding: 0.4rem 0.9rem;
-  border: 1px solid currentColor;
-  border-radius: 0.5rem;
-  background: transparent;
-  color: inherit;
-  cursor: pointer;
-}
+/* The app shell chrome built in app.ts: the carats input field. Floats over the
+   canvas; never the canvas itself. The persistent menubar owns its co-located
+   styles in views/menubar.css. */
 
 .field {
   display: flex;

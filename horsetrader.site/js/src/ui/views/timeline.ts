@@ -8,7 +8,7 @@
  *
  * It owns the **transient interaction-state** — the pan offset — and writes it
  * **straight to the DOM** (a CSS transform), emitting the view-centre date via
- * `onView` for the readout + minimap window. There is deliberately no broadcast
+ * `onView` for the menubar + minimap window. There is deliberately no broadcast
  * `subscribe` here, so a 60 Hz pan **structurally cannot** enter the render path
  * (docs/frontend/interaction.md, the two-tier change model). The render path is
  * the separate `layout()`, driven by the coordinator subscription.
@@ -59,7 +59,7 @@ export interface Timeline {
   /**
    * (Re)lay the substrate for a balance-series extent and `today`: size the
    * content, reposition the static markers, clamp the cursor into range, and
-   * re-emit the cursor date so the readout reflects the current projection.
+   * re-emit the cursor date so chrome reflects the current projection.
    * Called on mount and after every recompute — the render path. Rare.
    */
   layout(extent: Extent, today: string): void;
@@ -93,7 +93,7 @@ export interface TimelineHandlers {
   /**
    * Fired when the *view centre* moves (any pan: drag, glide, layout, seek) — the
    * date at the middle of the viewport, which is the focus. The shell turns it
-   * into a `balanceAt` + readout write and routes it to the minimap window, so
+   * into a `balanceAt` + menubar write and routes it to the minimap window, so
    * both track the pan. Cheap path, deduped by date; never broadcasts.
    */
   onView(date: string): void;
@@ -129,7 +129,7 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
     // Track the exact content-space x under the viewport middle, so a resize can
     // re-centre on it (grow out from the centre, not pad the right edge).
     centerX = el.clientWidth / 2 - panX;
-    // The view centre *is* the focus: its date drives the readout and the minimap
+    // The view centre *is* the focus: its date drives the menubar and the minimap
     // window (cheap path, deduped). There is no separate cursor — the anchor is
     // always the middle of the view. Guarded by the axis; clamped into the extent.
     if (axis && extent) {
@@ -320,7 +320,7 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
       // rebuilds the minimap axis, so its window must re-sync against the new
       // scale regardless of whether the date rounded the same.
       viewDate = null;
-      applyPan(); // emits the centre date → refreshes the readout + minimap window
+      applyPan(); // emits the centre date → refreshes the menubar + minimap window
 
       today.style.display = "";
       today.style.left = `${axis.xForDate(todayDate)}px`;

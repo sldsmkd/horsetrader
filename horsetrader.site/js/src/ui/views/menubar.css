@@ -1,0 +1,126 @@
+/* Persistent menubar shell floating over the timeline canvas. The shell owns the
+   strip and item sequence; individual surfaces mount through the overlay layer. */
+.menubar {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  right: 0.75rem;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: auto minmax(12rem, 28rem) auto;
+  align-items: center;
+  gap: 0.5rem;
+  pointer-events: none;
+}
+
+.menubar__cluster {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.menubar__cluster--right {
+  justify-self: end;
+}
+
+.menubar__item {
+  pointer-events: auto;
+  min-height: 2.35rem;
+  border: 1px solid color-mix(in srgb, currentColor 24%, transparent);
+  border-radius: 0.45rem;
+  background: color-mix(in srgb, Canvas 78%, transparent);
+  box-shadow: 0 0.35rem 1.4rem rgba(0, 0, 0, 0.18);
+  color: inherit;
+}
+
+.menubar__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0 0.75rem;
+  font: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.menubar__button:hover,
+.menubar__button--active {
+  background: color-mix(in srgb, Canvas 62%, currentColor 10%);
+}
+
+.menubar__home {
+  min-width: 4.5rem;
+}
+
+.menubar__date {
+  display: inline-flex;
+  min-width: 6.9rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.7rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.menubar__search {
+  display: flex;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.menubar__search-input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  outline: 0;
+  padding: 0 0.8rem;
+}
+
+.menubar__balance {
+  min-width: 8.5rem;
+}
+
+.menubar__balance-value {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.menubar__balance-unit {
+  color: color-mix(in srgb, currentColor 72%, transparent);
+}
+
+@media (max-width: 860px) {
+  .menubar {
+    grid-template-columns: auto minmax(7rem, 1fr) auto;
+  }
+
+  .menubar__date,
+  .menubar__balance-unit {
+    display: none;
+  }
+
+  .menubar__home {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 620px) {
+  .menubar {
+    grid-template-columns: 1fr auto;
+    align-items: start;
+  }
+
+  .menubar__search {
+    grid-column: 1 / -1;
+    order: 3;
+  }
+
+  .menubar__cluster {
+    flex-wrap: wrap;
+  }
+}

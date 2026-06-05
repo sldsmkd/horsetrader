@@ -6,8 +6,8 @@ import { createViewStore } from "./viewState.ts";
 test("starts idle; set merges a patch and exposes it", () => {
   const store = createViewStore();
   assert.deepEqual(store.get(), { overlay: null, selection: null, search: "" });
-  store.set({ overlay: "account" });
-  assert.deepEqual(store.get(), { overlay: "account", selection: null, search: "" });
+  store.set({ overlay: "resources" });
+  assert.deepEqual(store.get(), { overlay: "resources", selection: null, search: "" });
 });
 
 test("subscribe fires on set; unsubscribe stops delivery", () => {

@@ -4,11 +4,11 @@
  *
  *   - **Cheap path:** the timeline owns the transient pan and pushes the
  *     view-centre date straight here via `onView`; we read `balanceAt` into the
- *     readout and move the minimap window — no recompute, no broadcast, no rebuild.
+ *     menubar and move the minimap window — no recompute, no broadcast, no rebuild.
  *   - **Render path:** a domain mutation (editing the snapshot in the Account
  *     overlay) recomputes and notifies; we re-lay the timeline for the new
  *     extent, which re-emits the centre date through `onView` and so refreshes
- *     the readout against the fresh projection. Rare, so a full re-layout is fine.
+ *     the menubar against the fresh projection. Rare, so a full re-layout is fine.
  *   - **Discrete view-state:** the menubar toggles which overlay is open through
  *     the view-state store's `subscribe`; the timeline stays live behind it
  *     (ui.md principle 1, via the `pointer-events: none` overlay layer).
@@ -16,18 +16,19 @@
  * As of 4b the standalone step-3 scrub `<input>` is gone: the timeline substrate
  * is the real owner of pan/focus. No state is read back out of the DOM. As of 4f
  * the focus is the view centre itself (no separate cursor) — `onView` drives both
- * the readout and the minimap window.
+ * the menubar and the minimap window.
  */
 
 import "./app.css";
 
 import { h, qs } from "./h.ts";
-import { cursorBalance } from "./views/cursorBalance.ts";
 import { timeline } from "./views/timeline.ts";
 import { minimap } from "./views/minimap.ts";
 import { belowCard } from "./views/belowCard.ts";
 import { bannerGroup } from "./views/bannerGroup.ts";
 import { overlay } from "./views/overlay.ts";
+import { menubar } from "./views/menubar.ts";
+import type { MenubarOverlay } from "./views/menubar.ts";
 import { belowLaneCards } from "./select/belowLane.ts";
 import { aboveLaneGroups } from "./select/aboveLane.ts";
 import { packBelow, packAbove } from "./pack/pack.ts";
@@ -114,7 +115,9 @@ function displayExtent(bundle: Bundle): readonly [string, string] | null {
 
 export function mountApp(coord: Coordinator, bundle: Bundle, now: string, root: HTMLElement = qs("#app")): void {
   const view = createViewStore();
-  const readout = cursorBalance();
+  const toggleOverlay = (overlay: Exclude<MenubarOverlay, null>) => {
+    view.set({ overlay: view.get().overlay === overlay ? null : overlay });
+  };
 
   // The minimap is the primary navigation: dragging its track seeks, which pans
   // the timeline (`centerOn`); the timeline pushes its view-centre date back so
@@ -122,20 +125,33 @@ export function mountApp(coord: Coordinator, bundle: Bundle, now: string, root: 
   const mini = minimap({ onSeek: (date) => tl.centerOn(date) });
 
   // The cheap path: the view centre *is* the focus. The timeline hands us the
-  // centre date on every pan; we read the cached series into the readout and move
+  // centre date on every pan; we read the cached series into the menubar and move
   // the minimap window. No broadcast — a 60 Hz pan stays off the render path.
   const tl = timeline({
     onView: (date) => {
-      readout.setDate(date);
-      readout.setBalance(coord.balanceAt(date));
+      const balance = coord.balanceAt(date);
+      menu.setDate(date);
+      menu.setBalance(balance.free_carats ?? 0);
       mini.setView(date);
     },
+  });
+
+  const menu = menubar({
+    initialDate: now,
+    initialBalance: coord.balanceAt(now).free_carats ?? 0,
+    openOverlay: null,
+    onHome: () => tl.centerOn(now),
+    onIdentity: () => toggleOverlay("identity"),
+    onPlan: () => toggleOverlay("plan"),
+    onResources: () => toggleOverlay("resources"),
+    onTazuna: () => toggleOverlay("tazuna"),
+    onSearch: (query) => view.set({ search: query }),
   });
 
   // The render path: re-lay the substrate, then rebuild the cards from the
   // selectors on the *same* axis the timeline drew (the shared seam, `tl.axis`)
   // and mount them. `layout` re-emits the centre date through `onView`, so the
-  // readout follows the fresh projection. The below-lane packer (4e) runs after
+  // menubar follows the fresh projection. The below-lane packer (4e) runs after
   // mount, once heights can be measured, and resolve overlaps without moving any
   // stem off-tick: below stacks vertically, above nudges groups horizontally.
   function refresh(): void {
@@ -194,9 +210,27 @@ export function mountApp(coord: Coordinator, bundle: Bundle, now: string, root: 
   // it flows through `subscribe` and re-renders here (the render path).
   const overlayLayer = h("div", { class: "overlay-layer" });
   function renderOverlay(): void {
-    if (view.get().overlay === "account") {
+    const open = view.get().overlay as MenubarOverlay;
+    menu.setOpenOverlay(open);
+    if (open === "resources") {
       overlayLayer.replaceChildren(
-        overlay({ title: "Account", body: snapshotEditor(), onClose: () => view.set({ overlay: null }) }),
+        overlay({ title: "Resources", body: snapshotEditor(), onClose: () => view.set({ overlay: null }) }),
+      );
+    } else if (open === "identity") {
+      overlayLayer.replaceChildren(
+        overlay({ title: "Identity", body: h("p", "Sweep Tosho"), onClose: () => view.set({ overlay: null }) }),
+      );
+    } else if (open === "plan") {
+      overlayLayer.replaceChildren(
+        overlay({ title: "Plan", body: h("p", "No commitments yet."), onClose: () => view.set({ overlay: null }) }),
+      );
+    } else if (open === "tazuna") {
+      overlayLayer.replaceChildren(
+        overlay({
+          title: "Tazuna",
+          body: h("p", "Help and explanations will live here."),
+          onClose: () => view.set({ overlay: null }),
+        }),
       );
     } else {
       overlayLayer.replaceChildren();
@@ -204,21 +238,7 @@ export function mountApp(coord: Coordinator, bundle: Bundle, now: string, root: 
   }
   view.subscribe(renderOverlay);
 
-  const menubar = h(
-    "nav",
-    { class: "menubar" },
-    h(
-      "button",
-      {
-        class: "menubar__item",
-        attr: { type: "button" },
-        on: { click: () => view.set({ overlay: view.get().overlay === "account" ? null : "account" }) },
-      },
-      "Account",
-    ),
-  );
-
-  root.replaceChildren(menubar, tl.el, mini.el, readout.el, overlayLayer);
+  root.replaceChildren(menu.el, tl.el, mini.el, overlayLayer);
   refresh();
   renderOverlay();
 }
