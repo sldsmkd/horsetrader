@@ -21,6 +21,8 @@ export interface ChannelContext {
   bundle: EventsBundle;
   /** The projection origin date; channels emit only strictly after it. */
   after: string;
+  /** The calendar timezone the day-bucketed projection is viewed in. */
+  timeZone: string;
 }
 
 export interface ChannelDef {
@@ -30,7 +32,7 @@ export interface ChannelDef {
 
 /** The ground-truth channels, in fold order — immutable bundle data, no user input. */
 export const GROUND_TRUTH_CHANNELS: ChannelDef[] = [
-  { name: "events", emit: ({ bundle, after }) => eventStream(bundle, after) },
-  { name: "generator", emit: ({ bundle, after }) => generatorStream(generatorsFromBundle(bundle), after) },
-  { name: "sequence", emit: ({ bundle, after }) => sequenceStream(sequencesFromBundle(bundle), after) },
+  { name: "events", emit: ({ bundle, after, timeZone }) => eventStream(bundle, after, timeZone) },
+  { name: "generator", emit: ({ bundle, after, timeZone }) => generatorStream(generatorsFromBundle(bundle, timeZone), after) },
+  { name: "sequence", emit: ({ bundle, after, timeZone }) => sequenceStream(sequencesFromBundle(bundle, timeZone), after) },
 ];

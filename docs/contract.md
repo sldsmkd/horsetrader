@@ -68,6 +68,11 @@ game-wide pull constants (`spark_threshold`, `carats_per_pull`,
 `crystal` / `gold` / `silver` rarity language). A banner only needs to carry
 per-pickup rate overrides when its rate differs from those defaults.
 
+Event timeline records carry `start` / `end` as fully-qualified ISO datetimes
+with the selected period's timezone offset (for the baked Global timeline, UTC),
+not date-only labels. The site derives viewer-local or server-time calendar
+labels from those instants at presentation time.
+
 ## Stable-key scheme (shared id vocabulary)
 
 Every entity and event is identified by a `StableKey` of the form

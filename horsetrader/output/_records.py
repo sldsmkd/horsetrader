@@ -114,7 +114,9 @@ class EventRecord(msgspec.Struct, tag_field="type", kw_only=True):
     (so the bundle round-trips). Every other field is required, including those
     the subclasses add; ``kw_only`` is what lets a required subclass field sit
     alongside the base's defaulted ``rewards``. JSON key order is insignificant,
-    so the kw-only field reordering doesn't affect the contract."""
+    so the kw-only field reordering doesn't affect the contract. ``start`` and
+    ``end`` are fully-qualified ISO datetimes carrying the selected Period's
+    timezone offset, not date-only labels."""
 
     start: str
     end: str

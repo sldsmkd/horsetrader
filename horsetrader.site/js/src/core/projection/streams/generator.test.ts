@@ -46,6 +46,24 @@ test("generatorsFromBundle extracts inline generators, splitting off repeat", ()
   ]);
 });
 
+test("generatorsFromBundle anchors timestamped generators in the selected timezone", () => {
+  const bundle: EventsBundle = {
+    events: [
+      {
+        type: "anchor",
+        start: "2025-08-07T22:00:00+00:00",
+        end: "2025-08-07T22:00:00+00:00",
+        predicted: false,
+        key: "anchor-golden-week-2021",
+        rewards: { generator: { free_carats: 564, repeat: 10 } },
+      } satisfies AnchorRecord,
+    ],
+  };
+  assert.deepEqual(generatorsFromBundle(bundle, "Australia/Sydney"), [
+    { source: "anchor-golden-week-2021", start: "2025-08-08", payload: { free_carats: 564 }, repeat: 10 },
+  ]);
+});
+
 test("a malformed generator (no payload, or non-numeric repeat) is skipped", () => {
   const bundle: EventsBundle = {
     events: [

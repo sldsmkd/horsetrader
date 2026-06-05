@@ -14,7 +14,7 @@
 
 import type { EventsBundle } from "../../bundle/events.gen.ts";
 import type { ResourceVector, StreamEmission } from "../ledger.ts";
-import { addDays } from "../dates.ts";
+import { UTC_TIME_ZONE, addDays, dateStringInTimeZone } from "../dates.ts";
 
 /** A recurring daily payout: `payload` each day from `start`, for `repeat` days. */
 export interface GeneratorSpec {
@@ -49,7 +49,7 @@ export function generatorStream(specs: GeneratorSpec[], after: string): StreamEm
  * = {…payload, repeat}`). The generator originates at the event's `start`. A
  * generator with no payload or a non-numeric `repeat` is malformed and skipped.
  */
-export function generatorsFromBundle(bundle: EventsBundle): GeneratorSpec[] {
+export function generatorsFromBundle(bundle: EventsBundle, timeZone: string = UTC_TIME_ZONE): GeneratorSpec[] {
   const specs: GeneratorSpec[] = [];
   for (const event of bundle.events) {
     const generator = event.rewards?.generator;
@@ -63,7 +63,7 @@ export function generatorsFromBundle(bundle: EventsBundle): GeneratorSpec[] {
       if (key === "repeat" || typeof value !== "number") continue;
       payload[key] = value;
     }
-    if (Object.keys(payload).length) specs.push({ source: event.key, start: event.start, payload, repeat });
+    if (Object.keys(payload).length) specs.push({ source: event.key, start: dateStringInTimeZone(event.start, timeZone), payload, repeat });
   }
   return specs;
 }

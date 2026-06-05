@@ -48,9 +48,10 @@ class Event(TracenModel):
         ...
 
     def _envelope(self, period: Period) -> dict:
-        """The shared record kwargs every concrete `bake` spreads in: the date
-        span, the `predicted` flag, the stable key, and any curated rewards (a
-        base `Event` field, so it folds in here rather than in four subclasses).
+        """The shared record kwargs every concrete `bake` spreads in: the period
+        instants, the `predicted` flag, the stable key, and any curated rewards
+        (a base `Event` field, so it folds in here rather than in four
+        subclasses).
 
         Rewards is passed as `UNSET` when the event carries none, which drops
         the key from the output — the same omission the old dict-build got by
@@ -58,8 +59,8 @@ class Event(TracenModel):
         """
         baked = rewards_to_baked(self.rewards)
         envelope = {
-            "start": period.start.date().isoformat(),
-            "end": period.end.date().isoformat(),
+            "start": period.start.isoformat(),
+            "end": period.end.isoformat(),
             "predicted": period.predicted,
             "key": self.key,
             "rewards": baked if baked else UNSET,

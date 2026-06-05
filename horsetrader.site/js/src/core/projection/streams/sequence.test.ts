@@ -40,6 +40,15 @@ test("sequencesFromBundle extracts the inline sequence, normalising the type to 
   ]);
 });
 
+test("sequencesFromBundle anchors timestamped sequences in the selected timezone", () => {
+  const bundle: EventsBundle = {
+    events: [anchored("after-anni-1_5", "2026-07-20T22:00:00+00:00", { sequence: { type: "free_carats", sequence: [150] } })],
+  };
+  assert.deepEqual(sequencesFromBundle(bundle, "Australia/Sydney"), [
+    { source: "after-anni-1_5", start: "2026-07-21", resource: "free_carats", amounts: [150] },
+  ]);
+});
+
 test("a malformed sequence (no string type, or non-array sequence) is skipped", () => {
   const bundle: EventsBundle = {
     events: [

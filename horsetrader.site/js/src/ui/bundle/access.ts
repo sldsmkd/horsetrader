@@ -18,6 +18,7 @@
 
 import type { EventsBundle } from "../../core/bundle/events.gen.ts";
 import type { Academy, CharacterRecord, SupportRecord, TraineeRecord } from "../../core/bundle/academy.gen.ts";
+import { UTC_TIME_ZONE, dateStringInTimeZone } from "../../core/projection/dates.ts";
 
 /** One event of any kind — the discriminated union the bundle actually holds. */
 export type EventRecord = EventsBundle["events"][number];
@@ -39,10 +40,19 @@ function must<T>(value: T | undefined, kind: string, id: string): T {
   return value;
 }
 
-export function createBundle(events: EventsBundle, academy: Academy): Bundle {
-  const byKey = new Map<string, EventRecord>(events.events.map((e) => [e.key, e]));
+function calendarEvent(event: EventRecord, timeZone: string): EventRecord {
   return {
-    all: () => events.events,
+    ...event,
+    start: dateStringInTimeZone(event.start, timeZone),
+    end: dateStringInTimeZone(event.end, timeZone),
+  } as EventRecord;
+}
+
+export function createBundle(events: EventsBundle, academy: Academy, timeZone: string = UTC_TIME_ZONE): Bundle {
+  const calendarEvents = events.events.map((event) => calendarEvent(event, timeZone));
+  const byKey = new Map<string, EventRecord>(calendarEvents.map((e) => [e.key, e]));
+  return {
+    all: () => calendarEvents,
     event: (key) => must(byKey.get(key), "event", key),
     character: (id) => must(academy.characters[id], "character", id),
     support: (id) => must(academy.supports[id], "support", id),

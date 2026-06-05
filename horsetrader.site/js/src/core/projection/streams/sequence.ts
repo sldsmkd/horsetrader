@@ -16,7 +16,7 @@
 
 import type { EventsBundle } from "../../bundle/events.gen.ts";
 import type { StreamEmission } from "../ledger.ts";
-import { addDays } from "../dates.ts";
+import { UTC_TIME_ZONE, addDays, dateStringInTimeZone } from "../dates.ts";
 
 /** A per-day amount schedule for one resource, anchored at `start`; null = unpaid that day. */
 export interface SequenceSpec {
@@ -51,7 +51,7 @@ export function sequenceStream(specs: SequenceSpec[], after: string): StreamEmis
  * = {type, sequence}`). The sequence originates at the event's `start`. A
  * sequence with no string `type` or non-array `sequence` is malformed and skipped.
  */
-export function sequencesFromBundle(bundle: EventsBundle): SequenceSpec[] {
+export function sequencesFromBundle(bundle: EventsBundle, timeZone: string = UTC_TIME_ZONE): SequenceSpec[] {
   const specs: SequenceSpec[] = [];
   for (const event of bundle.events) {
     const sequence = event.rewards?.sequence;
@@ -61,7 +61,7 @@ export function sequencesFromBundle(bundle: EventsBundle): SequenceSpec[] {
     const amounts = sequence["sequence"];
     if (typeof type !== "string" || !Array.isArray(amounts)) continue;
 
-    specs.push({ source: event.key, start: event.start, resource: type, amounts });
+    specs.push({ source: event.key, start: dateStringInTimeZone(event.start, timeZone), resource: type, amounts });
   }
   return specs;
 }

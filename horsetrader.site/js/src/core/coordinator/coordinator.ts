@@ -24,6 +24,7 @@ import type { KeyValueStore } from "../persistence/storage.ts";
 import { defaultStore } from "../persistence/storage.ts";
 import { project } from "../projection/index.ts";
 import type { Projection, ResourceVector } from "../projection/index.ts";
+import { UTC_TIME_ZONE } from "../projection/dates.ts";
 import { GROUND_TRUTH_CHANNELS } from "./channels.ts";
 import type { ChannelDef } from "./channels.ts";
 
@@ -65,6 +66,8 @@ export interface CoordinatorOptions {
   bundle: EventsBundle;
   /** Today as an ISO date — the projection origin when no snapshot is set yet. */
   now: string;
+  /** Calendar timezone used to bucket baked event instants into projection dates. */
+  timeZone?: string;
   /** Defaults to localStorage (or an in-memory store outside the browser). */
   store?: KeyValueStore;
   /** Defaults to the ground-truth channels; injectable for tests. */
@@ -73,6 +76,7 @@ export interface CoordinatorOptions {
 
 export function createCoordinator(options: CoordinatorOptions): Coordinator {
   const { bundle, now } = options;
+  const timeZone = options.timeZone ?? UTC_TIME_ZONE;
   const store = options.store ?? defaultStore();
   const registry = options.channels ?? GROUND_TRUTH_CHANNELS;
 
@@ -90,7 +94,7 @@ export function createCoordinator(options: CoordinatorOptions): Coordinator {
     const base = doc.snapshot?.resources ?? {};
     const streams = registry
       .filter((ch) => enabled.get(ch.name) !== false)
-      .map((ch) => ({ stream: ch.name, emissions: ch.emit({ bundle, after }) }));
+      .map((ch) => ({ stream: ch.name, emissions: ch.emit({ bundle, after, timeZone }) }));
     return project({ date: after, resources: base }, streams);
   }
 

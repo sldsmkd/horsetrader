@@ -61,6 +61,31 @@ test("contents resolve to atoms in the kind's grammar — trainee stars, support
   assert.deepEqual(support.atoms, [{ id: "s-spe", name: "Special Week", rarity: "SSR" }]);
 });
 
+test("timestamped banners group and position by the selected viewer calendar", () => {
+  const events: EventsBundle = {
+    events: [
+      { type: "support", rushable: false, contents: ["s-spe"], image: "/i/sb2.webp", start: "2026-06-10T22:00:00+00:00", end: "2026-06-16T22:00:00+00:00", predicted: false, key: "banner-s2" },
+      { type: "trainee", rushable: true, contents: ["t-spe"], image: "/i/tb.webp", start: "2026-06-10T22:30:00+00:00", end: "2026-06-16T22:30:00+00:00", predicted: false, key: "banner-t" },
+    ],
+  };
+  const groups = aboveLaneGroups(createBundle(events, ACADEMY, "Australia/Sydney"), axis());
+
+  assert.deepEqual(groups.map((g) => g.date), ["2026-06-11"]);
+  assert.equal(groups[0]!.x, 100); // 2026-06-11 → 10 days after the origin
+  assert.deepEqual(groups[0]!.banners.map((b) => b.key), ["banner-t", "banner-s2"]);
+});
+
+test("timestamped banners keep their UTC/server date when the view timezone is UTC", () => {
+  const events: EventsBundle = {
+    events: [
+      { type: "support", rushable: false, contents: ["s-spe"], image: "/i/sb2.webp", start: "2026-06-10T22:00:00+00:00", end: "2026-06-16T22:00:00+00:00", predicted: false, key: "banner-s2" },
+    ],
+  };
+  const groups = aboveLaneGroups(createBundle(events, ACADEMY, "UTC"), axis());
+
+  assert.deepEqual(groups.map((g) => g.date), ["2026-06-10"]);
+});
+
 test("empty bundle input returns no groups", () => {
   const groups = aboveLaneGroups(createBundle(EMPTY_EVENTS, ACADEMY), axis());
   assert.deepEqual(groups, []);

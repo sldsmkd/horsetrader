@@ -33,6 +33,18 @@ test("rewards land on the event end as one delta vector", () => {
   ]);
 });
 
+test("timestamped rewards land on the event end date in the selected timezone", () => {
+  const b = bundle(
+    banner("banner-1", "2026-06-10T22:00:00+00:00", { free_carats: 720 }),
+  );
+  assert.deepEqual(eventStream(b, "2026-06-01", "UTC"), [
+    { date: "2026-06-10", source: "banner-1", deltas: { free_carats: 720 } },
+  ]);
+  assert.deepEqual(eventStream(b, "2026-06-01", "Australia/Sydney"), [
+    { date: "2026-06-11", source: "banner-1", deltas: { free_carats: 720 } },
+  ]);
+});
+
 test("only events landing strictly after the snapshot date are emitted", () => {
   const b = bundle(
     banner("before", "2026-05-30", { free_carats: 100 }),

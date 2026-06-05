@@ -10,6 +10,7 @@
 import "../../css/base.css";
 
 import { createCoordinator } from "./core/coordinator/index.ts";
+import { defaultTimeZone, todayInTimeZone } from "./core/projection/dates.ts";
 import { createBundle } from "./ui/bundle/access.ts";
 import { mountApp } from "./ui/app.ts";
 import type { EventsBundle } from "./core/bundle/events.gen.ts";
@@ -21,10 +22,11 @@ async function bootstrap(): Promise<void> {
     fetch("/json/events.json").then((r) => r.json()),
     fetch("/json/academy.json").then((r) => r.json()),
   ])) as [EventsBundle, Academy];
-  const now = new Date().toISOString().slice(0, 10);
+  const timeZone = defaultTimeZone();
+  const now = todayInTimeZone(timeZone);
 
-  const coordinator = createCoordinator({ bundle: events, now });
-  mountApp(coordinator, createBundle(events, academy), now);
+  const coordinator = createCoordinator({ bundle: events, now, timeZone });
+  mountApp(coordinator, createBundle(events, academy, timeZone), now);
 }
 
 bootstrap().catch((err) => {

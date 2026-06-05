@@ -12,6 +12,7 @@
 
 import type { EventsBundle } from "../../bundle/events.gen.ts";
 import type { ResourceVector, StreamEmission } from "../ledger.ts";
+import { UTC_TIME_ZONE, dateStringInTimeZone } from "../dates.ts";
 
 /**
  * Emit the timeline's discrete rewards as dated deltas. Rewards land on an
@@ -24,11 +25,11 @@ import type { ResourceVector, StreamEmission } from "../ledger.ts";
  * by the generator stream, which owns the recurrence (see ./generator.ts). This
  * keeps the two provenances on separate channels.
  */
-export function eventStream(bundle: EventsBundle, after: string): StreamEmission[] {
+export function eventStream(bundle: EventsBundle, after: string, timeZone: string = UTC_TIME_ZONE): StreamEmission[] {
   const emissions: StreamEmission[] = [];
   for (const event of bundle.events) {
     if (!event.rewards) continue;
-    const date = event.end;
+    const date = dateStringInTimeZone(event.end, timeZone);
     if (date <= after) continue;
 
     const deltas: ResourceVector = {};

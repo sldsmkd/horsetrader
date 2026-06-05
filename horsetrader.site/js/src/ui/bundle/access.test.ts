@@ -32,3 +32,25 @@ test("all() returns every event in bake order — for selectors that scan", () =
   const bundle = createBundle(EVENTS, ACADEMY);
   assert.deepEqual(bundle.all().map((e) => e.key), ["cm-1"]);
 });
+
+test("event dates are projected to the selected timeline calendar at the access seam", () => {
+  const events: EventsBundle = {
+    events: [
+      {
+        type: "cm",
+        name: "Late CM",
+        start: "2026-06-10T22:00:00+00:00",
+        end: "2026-06-20T22:00:00+00:00",
+        predicted: false,
+        key: "cm-late",
+      },
+    ],
+  };
+  const utc = createBundle(events, ACADEMY, "UTC").event("cm-late");
+  const sydney = createBundle(events, ACADEMY, "Australia/Sydney").event("cm-late");
+
+  assert.equal(utc.start, "2026-06-10");
+  assert.equal(utc.end, "2026-06-20");
+  assert.equal(sydney.start, "2026-06-11");
+  assert.equal(sydney.end, "2026-06-21");
+});
