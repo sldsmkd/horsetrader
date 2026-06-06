@@ -30,6 +30,10 @@ import { overlay } from "./views/overlay.ts";
 import { menubar } from "./views/menubar.ts";
 import type { MenubarOverlay } from "./views/menubar.ts";
 import { identitySurface } from "./views/identitySurface.ts";
+import { DEFAULT_PLAY_STYLE } from "./views/identitySurface.ts";
+import type { PlayStyleKey } from "./views/identitySurface.ts";
+import { createOshiIndex, DEFAULT_OSHI_ID, selectedOshiOption } from "./oshi/index.ts";
+import { oshiSelector } from "./views/oshiSelector.ts";
 import { belowLaneCards } from "./select/belowLane.ts";
 import { aboveLaneGroups } from "./select/aboveLane.ts";
 import { createSearchIndex } from "./search/index.ts";
@@ -46,6 +50,8 @@ const BELOW_GAP_X = 10;
 const BELOW_GAP_Y = 6;
 /** Above-lane horizontal breathing room between adjacent banner groups (px). */
 const ABOVE_GAP = 8;
+
+type AppOverlay = MenubarOverlay | "oshi";
 
 /**
  * The packer's impure bookend: measure the just-mounted below cards once, run the
@@ -118,6 +124,7 @@ function displayExtent(bundle: Bundle): readonly [string, string] | null {
 export function mountApp(coord: Coordinator, bundle: Bundle, now: string, root: HTMLElement = qs("#app")): void {
   const view = createViewStore();
   const search = createSearchIndex(bundle, now);
+  const oshiSearch = createOshiIndex(bundle);
   const toggleOverlay = (overlay: Exclude<MenubarOverlay, null>) => {
     view.set({ overlay: view.get().overlay === overlay ? null : overlay });
   };
@@ -142,6 +149,7 @@ export function mountApp(coord: Coordinator, bundle: Bundle, now: string, root: 
   const menu = menubar({
     initialDate: now,
     initialBalance: coord.balanceAt(now).free_carats ?? 0,
+    identity: { label: currentOshi().name, icon: currentOshi().icon },
     openOverlay: null,
     onHome: () => tl.warpTo(now),
     onIdentity: () => toggleOverlay("identity"),
@@ -231,23 +239,86 @@ export function mountApp(coord: Coordinator, bundle: Bundle, now: string, root: 
     coord.update({ config: { ...config, identity: { ...identityConfig(), trainerName: name } } });
   }
 
+  function oshiId(): string {
+    const id = identityConfig()["oshiId"];
+    return typeof id === "string" && id.trim() ? id : DEFAULT_OSHI_ID;
+  }
+
+  function setOshiId(id: string): void {
+    const config = coord.document().config ?? {};
+    coord.update({ config: { ...config, identity: { ...identityConfig(), oshiId: id } } });
+  }
+
+  function playStyleKey(): PlayStyleKey {
+    const key = identityConfig()["playStyleKey"];
+    return key === "sweetie" || key === "casual" || key === "focused" || key === "dedicated" || key === "unhinged"
+      ? key
+      : DEFAULT_PLAY_STYLE;
+  }
+
+  function setPlayStyleKey(key: PlayStyleKey): void {
+    if (key === "custom") return;
+    const config = coord.document().config ?? {};
+    coord.update({ config: { ...config, identity: { ...identityConfig(), playStyleKey: key } } });
+  }
+
+  function currentOshi() {
+    return selectedOshiOption(bundle, oshiId());
+  }
+
   // The view-state-driven layer: which overlay is open is a discrete change, so
   // it flows through `subscribe` and re-renders here (the render path).
   const overlayLayer = h("div", { class: "overlay-layer" });
+  const closeOshiSelector = () => view.set({ overlay: "identity" });
+
+  function trainerCardOverlay(suspended = false): HTMLElement {
+    const card = overlay({
+      title: "Trainer Card",
+      placement: "left",
+      body: identitySurface({
+        trainerName: trainerName(),
+        oshiName: currentOshi().name,
+        oshiPortrait: currentOshi().portrait,
+        playStyleKey: playStyleKey(),
+        onTrainerNameChange: setTrainerName,
+        onOshiSelect: () => view.set({ overlay: "oshi" }),
+        onPlayStyleChange: setPlayStyleKey,
+      }),
+      onClose: () => view.set({ overlay: null }),
+    });
+    if (suspended) {
+      card.classList.add("overlay--suspended");
+      card.setAttribute("aria-hidden", "true");
+      card.append(h("div", { class: "overlay__modal-shield", attr: { "aria-hidden": "true" } }));
+    }
+    return card;
+  }
+
   function renderOverlay(): void {
-    const open = view.get().overlay as MenubarOverlay;
-    menu.setOpenOverlay(open);
+    const open = view.get().overlay as AppOverlay;
+    menu.setIdentity({ label: currentOshi().name, icon: currentOshi().icon });
+    menu.setOpenOverlay(open === "oshi" ? "identity" : open);
     if (open === "resources") {
       overlayLayer.replaceChildren(
         overlay({ title: "Resources", body: snapshotEditor(), onClose: () => view.set({ overlay: null }) }),
       );
     } else if (open === "identity") {
+      overlayLayer.replaceChildren(trainerCardOverlay());
+    } else if (open === "oshi") {
+      const selectedOshi = currentOshi();
       overlayLayer.replaceChildren(
+        trainerCardOverlay(true),
         overlay({
-          title: "Trainer Card",
-          placement: "left",
-          body: identitySurface({ trainerName: trainerName(), onTrainerNameChange: setTrainerName }),
-          onClose: () => view.set({ overlay: null }),
+          title: "Oshi Selector",
+          placement: "center",
+          body: oshiSelector({
+            selectedId: selectedOshi.id,
+            selected: selectedOshi,
+            search: oshiSearch,
+            onCommit: (oshi) => setOshiId(oshi.id),
+            onClose: closeOshiSelector,
+          }),
+          onClose: closeOshiSelector,
         }),
       );
     } else if (open === "plan") {
@@ -267,6 +338,7 @@ export function mountApp(coord: Coordinator, bundle: Bundle, now: string, root: 
     }
   }
   view.subscribe(renderOverlay);
+  coord.subscribe(renderOverlay);
 
   root.replaceChildren(menu.el, tl.el, mini.el, overlayLayer);
   refresh();

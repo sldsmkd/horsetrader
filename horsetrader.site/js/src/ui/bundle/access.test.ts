@@ -33,6 +33,13 @@ test("all() returns every event in bake order — for selectors that scan", () =
   assert.deepEqual(bundle.all().map((e) => e.key), ["cm-1"]);
 });
 
+test("academy scans expose id-keyed entries for pure indexes", () => {
+  const bundle = createBundle(EVENTS, ACADEMY);
+
+  assert.deepEqual(bundle.characters().map(({ id, record }) => [id, record.name]), [["char-1", "Special Week"]]);
+  assert.deepEqual(bundle.trainees(), []);
+});
+
 test("event dates are projected to the selected timeline calendar at the access seam", () => {
   const events: EventsBundle = {
     events: [

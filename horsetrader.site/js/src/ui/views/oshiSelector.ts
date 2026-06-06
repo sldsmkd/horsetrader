@@ -1,0 +1,95 @@
+import "./oshiSelector.css";
+
+import { DEFAULT_OSHI_ID, searchOshis, starterOshis } from "../oshi/index.ts";
+import type { OshiOption, OshiSearchIndex } from "../oshi/index.ts";
+import { h } from "../h.ts";
+
+export interface OshiSelectorOpts {
+  selectedId?: string;
+  selected: OshiOption;
+  search: OshiSearchIndex;
+  onCommit: (oshi: OshiOption) => void;
+  onClose: () => void;
+}
+
+export function oshiSelector(opts: OshiSelectorOpts): HTMLElement {
+  let selectedId = opts.selectedId ?? DEFAULT_OSHI_ID;
+  let selectedOshi = opts.selected;
+  const buttons = new Map<string, HTMLButtonElement>();
+  const grid = h("div", { class: "oshi-selector__grid", attr: { role: "group", "aria-label": "Starter oshis" } });
+
+  const select = (oshi: OshiOption): void => {
+    selectedId = oshi.id;
+    selectedOshi = oshi;
+    for (const [buttonId, button] of buttons) {
+      const selected = buttonId === selectedId;
+      button.classList.toggle("oshi-selector__option--selected", selected);
+      button.setAttribute("aria-pressed", String(selected));
+    }
+  };
+
+  const render = (options: readonly OshiOption[], label: string): void => {
+    buttons.clear();
+    grid.setAttribute("aria-label", label);
+    grid.replaceChildren(
+      ...options.map((oshi) => {
+        const button = optionButton(oshi);
+        buttons.set(oshi.id, button);
+        return button;
+      }),
+    );
+  };
+
+  const optionButton = (oshi: OshiOption): HTMLButtonElement => {
+    const selected = oshi.id === selectedId;
+    return h(
+      "button",
+      {
+        class: `oshi-selector__option${selected ? " oshi-selector__option--selected" : ""}`,
+        attr: { type: "button", "aria-pressed": String(selected) },
+        on: { click: () => select(oshi) },
+      },
+      h("img", { class: "oshi-selector__icon", attr: { src: oshi.icon, alt: "", width: 80, height: 80 } }),
+      h("span", { class: "oshi-selector__name" }, oshi.name),
+    );
+  };
+
+  const search = h("input", {
+    class: "oshi-selector__search",
+    attr: { type: "search", placeholder: "Search oshi", "aria-label": "Search oshi", autocomplete: "off" },
+    on: {
+      input: () => {
+        const query = search.value.trim();
+        const options = query ? searchOshis(selectedOshi, opts.search(query)) : starterOshis(selectedOshi);
+        render(options, query ? "Search results" : "Starter oshis");
+      },
+    },
+  });
+
+  render(starterOshis(selectedOshi), "Starter oshis");
+
+  return h(
+    "section",
+    { class: "oshi-selector" },
+    search,
+    grid,
+    h(
+      "footer",
+      { class: "oshi-selector__actions" },
+      h(
+        "button",
+        {
+          class: "oshi-selector__ok",
+          attr: { type: "button" },
+          on: {
+            click: () => {
+              opts.onCommit(selectedOshi);
+              opts.onClose();
+            },
+          },
+        },
+        "OK",
+      ),
+    ),
+  );
+}
