@@ -17,13 +17,17 @@ import { h } from "../h.ts";
 export interface OverlayOpts {
   title: string;
   body: Node;
+  placement?: "left" | "right";
   onClose: () => void;
 }
 
 export function overlay(opts: OverlayOpts): HTMLElement {
   return h(
     "div",
-    { class: "overlay", attr: { role: "dialog", "aria-label": opts.title } },
+    {
+      class: `overlay overlay--${opts.placement ?? "right"}`,
+      attr: { role: "dialog", "aria-label": opts.title },
+    },
     h(
       "header",
       { class: "overlay__header" },

@@ -29,6 +29,7 @@ import { bannerGroup } from "./views/bannerGroup.ts";
 import { overlay } from "./views/overlay.ts";
 import { menubar } from "./views/menubar.ts";
 import type { MenubarOverlay } from "./views/menubar.ts";
+import { identitySurface } from "./views/identitySurface.ts";
 import { belowLaneCards } from "./select/belowLane.ts";
 import { aboveLaneGroups } from "./select/aboveLane.ts";
 import { createSearchIndex } from "./search/index.ts";
@@ -224,7 +225,12 @@ export function mountApp(coord: Coordinator, bundle: Bundle, now: string, root: 
       );
     } else if (open === "identity") {
       overlayLayer.replaceChildren(
-        overlay({ title: "Identity", body: h("p", "Sweep Tosho"), onClose: () => view.set({ overlay: null }) }),
+        overlay({
+          title: "Identity",
+          placement: "left",
+          body: identitySurface(),
+          onClose: () => view.set({ overlay: null }),
+        }),
       );
     } else if (open === "plan") {
       overlayLayer.replaceChildren(

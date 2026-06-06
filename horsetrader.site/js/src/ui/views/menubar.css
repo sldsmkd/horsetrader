@@ -56,6 +56,34 @@
   font-size: 1.1rem;
 }
 
+.menubar__identity {
+  position: relative;
+  width: 2.35rem;
+  padding: 0;
+  border-radius: 50%;
+}
+
+.menubar__identity::after {
+  content: "";
+  position: absolute;
+  right: -0.05rem;
+  bottom: 0.05rem;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-right: 0.1rem solid currentColor;
+  border-bottom: 0.1rem solid currentColor;
+  transform: rotate(45deg);
+  opacity: 0.72;
+}
+
+.menubar__identity-icon {
+  display: block;
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
 .menubar__date {
   display: inline-flex;
   min-width: 6.9rem;

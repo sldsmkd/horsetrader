@@ -10,12 +10,19 @@
   pointer-events: auto;
   position: absolute;
   top: 4.5rem;
-  right: 2rem;
   width: 20rem;
   border: 1px solid currentColor;
-  border-radius: 0.75rem;
+  border-radius: 0.5rem;
   background: Canvas;
   box-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.35);
+}
+
+.overlay--left {
+  left: 0.75rem;
+}
+
+.overlay--right {
+  right: 2rem;
 }
 
 .overlay__header {
@@ -42,4 +49,12 @@
 
 .overlay__body {
   padding: 1rem;
+}
+
+@media (max-width: 620px) {
+  .overlay {
+    left: 0.75rem;
+    right: 0.75rem;
+    width: auto;
+  }
 }

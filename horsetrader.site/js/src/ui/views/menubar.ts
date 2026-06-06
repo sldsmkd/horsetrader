@@ -13,6 +13,7 @@ import { searchBox } from "./searchBox.ts";
 import type { SearchIndex, SearchResult } from "../search/index.ts";
 
 export type MenubarOverlay = "identity" | "plan" | "resources" | "tazuna" | null;
+const REPRESENTATIVE_ICON = "/img/characters/admire-groove_icon.webp";
 
 export interface Menubar {
   readonly el: HTMLElement;
@@ -60,7 +61,21 @@ export function menubar(opts: MenubarOpts): Menubar {
   );
   const search = searchBox({ search: opts.search, onSearch: opts.onSearch });
 
-  const identity = menuButton("Sweep Tosho v", "identity", opts.onIdentity);
+  const identity = h(
+    "button",
+    {
+      class: "menubar__item menubar__button menubar__identity",
+      attr: {
+        type: "button",
+        "data-overlay": "identity",
+        "aria-pressed": "false",
+        "aria-label": "Identity: Admire Groove",
+        title: "Identity",
+      },
+      on: { click: opts.onIdentity },
+    },
+    h("img", { class: "menubar__identity-icon", attr: { src: REPRESENTATIVE_ICON, alt: "", width: 32, height: 32 } }),
+  );
   const plan = menuButton("Plan", "plan", opts.onPlan);
   const tazuna = menuButton("Tazuna", "tazuna", opts.onTazuna);
 

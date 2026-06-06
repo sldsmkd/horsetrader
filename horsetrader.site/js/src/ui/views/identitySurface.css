@@ -1,0 +1,103 @@
+.identity-surface {
+  display: grid;
+  gap: 1rem;
+}
+
+.identity-surface__hero {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.identity-surface__avatar {
+  width: 5.25rem;
+  aspect-ratio: 1;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, currentColor 24%, transparent);
+  border-radius: 50%;
+  background: color-mix(in srgb, Canvas 82%, currentColor 6%);
+  cursor: pointer;
+}
+
+.identity-surface__avatar--selected {
+  box-shadow:
+    0 0 0 0.25rem color-mix(in srgb, Canvas 92%, transparent),
+    0 0 0 0.35rem color-mix(in srgb, #d53f8c 52%, currentColor 20%);
+}
+
+.identity-surface__avatar img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.identity-surface__intro {
+  display: grid;
+  min-width: 0;
+  gap: 0.12rem;
+}
+
+.identity-surface__eyebrow,
+.identity-surface__label,
+.identity-surface__meta,
+.identity-surface__detail {
+  color: color-mix(in srgb, currentColor 66%, transparent);
+}
+
+.identity-surface__eyebrow,
+.identity-surface__label {
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.identity-surface__name {
+  font-size: 1.25rem;
+  line-height: 1.1;
+}
+
+.identity-surface__section {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.identity-surface__row {
+  display: grid;
+  grid-template-columns: minmax(7.5rem, auto) 1fr;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+.identity-surface__value {
+  display: inline-flex;
+  min-width: 0;
+  justify-content: flex-end;
+  gap: 0.45rem;
+  text-align: right;
+  font-weight: 700;
+}
+
+.identity-surface__styles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.4rem;
+}
+
+.identity-surface__style {
+  min-height: 2.15rem;
+  border: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+  border-radius: 0.45rem;
+  background: color-mix(in srgb, Canvas 86%, transparent);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.identity-surface__style:hover,
+.identity-surface__style--selected {
+  background: color-mix(in srgb, Canvas 66%, #d53f8c 14%);
+  border-color: color-mix(in srgb, #d53f8c 54%, currentColor 24%);
+}
