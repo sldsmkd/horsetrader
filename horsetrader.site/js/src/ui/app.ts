@@ -29,7 +29,7 @@ import { bannerGroup } from "./views/bannerGroup.ts";
 import { overlay } from "./views/overlay.ts";
 import { menubar } from "./views/menubar.ts";
 import type { MenubarOverlay } from "./views/menubar.ts";
-import { identitySurface } from "./views/identitySurface.ts";
+import { createIdentityController } from "./identity/controller.ts";
 import { belowLaneCards } from "./select/belowLane.ts";
 import { aboveLaneGroups } from "./select/aboveLane.ts";
 import { createSearchIndex } from "./search/index.ts";
@@ -46,6 +46,8 @@ const BELOW_GAP_X = 10;
 const BELOW_GAP_Y = 6;
 /** Above-lane horizontal breathing room between adjacent banner groups (px). */
 const ABOVE_GAP = 8;
+
+type AppOverlay = MenubarOverlay | "oshi";
 
 /**
  * The packer's impure bookend: measure the just-mounted below cards once, run the
@@ -118,6 +120,7 @@ function displayExtent(bundle: Bundle): readonly [string, string] | null {
 export function mountApp(coord: Coordinator, bundle: Bundle, now: string, root: HTMLElement = qs("#app")): void {
   const view = createViewStore();
   const search = createSearchIndex(bundle, now);
+  const identity = createIdentityController(coord, bundle);
   const toggleOverlay = (overlay: Exclude<MenubarOverlay, null>) => {
     view.set({ overlay: view.get().overlay === overlay ? null : overlay });
   };
@@ -142,6 +145,7 @@ export function mountApp(coord: Coordinator, bundle: Bundle, now: string, root: 
   const menu = menubar({
     initialDate: now,
     initialBalance: coord.balanceAt(now).free_carats ?? 0,
+    identity: identity.menuIdentity(),
     openOverlay: null,
     onHome: () => tl.warpTo(now),
     onIdentity: () => toggleOverlay("identity"),
@@ -213,42 +217,34 @@ export function mountApp(coord: Coordinator, bundle: Bundle, now: string, root: 
     return h("label", { class: "field" }, h("span", "Carats now"), carats);
   }
 
-  function identityConfig(): Record<string, unknown> {
-    const config = coord.document().config;
-    const identity = config?.["identity"];
-    return typeof identity === "object" && identity !== null && !Array.isArray(identity)
-      ? (identity as Record<string, unknown>)
-      : {};
-  }
-
-  function trainerName(): string {
-    const name = identityConfig()["trainerName"];
-    return typeof name === "string" && name.trim() ? name : "Kris";
-  }
-
-  function setTrainerName(name: string): void {
-    const config = coord.document().config ?? {};
-    coord.update({ config: { ...config, identity: { ...identityConfig(), trainerName: name } } });
-  }
-
   // The view-state-driven layer: which overlay is open is a discrete change, so
   // it flows through `subscribe` and re-renders here (the render path).
   const overlayLayer = h("div", { class: "overlay-layer" });
+  const closeOshiSelector = () => view.set({ overlay: "identity" });
+
   function renderOverlay(): void {
-    const open = view.get().overlay as MenubarOverlay;
-    menu.setOpenOverlay(open);
+    const open = view.get().overlay as AppOverlay;
+    menu.setIdentity(identity.menuIdentity());
+    menu.setOpenOverlay(open === "oshi" ? "identity" : open);
     if (open === "resources") {
       overlayLayer.replaceChildren(
         overlay({ title: "Resources", body: snapshotEditor(), onClose: () => view.set({ overlay: null }) }),
       );
     } else if (open === "identity") {
       overlayLayer.replaceChildren(
-        overlay({
-          title: "Trainer Card",
-          placement: "left",
-          body: identitySurface({ trainerName: trainerName(), onTrainerNameChange: setTrainerName }),
+        identity.trainerCardOverlay({
+          onOshiSelect: () => view.set({ overlay: "oshi" }),
           onClose: () => view.set({ overlay: null }),
         }),
+      );
+    } else if (open === "oshi") {
+      overlayLayer.replaceChildren(
+        identity.trainerCardOverlay({
+          suspended: true,
+          onOshiSelect: () => view.set({ overlay: "oshi" }),
+          onClose: closeOshiSelector,
+        }),
+        identity.oshiSelectorOverlay({ onClose: closeOshiSelector }),
       );
     } else if (open === "plan") {
       overlayLayer.replaceChildren(
@@ -267,6 +263,7 @@ export function mountApp(coord: Coordinator, bundle: Bundle, now: string, root: 
     }
   }
   view.subscribe(renderOverlay);
+  coord.subscribe(renderOverlay);
 
   root.replaceChildren(menu.el, tl.el, mini.el, overlayLayer);
   refresh();

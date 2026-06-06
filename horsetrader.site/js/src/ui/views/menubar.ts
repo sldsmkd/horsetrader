@@ -13,18 +13,24 @@ import { searchBox } from "./searchBox.ts";
 import type { SearchIndex, SearchResult } from "../search/index.ts";
 
 export type MenubarOverlay = "identity" | "plan" | "resources" | "tazuna" | null;
-const REPRESENTATIVE_ICON = "/img/characters/admire-groove_icon.webp";
 
 export interface Menubar {
   readonly el: HTMLElement;
   setDate(date: string): void;
   setBalance(carats: number): void;
+  setIdentity(identity: MenubarIdentity): void;
   setOpenOverlay(overlay: MenubarOverlay): void;
+}
+
+export interface MenubarIdentity {
+  label: string;
+  icon: string;
 }
 
 export interface MenubarOpts {
   initialDate: string;
   initialBalance: number;
+  identity: MenubarIdentity;
   openOverlay: MenubarOverlay;
   onHome: () => void;
   onIdentity: () => void;
@@ -60,6 +66,10 @@ export function menubar(opts: MenubarOpts): Menubar {
     h("span", { class: "menubar__balance-unit" }, "carats"),
   );
   const search = searchBox({ search: opts.search, onSearch: opts.onSearch });
+  const identityIcon = h("img", {
+    class: "menubar__identity-icon",
+    attr: { src: opts.identity.icon, alt: "", width: 32, height: 32 },
+  });
 
   const identity = h(
     "button",
@@ -69,12 +79,12 @@ export function menubar(opts: MenubarOpts): Menubar {
         type: "button",
         "data-overlay": "identity",
         "aria-pressed": "false",
-        "aria-label": "Identity: Admire Groove",
+        "aria-label": `Identity: ${opts.identity.label}`,
         title: "Identity",
       },
       on: { click: opts.onIdentity },
     },
-    h("img", { class: "menubar__identity-icon", attr: { src: REPRESENTATIVE_ICON, alt: "", width: 32, height: 32 } }),
+    identityIcon,
   );
   const plan = menuButton("Plan", "plan", opts.onPlan);
   const tazuna = menuButton("Tazuna", "tazuna", opts.onTazuna);
@@ -118,6 +128,10 @@ export function menubar(opts: MenubarOpts): Menubar {
     setBalance: (carats) => {
       const value = balance.querySelector(".menubar__balance-value");
       if (value) value.textContent = formatBalance(carats);
+    },
+    setIdentity: (next) => {
+      identity.setAttribute("aria-label", `Identity: ${next.label}`);
+      identityIcon.src = next.icon;
     },
     setOpenOverlay,
   };

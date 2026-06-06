@@ -17,7 +17,7 @@ import { h } from "../h.ts";
 export interface OverlayOpts {
   title: string;
   body: Node;
-  placement?: "left" | "right";
+  placement?: "left" | "right" | "center";
   onClose: () => void;
 }
 

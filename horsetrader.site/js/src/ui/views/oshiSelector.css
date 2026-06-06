@@ -1,0 +1,93 @@
+.oshi-selector {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.oshi-selector__search {
+  width: 100%;
+  min-width: 0;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid color-mix(in srgb, currentColor 24%, transparent);
+  border-radius: 0.4rem;
+  background: color-mix(in srgb, Canvas 86%, transparent);
+  color: inherit;
+  font: inherit;
+}
+
+.oshi-selector__search:focus {
+  outline: 2px solid color-mix(in srgb, #5fcf00 70%, currentColor 18%);
+  outline-offset: 0.15rem;
+}
+
+.oshi-selector__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-rows: 7rem;
+  align-content: start;
+  gap: 0.55rem;
+  min-height: calc(3 * 7rem + 2 * 0.55rem);
+}
+
+.oshi-selector__option {
+  display: grid;
+  justify-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+  min-height: 7rem;
+  padding: 0.65rem 0.45rem;
+  border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+  border-radius: 0.45rem;
+  background: color-mix(in srgb, Canvas 88%, transparent);
+  color: inherit;
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+}
+
+.oshi-selector__option:hover,
+.oshi-selector__option:focus-visible,
+.oshi-selector__option--selected {
+  border-color: color-mix(in srgb, #5fcf00 58%, currentColor 24%);
+  background: color-mix(in srgb, Canvas 68%, #5fcf00 13%);
+  outline: 0;
+}
+
+.oshi-selector__icon {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.oshi-selector__name {
+  min-width: 0;
+  max-width: 100%;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.oshi-selector__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.oshi-selector__ok {
+  min-width: 5.5rem;
+  padding: 0.55rem 0.9rem;
+  border: 1px solid color-mix(in srgb, #5fcf00 58%, currentColor 24%);
+  border-radius: 0.4rem;
+  background: color-mix(in srgb, Canvas 66%, #5fcf00 16%);
+  color: inherit;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+@media (max-width: 620px) {
+  .oshi-selector__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-auto-rows: 7rem;
+    min-height: calc(4 * 7rem + 3 * 0.55rem);
+  }
+}
