@@ -17,6 +17,11 @@ const PLAY_STYLES = [
   { name: "Custom", caption: "Make your own legend.", icon: "/icons/playstyle-06.png" },
 ];
 
+export interface IdentitySurfaceOpts {
+  trainerName: string;
+  onTrainerNameChange: (name: string) => void;
+}
+
 function identityRow(label: string, value: string, detail?: string): HTMLElement {
   return h(
     "div",
@@ -27,6 +32,35 @@ function identityRow(label: string, value: string, detail?: string): HTMLElement
       { class: "identity-surface__value" },
       value,
       detail && h("span", { class: "identity-surface__detail" }, detail),
+    ),
+  );
+}
+
+function editableTrainerName(opts: IdentitySurfaceOpts): HTMLElement {
+  const input = h("input", {
+    class: "identity-surface__name-input",
+    attr: { type: "text", value: opts.trainerName, "aria-label": "Trainer name", maxlength: 24 },
+  });
+  const commit = (): void => {
+    const name = input.value.trim() || "Trainer";
+    input.value = name;
+    if (name !== opts.trainerName) opts.onTrainerNameChange(name);
+  };
+  input.addEventListener("change", commit);
+  input.addEventListener("blur", commit);
+
+  return h(
+    "label",
+    { class: "identity-surface__editable" },
+    input,
+    h(
+      "button",
+      {
+        class: "identity-surface__edit",
+        attr: { type: "button", "aria-label": "Edit trainer name", title: "Edit trainer name" },
+        on: { click: () => input.focus() },
+      },
+      "✏️",
     ),
   );
 }
@@ -58,7 +92,7 @@ function playStyle(): HTMLElement {
   );
 }
 
-export function identitySurface(): HTMLElement {
+export function identitySurface(opts: IdentitySurfaceOpts): HTMLElement {
   return h(
     "section",
     { class: "identity-surface" },
@@ -76,16 +110,14 @@ export function identitySurface(): HTMLElement {
         h(
           "div",
           { class: "identity-surface__title" },
-          h("span", { class: "identity-surface__eyebrow" }, "Trainer Card"),
-          h("strong", { class: "identity-surface__trainer" }, "Kris"),
+          editableTrainerName(opts),
         ),
         h(
           "div",
           { class: "identity-surface__section" },
-          identityRow("Trainer Name", "Kris"),
-          identityRow("ID", "765-900-574-510", "Optional"),
+          identityRow("ID (Optional)", "???-???-???-???"),
           identityRow("Club", "UmaDen", "B+"),
-          identityRow("Star Umamusume", REPRESENTATIVE_UMA.name),
+          identityRow("Oshi", REPRESENTATIVE_UMA.name),
         ),
       ),
     ),

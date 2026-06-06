@@ -47,8 +47,7 @@
 }
 
 .identity-surface__title {
-  display: grid;
-  gap: 0.1rem;
+  min-width: 0;
 }
 
 .identity-surface__eyebrow,
@@ -64,9 +63,49 @@
   text-transform: uppercase;
 }
 
-.identity-surface__trainer {
+.identity-surface__editable {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.identity-surface__name-input {
+  min-width: 0;
+  border: 0;
+  border-radius: 0.25rem;
+  background: transparent;
+  color: inherit;
+  font: inherit;
   font-size: 1.45rem;
+  font-weight: 800;
   line-height: 1.05;
+}
+
+.identity-surface__name-input:focus {
+  background: color-mix(in srgb, Canvas 72%, #5fcf00 10%);
+  outline: 2px solid color-mix(in srgb, #5fcf00 70%, currentColor 18%);
+  outline-offset: 0.16rem;
+}
+
+.identity-surface__edit {
+  display: inline-grid;
+  place-items: center;
+  width: 2rem;
+  aspect-ratio: 1;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.identity-surface__edit:hover,
+.identity-surface__edit:focus-visible {
+  background: color-mix(in srgb, Canvas 68%, currentColor 12%);
+  outline: 0;
 }
 
 .identity-surface__section {
@@ -76,7 +115,7 @@
 
 .identity-surface__row {
   display: grid;
-  grid-template-columns: minmax(6.8rem, auto) 1fr;
+  grid-template-columns: minmax(5.6rem, auto) 1fr;
   align-items: baseline;
   gap: 0.75rem;
 }
@@ -88,6 +127,7 @@
   gap: 0.45rem;
   text-align: right;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .identity-surface__detail {

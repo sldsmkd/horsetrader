@@ -213,6 +213,24 @@ export function mountApp(coord: Coordinator, bundle: Bundle, now: string, root: 
     return h("label", { class: "field" }, h("span", "Carats now"), carats);
   }
 
+  function identityConfig(): Record<string, unknown> {
+    const config = coord.document().config;
+    const identity = config?.["identity"];
+    return typeof identity === "object" && identity !== null && !Array.isArray(identity)
+      ? (identity as Record<string, unknown>)
+      : {};
+  }
+
+  function trainerName(): string {
+    const name = identityConfig()["trainerName"];
+    return typeof name === "string" && name.trim() ? name : "Kris";
+  }
+
+  function setTrainerName(name: string): void {
+    const config = coord.document().config ?? {};
+    coord.update({ config: { ...config, identity: { ...identityConfig(), trainerName: name } } });
+  }
+
   // The view-state-driven layer: which overlay is open is a discrete change, so
   // it flows through `subscribe` and re-renders here (the render path).
   const overlayLayer = h("div", { class: "overlay-layer" });
@@ -226,9 +244,9 @@ export function mountApp(coord: Coordinator, bundle: Bundle, now: string, root: 
     } else if (open === "identity") {
       overlayLayer.replaceChildren(
         overlay({
-          title: "Identity",
+          title: "Trainer Card",
           placement: "left",
-          body: identitySurface(),
+          body: identitySurface({ trainerName: trainerName(), onTrainerNameChange: setTrainerName }),
           onClose: () => view.set({ overlay: null }),
         }),
       );
