@@ -19,6 +19,7 @@
 
 .overlay--left {
   left: 0.75rem;
+  width: min(35rem, calc(100vw - 1.5rem));
 }
 
 .overlay--right {

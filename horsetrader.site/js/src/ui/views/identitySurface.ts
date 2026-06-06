@@ -5,7 +5,17 @@ import { h } from "../h.ts";
 const REPRESENTATIVE_UMA = {
   name: "Admire Groove",
   icon: "/img/characters/admire-groove_icon.webp",
+  portrait: "/img/characters/admire-groove_portrait.webp",
 };
+
+const PLAY_STYLES = [
+  { name: "Sweetie", caption: "Love. Ponies. Sunshine.", icon: "/icons/playstyle-01.png" },
+  { name: "Casual", caption: "Having fun. Taking it easy.", icon: "/icons/playstyle-02.png" },
+  { name: "Focused", caption: "Trying hard. Getting better.", icon: "/icons/playstyle-03.png" },
+  { name: "Dedicated", caption: "No chill. All gas.", icon: "/icons/playstyle-04.png" },
+  { name: "Unhinged", caption: "Blood. Sweat. Victory.", icon: "/icons/playstyle-05.png" },
+  { name: "Custom", caption: "Make your own legend.", icon: "/icons/playstyle-06.png" },
+];
 
 function identityRow(label: string, value: string, detail?: string): HTMLElement {
   return h(
@@ -22,18 +32,27 @@ function identityRow(label: string, value: string, detail?: string): HTMLElement
 }
 
 function playStyle(): HTMLElement {
-  const styles = ["Very Chill", "Casual", "Competitive", "Custom"];
   return h(
     "div",
     { class: "identity-surface__styles", attr: { role: "group", "aria-label": "Play Style" } },
-    ...styles.map((style) =>
+    ...PLAY_STYLES.map((style) =>
       h(
         "button",
         {
-          class: `identity-surface__style${style === "Competitive" ? " identity-surface__style--selected" : ""}`,
-          attr: { type: "button", "aria-pressed": String(style === "Competitive") },
+          class: `identity-surface__style${style.name === "Focused" ? " identity-surface__style--selected" : ""}`,
+          attr: { type: "button", "aria-pressed": String(style.name === "Focused") },
         },
-        style,
+        h(
+          "span",
+          { class: "identity-surface__style-icon" },
+          h("img", { attr: { src: style.icon, alt: "", width: 64, height: 64 } }),
+        ),
+        h(
+          "span",
+          { class: "identity-surface__style-copy" },
+          h("span", { class: "identity-surface__style-name" }, style.name),
+          h("span", { class: "identity-surface__style-caption" }, style.caption),
+        ),
       ),
     ),
   );
@@ -45,33 +64,34 @@ export function identitySurface(): HTMLElement {
     { class: "identity-surface" },
     h(
       "div",
-      { class: "identity-surface__hero" },
+      { class: "identity-surface__card" },
       h(
-        "button",
-        {
-          class: "identity-surface__avatar identity-surface__avatar--selected",
-          attr: { type: "button", "aria-label": `Representative Uma: ${REPRESENTATIVE_UMA.name}` },
-        },
-        h("img", { attr: { src: REPRESENTATIVE_UMA.icon, alt: "", width: 96, height: 96 } }),
+        "div",
+        { class: "identity-surface__portrait" },
+        h("img", { attr: { src: REPRESENTATIVE_UMA.portrait, alt: "", width: 256, height: 512 } }),
       ),
       h(
         "div",
-        { class: "identity-surface__intro" },
-        h("span", { class: "identity-surface__eyebrow" }, "Stable"),
-        h("strong", { class: "identity-surface__name" }, "UmaDen"),
-        h("span", { class: "identity-surface__meta" }, "B+ club"),
+        { class: "identity-surface__details" },
+        h(
+          "div",
+          { class: "identity-surface__title" },
+          h("span", { class: "identity-surface__eyebrow" }, "Trainer Card"),
+          h("strong", { class: "identity-surface__trainer" }, "Kris"),
+        ),
+        h(
+          "div",
+          { class: "identity-surface__section" },
+          identityRow("Trainer Name", "Kris"),
+          identityRow("ID", "765-900-574-510", "Optional"),
+          identityRow("Club", "UmaDen", "B+"),
+          identityRow("Star Umamusume", REPRESENTATIVE_UMA.name),
+        ),
       ),
     ),
     h(
       "div",
-      { class: "identity-surface__section" },
-      identityRow("Representative Uma", REPRESENTATIVE_UMA.name),
-      identityRow("Club", "UmaDen", "B+"),
-      identityRow("Trainer ID", "765........."),
-    ),
-    h(
-      "div",
-      { class: "identity-surface__section" },
+      { class: "identity-surface__playstyle" },
       h("span", { class: "identity-surface__label" }, "Play Style"),
       playStyle(),
     ),

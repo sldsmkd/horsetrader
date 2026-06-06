@@ -1,48 +1,58 @@
 .identity-surface {
   display: grid;
-  gap: 1rem;
+  gap: 0.8rem;
 }
 
-.identity-surface__hero {
+.identity-surface__card {
   display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: center;
-  gap: 0.85rem;
-}
-
-.identity-surface__avatar {
-  width: 5.25rem;
-  aspect-ratio: 1;
-  padding: 0;
+  grid-template-columns: minmax(9rem, 42%) 1fr;
+  min-height: 18rem;
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, currentColor 24%, transparent);
-  border-radius: 50%;
-  background: color-mix(in srgb, Canvas 82%, currentColor 6%);
-  cursor: pointer;
+  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  border-radius: 0.45rem;
+  background:
+    linear-gradient(115deg, color-mix(in srgb, #5fcf00 12%, transparent), transparent 42%),
+    color-mix(in srgb, Canvas 94%, currentColor 3%);
 }
 
-.identity-surface__avatar--selected {
-  box-shadow:
-    0 0 0 0.25rem color-mix(in srgb, Canvas 92%, transparent),
-    0 0 0 0.35rem color-mix(in srgb, #d53f8c 52%, currentColor 20%);
+.identity-surface__portrait {
+  position: relative;
+  min-height: 18rem;
+  overflow: hidden;
+  background: color-mix(in srgb, #161022 88%, Canvas 12%);
 }
 
-.identity-surface__avatar img {
+.identity-surface__portrait::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-right: 0.28rem solid #5fcf00;
+  pointer-events: none;
+}
+
+.identity-surface__portrait img {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: 50% 14%;
 }
 
-.identity-surface__intro {
+.identity-surface__details {
   display: grid;
+  align-content: start;
+  gap: 0.9rem;
   min-width: 0;
-  gap: 0.12rem;
+  padding: 1rem;
+}
+
+.identity-surface__title {
+  display: grid;
+  gap: 0.1rem;
 }
 
 .identity-surface__eyebrow,
 .identity-surface__label,
-.identity-surface__meta,
 .identity-surface__detail {
   color: color-mix(in srgb, currentColor 66%, transparent);
 }
@@ -54,19 +64,19 @@
   text-transform: uppercase;
 }
 
-.identity-surface__name {
-  font-size: 1.25rem;
-  line-height: 1.1;
+.identity-surface__trainer {
+  font-size: 1.45rem;
+  line-height: 1.05;
 }
 
 .identity-surface__section {
   display: grid;
-  gap: 0.6rem;
+  gap: 0.55rem;
 }
 
 .identity-surface__row {
   display: grid;
-  grid-template-columns: minmax(7.5rem, auto) 1fr;
+  grid-template-columns: minmax(6.8rem, auto) 1fr;
   align-items: baseline;
   gap: 0.75rem;
 }
@@ -80,24 +90,93 @@
   font-weight: 700;
 }
 
+.identity-surface__detail {
+  font-weight: 600;
+}
+
+.identity-surface__playstyle {
+  display: grid;
+  gap: 0.45rem;
+  padding-top: 0.05rem;
+}
+
 .identity-surface__styles {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.4rem;
 }
 
 .identity-surface__style {
-  min-height: 2.15rem;
+  display: grid;
+  grid-template-columns: minmax(2.8rem, 31%) 1fr;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 4rem;
+  padding: 0.45rem 0.6rem 0.45rem 0.45rem;
   border: 1px solid color-mix(in srgb, currentColor 22%, transparent);
   border-radius: 0.45rem;
   background: color-mix(in srgb, Canvas 86%, transparent);
   color: inherit;
   font: inherit;
+  text-align: left;
   cursor: pointer;
 }
 
 .identity-surface__style:hover,
 .identity-surface__style--selected {
-  background: color-mix(in srgb, Canvas 66%, #d53f8c 14%);
-  border-color: color-mix(in srgb, #d53f8c 54%, currentColor 24%);
+  background: color-mix(in srgb, Canvas 66%, #5fcf00 14%);
+  border-color: color-mix(in srgb, #5fcf00 54%, currentColor 24%);
+}
+
+.identity-surface__style-icon {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+}
+
+.identity-surface__style-icon img {
+  display: block;
+  width: min(2.55rem, 100%);
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: contain;
+}
+
+.identity-surface__style-copy {
+  display: grid;
+  min-width: 0;
+  gap: 0.15rem;
+}
+
+.identity-surface__style-name {
+  font-weight: 800;
+  line-height: 1.05;
+  text-transform: uppercase;
+}
+
+.identity-surface__style-caption {
+  min-width: 0;
+  color: color-mix(in srgb, currentColor 64%, transparent);
+  font-size: 0.68rem;
+  line-height: 1.15;
+  text-transform: uppercase;
+}
+
+@media (max-width: 620px) {
+  .identity-surface__card {
+    grid-template-columns: 1fr;
+  }
+
+  .identity-surface__portrait {
+    min-height: 12rem;
+  }
+
+  .identity-surface__portrait::after {
+    border-right: 0;
+    border-bottom: 0.28rem solid #5fcf00;
+  }
+
+  .identity-surface__styles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
