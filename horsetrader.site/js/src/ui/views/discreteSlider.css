@@ -1,0 +1,106 @@
+.discrete-slider {
+  display: grid;
+  grid-template-columns: 1.65rem minmax(0, 1fr);
+  gap: 0.55rem;
+  padding: 0.65rem 0.7rem;
+  background: color-mix(in srgb, Canvas 88%, transparent);
+}
+
+.discrete-slider__lock {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 1.15rem;
+  aspect-ratio: 1;
+  justify-self: center;
+  margin-top: 0.1rem;
+  opacity: 0.74;
+}
+
+.discrete-slider__lock::before {
+  content: "";
+  width: 0.7rem;
+  height: 0.48rem;
+  align-self: end;
+  border: 2px solid currentColor;
+  border-radius: 0.12rem;
+  background: color-mix(in srgb, Canvas 74%, transparent);
+}
+
+.discrete-slider__lock::after {
+  content: "";
+  position: absolute;
+  top: 0.13rem;
+  width: 0.55rem;
+  height: 0.5rem;
+  border: 2px solid currentColor;
+  border-bottom: 0;
+  border-radius: 0.45rem 0.45rem 0 0;
+}
+
+.discrete-slider__body {
+  display: grid;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.discrete-slider__header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 0.8rem;
+}
+
+.discrete-slider__title {
+  color: color-mix(in srgb, currentColor 66%, transparent);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.discrete-slider__value {
+  min-width: 0;
+  text-align: right;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.discrete-slider__description {
+  margin: 0;
+  color: color-mix(in srgb, currentColor 70%, transparent);
+  font-size: 0.8rem;
+  line-height: 1.25;
+}
+
+.discrete-slider__control {
+  display: grid;
+}
+
+.discrete-slider__range {
+  width: 100%;
+  accent-color: #5fcf00;
+}
+
+.discrete-slider__range:focus {
+  outline: 0;
+}
+
+.discrete-slider__range:focus-visible {
+  outline: 1px solid color-mix(in srgb, #5fcf00 58%, currentColor 18%);
+  outline-offset: 0.2rem;
+}
+
+.discrete-slider__range:disabled {
+  opacity: 0.62;
+}
+
+@media (max-width: 620px) {
+  .discrete-slider__header {
+    grid-template-columns: 1fr;
+    gap: 0.2rem;
+  }
+
+  .discrete-slider__value {
+    text-align: left;
+  }
+}

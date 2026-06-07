@@ -17,6 +17,35 @@
   box-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.35);
 }
 
+.overlay-book {
+  pointer-events: none;
+  position: absolute;
+  top: 4.5rem;
+  left: 0.75rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, min(35rem, calc((100vw - 2rem) / 2))));
+  align-items: start;
+  gap: 0.5rem;
+  max-height: calc(100vh - 5.25rem);
+}
+
+.overlay-book > .overlay {
+  position: static;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  width: auto;
+  max-height: inherit;
+}
+
+.overlay-book > .overlay--playstyle {
+  min-height: 0;
+}
+
+.overlay-book > .overlay--playstyle > .overlay__body {
+  min-height: 0;
+  overflow: hidden;
+}
+
 .overlay--suspended {
   z-index: 1;
 }
@@ -73,6 +102,19 @@
 .overlay__body {
   padding: 1rem;
   overflow: auto;
+}
+
+@media (max-width: 860px) {
+  .overlay-book {
+    right: 0.75rem;
+    grid-template-columns: minmax(0, 1fr);
+    max-height: calc(100vh - 5.25rem);
+    overflow: auto;
+  }
+
+  .overlay-book > .overlay {
+    max-height: none;
+  }
 }
 
 @media (max-width: 620px) {

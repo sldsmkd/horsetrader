@@ -118,10 +118,10 @@ Core engagement and recurring income:
 
 | Stream | Sweetie | Casual | Focused | Dedicated | Unhinged |
 | --- | --- | --- | --- | --- | --- |
-| Baseline engagement | 2 of 7 days | 4 of 7 days | 6 of 7 days | 7 of 7 days | 7 of 7 days |
+| Weekly play | 2 days | 4 days | 6 days | Every day | Every day |
 | Team Trials | Rank 4 | Rank 5 | Rank 5.5 | Rank 6 | Rank 6 |
 | Legend Races | 1 legend | 1 legend | All legends, partial daily rewards | All legends, full daily rewards | All legends, full daily rewards |
-| Rotating missions | 0% | 20% | 70% | 100% | 100% |
+| Missions | 0% | 20% | 70% | 100% | 100% |
 
 Campaign and event income:
 
@@ -141,10 +141,10 @@ kinder: "Skips CM", "Doesn't finish", or "DNF" with a gentle tooltip.
 
 ## Streams
 
-### Baseline engagement
+### Weekly play
 
-Baseline engagement is the simplest assumption: how many days in a normal week
-the player logs in and completes the baseline daily loop.
+Weekly play is the simplest assumption: how many days in a normal week the
+player logs in and completes the normal daily loop.
 
 - Counts daily tasks and weekly login bonuses.
 - A counted day means more than opening the app: it includes baseline activities
@@ -187,10 +187,10 @@ the daily attempts.
   ceiling here.
 - Custom should include `0 legends` for missing the event entirely.
 
-### Rotating missions
+### Missions
 
-Rotating missions are frequent, low-grade engagement streams. They are almost
-always running, and full completion often turns into chore routing.
+Missions are frequent, low-grade engagement streams. They are almost always
+running, and full completion often turns into chore routing.
 
 - Completion targets can be high: for example `10` careers plus specific race
   wins.
@@ -210,8 +210,8 @@ Special missions are large campaign mission sets tied to anniversaries, releases
 and major event clusters. They are highly marketed, highly rewarded, and usually
 run for weeks rather than `7` days.
 
-- This is separate from rotating missions because the psychology is different.
-- Rotating missions ask: **will you tolerate chore-routing?**
+- This is separate from regular missions because the psychology is different.
+- Missions ask: **will you tolerate chore-routing?**
 - Special missions ask: **will you show up for the big festival?**
 - Cygames uses these as retention and reactivation beats.
 - Rewards include high-value items like gems, tickets, selectors, and other
