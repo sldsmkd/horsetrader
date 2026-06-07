@@ -1,124 +1,194 @@
 {
   "playStyle": {
     "title": "Play Style",
-    "lockedPreset": "Locked preset",
-    "customPreset": "Custom preset",
     "apply": "Apply",
-    "lockedAssumption": "Locked",
-    "editableAssumption": "Editable",
     "customLockedTitle": "Custom play style is locked",
     "presets": {
       "sweetie": {
         "name": "Sweetie",
         "caption": "Love. Ponies. Sunshine.",
-        "archetype": "Weekend / occasional player",
-        "shape": "Not daily, avoids chore grinds, still notices some shiny events.",
-        "assumptions": {
-          "baselineEngagement": "2 of 7 days",
-          "teamTrials": "Rank 4",
-          "rotatingMissions": "0%",
-          "specialMissions": "60%",
-          "storyEvents": "Story",
-          "championsMeeting": "Skips or does not finish"
-        }
+        "shape": "I play when it feels good and chase the rewards that make me smile."
       },
       "casual": {
         "name": "Casual",
         "caption": "Having fun. Taking it easy.",
-        "archetype": "Regular player with real-life interruptions",
-        "shape": "Low consistency, high festival response; big events fund the gacha moments.",
-        "assumptions": {
-          "baselineEngagement": "4 of 7 days",
-          "teamTrials": "Rank 5",
-          "rotatingMissions": "20%",
-          "specialMissions": "80%",
-          "storyEvents": "Welfare card",
-          "championsMeeting": "Group B contender"
-        }
+        "shape": "I keep up when life allows and show up harder for the events I care about."
       },
       "focused": {
         "name": "Focused",
         "caption": "Trying hard. Getting better.",
-        "archetype": "Daily-intent player",
-        "shape": "Usually keeps up, sometimes misses, builds for events without exhausting every edge.",
-        "assumptions": {
-          "baselineEngagement": "6 of 7 days",
-          "teamTrials": "Rank 5.5 promote-demote",
-          "rotatingMissions": "70%",
-          "specialMissions": "90%",
-          "storyEvents": "Major rewards",
-          "championsMeeting": "Group B winner"
-        }
+        "shape": "I build toward the big rewards without turning every day into homework."
       },
       "dedicated": {
         "name": "Dedicated",
         "caption": "No chill. All gas.",
-        "archetype": "Daily player",
-        "shape": "Reliable, completes chores, prepares seriously for PvP, but not assumed champion ceiling.",
-        "assumptions": {
-          "baselineEngagement": "7 of 7 days",
-          "teamTrials": "Rank 6",
-          "rotatingMissions": "100%",
-          "specialMissions": "100%",
-          "storyEvents": "Achievement / stretch",
-          "championsMeeting": "Group A runner-up"
-        }
+        "shape": "I show up, clear the list, and prepare seriously for the competitive bits."
       },
       "unhinged": {
         "name": "Unhinged",
         "caption": "Blood. Sweat. Victory.",
-        "archetype": "Competitive ceiling player",
-        "shape": "Chases ceiling outcomes through grind volume, optimization, account investment, or some combination.",
-        "assumptions": {
-          "baselineEngagement": "7 of 7 days",
-          "teamTrials": "Rank 6",
-          "rotatingMissions": "100%",
-          "specialMissions": "100%",
-          "storyEvents": "Achievement / stretch, early",
-          "championsMeeting": "Group A champion"
-        }
+        "shape": "I chase the ceiling and squeeze value out of every system that matters."
       },
       "custom": {
         "name": "Custom",
         "caption": "Make your own legend.",
-        "archetype": "Player-edited assumptions",
-        "shape": "Custom controls will unlock here later for off-diagonal play patterns.",
-        "assumptions": {
-          "baselineEngagement": "Custom",
-          "teamTrials": "Custom",
-          "rotatingMissions": "Custom",
-          "specialMissions": "Custom",
-          "storyEvents": "Custom",
-          "championsMeeting": "Custom"
-        }
+        "shape": "I want the sliders to tell my actual story."
       }
     },
-    "assumptionLabels": {
-      "baselineEngagement": "Baseline engagement",
-      "teamTrials": "Team Trials",
-      "rotatingMissions": "Rotating missions",
-      "specialMissions": "Special missions",
-      "storyEvents": "Story events",
-      "championsMeeting": "Champions Meeting"
-    },
-    "legendRaces": {
-      "title": "Legend Races",
-      "steps": {
-        "none": {
-          "value": "0 legends",
-          "description": "I usually miss the event or skip it."
-        },
-        "one": {
-          "value": "1 legend",
-          "description": "I usually notice the event and beat one opponent."
-        },
-        "allPartial": {
-          "value": "All legends",
-          "description": "I beat every opponent, but I do not always come back every day."
-        },
-        "allFull": {
-          "value": "All legends daily",
-          "description": "I beat every opponent and keep up with the daily attempts."
+    "settings": {
+      "weeklyPlay": {
+        "title": "Weekly play",
+        "steps": {
+          "twoDays": {
+            "value": "2 days",
+            "description": "I check in a couple of times during a normal week."
+          },
+          "fourDays": {
+            "value": "4 days",
+            "description": "I play most weeks, with room for real-life interruptions."
+          },
+          "sixDays": {
+            "value": "6 days",
+            "description": "I usually keep up, but I miss the odd day."
+          },
+          "sevenDays": {
+            "value": "Every day",
+            "description": "I keep up daily."
+          }
+        }
+      },
+      "teamTrials": {
+        "title": "Team Trials",
+        "steps": {
+          "rank4": {
+            "value": "Rank 4",
+            "description": "I clear the comfortable weekly rank."
+          },
+          "rank5": {
+            "value": "Rank 5",
+            "description": "I push into the higher weekly rewards."
+          },
+          "rank55": {
+            "value": "Rank 5.5",
+            "description": "I bounce around the Rank 5 promotion line."
+          },
+          "rank6": {
+            "value": "Rank 6",
+            "description": "I hold the top weekly rank."
+          }
+        }
+      },
+      "legendRaces": {
+        "title": "Legend Races",
+        "steps": {
+          "none": {
+            "value": "0 legends",
+            "description": "I usually miss the event or skip it."
+          },
+          "one": {
+            "value": "1 legend",
+            "description": "I usually notice the event and beat one opponent."
+          },
+          "allPartial": {
+            "value": "All legends",
+            "description": "I beat every opponent, but I do not always come back every day."
+          },
+          "allFull": {
+            "value": "All legends daily",
+            "description": "I beat every opponent and keep up with the daily attempts."
+          }
+        }
+      },
+      "missions": {
+        "title": "Missions",
+        "steps": {
+          "none": {
+            "value": "0%",
+            "description": "I do not plan around the regular mission set."
+          },
+          "some": {
+            "value": "20%",
+            "description": "I pick up the easy mission rewards when they line up."
+          },
+          "most": {
+            "value": "70%",
+            "description": "I finish most missions without chasing every edge case."
+          },
+          "all": {
+            "value": "100%",
+            "description": "I clear the regular mission set."
+          }
+        }
+      },
+      "specialMissions": {
+        "title": "Special missions",
+        "steps": {
+          "some": {
+            "value": "60%",
+            "description": "I take the obvious event rewards and leave some stretch goals."
+          },
+          "welfare": {
+            "value": "80%",
+            "description": "I usually reach the key limited reward."
+          },
+          "major": {
+            "value": "90%",
+            "description": "I collect the major rewards."
+          },
+          "all": {
+            "value": "100%",
+            "description": "I clear the special mission set."
+          }
+        }
+      },
+      "storyEvents": {
+        "title": "Story events",
+        "steps": {
+          "story": {
+            "value": "Story",
+            "description": "I read or skim the event and take the easy rewards."
+          },
+          "welfare": {
+            "value": "Welfare card",
+            "description": "I secure the welfare card."
+          },
+          "major": {
+            "value": "Major rewards",
+            "description": "I collect the headline rewards."
+          },
+          "achievement": {
+            "value": "Achievement",
+            "description": "I push for the achievement reward."
+          },
+          "earlyAchievement": {
+            "value": "Achievement early",
+            "description": "I finish the achievement track early."
+          }
+        }
+      },
+      "championsMeeting": {
+        "title": "Champions Meeting",
+        "steps": {
+          "skip": {
+            "value": "Skip",
+            "description": "I usually skip or do not finish."
+          },
+          "groupBContender": {
+            "value": "Group B contender",
+            "description": "I compete in Group B."
+          },
+          "groupBWinner": {
+            "value": "Group B winner",
+            "description": "I can win Group B."
+          },
+          "groupARunnerUp": {
+            "value": "Group A runner-up",
+            "description": "I can reach the Group A final."
+          },
+          "groupAChampion": {
+            "value": "Group A champion",
+            "description": "I aim to win Group A."
+          }
         }
       }
     }

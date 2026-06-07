@@ -1,6 +1,9 @@
 .playstyle-surface {
   display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
   gap: 0.85rem;
+  height: 100%;
+  min-height: 0;
   min-width: 0;
 }
 
@@ -35,14 +38,6 @@
   min-width: 0;
 }
 
-.playstyle-surface__eyebrow,
-.playstyle-surface__label {
-  color: color-mix(in srgb, currentColor 66%, transparent);
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
 .playstyle-surface__title {
   margin: 0;
   font: inherit;
@@ -52,13 +47,13 @@
   text-transform: uppercase;
 }
 
-.playstyle-surface__archetype,
+.playstyle-surface__motto,
 .playstyle-surface__shape {
   margin: 0;
   color: color-mix(in srgb, currentColor 76%, transparent);
 }
 
-.playstyle-surface__archetype {
+.playstyle-surface__motto {
   font-size: 0.86rem;
   font-weight: 650;
 }
@@ -68,67 +63,21 @@
   font-size: 0.9rem;
 }
 
-.playstyle-surface__assumptions {
-  display: grid;
+.playstyle-surface__sliders {
+  min-height: 0;
   overflow: hidden;
   border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
   border-radius: 0.45rem;
 }
 
-.playstyle-surface__row {
+.playstyle-surface__assumptions {
   display: grid;
-  grid-template-columns: 1.65rem minmax(7.5rem, 1fr) minmax(6rem, 1.2fr);
-  align-items: center;
-  gap: 0.55rem;
-  min-height: 2.75rem;
-  padding: 0.45rem 0.7rem;
-  background: color-mix(in srgb, Canvas 88%, transparent);
+  max-height: 100%;
+  overflow: auto;
 }
 
-.playstyle-surface__row + .playstyle-surface__row,
-.playstyle-surface__row + .discrete-slider,
-.discrete-slider + .playstyle-surface__row,
 .discrete-slider + .discrete-slider {
   border-top: 1px solid color-mix(in srgb, currentColor 12%, transparent);
-}
-
-.playstyle-surface__lock {
-  position: relative;
-  display: inline-grid;
-  place-items: center;
-  width: 1.15rem;
-  aspect-ratio: 1;
-  justify-self: center;
-  opacity: 0.74;
-}
-
-.playstyle-surface__lock::before {
-  content: "";
-  width: 0.7rem;
-  height: 0.48rem;
-  align-self: end;
-  border: 2px solid currentColor;
-  border-radius: 0.12rem;
-  background: color-mix(in srgb, Canvas 74%, transparent);
-}
-
-.playstyle-surface__lock::after {
-  content: "";
-  position: absolute;
-  top: 0.13rem;
-  width: 0.55rem;
-  height: 0.5rem;
-  border: 2px solid currentColor;
-  border-bottom: 0;
-  border-radius: 0.45rem 0.45rem 0 0;
-}
-
-.playstyle-surface__value {
-  min-width: 0;
-  justify-self: end;
-  text-align: right;
-  font-weight: 800;
-  line-height: 1.15;
 }
 
 .playstyle-surface__actions {
@@ -170,16 +119,4 @@
 .playstyle-surface__apply--disabled:focus-visible {
   background: color-mix(in srgb, Canvas 78%, currentColor 8%);
   outline: 0;
-}
-
-@media (max-width: 620px) {
-  .playstyle-surface__row {
-    grid-template-columns: 1.45rem minmax(0, 1fr);
-  }
-
-  .playstyle-surface__value {
-    grid-column: 2;
-    justify-self: start;
-    text-align: left;
-  }
 }

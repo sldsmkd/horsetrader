@@ -4,91 +4,40 @@ import { h } from "../h.ts";
 import { discreteSlider } from "./discreteSlider.ts";
 import { PLAY_STYLES } from "./playStylePreset.ts";
 import type { PlayStyleKey } from "./playStylePreset.ts";
-import { samePlayStyleSettings } from "../identity/playStyleSettings.ts";
-import type { LegendRaceKey, PlayStyleSettings } from "../identity/playStyleSettings.ts";
-import type { AssumptionStringKey, PlayStyleStrings } from "../strings.ts";
+import {
+  CHAMPIONS_MEETING_KEYS,
+  LEGEND_RACE_KEYS,
+  MISSION_KEYS,
+  SPECIAL_MISSION_KEYS,
+  STORY_EVENT_KEYS,
+  TEAM_TRIAL_KEYS,
+  WEEKLY_PLAY_KEYS,
+  samePlayStyleSettings,
+} from "../identity/playStyleSettings.ts";
+import type { PlayStyleSettings } from "../identity/playStyleSettings.ts";
+import type { PlayStyleStrings } from "../strings.ts";
 
-interface SliderRow {
-  kind: "slider";
-  key: "legendRaces";
-}
+type SliderKey = keyof PlayStyleSettings;
 
-interface AssumptionRow {
-  kind: "row";
-  key: AssumptionStringKey;
-}
+const SLIDER_ROWS: readonly SliderKey[] = [
+  "weeklyPlay",
+  "teamTrials",
+  "legendRaces",
+  "missions",
+  "specialMissions",
+  "storyEvents",
+  "championsMeeting",
+];
 
-interface PlayStyleDetails {
-  assumptions: readonly (AssumptionRow | SliderRow)[];
-}
-
-const LEGEND_RACE_KEYS: readonly LegendRaceKey[] = ["none", "one", "allPartial", "allFull"];
-
-function legendRaceIndex(key: LegendRaceKey): number {
-  return LEGEND_RACE_KEYS.indexOf(key);
-}
-
-function legendRaceKeyAt(index: number): LegendRaceKey {
-  return LEGEND_RACE_KEYS[index] ?? "none";
-}
-
-const DETAILS: Record<Exclude<PlayStyleKey, "custom">, PlayStyleDetails> = {
-  sweetie: {
-    assumptions: [
-      { kind: "row", key: "baselineEngagement" },
-      { kind: "row", key: "teamTrials" },
-      { kind: "slider", key: "legendRaces" },
-      { kind: "row", key: "rotatingMissions" },
-      { kind: "row", key: "specialMissions" },
-      { kind: "row", key: "storyEvents" },
-      { kind: "row", key: "championsMeeting" },
-    ],
-  },
-  casual: {
-    assumptions: [
-      { kind: "row", key: "baselineEngagement" },
-      { kind: "row", key: "teamTrials" },
-      { kind: "slider", key: "legendRaces" },
-      { kind: "row", key: "rotatingMissions" },
-      { kind: "row", key: "specialMissions" },
-      { kind: "row", key: "storyEvents" },
-      { kind: "row", key: "championsMeeting" },
-    ],
-  },
-  focused: {
-    assumptions: [
-      { kind: "row", key: "baselineEngagement" },
-      { kind: "row", key: "teamTrials" },
-      { kind: "slider", key: "legendRaces" },
-      { kind: "row", key: "rotatingMissions" },
-      { kind: "row", key: "specialMissions" },
-      { kind: "row", key: "storyEvents" },
-      { kind: "row", key: "championsMeeting" },
-    ],
-  },
-  dedicated: {
-    assumptions: [
-      { kind: "row", key: "baselineEngagement" },
-      { kind: "row", key: "teamTrials" },
-      { kind: "slider", key: "legendRaces" },
-      { kind: "row", key: "rotatingMissions" },
-      { kind: "row", key: "specialMissions" },
-      { kind: "row", key: "storyEvents" },
-      { kind: "row", key: "championsMeeting" },
-    ],
-  },
-  unhinged: {
-    assumptions: [
-      { kind: "row", key: "baselineEngagement" },
-      { kind: "row", key: "teamTrials" },
-      { kind: "slider", key: "legendRaces" },
-      { kind: "row", key: "rotatingMissions" },
-      { kind: "row", key: "specialMissions" },
-      { kind: "row", key: "storyEvents" },
-      { kind: "row", key: "championsMeeting" },
-    ],
-  },
-};
+const SLIDER_KEYS = {
+  weeklyPlay: WEEKLY_PLAY_KEYS,
+  teamTrials: TEAM_TRIAL_KEYS,
+  legendRaces: LEGEND_RACE_KEYS,
+  missions: MISSION_KEYS,
+  specialMissions: SPECIAL_MISSION_KEYS,
+  storyEvents: STORY_EVENT_KEYS,
+  championsMeeting: CHAMPIONS_MEETING_KEYS,
+} as const;
 
 export interface PlayStyleSurfaceOpts {
   playStyleKey: PlayStyleKey;
@@ -104,57 +53,29 @@ function selectedStyle(key: PlayStyleKey): (typeof PLAY_STYLES)[number] {
   return PLAY_STYLES.find((style) => style.key === key) ?? PLAY_STYLES[2];
 }
 
-function detailsFor(key: PlayStyleKey): PlayStyleDetails {
-  if (key === "custom") {
-    return {
-      assumptions: [
-        { kind: "row", key: "baselineEngagement" },
-        { kind: "row", key: "teamTrials" },
-        { kind: "slider", key: "legendRaces" },
-        { kind: "row", key: "rotatingMissions" },
-        { kind: "row", key: "specialMissions" },
-        { kind: "row", key: "storyEvents" },
-        { kind: "row", key: "championsMeeting" },
-      ],
-    };
-  }
-  return DETAILS[key];
-}
-
-function assumptionRow(row: AssumptionRow, locked: boolean, strings: PlayStyleStrings, playStyleKey: PlayStyleKey): HTMLElement {
-  return h(
-    "div",
-    { class: "playstyle-surface__row" },
-    h("span", {
-      class: [
-        "playstyle-surface__lock",
-        !locked && "playstyle-surface__lock--unlocked",
-      ].filter(Boolean).join(" "),
-      attr: { role: "img", "aria-label": locked ? strings.lockedAssumption : strings.editableAssumption },
-    }),
-    h("span", { class: "playstyle-surface__label" }, strings.assumptionLabels[row.key]),
-    h("span", { class: "playstyle-surface__value" }, strings.presets[playStyleKey].assumptions[row.key]),
-  );
-}
-
-function sliderRow(row: SliderRow, opts: PlayStyleSurfaceOpts): HTMLElement {
-  switch (row.key) {
-    case "legendRaces":
-      return discreteSlider({
-        title: opts.strings.legendRaces.title,
-        steps: LEGEND_RACE_KEYS.map((key) => opts.strings.legendRaces.steps[key]),
-        selected: legendRaceIndex(opts.settings.legendRaces),
-        locked: false,
-        onChange: (index) => opts.onSettingsChange({ ...opts.settings, legendRaces: legendRaceKeyAt(index) }),
-      });
-  }
+function sliderRow(key: SliderKey, opts: PlayStyleSurfaceOpts): HTMLElement {
+  const keys = SLIDER_KEYS[key] as readonly string[];
+  const setting = opts.strings.settings[key] as {
+    title: string;
+    steps: Record<string, { value: string; description: string }>;
+  };
+  const selected = keys.indexOf(String(opts.settings[key]));
+  const locked = opts.playStyleKey !== "custom";
+  return discreteSlider({
+    title: setting.title,
+    steps: keys.map((stepKey) => setting.steps[stepKey]),
+    selected,
+    locked,
+    onChange: (index) => {
+      const nextKey = keys[index] ?? keys[0];
+      opts.onSettingsChange({ ...opts.settings, [key]: nextKey } as PlayStyleSettings);
+    },
+  });
 }
 
 export function playStyleSurface(opts: PlayStyleSurfaceOpts): HTMLElement {
   const style = selectedStyle(opts.playStyleKey);
   const copy = opts.strings.presets[opts.playStyleKey];
-  const details = detailsFor(opts.playStyleKey);
-  const locked = opts.playStyleKey !== "custom";
   const current = opts.playStyleKey === opts.savedPlayStyleKey && samePlayStyleSettings(opts.settings, opts.savedSettings);
   const applyAttr = current
     ? { type: "button", disabled: true, "aria-disabled": "true" }
@@ -174,17 +95,18 @@ export function playStyleSurface(opts: PlayStyleSurfaceOpts): HTMLElement {
       h(
         "div",
         { class: "playstyle-surface__copy" },
-        h("span", { class: "playstyle-surface__eyebrow" }, locked ? opts.strings.lockedPreset : opts.strings.customPreset),
         h("h2", { class: "playstyle-surface__title" }, copy.name),
-        h("p", { class: "playstyle-surface__archetype" }, copy.archetype),
+        h("p", { class: "playstyle-surface__motto" }, copy.caption),
       ),
     ),
     h("p", { class: "playstyle-surface__shape" }, copy.shape),
     h(
       "div",
-      { class: "playstyle-surface__assumptions" },
-      ...details.assumptions.map((row) =>
-        row.kind === "slider" ? sliderRow(row, opts) : assumptionRow(row, locked, opts.strings, opts.playStyleKey),
+      { class: "playstyle-surface__sliders" },
+      h(
+        "div",
+        { class: "playstyle-surface__assumptions" },
+        ...SLIDER_ROWS.map((row) => sliderRow(row, opts)),
       ),
     ),
     h(

@@ -319,13 +319,19 @@ export function mountApp(
         }),
         onClose: discardPlayStylePreview,
       });
+      playStyleCard.classList.add("overlay--playstyle");
+      const identityCard = trainerCard({
+        previewPlayStyleKey: playStyleKey,
+        ...(opts.suspended ? { suspended: true } : {}),
+      });
+      requestAnimationFrame(() => {
+        const height = identityCard.getBoundingClientRect().height;
+        if (height > 0) playStyleCard.style.height = `${height}px`;
+      });
       return h(
         "div",
         { class: "overlay-book" },
-        trainerCard({
-          previewPlayStyleKey: playStyleKey,
-          ...(opts.suspended ? { suspended: true } : {}),
-        }),
+        identityCard,
         opts.suspended ? suspendOverlay(playStyleCard) : playStyleCard,
       );
     };
