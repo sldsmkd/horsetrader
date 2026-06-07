@@ -15,7 +15,15 @@ export interface MenuIdentity {
 
 export interface IdentityController {
   menuIdentity(): MenuIdentity;
-  trainerCardOverlay(opts: { suspended?: boolean; onOshiSelect: () => void; onClose: () => void }): HTMLElement;
+  savedPlayStyleKey(): PlayStyleKey;
+  commitPlayStyleKey(key: PlayStyleKey): void;
+  trainerCardOverlay(opts: {
+    suspended?: boolean;
+    previewPlayStyleKey?: PlayStyleKey;
+    onOshiSelect: () => void;
+    onPlayStylePreview: (key: PlayStyleKey) => void;
+    onClose: () => void;
+  }): HTMLElement;
   oshiSelectorOverlay(opts: { onClose: () => void }): HTMLElement;
 }
 
@@ -52,7 +60,7 @@ export function createIdentityController(coord: Coordinator, bundle: Bundle): Id
       : DEFAULT_PLAY_STYLE;
   }
 
-  function setPlayStyleKey(key: PlayStyleKey): void {
+  function commitPlayStyleKey(key: PlayStyleKey): void {
     if (key !== "custom") updateIdentity({ playStyleKey: key });
   }
 
@@ -66,6 +74,9 @@ export function createIdentityController(coord: Coordinator, bundle: Bundle): Id
       return { label: oshi.name, icon: oshi.icon };
     },
 
+    savedPlayStyleKey: playStyleKey,
+    commitPlayStyleKey,
+
     trainerCardOverlay(opts) {
       const oshi = currentOshi();
       const card = overlay({
@@ -75,10 +86,10 @@ export function createIdentityController(coord: Coordinator, bundle: Bundle): Id
           trainerName: trainerName(),
           oshiName: oshi.name,
           oshiPortrait: oshi.portrait,
-          playStyleKey: playStyleKey(),
+          playStyleKey: opts.previewPlayStyleKey ?? playStyleKey(),
           onTrainerNameChange: (name) => updateIdentity({ trainerName: name }),
           onOshiSelect: opts.onOshiSelect,
-          onPlayStyleChange: setPlayStyleKey,
+          onPlayStylePreview: opts.onPlayStylePreview,
         }),
         onClose: opts.onClose,
       });

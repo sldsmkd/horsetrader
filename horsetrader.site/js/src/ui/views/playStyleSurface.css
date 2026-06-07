@@ -1,0 +1,182 @@
+.playstyle-surface {
+  display: grid;
+  gap: 0.85rem;
+  min-width: 0;
+}
+
+.playstyle-surface__mast {
+  display: grid;
+  grid-template-columns: 3.25rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.playstyle-surface__icon {
+  display: grid;
+  place-items: center;
+  width: 3.25rem;
+  aspect-ratio: 1;
+  border: 1px solid color-mix(in srgb, #5fcf00 42%, currentColor 18%);
+  border-radius: 0.45rem;
+  background: color-mix(in srgb, Canvas 76%, #5fcf00 10%);
+}
+
+.playstyle-surface__icon img {
+  display: block;
+  width: 2.5rem;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: contain;
+}
+
+.playstyle-surface__copy {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.playstyle-surface__eyebrow,
+.playstyle-surface__label {
+  color: color-mix(in srgb, currentColor 66%, transparent);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.playstyle-surface__title {
+  margin: 0;
+  font: inherit;
+  font-size: 1.35rem;
+  font-weight: 850;
+  line-height: 1.05;
+  text-transform: uppercase;
+}
+
+.playstyle-surface__archetype,
+.playstyle-surface__shape {
+  margin: 0;
+  color: color-mix(in srgb, currentColor 76%, transparent);
+}
+
+.playstyle-surface__archetype {
+  font-size: 0.86rem;
+  font-weight: 650;
+}
+
+.playstyle-surface__shape {
+  padding-block: 0.15rem;
+  font-size: 0.9rem;
+}
+
+.playstyle-surface__assumptions {
+  display: grid;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  border-radius: 0.45rem;
+}
+
+.playstyle-surface__row {
+  display: grid;
+  grid-template-columns: 1.65rem minmax(7.5rem, 1fr) minmax(6rem, 1.2fr);
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 2.75rem;
+  padding: 0.45rem 0.7rem;
+  background: color-mix(in srgb, Canvas 88%, transparent);
+}
+
+.playstyle-surface__row + .playstyle-surface__row {
+  border-top: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+}
+
+.playstyle-surface__lock {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 1.15rem;
+  aspect-ratio: 1;
+  justify-self: center;
+  opacity: 0.74;
+}
+
+.playstyle-surface__lock::before {
+  content: "";
+  width: 0.7rem;
+  height: 0.48rem;
+  align-self: end;
+  border: 2px solid currentColor;
+  border-radius: 0.12rem;
+  background: color-mix(in srgb, Canvas 74%, transparent);
+}
+
+.playstyle-surface__lock::after {
+  content: "";
+  position: absolute;
+  top: 0.13rem;
+  width: 0.55rem;
+  height: 0.5rem;
+  border: 2px solid currentColor;
+  border-bottom: 0;
+  border-radius: 0.45rem 0.45rem 0 0;
+}
+
+.playstyle-surface__value {
+  min-width: 0;
+  justify-self: end;
+  text-align: right;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.playstyle-surface__actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 0.1rem;
+}
+
+.playstyle-surface__apply {
+  min-height: 2.35rem;
+  padding: 0 1rem;
+  border: 1px solid color-mix(in srgb, #5fcf00 58%, currentColor 18%);
+  border-radius: 0.45rem;
+  background: color-mix(in srgb, #5fcf00 25%, Canvas 76%);
+  color: inherit;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.playstyle-surface__apply:hover,
+.playstyle-surface__apply:focus-visible {
+  background: color-mix(in srgb, #5fcf00 34%, Canvas 66%);
+  outline: 2px solid color-mix(in srgb, #5fcf00 70%, currentColor 18%);
+  outline-offset: 0.12rem;
+}
+
+.playstyle-surface__apply:disabled,
+.playstyle-surface__apply--disabled {
+  border-color: color-mix(in srgb, currentColor 24%, transparent);
+  background: color-mix(in srgb, Canvas 78%, currentColor 8%);
+  color: color-mix(in srgb, currentColor 48%, transparent);
+  cursor: default;
+}
+
+.playstyle-surface__apply:disabled:hover,
+.playstyle-surface__apply--disabled:hover,
+.playstyle-surface__apply:disabled:focus-visible,
+.playstyle-surface__apply--disabled:focus-visible {
+  background: color-mix(in srgb, Canvas 78%, currentColor 8%);
+  outline: 0;
+}
+
+@media (max-width: 620px) {
+  .playstyle-surface__row {
+    grid-template-columns: 1.45rem minmax(0, 1fr);
+  }
+
+  .playstyle-surface__value {
+    grid-column: 2;
+    justify-self: start;
+    text-align: left;
+  }
+}

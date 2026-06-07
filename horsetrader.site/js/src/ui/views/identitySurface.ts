@@ -2,7 +2,7 @@ import "./identitySurface.css";
 
 import { h } from "../h.ts";
 
-const PLAY_STYLES = [
+export const PLAY_STYLES = [
   { key: "sweetie", name: "Sweetie", caption: "Love. Ponies. Sunshine.", icon: "/icons/playstyle-01.png" },
   { key: "casual", name: "Casual", caption: "Having fun. Taking it easy.", icon: "/icons/playstyle-02.png" },
   { key: "focused", name: "Focused", caption: "Trying hard. Getting better.", icon: "/icons/playstyle-03.png" },
@@ -21,7 +21,7 @@ export interface IdentitySurfaceOpts {
   playStyleKey: PlayStyleKey;
   onTrainerNameChange: (name: string) => void;
   onOshiSelect: () => void;
-  onPlayStyleChange: (key: PlayStyleKey) => void;
+  onPlayStylePreview: (key: PlayStyleKey) => void;
 }
 
 function identityRow(label: string, value: string, detail?: string): HTMLElement {
@@ -104,7 +104,7 @@ function playStyle(opts: IdentitySurfaceOpts): HTMLElement {
             click: (ev) => {
               if (locked) return;
               selectLocal(ev.currentTarget as HTMLButtonElement, style.key);
-              opts.onPlayStyleChange(style.key);
+              opts.onPlayStylePreview(style.key);
             },
           },
         },

@@ -29,7 +29,15 @@ import { bannerGroup } from "./views/bannerGroup.ts";
 import { overlay } from "./views/overlay.ts";
 import { menubar } from "./views/menubar.ts";
 import type { MenubarOverlay } from "./views/menubar.ts";
+import { playStyleSurface } from "./views/playStyleSurface.ts";
+import type { PlayStyleKey } from "./views/identitySurface.ts";
 import { createIdentityController } from "./identity/controller.ts";
+import {
+  PLAY_STYLE_MACHINE_INITIAL,
+  previewedPlayStyle,
+  reducePlayStyleMachine,
+} from "./identity/playStyleMachine.ts";
+import type { IdentityOverlayState, PlayStyleMachineEvent } from "./identity/playStyleMachine.ts";
 import { belowLaneCards } from "./select/belowLane.ts";
 import { aboveLaneGroups } from "./select/aboveLane.ts";
 import { createSearchIndex } from "./search/index.ts";
@@ -47,7 +55,13 @@ const BELOW_GAP_Y = 6;
 /** Above-lane horizontal breathing room between adjacent banner groups (px). */
 const ABOVE_GAP = 8;
 
-type AppOverlay = MenubarOverlay | "oshi";
+type AppOverlay = MenubarOverlay | "oshi" | "playstyle";
+
+function appOverlayForIdentityOverlay(overlay: IdentityOverlayState): AppOverlay {
+  if (overlay === "closed") return null;
+  if (overlay === "trainer") return "identity";
+  return overlay;
+}
 
 /**
  * The packer's impure bookend: measure the just-mounted below cards once, run the
@@ -121,7 +135,13 @@ export function mountApp(coord: Coordinator, bundle: Bundle, now: string, root: 
   const view = createViewStore();
   const search = createSearchIndex(bundle, now);
   const identity = createIdentityController(coord, bundle);
+  let identityUi = PLAY_STYLE_MACHINE_INITIAL;
+  const sendIdentityEvent = (event: PlayStyleMachineEvent): void => {
+    identityUi = reducePlayStyleMachine(identityUi, event, identity.savedPlayStyleKey());
+    view.set({ overlay: appOverlayForIdentityOverlay(identityUi.overlay) });
+  };
   const toggleOverlay = (overlay: Exclude<MenubarOverlay, null>) => {
+    identityUi = PLAY_STYLE_MACHINE_INITIAL;
     view.set({ overlay: view.get().overlay === overlay ? null : overlay });
   };
 
@@ -148,7 +168,7 @@ export function mountApp(coord: Coordinator, bundle: Bundle, now: string, root: 
     identity: identity.menuIdentity(),
     openOverlay: null,
     onHome: () => tl.warpTo(now),
-    onIdentity: () => toggleOverlay("identity"),
+    onIdentity: () => sendIdentityEvent({ type: "toggle-identity" }),
     onPlan: () => toggleOverlay("plan"),
     onResources: () => toggleOverlay("resources"),
     onTazuna: () => toggleOverlay("tazuna"),
@@ -220,12 +240,20 @@ export function mountApp(coord: Coordinator, bundle: Bundle, now: string, root: 
   // The view-state-driven layer: which overlay is open is a discrete change, so
   // it flows through `subscribe` and re-renders here (the render path).
   const overlayLayer = h("div", { class: "overlay-layer" });
-  const closeOshiSelector = () => view.set({ overlay: "identity" });
+  const closeOshiSelector = () => sendIdentityEvent({ type: "close-oshi" });
+  const previewPlayStyle = (key: PlayStyleKey): void => sendIdentityEvent({ type: "preview-playstyle", key });
+  const discardPlayStylePreview = (): void => {
+    sendIdentityEvent({ type: "discard-playstyle" });
+  };
+  const commitPlayStylePreview = (key: PlayStyleKey): void => {
+    identity.commitPlayStyleKey(key);
+    sendIdentityEvent({ type: "commit-playstyle" });
+  };
 
   function renderOverlay(): void {
     const open = view.get().overlay as AppOverlay;
     menu.setIdentity(identity.menuIdentity());
-    menu.setOpenOverlay(open === "oshi" ? "identity" : open);
+    menu.setOpenOverlay(open === "oshi" || open === "playstyle" ? "identity" : open);
     if (open === "resources") {
       overlayLayer.replaceChildren(
         overlay({ title: "Resources", body: snapshotEditor(), onClose: () => view.set({ overlay: null }) }),
@@ -233,18 +261,44 @@ export function mountApp(coord: Coordinator, bundle: Bundle, now: string, root: 
     } else if (open === "identity") {
       overlayLayer.replaceChildren(
         identity.trainerCardOverlay({
-          onOshiSelect: () => view.set({ overlay: "oshi" }),
-          onClose: () => view.set({ overlay: null }),
+          onOshiSelect: () => sendIdentityEvent({ type: "open-oshi" }),
+          onPlayStylePreview: previewPlayStyle,
+          onClose: () => sendIdentityEvent({ type: "close-all" }),
         }),
       );
     } else if (open === "oshi") {
       overlayLayer.replaceChildren(
         identity.trainerCardOverlay({
           suspended: true,
-          onOshiSelect: () => view.set({ overlay: "oshi" }),
+          onOshiSelect: () => sendIdentityEvent({ type: "open-oshi" }),
+          onPlayStylePreview: previewPlayStyle,
           onClose: closeOshiSelector,
         }),
         identity.oshiSelectorOverlay({ onClose: closeOshiSelector }),
+      );
+    } else if (open === "playstyle") {
+      const savedPlayStyleKey = identity.savedPlayStyleKey();
+      const playStyleKey = previewedPlayStyle(identityUi, savedPlayStyleKey);
+      overlayLayer.replaceChildren(
+        h(
+          "div",
+          { class: "overlay-book" },
+          identity.trainerCardOverlay({
+            previewPlayStyleKey: playStyleKey,
+            onOshiSelect: () => sendIdentityEvent({ type: "open-oshi" }),
+            onPlayStylePreview: previewPlayStyle,
+            onClose: () => sendIdentityEvent({ type: "close-all" }),
+          }),
+          overlay({
+            title: "Play Style",
+            body: playStyleSurface({
+              playStyleKey,
+              savedPlayStyleKey,
+              onApply: commitPlayStylePreview,
+            }),
+            onClose: discardPlayStylePreview,
+          }),
+        ),
       );
     } else if (open === "plan") {
       overlayLayer.replaceChildren(
