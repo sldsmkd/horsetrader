@@ -19,6 +19,12 @@ test("identity menu toggles the whole identity family", () => {
 
   const withOshi: PlayStyleMachineState = { overlay: "oshi", stagedPlayStyle: null };
   assert.deepEqual(reducePlayStyleMachine(withOshi, { type: "toggle-identity" }, saved), PLAY_STYLE_MACHINE_INITIAL);
+
+  const withPlayStyleOshi: PlayStyleMachineState = { overlay: "playstyle-oshi", stagedPlayStyle: "casual" };
+  assert.deepEqual(
+    reducePlayStyleMachine(withPlayStyleOshi, { type: "toggle-identity" }, saved),
+    PLAY_STYLE_MACHINE_INITIAL,
+  );
 });
 
 test("previewing an unsaved preset opens the playstyle page and enables staging", () => {
@@ -67,5 +73,29 @@ test("discarding or committing returns to the trainer card with no staged preset
   assert.deepEqual(reducePlayStyleMachine(state, { type: "commit-playstyle" }, saved), {
     overlay: "trainer",
     stagedPlayStyle: null,
+  });
+});
+
+test("oshi selector is modal over the current identity surface", () => {
+  const trainerOshi = reducePlayStyleMachine(
+    { overlay: "trainer", stagedPlayStyle: null },
+    { type: "open-oshi" },
+    saved,
+  );
+  assert.deepEqual(trainerOshi, { overlay: "oshi", stagedPlayStyle: null });
+  assert.deepEqual(reducePlayStyleMachine(trainerOshi, { type: "close-oshi" }, saved), {
+    overlay: "trainer",
+    stagedPlayStyle: null,
+  });
+
+  const playStyleOshi = reducePlayStyleMachine(
+    { overlay: "playstyle", stagedPlayStyle: "casual" },
+    { type: "open-oshi" },
+    saved,
+  );
+  assert.deepEqual(playStyleOshi, { overlay: "playstyle-oshi", stagedPlayStyle: "casual" });
+  assert.deepEqual(reducePlayStyleMachine(playStyleOshi, { type: "close-oshi" }, saved), {
+    overlay: "playstyle",
+    stagedPlayStyle: "casual",
   });
 });

@@ -5,19 +5,23 @@ are copied verbatim into the deploy root `static/` *before* the ETL bake and the
 site build overlay their generated output on top:
 
 ```
-skeleton/  ──seed──▶  static/  ◀──bake── ETL (json/, img/)
+skeleton/  ──seed──▶  static/  ◀──bake── ETL (generated json/, img/)
                               ◀──build── site (index.html, js/)
 ```
 
 So `skeleton/` holds only the parts of the deploy root that **no generator
-owns** — the hand-authored shell. The ETL owns `static/json/` + `static/img/`;
-the site build owns `static/index.html` + `static/js/`. Anything else that must
-ship lives here.
+owns** — the hand-authored shell. Most `static/json/` files are ETL generated,
+but hand-authored UI copy such as `json/strings.json` lives here and is seeded
+before the ETL overlays its generated bundles. The ETL owns `static/img/` and
+generated data JSON; the site build owns `static/index.html` + `static/js/`.
+Anything else that must ship lives here.
 
 ## What belongs here
 
 - **Example / fallback icons** — the placeholder image the UI shows when an
   entity's baked webp is missing.
+- **Hand-authored UI strings** — for example `json/strings.json`, which the
+  frontend loads before falling back to its typed defaults.
 - **`favicon.ico`** / app icons.
 - **Cloudflare Pages config** that ships in the web root — `_headers`,
   `_redirects`.

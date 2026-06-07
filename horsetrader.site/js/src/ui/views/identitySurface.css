@@ -171,96 +171,6 @@
   padding-top: 0.05rem;
 }
 
-.identity-surface__styles {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.4rem;
-}
-
-.identity-surface__style {
-  display: grid;
-  grid-template-columns: minmax(2.8rem, 31%) 1fr;
-  align-items: center;
-  gap: 0.55rem;
-  min-height: 4rem;
-  padding: 0.45rem 0.6rem 0.45rem 0.45rem;
-  border: 1px solid color-mix(in srgb, currentColor 22%, transparent);
-  border-radius: 0.45rem;
-  background: color-mix(in srgb, Canvas 86%, transparent);
-  color: inherit;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.identity-surface__style:hover,
-.identity-surface__style--selected {
-  background: color-mix(in srgb, Canvas 66%, #5fcf00 14%);
-  border-color: color-mix(in srgb, #5fcf00 54%, currentColor 24%);
-}
-
-.identity-surface__style--locked {
-  position: relative;
-  color: color-mix(in srgb, currentColor 58%, transparent);
-  cursor: not-allowed;
-}
-
-.identity-surface__style--locked::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background:
-    repeating-linear-gradient(
-      135deg,
-      color-mix(in srgb, Canvas 48%, transparent),
-      color-mix(in srgb, Canvas 48%, transparent) 0.35rem,
-      color-mix(in srgb, currentColor 7%, transparent) 0.35rem,
-      color-mix(in srgb, currentColor 7%, transparent) 0.7rem
-    ),
-    color-mix(in srgb, Canvas 52%, transparent);
-  pointer-events: none;
-}
-
-.identity-surface__style--locked:hover {
-  background: color-mix(in srgb, Canvas 86%, transparent);
-  border-color: color-mix(in srgb, currentColor 22%, transparent);
-}
-
-.identity-surface__style-icon {
-  display: grid;
-  place-items: center;
-  min-width: 0;
-}
-
-.identity-surface__style-icon img {
-  display: block;
-  width: min(2.55rem, 100%);
-  height: auto;
-  aspect-ratio: 1;
-  object-fit: contain;
-}
-
-.identity-surface__style-copy {
-  display: grid;
-  min-width: 0;
-  gap: 0.15rem;
-}
-
-.identity-surface__style-name {
-  font-weight: 800;
-  line-height: 1.05;
-  text-transform: uppercase;
-}
-
-.identity-surface__style-caption {
-  min-width: 0;
-  color: color-mix(in srgb, currentColor 64%, transparent);
-  font-size: 0.68rem;
-  line-height: 1.15;
-  text-transform: uppercase;
-}
-
 @media (max-width: 620px) {
   .identity-surface__card {
     grid-template-columns: 1fr;
@@ -275,7 +185,4 @@
     border-bottom: 0.28rem solid #5fcf00;
   }
 
-  .identity-surface__styles {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }

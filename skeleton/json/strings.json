@@ -1,0 +1,126 @@
+{
+  "playStyle": {
+    "title": "Play Style",
+    "lockedPreset": "Locked preset",
+    "customPreset": "Custom preset",
+    "apply": "Apply",
+    "lockedAssumption": "Locked",
+    "editableAssumption": "Editable",
+    "customLockedTitle": "Custom play style is locked",
+    "presets": {
+      "sweetie": {
+        "name": "Sweetie",
+        "caption": "Love. Ponies. Sunshine.",
+        "archetype": "Weekend / occasional player",
+        "shape": "Not daily, avoids chore grinds, still notices some shiny events.",
+        "assumptions": {
+          "baselineEngagement": "2 of 7 days",
+          "teamTrials": "Rank 4",
+          "rotatingMissions": "0%",
+          "specialMissions": "60%",
+          "storyEvents": "Story",
+          "championsMeeting": "Skips or does not finish"
+        }
+      },
+      "casual": {
+        "name": "Casual",
+        "caption": "Having fun. Taking it easy.",
+        "archetype": "Regular player with real-life interruptions",
+        "shape": "Low consistency, high festival response; big events fund the gacha moments.",
+        "assumptions": {
+          "baselineEngagement": "4 of 7 days",
+          "teamTrials": "Rank 5",
+          "rotatingMissions": "20%",
+          "specialMissions": "80%",
+          "storyEvents": "Welfare card",
+          "championsMeeting": "Group B contender"
+        }
+      },
+      "focused": {
+        "name": "Focused",
+        "caption": "Trying hard. Getting better.",
+        "archetype": "Daily-intent player",
+        "shape": "Usually keeps up, sometimes misses, builds for events without exhausting every edge.",
+        "assumptions": {
+          "baselineEngagement": "6 of 7 days",
+          "teamTrials": "Rank 5.5 promote-demote",
+          "rotatingMissions": "70%",
+          "specialMissions": "90%",
+          "storyEvents": "Major rewards",
+          "championsMeeting": "Group B winner"
+        }
+      },
+      "dedicated": {
+        "name": "Dedicated",
+        "caption": "No chill. All gas.",
+        "archetype": "Daily player",
+        "shape": "Reliable, completes chores, prepares seriously for PvP, but not assumed champion ceiling.",
+        "assumptions": {
+          "baselineEngagement": "7 of 7 days",
+          "teamTrials": "Rank 6",
+          "rotatingMissions": "100%",
+          "specialMissions": "100%",
+          "storyEvents": "Achievement / stretch",
+          "championsMeeting": "Group A runner-up"
+        }
+      },
+      "unhinged": {
+        "name": "Unhinged",
+        "caption": "Blood. Sweat. Victory.",
+        "archetype": "Competitive ceiling player",
+        "shape": "Chases ceiling outcomes through grind volume, optimization, account investment, or some combination.",
+        "assumptions": {
+          "baselineEngagement": "7 of 7 days",
+          "teamTrials": "Rank 6",
+          "rotatingMissions": "100%",
+          "specialMissions": "100%",
+          "storyEvents": "Achievement / stretch, early",
+          "championsMeeting": "Group A champion"
+        }
+      },
+      "custom": {
+        "name": "Custom",
+        "caption": "Make your own legend.",
+        "archetype": "Player-edited assumptions",
+        "shape": "Custom controls will unlock here later for off-diagonal play patterns.",
+        "assumptions": {
+          "baselineEngagement": "Custom",
+          "teamTrials": "Custom",
+          "rotatingMissions": "Custom",
+          "specialMissions": "Custom",
+          "storyEvents": "Custom",
+          "championsMeeting": "Custom"
+        }
+      }
+    },
+    "assumptionLabels": {
+      "baselineEngagement": "Baseline engagement",
+      "teamTrials": "Team Trials",
+      "rotatingMissions": "Rotating missions",
+      "specialMissions": "Special missions",
+      "storyEvents": "Story events",
+      "championsMeeting": "Champions Meeting"
+    },
+    "legendRaces": {
+      "title": "Legend Races",
+      "steps": {
+        "none": {
+          "value": "0 legends",
+          "description": "I usually miss the event or skip it."
+        },
+        "one": {
+          "value": "1 legend",
+          "description": "I usually notice the event and beat one opponent."
+        },
+        "allPartial": {
+          "value": "All legends",
+          "description": "I beat every opponent, but I do not always come back every day."
+        },
+        "allFull": {
+          "value": "All legends daily",
+          "description": "I beat every opponent and keep up with the daily attempts."
+        }
+      }
+    }
+  }
+}

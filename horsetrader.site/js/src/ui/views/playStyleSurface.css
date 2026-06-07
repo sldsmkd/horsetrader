@@ -85,7 +85,10 @@
   background: color-mix(in srgb, Canvas 88%, transparent);
 }
 
-.playstyle-surface__row + .playstyle-surface__row {
+.playstyle-surface__row + .playstyle-surface__row,
+.playstyle-surface__row + .discrete-slider,
+.discrete-slider + .playstyle-surface__row,
+.discrete-slider + .discrete-slider {
   border-top: 1px solid color-mix(in srgb, currentColor 12%, transparent);
 }
 

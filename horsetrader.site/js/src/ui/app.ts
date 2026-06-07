@@ -30,7 +30,7 @@ import { overlay } from "./views/overlay.ts";
 import { menubar } from "./views/menubar.ts";
 import type { MenubarOverlay } from "./views/menubar.ts";
 import { playStyleSurface } from "./views/playStyleSurface.ts";
-import type { PlayStyleKey } from "./views/identitySurface.ts";
+import type { PlayStyleKey } from "./views/playStylePreset.ts";
 import { createIdentityController } from "./identity/controller.ts";
 import {
   PLAY_STYLE_MACHINE_INITIAL,
@@ -38,6 +38,9 @@ import {
   reducePlayStyleMachine,
 } from "./identity/playStyleMachine.ts";
 import type { IdentityOverlayState, PlayStyleMachineEvent } from "./identity/playStyleMachine.ts";
+import { playStyleSettingsForPreset } from "./identity/playStyleSettings.ts";
+import type { PlayStyleSettings } from "./identity/playStyleSettings.ts";
+import type { UiStrings } from "./strings.ts";
 import { belowLaneCards } from "./select/belowLane.ts";
 import { aboveLaneGroups } from "./select/aboveLane.ts";
 import { createSearchIndex } from "./search/index.ts";
@@ -55,12 +58,19 @@ const BELOW_GAP_Y = 6;
 /** Above-lane horizontal breathing room between adjacent banner groups (px). */
 const ABOVE_GAP = 8;
 
-type AppOverlay = MenubarOverlay | "oshi" | "playstyle";
+type AppOverlay = MenubarOverlay | "oshi" | "playstyle" | "playstyle-oshi";
 
 function appOverlayForIdentityOverlay(overlay: IdentityOverlayState): AppOverlay {
   if (overlay === "closed") return null;
   if (overlay === "trainer") return "identity";
   return overlay;
+}
+
+function suspendOverlay(card: HTMLElement): HTMLElement {
+  card.classList.add("overlay--suspended");
+  card.setAttribute("aria-hidden", "true");
+  card.append(h("div", { class: "overlay__modal-shield", attr: { "aria-hidden": "true" } }));
+  return card;
 }
 
 /**
@@ -131,17 +141,42 @@ function displayExtent(bundle: Bundle): readonly [string, string] | null {
   return lo === null ? null : [lo, hi as string];
 }
 
-export function mountApp(coord: Coordinator, bundle: Bundle, now: string, root: HTMLElement = qs("#app")): void {
+export function mountApp(
+  coord: Coordinator,
+  bundle: Bundle,
+  now: string,
+  strings: UiStrings,
+  root: HTMLElement = qs("#app"),
+): void {
   const view = createViewStore();
   const search = createSearchIndex(bundle, now);
-  const identity = createIdentityController(coord, bundle);
+  const identity = createIdentityController(coord, bundle, strings);
   let identityUi = PLAY_STYLE_MACHINE_INITIAL;
+  let stagedPlayStyleSettings: PlayStyleSettings | null = null;
   const sendIdentityEvent = (event: PlayStyleMachineEvent): void => {
     identityUi = reducePlayStyleMachine(identityUi, event, identity.savedPlayStyleKey());
+    if (
+      event.type === "toggle-identity" ||
+      event.type === "discard-playstyle" ||
+      event.type === "commit-playstyle" ||
+      event.type === "close-all"
+    ) {
+      stagedPlayStyleSettings = null;
+    } else if (event.type === "preview-playstyle") {
+      const savedPlayStyleKey = identity.savedPlayStyleKey();
+      const playStyleKey = previewedPlayStyle(identityUi, savedPlayStyleKey);
+      stagedPlayStyleSettings =
+        identityUi.overlay === "playstyle" || identityUi.overlay === "playstyle-oshi"
+          ? playStyleKey === savedPlayStyleKey
+            ? null
+            : playStyleSettingsForPreset(playStyleKey)
+          : null;
+    }
     view.set({ overlay: appOverlayForIdentityOverlay(identityUi.overlay) });
   };
   const toggleOverlay = (overlay: Exclude<MenubarOverlay, null>) => {
     identityUi = PLAY_STYLE_MACHINE_INITIAL;
+    stagedPlayStyleSettings = null;
     view.set({ overlay: view.get().overlay === overlay ? null : overlay });
   };
 
@@ -245,60 +280,74 @@ export function mountApp(coord: Coordinator, bundle: Bundle, now: string, root: 
   const discardPlayStylePreview = (): void => {
     sendIdentityEvent({ type: "discard-playstyle" });
   };
-  const commitPlayStylePreview = (key: PlayStyleKey): void => {
-    identity.commitPlayStyleKey(key);
+  const commitPlayStylePreview = (key: PlayStyleKey, settings: PlayStyleSettings): void => {
+    identity.commitPlayStyle(key, settings);
     sendIdentityEvent({ type: "commit-playstyle" });
   };
 
   function renderOverlay(): void {
     const open = view.get().overlay as AppOverlay;
     menu.setIdentity(identity.menuIdentity());
-    menu.setOpenOverlay(open === "oshi" || open === "playstyle" ? "identity" : open);
+    menu.setOpenOverlay(open === "oshi" || open === "playstyle" || open === "playstyle-oshi" ? "identity" : open);
+    const trainerCard = (opts: { suspended?: boolean; previewPlayStyleKey?: PlayStyleKey } = {}): HTMLElement =>
+      identity.trainerCardOverlay({
+        ...opts,
+        onOshiSelect: () => sendIdentityEvent({ type: "open-oshi" }),
+        onPlayStylePreview: previewPlayStyle,
+        onClose: () => sendIdentityEvent({ type: "close-all" }),
+      });
+    const playStyleBook = (opts: { suspended?: boolean } = {}): HTMLElement => {
+      const savedPlayStyleKey = identity.savedPlayStyleKey();
+      const savedPlayStyleSettings = identity.savedPlayStyleSettings();
+      const playStyleKey = previewedPlayStyle(identityUi, savedPlayStyleKey);
+      const playStyleSettings =
+        stagedPlayStyleSettings ??
+        (playStyleKey === savedPlayStyleKey ? savedPlayStyleSettings : playStyleSettingsForPreset(playStyleKey));
+      const playStyleCard = overlay({
+        title: strings.playStyle.title,
+        body: playStyleSurface({
+          playStyleKey,
+          savedPlayStyleKey,
+          settings: playStyleSettings,
+          savedSettings: savedPlayStyleSettings,
+          strings: strings.playStyle,
+          onSettingsChange: (settings) => {
+            stagedPlayStyleSettings = settings;
+            renderOverlay();
+          },
+          onApply: commitPlayStylePreview,
+        }),
+        onClose: discardPlayStylePreview,
+      });
+      return h(
+        "div",
+        { class: "overlay-book" },
+        trainerCard({
+          previewPlayStyleKey: playStyleKey,
+          ...(opts.suspended ? { suspended: true } : {}),
+        }),
+        opts.suspended ? suspendOverlay(playStyleCard) : playStyleCard,
+      );
+    };
     if (open === "resources") {
       overlayLayer.replaceChildren(
         overlay({ title: "Resources", body: snapshotEditor(), onClose: () => view.set({ overlay: null }) }),
       );
     } else if (open === "identity") {
-      overlayLayer.replaceChildren(
-        identity.trainerCardOverlay({
-          onOshiSelect: () => sendIdentityEvent({ type: "open-oshi" }),
-          onPlayStylePreview: previewPlayStyle,
-          onClose: () => sendIdentityEvent({ type: "close-all" }),
-        }),
-      );
+      overlayLayer.replaceChildren(trainerCard());
     } else if (open === "oshi") {
       overlayLayer.replaceChildren(
-        identity.trainerCardOverlay({
-          suspended: true,
-          onOshiSelect: () => sendIdentityEvent({ type: "open-oshi" }),
-          onPlayStylePreview: previewPlayStyle,
-          onClose: closeOshiSelector,
-        }),
+        trainerCard({ suspended: true }),
         identity.oshiSelectorOverlay({ onClose: closeOshiSelector }),
       );
     } else if (open === "playstyle") {
-      const savedPlayStyleKey = identity.savedPlayStyleKey();
-      const playStyleKey = previewedPlayStyle(identityUi, savedPlayStyleKey);
       overlayLayer.replaceChildren(
-        h(
-          "div",
-          { class: "overlay-book" },
-          identity.trainerCardOverlay({
-            previewPlayStyleKey: playStyleKey,
-            onOshiSelect: () => sendIdentityEvent({ type: "open-oshi" }),
-            onPlayStylePreview: previewPlayStyle,
-            onClose: () => sendIdentityEvent({ type: "close-all" }),
-          }),
-          overlay({
-            title: "Play Style",
-            body: playStyleSurface({
-              playStyleKey,
-              savedPlayStyleKey,
-              onApply: commitPlayStylePreview,
-            }),
-            onClose: discardPlayStylePreview,
-          }),
-        ),
+        playStyleBook(),
+      );
+    } else if (open === "playstyle-oshi") {
+      overlayLayer.replaceChildren(
+        playStyleBook({ suspended: true }),
+        identity.oshiSelectorOverlay({ onClose: closeOshiSelector }),
       );
     } else if (open === "plan") {
       overlayLayer.replaceChildren(
