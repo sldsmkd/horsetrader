@@ -54,6 +54,7 @@ contract is settled in [`../contract.md`](../contract.md).
 | Understand the engine that derives everything | [projection.md](projection.md) |
 | Understand how the site presents itself (the view layer) | [ui.md](ui.md) |
 | Understand the menubar, Identity, Resources, and Tazuna | [menu.md](menu.md) |
+| Track Identity Play Style preset UX and semantics | [identity-presets.md](identity-presets.md) |
 | Know how the interactive `ui/` layer is wired (implementation) | [interaction.md](interaction.md) |
 | Know the language, layering, and DOM patterns | [conventions.md](conventions.md) |
 | Know what we trust, validate, and how we fail | [trust-and-failure.md](trust-and-failure.md) |
