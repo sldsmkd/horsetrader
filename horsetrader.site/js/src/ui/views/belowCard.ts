@@ -14,7 +14,7 @@ import "./belowCard.css";
 
 import { h } from "../h.ts";
 import type { BelowCard } from "../select/belowLane.ts";
-import { rewardStrip } from "./rewardStrip.ts";
+import { rewardStrip } from "../widgets/rewardStrip.ts";
 
 export function belowCard(card: BelowCard): HTMLElement {
   const cls = `card card--below card--${card.kind}${card.predicted ? " card--predicted" : ""}`;
