@@ -3,6 +3,7 @@ import "./oshiSelector.css";
 import { DEFAULT_OSHI_ID, searchOshis, starterOshis } from "../oshi/index.ts";
 import type { OshiOption, OshiSearchIndex } from "../oshi/index.ts";
 import { h } from "../h.ts";
+import { pressedGroup } from "../widgets/pressedGroup.ts";
 
 export interface OshiSelectorOpts {
   selectedId?: string;
@@ -17,15 +18,12 @@ export function oshiSelector(opts: OshiSelectorOpts): HTMLElement {
   let selectedOshi = opts.selected;
   const buttons = new Map<string, HTMLButtonElement>();
   const grid = h("div", { class: "oshi-selector__grid", attr: { role: "group", "aria-label": "Starter oshis" } });
+  const setPressed = pressedGroup(buttons, "oshi-selector__option--selected");
 
   const select = (oshi: OshiOption): void => {
     selectedId = oshi.id;
     selectedOshi = oshi;
-    for (const [buttonId, button] of buttons) {
-      const selected = buttonId === selectedId;
-      button.classList.toggle("oshi-selector__option--selected", selected);
-      button.setAttribute("aria-pressed", String(selected));
-    }
+    setPressed(selectedId);
   };
 
   const render = (options: readonly OshiOption[], label: string): void => {

@@ -11,6 +11,7 @@ import { h } from "../h.ts";
 import { formatBalance, formatDate } from "../format.ts";
 import { searchBox } from "./searchBox.ts";
 import type { SearchIndex, SearchResult } from "../search/index.ts";
+import { pressedGroup } from "../widgets/pressedGroup.ts";
 
 export type MenubarOverlay = "identity" | "plan" | "resources" | "tazuna" | null;
 
@@ -41,12 +42,12 @@ export interface MenubarOpts {
   onSearch: (result: SearchResult) => void;
 }
 
-function menuButton(label: string, overlay: Exclude<MenubarOverlay, null>, onClick: () => void): HTMLButtonElement {
+function menuButton(label: string, onClick: () => void): HTMLButtonElement {
   return h(
     "button",
     {
       class: "menubar__item menubar__button",
-      attr: { type: "button", "data-overlay": overlay, "aria-pressed": "false" },
+      attr: { type: "button" },
       on: { click: onClick },
     },
     label,
@@ -59,7 +60,7 @@ export function menubar(opts: MenubarOpts): Menubar {
     "button",
     {
       class: "menubar__item menubar__button menubar__balance",
-      attr: { type: "button", "data-overlay": "resources", "aria-pressed": "false" },
+      attr: { type: "button" },
       on: { click: opts.onResources },
     },
     h("span", { class: "menubar__balance-value" }, formatBalance(opts.initialBalance)),
@@ -77,8 +78,6 @@ export function menubar(opts: MenubarOpts): Menubar {
       class: "menubar__item menubar__button menubar__identity",
       attr: {
         type: "button",
-        "data-overlay": "identity",
-        "aria-pressed": "false",
         "aria-label": `Identity: ${opts.identity.label}`,
         title: "Identity",
       },
@@ -86,8 +85,8 @@ export function menubar(opts: MenubarOpts): Menubar {
     },
     identityIcon,
   );
-  const plan = menuButton("Plan", "plan", opts.onPlan);
-  const tazuna = menuButton("Tazuna", "tazuna", opts.onTazuna);
+  const plan = menuButton("Plan", opts.onPlan);
+  const tazuna = menuButton("Tazuna", opts.onTazuna);
 
   const el = h(
     "nav",
@@ -111,12 +110,16 @@ export function menubar(opts: MenubarOpts): Menubar {
     h("div", { class: "menubar__cluster menubar__cluster--right" }, plan, balance, tazuna),
   );
 
+  const overlayButtons = new Map<Exclude<MenubarOverlay, null>, HTMLElement>([
+    ["identity", identity],
+    ["plan", plan],
+    ["resources", balance],
+    ["tazuna", tazuna],
+  ]);
+  const setPressed = pressedGroup(overlayButtons, "menubar__button--active");
+
   function setOpenOverlay(open: MenubarOverlay): void {
-    for (const button of el.querySelectorAll<HTMLButtonElement>("[data-overlay]")) {
-      const active = button.dataset.overlay === open;
-      button.setAttribute("aria-pressed", String(active));
-      button.classList.toggle("menubar__button--active", active);
-    }
+    setPressed(open);
   }
   setOpenOverlay(opts.openOverlay);
 

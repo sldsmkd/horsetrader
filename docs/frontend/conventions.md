@@ -42,6 +42,32 @@ There is no framework, and that's deliberate. To keep "raw DOM" from meaning
 4. **One known home for state, no global grab-bag.** Each module exports a named
    surface; the DOM is never the source of truth for state.
 
+## Shared view primitives — `ui/widgets/`
+
+`ui/widgets/` is the canonical home for view components shared across two or
+more surfaces. The line between `widgets/` and `views/` is ownership:
+
+- **`views/`** — each file *is* a surface (`oshiSelector`, `menubar`,
+  `belowCard`). It owns that surface's layout, state, and wiring; nothing
+  else imports it except the app shell.
+- **`widgets/`** — each file is a primitive *consumed by* surfaces. No surface
+  identity; no state beyond what the primitive explicitly manages.
+
+Two current residents:
+
+- **`rewardStrip`** — renders a reward summary footer. The below-lane card is
+  its first consumer; the banner card will be its second. Moved here on the
+  second consumer's arrival so `views/belowCard.ts` didn't become the
+  accidental owner.
+- **`pressedGroup`** — `pressedGroup(map, activeClass)` returns a
+  `select(key | null)` function that manages `aria-pressed` and a CSS
+  modifier class across a keyed set of elements. Covers the `select-one-from-N`
+  pattern that otherwise re-appears independently in each surface that has a
+  toggle group.
+
+The corollary: when a view needs `rewardStrip` or a select-one-from-N group,
+reach for `widgets/` and roll nothing new.
+
 ## Layering
 
 ```
