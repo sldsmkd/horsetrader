@@ -74,25 +74,18 @@ alongside (`<PlayStyleMachineState, PlayStyleMachineEvent>` explicit params).
 
 ## L — design first, implement when the second consumer arrives
 
-### L1 · Core entity API
+### L1 · Core entity API ✓ done 2026-06-08 (#35 closed)
 
-**#35** — the biggest item; don't implement speculatively.
-
-The tell: `search/index.ts` and `oshi/index.ts` each reach directly into `Bundle`,
-independently joining `bundle.support()` + `bundle.character()`, building display
-labels and appearance maps. They are both re-deriving "a support card entity is a
-support record joined with its character". A future banner card surface and any
-account config surface will face the same join.
-
-Direction: a `core/catalog` (or `core/entities`) layer that owns the
-character+trainee+support joins, canonical labels, identity terms, and portrait
-resolution. Search and oshi selection become queries against the catalog rather
-than ad-hoc bundle iterations. `visible` filtering also belongs here once X4 is
-in.
-
-Defer until search or a second entity consumer makes the duplication concrete
-enough to see the right shape. Document the gap in **#35** when that moment
-arrives.
+Resolved as a right-sized **query seam**, not the entity-model framework the
+original scope sketched — the graph was explicitly considered and rejected (no
+consumer traverses entity links; favouriting a card is a flat
+`contents.includes` filter; a runtime graph fights bake-the-heavy-lifting and
+house style). `search/index.ts` and `oshi/index.ts` now sit behind `ui/query/`
+over a shared `match.ts` (`normalize` + `rankPrefixMatch`), behaviour-preserving.
+Documented in `docs/frontend/catalog.md` (the entity query broker). Lives at
+`ui/query`, not `core/`, because the `Bundle` loader it wraps is in `ui/bundle`
+and `core` must not import `ui`. Deferred until a consumer needs it:
+`eventsFeaturing(key)` (favouriting) and standalone `label`/`image`.
 
 ---
 
