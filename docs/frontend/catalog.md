@@ -71,22 +71,37 @@ Internally these compose the `Bundle` primitives that already exist
 identity map, no link pass — the bundle stays flat; the broker just stops every
 component from re-deriving the same lookups.
 
+This is the *intent* surface. Today the seam ships the two index factories the
+features actually use — `createSearchIndex` (ranked entity search) and
+`createOshiIndex` + the oshi-option helpers — over the shared `match` primitive;
+`label`/`image` are still folded inside those builders, and `eventsFeaturing`
+arrives with favouriting. Each name above lands as a standalone export when a
+consumer needs it, not before.
+
 ## Shape and boundary
 
-A thin **`core/query`** module that *takes* a `Bundle` and exposes the intents
+A thin **`ui/query`** module that *takes* a `Bundle` and exposes the intents
 above. Kept separate from `Bundle` (rather than bolted onto it) because `Bundle`
 is scoped to "parse once into id-keyed typed access," while ranked search and
 label/image resolution are **view-model prep** — a notch up, and independently
-testable against a fixture bundle. Layering is unchanged: `core/query` is pure and
-headless; `ui/` consumes it; persisted state still references entities by stable
+testable against a fixture bundle.
+
+> It lives at `ui/query`, not `core/query`, because the `Bundle` loader it wraps
+> currently lives at `ui/bundle/access.ts` — and `core/` must never import `ui/`.
+> The seam is still pure and headless (no DOM, fixture-testable); it sits in `ui/`
+> only to stay on the legal side of the layer arrow. If the bundle loader ever
+> moves down to `core/`, this seam follows it.
+
+`ui/` consumes the broker; persisted state still references entities by stable
 **key** (the broker resolves keys to display, it is not the store).
 
 ## Build
 
-- **Now (frontend):** introduce the seam by moving the existing `ui/search` and
-  `ui/oshi` lookups behind it and de-duplicating `normalize()`. Small, removes the
-  one literal duplication, and gives later features a home instead of more raw
-  reaches.
+- **Done.** The seam exists at `ui/query/`: `match.ts` (shared `normalize` +
+  `rankPrefixMatch`), `entities.ts` (entity search), `oshi.ts` (oshi options +
+  search), and an `index.ts` barrel. The former `ui/search` and `ui/oshi`
+  lookups moved behind it, the duplicated `normalize`/ranking collapsed onto the
+  shared primitives, and their tests relocated alongside. Behaviour-preserving.
 - **When favouriting lands:** add `eventsFeaturing(key)` (the filter above) — it
   slots into the existing seam rather than reaching into the bundle again.
 - **If search ever needs more reach:** denormalise onto the baked records

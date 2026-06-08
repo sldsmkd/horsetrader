@@ -1,9 +1,9 @@
-import { createOshiIndex, DEFAULT_OSHI_ID, selectedOshiOption } from "../oshi/index.ts";
+import { createOshiIndex, DEFAULT_OSHI_ID, selectedOshiOption } from "../query/index.ts";
 import { DEFAULT_PLAY_STYLE } from "../views/playStylePreset.ts";
 import type { PlayStyleKey } from "../views/playStylePreset.ts";
 import { normalizePlayStyleSettings, playStyleSettingsForPreset } from "./playStyleSettings.ts";
 import type { PlayStyleSettings } from "./playStyleSettings.ts";
-import type { OshiOption, OshiSearchIndex } from "../oshi/index.ts";
+import type { OshiOption, OshiSearchIndex } from "../query/index.ts";
 import type { Coordinator } from "../../core/coordinator/index.ts";
 import type { Bundle } from "../bundle/access.ts";
 

@@ -10,7 +10,7 @@ import "./menubar.css";
 import { h } from "../h.ts";
 import { formatBalance, formatDate } from "../format.ts";
 import { searchBox } from "./searchBox.ts";
-import type { SearchIndex, SearchResult } from "../search/index.ts";
+import type { SearchIndex, SearchResult } from "../query/index.ts";
 import { pressedGroup } from "../widgets/pressedGroup.ts";
 
 export type MenubarOverlay = "identity" | "plan" | "resources" | "tazuna" | null;

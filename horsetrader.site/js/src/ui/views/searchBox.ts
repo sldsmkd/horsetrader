@@ -7,7 +7,7 @@
 import "./searchBox.css";
 
 import { h } from "../h.ts";
-import type { SearchIndex, SearchResult } from "../search/index.ts";
+import type { SearchIndex, SearchResult } from "../query/index.ts";
 
 const SEARCH_RESULT_CAP = 8;
 

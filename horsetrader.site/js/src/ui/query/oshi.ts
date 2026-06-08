@@ -1,5 +1,13 @@
+/**
+ * Oshi selection: the curated character grid + a bundle-backed search over
+ * trainee-backed characters. Part of the `ui/query` entity broker — the oshi
+ * selector asks here for options and matches rather than joining bundle records
+ * itself.
+ */
+
 import type { CharacterRecord } from "../../core/bundle/academy.gen.ts";
 import type { Bundle } from "../bundle/access.ts";
+import { normalize, rankPrefixMatch } from "./match.ts";
 
 export interface OshiOption {
   id: string;
@@ -102,14 +110,6 @@ interface OshiEntry extends OshiOption {
   haystack: string;
 }
 
-function normalize(value: string): string {
-  return value
-    .normalize("NFKD")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim();
-}
-
 function option(id: string, character: CharacterRecord): OshiOption {
   return {
     id,
@@ -165,14 +165,6 @@ export function starterOshis(selected: OshiOption): readonly OshiOption[] {
   return oshiChoices(selected);
 }
 
-function matchRank(entry: OshiEntry, query: string): number | null {
-  const words = normalize(query).split(" ").filter(Boolean);
-  const terms = entry.haystack.split(" ").filter(Boolean);
-  if (words.length === 0) return null;
-  if (!words.every((word) => terms.some((term) => term.startsWith(word)))) return null;
-  return entry.haystack === words.join(" ") ? 0 : 1;
-}
-
 export function createOshiIndex(bundle: Bundle): OshiSearchIndex {
   const traineeIds = traineeCharacterIds(bundle);
   const entries: OshiEntry[] = bundle
@@ -185,7 +177,7 @@ export function createOshiIndex(bundle: Bundle): OshiSearchIndex {
 
   return (query) =>
     entries
-      .map((entry) => ({ entry, rank: matchRank(entry, query) }))
+      .map((entry) => ({ entry, rank: rankPrefixMatch(entry.haystack, query) }))
       .filter((match): match is { entry: OshiEntry; rank: number } => match.rank !== null)
       .sort((a, b) => a.rank - b.rank || a.entry.name.localeCompare(b.entry.name))
       .map(({ entry }) => ({ id: entry.id, name: entry.name, icon: entry.icon, portrait: entry.portrait }));

@@ -41,7 +41,7 @@ import type { PlayStyleSettings } from "./identity/playStyleSettings.ts";
 import type { UiStrings } from "./strings.ts";
 import { belowLaneCards } from "./select/belowLane.ts";
 import { aboveLaneGroups } from "./select/aboveLane.ts";
-import { createSearchIndex } from "./search/index.ts";
+import { createSearchIndex } from "./query/index.ts";
 import { packBelow, packAbove } from "./pack/pack.ts";
 import type { BelowCard } from "./select/belowLane.ts";
 import type { BannerGroup } from "./select/aboveLane.ts";

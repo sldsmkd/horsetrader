@@ -1,11 +1,15 @@
 /**
- * Search index: build the menubar's find-and-warp lookup from the resolved
- * bundle seam. This is pure view-model prep: labels, aliases, matching and
+ * Entity search: build the menubar's find-and-warp lookup from the resolved
+ * bundle seam. Pure view-model prep — labels, aliases, matching, and
  * first-appearance targets, with no DOM and no UI behavior.
+ *
+ * Part of the `ui/query` entity broker: components ask this for ranked entity
+ * matches instead of joining bundle records themselves.
  */
 
 import type { SupportRecord, TraineeRecord } from "../../core/bundle/academy.gen.ts";
 import type { Bundle, EventRecord } from "../bundle/access.ts";
+import { normalize, rankPrefixMatch } from "./match.ts";
 
 export type SearchKind = "support" | "trainee";
 
@@ -46,14 +50,6 @@ function traineeLabel(id: string, trainee: TraineeRecord, bundle: Bundle): strin
   return trainee.variant ? `${name} (${trainee.variant})` : name;
 }
 
-function normalize(value: string): string {
-  return value
-    .normalize("NFKD")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim();
-}
-
 function aliasesOf(record: unknown): readonly string[] {
   if (!record || typeof record !== "object" || !("aliases" in record)) return [];
   const aliases = (record as { aliases?: unknown }).aliases;
@@ -63,23 +59,6 @@ function aliasesOf(record: unknown): readonly string[] {
 function termsFor(...values: (string | null | undefined | readonly string[])[]): string {
   const flat = values.flatMap((value) => (Array.isArray(value) ? value : [value]));
   return normalize(flat.filter((value): value is string => Boolean(value)).join(" "));
-}
-
-function matchRank(entry: SearchEntry, query: string): number | null {
-  const words = normalize(query).split(" ").filter(Boolean);
-  const terms = entry.haystack.split(" ").filter(Boolean);
-  const identityTerms = entry.identityHaystack.split(" ").filter(Boolean);
-  if (words.length === 0) return null;
-  if (
-    !words.every((word) => {
-      const candidates = word.length === 1 ? identityTerms : terms;
-      return candidates.some((term) => term.startsWith(word));
-    })
-  ) {
-    return null;
-  }
-  if (entry.haystack === words.join(" ")) return 0;
-  return 1;
 }
 
 function sortResults(a: { entry: SearchEntry; rank: number }, b: { entry: SearchEntry; rank: number }): number {
@@ -164,7 +143,7 @@ export function createSearchIndex(bundle: Bundle, now: string): SearchIndex {
   const entries = [...entriesByLabel.values()];
   return (query) =>
     entries
-      .map((entry) => ({ entry, rank: matchRank(entry, query) }))
+      .map((entry) => ({ entry, rank: rankPrefixMatch(entry.haystack, query, entry.identityHaystack) }))
       .filter((match): match is { entry: SearchEntry; rank: number } => match.rank !== null)
       .sort(sortResults)
       .map(({ entry }) => ({ id: entry.id, kind: entry.kind, label: entry.label, date: entry.date, eventKey: entry.eventKey }));

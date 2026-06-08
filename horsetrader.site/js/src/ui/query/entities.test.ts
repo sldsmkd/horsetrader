@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import { createBundle } from "../bundle/access.ts";
-import { createSearchIndex } from "./index.ts";
+import { createSearchIndex } from "./entities.ts";
 import type { EventsBundle } from "../../core/bundle/events.gen.ts";
 import type { Academy } from "../../core/bundle/academy.gen.ts";
 
