@@ -48,6 +48,7 @@ import { packBelow, packAbove } from "./pack/pack.ts";
 import type { BelowCard } from "./select/belowLane.ts";
 import type { BannerGroup } from "./select/aboveLane.ts";
 import { createViewStore } from "./state/viewState.ts";
+import { createMachine } from "./state/machine.ts";
 import type { Coordinator } from "../core/coordinator/index.ts";
 import type { Bundle } from "./bundle/access.ts";
 
@@ -142,32 +143,16 @@ export function mountApp(
   const view = createViewStore();
   const search = createSearchIndex(bundle, now);
   const identity = createIdentityController(coord, bundle, strings);
-  let identityUi = PLAY_STYLE_MACHINE_INITIAL;
-  let stagedPlayStyleSettings: PlayStyleSettings | null = null;
+  const identityMachine = createMachine(
+    (state, event) => reducePlayStyleMachine(state, event, identity.savedPlayStyleKey()),
+    PLAY_STYLE_MACHINE_INITIAL,
+  );
   const sendIdentityEvent = (event: PlayStyleMachineEvent): void => {
-    identityUi = reducePlayStyleMachine(identityUi, event, identity.savedPlayStyleKey());
-    if (
-      event.type === "toggle-identity" ||
-      event.type === "discard-playstyle" ||
-      event.type === "commit-playstyle" ||
-      event.type === "close-all"
-    ) {
-      stagedPlayStyleSettings = null;
-    } else if (event.type === "preview-playstyle") {
-      const savedPlayStyleKey = identity.savedPlayStyleKey();
-      const playStyleKey = previewedPlayStyle(identityUi, savedPlayStyleKey);
-      stagedPlayStyleSettings =
-        identityUi.overlay === "playstyle" || identityUi.overlay === "playstyle-oshi"
-          ? playStyleKey === savedPlayStyleKey
-            ? null
-            : playStyleSettingsForPreset(playStyleKey)
-          : null;
-    }
-    view.set({ overlay: appOverlayForIdentityOverlay(identityUi.overlay) });
+    identityMachine.send(event);
+    view.set({ overlay: appOverlayForIdentityOverlay(identityMachine.get().overlay) });
   };
   const toggleOverlay = (overlay: Exclude<MenubarOverlay, null>) => {
-    identityUi = PLAY_STYLE_MACHINE_INITIAL;
-    stagedPlayStyleSettings = null;
+    identityMachine.send({ type: "close-all" });
     view.set({ overlay: view.get().overlay === overlay ? null : overlay });
   };
 
@@ -277,6 +262,7 @@ export function mountApp(
   };
 
   function renderOverlay(): void {
+    const identityUi = identityMachine.get();
     const open = view.get().overlay as AppOverlay;
     menu.setIdentity(identity.menuIdentity());
     menu.setOpenOverlay(open === "oshi" || open === "playstyle" || open === "playstyle-oshi" ? "identity" : open);
@@ -292,7 +278,7 @@ export function mountApp(
       const savedPlayStyleSettings = identity.savedPlayStyleSettings();
       const playStyleKey = previewedPlayStyle(identityUi, savedPlayStyleKey);
       const playStyleSettings =
-        stagedPlayStyleSettings ??
+        identityUi.stagedPlayStyleSettings ??
         (playStyleKey === savedPlayStyleKey ? savedPlayStyleSettings : playStyleSettingsForPreset(playStyleKey));
       const playStyleCard = overlay({
         title: strings.playStyle.title,
@@ -302,10 +288,7 @@ export function mountApp(
           settings: playStyleSettings,
           savedSettings: savedPlayStyleSettings,
           strings: strings.playStyle,
-          onSettingsChange: (settings) => {
-            stagedPlayStyleSettings = settings;
-            renderOverlay();
-          },
+          onSettingsChange: (settings) => sendIdentityEvent({ type: "stage-settings", settings }),
           onApply: commitPlayStylePreview,
         }),
         onClose: discardPlayStylePreview,
