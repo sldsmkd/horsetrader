@@ -7,14 +7,34 @@ import type { PlayStyleStrings } from "../strings.ts";
 
 export interface IdentitySurfaceOpts {
   trainerName: string;
+  trainerId: string;
   oshiName: string;
   oshiPortrait: string;
   playStyleKey: PlayStyleKey;
   savedPlayStyleKey: PlayStyleKey;
+  customUnlocked: boolean;
   playStyleStrings: PlayStyleStrings;
   onTrainerNameChange: (name: string) => void;
+  onTrainerIdChange: (id: string) => void;
   onOshiSelect: () => void;
   onPlayStylePreview: (key: PlayStyleKey) => void;
+}
+
+// Trainer ID is a 12-digit handle grouped 3-3-3-3 (display only — it's optional
+// and never validated). It's also screenshot-sensitive, so the value sits behind
+// a heavy blur whenever the field isn't actively being edited: clicking the
+// pencil (or the field) is the deliberate reveal, and like a banking app it
+// re-blurs on blur and after an idle timeout so a stray screenshot stays safe.
+const ID_GROUP_LEN = 3;
+const ID_GROUPS = 4;
+const ID_MAX_DIGITS = ID_GROUP_LEN * ID_GROUPS;
+const ID_PLACEHOLDER = "???-???-???-???";
+const ID_REVEAL_MS = 15_000;
+
+function formatTrainerId(digits: string): string {
+  const groups: string[] = [];
+  for (let i = 0; i < digits.length; i += ID_GROUP_LEN) groups.push(digits.slice(i, i + ID_GROUP_LEN));
+  return groups.join("-");
 }
 
 function identityRow(label: string, value: string, detail?: string): HTMLElement {
@@ -60,11 +80,98 @@ function editableTrainerName(opts: IdentitySurfaceOpts): HTMLElement {
   );
 }
 
+function editableTrainerId(opts: IdentitySurfaceOpts): HTMLElement {
+  const input = h("input", {
+    class: "identity-surface__id-input",
+    attr: {
+      type: "text",
+      inputmode: "numeric",
+      autocomplete: "off",
+      placeholder: ID_PLACEHOLDER,
+      "aria-label": "Trainer ID (optional)",
+      value: formatTrainerId(opts.trainerId),
+      size: ID_MAX_DIGITS + ID_GROUPS - 1,
+      readonly: true,
+    },
+  });
+
+  let revealed = false;
+  let timer: number | undefined;
+
+  const clearTimer = (): void => {
+    if (timer !== undefined) clearTimeout(timer);
+    timer = undefined;
+  };
+  // Re-blur on idle so a revealed ID doesn't linger on screen.
+  const armTimer = (): void => {
+    clearTimer();
+    timer = window.setTimeout(() => input.blur(), ID_REVEAL_MS);
+  };
+  const mask = (): void => {
+    input.classList.toggle("identity-surface__id-input--masked", !revealed && /\d/.test(input.value));
+  };
+  const caretToEnd = (): void => input.setSelectionRange(input.value.length, input.value.length);
+
+  const reveal = (): void => {
+    revealed = true;
+    input.readOnly = false;
+    mask();
+    input.focus();
+    caretToEnd();
+    armTimer();
+  };
+
+  // Reveal is always deliberate (pencil or tapping the field); a read-only field
+  // can't take a caret on its own, so we drive focus ourselves.
+  input.addEventListener("pointerdown", (ev) => {
+    if (revealed) return;
+    ev.preventDefault();
+    reveal();
+  });
+  input.addEventListener("input", () => {
+    input.value = formatTrainerId(input.value.replace(/\D/g, "").slice(0, ID_MAX_DIGITS));
+    caretToEnd();
+    armTimer();
+  });
+  input.addEventListener("blur", () => {
+    clearTimer();
+    revealed = false;
+    input.readOnly = true;
+    const digits = input.value.replace(/\D/g, "").slice(0, ID_MAX_DIGITS);
+    input.value = formatTrainerId(digits);
+    mask();
+    if (digits !== opts.trainerId) opts.onTrainerIdChange(digits);
+  });
+
+  mask();
+
+  return h(
+    "div",
+    { class: "identity-surface__row" },
+    h("span", { class: "identity-surface__label" }, "ID (Optional)"),
+    h(
+      "span",
+      { class: "identity-surface__value identity-surface__id" },
+      h(
+        "button",
+        {
+          class: "identity-surface__edit",
+          attr: { type: "button", "aria-label": "Edit trainer ID", title: "Edit trainer ID" },
+          on: { click: () => !revealed && reveal() },
+        },
+        "✏️",
+      ),
+      input,
+    ),
+  );
+}
+
 function playStyle(opts: IdentitySurfaceOpts): HTMLElement {
   return playStylePresetGrid({
     selectedKey: opts.playStyleKey,
     activeKey: opts.savedPlayStyleKey,
     strings: opts.playStyleStrings,
+    customUnlocked: opts.customUnlocked,
     onPreview: opts.onPlayStylePreview,
   });
 }
@@ -97,7 +204,7 @@ export function identitySurface(opts: IdentitySurfaceOpts): HTMLElement {
         h(
           "div",
           { class: "identity-surface__section" },
-          identityRow("ID (Optional)", "???-???-???-???"),
+          editableTrainerId(opts),
           identityRow("Club", "UmaDen", "B+"),
           identityRow("Oshi", opts.oshiName),
         ),

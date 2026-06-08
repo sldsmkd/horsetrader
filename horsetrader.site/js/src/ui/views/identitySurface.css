@@ -165,6 +165,40 @@
   font-weight: 600;
 }
 
+.identity-surface__id {
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.identity-surface__id-input {
+  min-width: 0;
+  padding: 0 0.15rem;
+  border: 0;
+  border-radius: 0.25rem;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  text-align: right;
+  letter-spacing: 0.03em;
+}
+
+.identity-surface__id-input:read-only {
+  cursor: pointer;
+}
+
+.identity-surface__id-input:focus {
+  background: color-mix(in srgb, Canvas 72%, #5fcf00 10%);
+  outline: 2px solid color-mix(in srgb, #5fcf00 70%, currentColor 18%);
+  outline-offset: 0.16rem;
+}
+
+/* Heavy enough that the digits can't be recovered by sharpening a screenshot. */
+.identity-surface__id-input--masked {
+  filter: blur(0.36em);
+  user-select: none;
+}
+
 .identity-surface__playstyle {
   display: grid;
   gap: 0.45rem;

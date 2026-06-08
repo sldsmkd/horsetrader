@@ -298,6 +298,15 @@ export function mountApp(
     sendIdentityEvent({ type: "commit-playstyle" });
   };
 
+  // Supporter status gates the custom play-style preset. Resolved once at init
+  // (hash + fetch of the published list) — deliberately not re-checked at
+  // runtime; an ID/name edit takes effect on next load.
+  let supporterUnlocked = false;
+  void identity.isSupporter().then((unlocked) => {
+    supporterUnlocked = unlocked;
+    if (unlocked) renderOverlay();
+  });
+
   function renderOverlay(): void {
     const identityUi = identityMachine.get();
     const open = view.get().overlay as AppOverlay;
@@ -322,17 +331,17 @@ export function mountApp(
         overlay({ title: "Resources", body: snapshotEditor(), onClose: () => view.set({ overlay: null }) }),
       );
     } else if (open === "identity") {
-      overlayLayer.replaceChildren(buildTrainerCard(identity, strings, {}, trainerCardOn));
+      overlayLayer.replaceChildren(buildTrainerCard(identity, strings, { customUnlocked: supporterUnlocked }, trainerCardOn));
     } else if (open === "oshi") {
       overlayLayer.replaceChildren(
-        buildTrainerCard(identity, strings, { suspended: true }, trainerCardOn),
+        buildTrainerCard(identity, strings, { suspended: true, customUnlocked: supporterUnlocked }, trainerCardOn),
         buildOshiSelectorOverlay(identity, { onClose: closeOshiSelector }),
       );
     } else if (open === "playstyle") {
-      overlayLayer.replaceChildren(buildPlayStyleOverlay(identity, strings, identityUi, {}, playStyleOn));
+      overlayLayer.replaceChildren(buildPlayStyleOverlay(identity, strings, identityUi, { customUnlocked: supporterUnlocked }, playStyleOn));
     } else if (open === "playstyle-oshi") {
       overlayLayer.replaceChildren(
-        buildPlayStyleOverlay(identity, strings, identityUi, { suspended: true }, playStyleOn),
+        buildPlayStyleOverlay(identity, strings, identityUi, { suspended: true, customUnlocked: supporterUnlocked }, playStyleOn),
         buildOshiSelectorOverlay(identity, { onClose: closeOshiSelector }),
       );
     } else if (open === "plan") {

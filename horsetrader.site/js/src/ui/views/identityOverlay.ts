@@ -14,7 +14,7 @@ import type { UiStrings } from "../strings.ts";
 export function buildTrainerCard(
   identity: IdentityController,
   strings: UiStrings,
-  opts: { suspended?: boolean; previewPlayStyleKey?: PlayStyleKey },
+  opts: { suspended?: boolean; previewPlayStyleKey?: PlayStyleKey; customUnlocked?: boolean },
   on: {
     onOshiSelect: () => void;
     onPlayStylePreview: (key: PlayStyleKey) => void;
@@ -27,12 +27,15 @@ export function buildTrainerCard(
     placement: "left",
     body: identitySurface({
       trainerName: identity.trainerName(),
+      trainerId: identity.trainerId(),
       oshiName: oshi.name,
       oshiPortrait: oshi.portrait,
       playStyleKey: opts.previewPlayStyleKey ?? identity.savedPlayStyleKey(),
       savedPlayStyleKey: identity.savedPlayStyleKey(),
+      customUnlocked: opts.customUnlocked ?? false,
       playStyleStrings: strings.playStyle,
       onTrainerNameChange: (name) => identity.setTrainerName(name),
+      onTrainerIdChange: (id) => identity.setTrainerId(id),
       onOshiSelect: on.onOshiSelect,
       onPlayStylePreview: on.onPlayStylePreview,
     }),
@@ -65,7 +68,7 @@ export function buildPlayStyleOverlay(
   identity: IdentityController,
   strings: UiStrings,
   state: PlayStyleMachineState,
-  opts: { suspended?: boolean },
+  opts: { suspended?: boolean; customUnlocked?: boolean },
   on: {
     onOshiSelect: () => void;
     onPlayStylePreview: (key: PlayStyleKey) => void;
@@ -100,7 +103,7 @@ export function buildPlayStyleOverlay(
   const identityCard = buildTrainerCard(
     identity,
     strings,
-    { previewPlayStyleKey: playStyleKey, ...(opts.suspended ? { suspended: true } : {}) },
+    { previewPlayStyleKey: playStyleKey, customUnlocked: opts.customUnlocked ?? false, ...(opts.suspended ? { suspended: true } : {}) },
     { onOshiSelect: on.onOshiSelect, onPlayStylePreview: on.onPlayStylePreview, onClose: on.onTrainerClose },
   );
 
