@@ -41,7 +41,7 @@ at construction. `toggleOverlay` reset replaced with `send({ type: "close-all" }
 
 ## M — each needs a branch
 
-### M1 · Widget library: toggle buttons and reward strip home
+### M1 · Widget library: toggle buttons and reward strip home ✓ done 2026-06-08
 
 Two recurring patterns need a canonical home:
 
