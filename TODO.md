@@ -31,15 +31,11 @@ clearing internally. `sendIdentityEvent` collapsed to 2 lines; `toggleOverlay` l
 its manual clear; `onSettingsChange` fires `stage-settings` instead of direct assignment.
 `preview-playstyle` resets settings to null (renderOverlay's fallback covers preset defaults).
 
-### S2 · State machine as a general-purpose primitive
+### S2 · State machine as a general-purpose primitive ✓ done 2026-06-08
 
-`identity/playStyleMachine.ts` is already a clean pure reducer. As more overlay
-surfaces arrive (Plan, Tazuna, Resources) the same reducer shape will appear again.
-
-Extract a generic `createMachine<S, E>(reducer, initial)` wrapper — thin, no
-new behaviour — and move it somewhere in `core/` or a new `ui/state/machine.ts`.
-The identity overlay machine becomes the first consumer; future surface machines
-follow the same pattern. Related to **#39**.
+`ui/state/machine.ts` — `createMachine<S, E>(reducer, initial)` → `{ get, send }`.
+Identity machine wired as first consumer; extra `savedPlayStyle` arg bound via closure
+at construction. `toggleOverlay` reset replaced with `send({ type: "close-all" })`.
 
 ---
 

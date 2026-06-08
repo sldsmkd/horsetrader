@@ -48,6 +48,7 @@ import { packBelow, packAbove } from "./pack/pack.ts";
 import type { BelowCard } from "./select/belowLane.ts";
 import type { BannerGroup } from "./select/aboveLane.ts";
 import { createViewStore } from "./state/viewState.ts";
+import { createMachine } from "./state/machine.ts";
 import type { Coordinator } from "../core/coordinator/index.ts";
 import type { Bundle } from "./bundle/access.ts";
 
@@ -142,13 +143,16 @@ export function mountApp(
   const view = createViewStore();
   const search = createSearchIndex(bundle, now);
   const identity = createIdentityController(coord, bundle, strings);
-  let identityUi = PLAY_STYLE_MACHINE_INITIAL;
+  const identityMachine = createMachine(
+    (state, event) => reducePlayStyleMachine(state, event, identity.savedPlayStyleKey()),
+    PLAY_STYLE_MACHINE_INITIAL,
+  );
   const sendIdentityEvent = (event: PlayStyleMachineEvent): void => {
-    identityUi = reducePlayStyleMachine(identityUi, event, identity.savedPlayStyleKey());
-    view.set({ overlay: appOverlayForIdentityOverlay(identityUi.overlay) });
+    identityMachine.send(event);
+    view.set({ overlay: appOverlayForIdentityOverlay(identityMachine.get().overlay) });
   };
   const toggleOverlay = (overlay: Exclude<MenubarOverlay, null>) => {
-    identityUi = PLAY_STYLE_MACHINE_INITIAL;
+    identityMachine.send({ type: "close-all" });
     view.set({ overlay: view.get().overlay === overlay ? null : overlay });
   };
 
@@ -258,6 +262,7 @@ export function mountApp(
   };
 
   function renderOverlay(): void {
+    const identityUi = identityMachine.get();
     const open = view.get().overlay as AppOverlay;
     menu.setIdentity(identity.menuIdentity());
     menu.setOpenOverlay(open === "oshi" || open === "playstyle" || open === "playstyle-oshi" ? "identity" : open);
