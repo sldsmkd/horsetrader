@@ -8,7 +8,7 @@ from horsetrader.models.config import load_gacha_config
 from horsetrader.models.rewards import load_reward_maps, load_reward_structures
 from horsetrader.output import Bake
 from horsetrader.semantics import rudolf
-from horsetrader.timeline import Predict
+from horsetrader.timeline import Predict, Timeline
 
 logger = Logger.get(__name__)
 

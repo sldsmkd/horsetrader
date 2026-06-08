@@ -1,0 +1,39 @@
+.reward-strip {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.55rem;
+  border-top: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  background: color-mix(in srgb, currentColor 6%, Canvas);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.reward-strip__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.reward-strip__icon {
+  display: block;
+  width: 1rem;
+  height: 1rem;
+  object-fit: contain;
+}
+
+.reward-strip__amount {
+  font-weight: 600;
+}
+
+.reward-strip__separator {
+  color: color-mix(in srgb, currentColor 45%, transparent);
+}
+
+.reward-strip__fallback-label {
+  color: color-mix(in srgb, currentColor 68%, transparent);
+  font-size: 0.68rem;
+  line-height: 1.1;
+  text-transform: uppercase;
+}

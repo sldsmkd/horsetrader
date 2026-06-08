@@ -13,8 +13,8 @@ import "./card.css";
 import "./belowCard.css";
 
 import { h } from "../h.ts";
-import { formatDelta } from "../format.ts";
 import type { BelowCard } from "../select/belowLane.ts";
+import { rewardStrip } from "./rewardStrip.ts";
 
 export function belowCard(card: BelowCard): HTMLElement {
   const cls = `card card--below card--${card.kind}${card.predicted ? " card--predicted" : ""}`;
@@ -26,7 +26,7 @@ export function belowCard(card: BelowCard): HTMLElement {
       "div",
       { class: "card__body" },
       h("span", { class: "card__label" }, card.label),
-      h("span", { class: "card__reward" }, formatDelta(card.reward.free_carats ?? 0)),
+      rewardStrip(card.reward),
     ),
   );
   el.style.left = `${card.x}px`;
