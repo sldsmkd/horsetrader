@@ -55,28 +55,20 @@ arrives it will need the same footer. Confirm `rewardStrip` is the canonical
 widget (no duplicate); establish `ui/widgets/` as the home for shared view
 primitives so future surfaces reach for it rather than rolling their own.
 
-### M2 · Separate controller data from overlay DOM construction
+### M2 · Separate controller data from overlay DOM construction ✓ done 2026-06-08
 
-`IdentityController.trainerCardOverlay()` and `oshiSelectorOverlay()` build
-`<div class="overlay">` elements, including title bars and close buttons. The
-controller is crossing into the views layer.
+Controller stripped to data accessors only (`trainerName`, `currentOshi`,
+`oshiSearch`, `setTrainerName`, `setOshiId`); `strings` dep removed from
+constructor. New `ui/views/identityOverlay.ts` owns all overlay wrapping and DOM
+construction (`buildTrainerCard`, `buildOshiSelectorOverlay`,
+`buildPlayStyleOverlay`).
 
-Refactor: the controller exposes data accessors only (`trainerName()`,
-`currentOshi()`, `savedPlayStyleKey()`, etc.). `app.ts` (or a dedicated surface
-module) owns all overlay wrapping and DOM construction. This also removes the
-duplicated suspend logic (X1 is a prerequisite).
+### M3 · Flatten `renderOverlay` closure depth in `app.ts` ✓ done 2026-06-08
 
-### M3 · Flatten `renderOverlay` closure depth in `app.ts`
-
-`trainerCard()` and `playStyleBook()` are inner closures inside `renderOverlay()`
-inside `mountApp()`. `playStyleBook()` contains a `requestAnimationFrame` for
-height-sync. Three levels of closure capture different state and make the logic
-hard to trace.
-
-Replace with standalone `buildIdentityOverlay(state, deps)`,
-`buildPlayStyleOverlay(state, deps)` etc. — top-level functions that take their
-dependencies explicitly. Natural to tackle alongside M2 since both touch the same
-overlay rendering path. Related to **#39**.
+`trainerCard()` and `playStyleBook()` inner closures replaced by direct calls to
+the standalone builders from M2. `renderOverlay` is now a flat switch over
+`AppOverlay` states. Pre-existing `createMachine` type-inference bug fixed
+alongside (`<PlayStyleMachineState, PlayStyleMachineEvent>` explicit params).
 
 ---
 

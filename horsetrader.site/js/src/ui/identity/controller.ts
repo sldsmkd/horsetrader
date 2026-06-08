@@ -1,13 +1,9 @@
-import { h } from "../h.ts";
 import { createOshiIndex, DEFAULT_OSHI_ID, selectedOshiOption } from "../oshi/index.ts";
-import { identitySurface } from "../views/identitySurface.ts";
 import { DEFAULT_PLAY_STYLE } from "../views/playStylePreset.ts";
 import type { PlayStyleKey } from "../views/playStylePreset.ts";
 import { normalizePlayStyleSettings, playStyleSettingsForPreset } from "./playStyleSettings.ts";
 import type { PlayStyleSettings } from "./playStyleSettings.ts";
-import { oshiSelector } from "../views/oshiSelector.ts";
-import { overlay, suspendOverlay } from "../views/overlay.ts";
-import type { UiStrings } from "../strings.ts";
+import type { OshiOption, OshiSearchIndex } from "../oshi/index.ts";
 import type { Coordinator } from "../../core/coordinator/index.ts";
 import type { Bundle } from "../bundle/access.ts";
 
@@ -18,21 +14,18 @@ export interface MenuIdentity {
 
 export interface IdentityController {
   menuIdentity(): MenuIdentity;
+  trainerName(): string;
+  currentOshi(): OshiOption;
+  oshiSearch(): OshiSearchIndex;
   savedPlayStyleKey(): PlayStyleKey;
   savedPlayStyleSettings(): PlayStyleSettings;
   commitPlayStyle(key: PlayStyleKey, settings: PlayStyleSettings): void;
-  trainerCardOverlay(opts: {
-    suspended?: boolean;
-    previewPlayStyleKey?: PlayStyleKey;
-    onOshiSelect: () => void;
-    onPlayStylePreview: (key: PlayStyleKey) => void;
-    onClose: () => void;
-  }): HTMLElement;
-  oshiSelectorOverlay(opts: { onClose: () => void }): HTMLElement;
+  setTrainerName(name: string): void;
+  setOshiId(id: string): void;
 }
 
-export function createIdentityController(coord: Coordinator, bundle: Bundle, strings: UiStrings): IdentityController {
-  const oshiSearch = createOshiIndex(bundle);
+export function createIdentityController(coord: Coordinator, bundle: Bundle): IdentityController {
+  const _oshiSearch = createOshiIndex(bundle);
 
   function identityConfig(): Record<string, unknown> {
     const config = coord.document().config;
@@ -72,7 +65,7 @@ export function createIdentityController(coord: Coordinator, bundle: Bundle, str
     if (key !== "custom") updateIdentity({ playStyleKey: key, playStyleSettings: settings });
   }
 
-  function currentOshi() {
+  function currentOshi(): OshiOption {
     return selectedOshiOption(bundle, oshiId());
   }
 
@@ -82,46 +75,13 @@ export function createIdentityController(coord: Coordinator, bundle: Bundle, str
       return { label: oshi.name, icon: oshi.icon };
     },
 
+    trainerName,
+    currentOshi,
+    oshiSearch: () => _oshiSearch,
     savedPlayStyleKey: playStyleKey,
     savedPlayStyleSettings: playStyleSettings,
     commitPlayStyle,
-
-    trainerCardOverlay(opts) {
-      const oshi = currentOshi();
-      const card = overlay({
-        title: "Trainer Card",
-        placement: "left",
-        body: identitySurface({
-          trainerName: trainerName(),
-          oshiName: oshi.name,
-          oshiPortrait: oshi.portrait,
-          playStyleKey: opts.previewPlayStyleKey ?? playStyleKey(),
-          savedPlayStyleKey: playStyleKey(),
-          playStyleStrings: strings.playStyle,
-          onTrainerNameChange: (name) => updateIdentity({ trainerName: name }),
-          onOshiSelect: opts.onOshiSelect,
-          onPlayStylePreview: opts.onPlayStylePreview,
-        }),
-        onClose: opts.onClose,
-      });
-      if (opts.suspended) suspendOverlay(card);
-      return card;
-    },
-
-    oshiSelectorOverlay(opts) {
-      const selectedOshi = currentOshi();
-      return overlay({
-        title: "Oshi Selector",
-        placement: "center",
-        body: oshiSelector({
-          selectedId: selectedOshi.id,
-          selected: selectedOshi,
-          search: oshiSearch,
-          onCommit: (oshi) => updateIdentity({ oshiId: oshi.id }),
-          onClose: opts.onClose,
-        }),
-        onClose: opts.onClose,
-      });
-    },
+    setTrainerName: (name) => updateIdentity({ trainerName: name }),
+    setOshiId: (id) => updateIdentity({ oshiId: id }),
   };
 }
