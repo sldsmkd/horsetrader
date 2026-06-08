@@ -29,6 +29,8 @@ import { bannerGroup } from "./views/bannerGroup.ts";
 import type { RushBinding } from "./widgets/rushedToggle.ts";
 import type { FavouriteBinding } from "./widgets/atomChip.ts";
 import { overlay } from "./views/overlay.ts";
+import { bookmarks } from "./views/bookmarks.ts";
+import { bookmarkRows } from "./select/bookmarks.ts";
 import { buildTrainerCard, buildOshiSelectorOverlay, buildPlayStyleOverlay } from "./views/identityOverlay.ts";
 import { menubar } from "./views/menubar.ts";
 import type { MenubarOverlay } from "./views/menubar.ts";
@@ -171,6 +173,14 @@ export function mountApp(
       menu.setBalance(balance.free_carats ?? 0);
       mini.setView(date);
     },
+  });
+
+  // The bookmarks drawer: layer-2 chrome, twin of the minimap dots over the same
+  // favourites map. Its open/collapsed state is independent view-state (it coexists
+  // with overlays, not modal); each row warps the timeline like Home/search do.
+  const book = bookmarks({
+    onToggle: () => view.set({ bookmarks: !view.get().bookmarks }),
+    onWarp: (date) => tl.warpTo(date),
   });
 
   const menu = menubar({
@@ -344,7 +354,23 @@ export function mountApp(
   view.subscribe(renderOverlay);
   coord.subscribe(renderOverlay);
 
-  root.replaceChildren(menu.el, tl.el, mini.el, overlayLayer);
+  // The drawer is a view over favourites (coord) and its open flag (view-state),
+  // so it re-renders on both paths — the same dual-subscribe as the overlay layer.
+  function renderBookmarks(): void {
+    book.refresh({
+      rows: bookmarkRows(bundle, coord.document().favourites ?? {}, now),
+      open: view.get().bookmarks,
+    });
+  }
+  view.subscribe(renderBookmarks);
+  coord.subscribe(renderBookmarks);
+
+  // Mount order is the z-band: timeline (back), the bookmarks drawer, then the
+  // overlay layer (paints over the drawer where they share the top-left zone), with
+  // the menubar/minimap lifted above all of it (their own z-index) so the always-
+  // reachable chrome is never occluded.
+  root.replaceChildren(menu.el, tl.el, book.el, mini.el, overlayLayer);
   refresh();
   renderOverlay();
+  renderBookmarks();
 }
