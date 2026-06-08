@@ -94,6 +94,33 @@ test("update persists the plan and recomputes against the new base", () => {
   assert.equal(load(store).doc.snapshot?.resources.free_carats, 5000);
 });
 
+test("on load, rushed entries for ended/unknown events are pruned and persisted", () => {
+  const store = memoryStore();
+  store.write(
+    DOCUMENT_KEY,
+    JSON.stringify({
+      version: 1,
+      rushed: {
+        "banner-1": "2026-06-05T00:00:00.000Z", // ends 2026-06-10 — still rushable at now
+        "anchor-1": "2026-06-05T00:00:00.000Z", // ended 2026-06-09 — past, drop
+        ghost: "2026-06-05T00:00:00.000Z", //       not in the bundle — drop
+      },
+    }),
+  );
+
+  const coord = createCoordinator({ bundle: bundle(), now: "2026-06-10", store });
+  assert.deepEqual(coord.document().rushed, { "banner-1": "2026-06-05T00:00:00.000Z" });
+  // The sweep rewrote the store, so a reload sees the pruned map too.
+  assert.deepEqual(load(store).doc.rushed, { "banner-1": "2026-06-05T00:00:00.000Z" });
+});
+
+test("a rushed map that is all-past prunes to omitted, not an empty object", () => {
+  const store = memoryStore();
+  store.write(DOCUMENT_KEY, JSON.stringify({ version: 1, rushed: { "anchor-1": "2026-06-05T00:00:00.000Z" } }));
+  const coord = createCoordinator({ bundle: bundle(), now: "2026-06-10", store });
+  assert.equal(coord.document().rushed, undefined);
+});
+
 test("subscribers fire on a mutation, exactly once, and never on a read", () => {
   const coord = createCoordinator({ bundle: bundle(), now: "2026-06-01", store: memoryStore() });
   let notals = 0;

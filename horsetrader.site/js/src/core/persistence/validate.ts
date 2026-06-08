@@ -17,6 +17,7 @@ import type {
   FavouriteEntry,
   PlanDocument,
   ResourceVector,
+  Rushed,
   Snapshot,
 } from "./document.ts";
 
@@ -82,6 +83,16 @@ function validateFavourites(value: unknown): Favourites | undefined {
   return Object.keys(out).length ? out : undefined;
 }
 
+function validateRushed(value: unknown): Rushed | undefined {
+  if (!isObject(value)) return undefined;
+  const out: Rushed = {};
+  for (const [eventId, instant] of Object.entries(value)) {
+    if (typeof instant === "string" && instant !== "") out[eventId] = instant;
+    else console.warn(`persistence: dropping malformed rushed entry "${eventId}"`);
+  }
+  return Object.keys(out).length ? out : undefined;
+}
+
 /**
  * Validate the post-migration blob into a current `PlanDocument`, dropping bad
  * sub-entries. Throws only if the blob isn't recognisably our document — the
@@ -100,5 +111,7 @@ export function validateDocument(value: unknown): PlanDocument {
   if (commitments) doc.commitments = commitments;
   const favourites = validateFavourites(obj["favourites"]);
   if (favourites) doc.favourites = favourites;
+  const rushed = validateRushed(obj["rushed"]);
+  if (rushed) doc.rushed = rushed;
   return doc;
 }

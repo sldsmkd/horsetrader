@@ -21,7 +21,7 @@
  */
 
 import type { Projection, ResourceVector } from "../../core/projection/index.ts";
-import { isVisible } from "../../core/bundle/flags.ts";
+import { isVisible, isRushable } from "../../core/bundle/flags.ts";
 import type { Axis } from "../axis.ts";
 import type { Bundle, EventRecord } from "../bundle/access.ts";
 
@@ -73,6 +73,8 @@ export interface BelowCard {
   x: number;
   /** Predicted dates trust less — the grey grammar (principle 5). */
   predicted: boolean;
+  /** True when the event is rush-eligible and not yet ended. */
+  rushable: boolean;
   /** This event's own attributed reward delta (its height/breakdown signal). */
   reward: ResourceVector;
 }
@@ -84,7 +86,7 @@ function labelOf(ev: EventRecord): string {
   return ev.key;
 }
 
-export function belowLaneCards(projection: Projection, bundle: Bundle, axis: Axis): BelowCard[] {
+export function belowLaneCards(projection: Projection, bundle: Bundle, axis: Axis, now: string): BelowCard[] {
   // Each below-lane event posts once (on its `end`), so a source maps to one
   // reward bag; accumulate per source across its single-resource ledger entries.
   // Many below-lane kinds post nothing — that's normal, not a missing card.
@@ -110,6 +112,7 @@ export function belowLaneCards(projection: Projection, bundle: Bundle, axis: Axi
       date: ev.start,
       x: axis.xForDate(ev.start),
       predicted: ev.predicted,
+      rushable: isRushable(ev) && ev.end >= now,
       reward: rewardBySource.get(ev.key) ?? {},
     });
   }

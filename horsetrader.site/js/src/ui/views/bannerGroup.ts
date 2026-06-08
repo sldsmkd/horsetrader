@@ -16,8 +16,10 @@ import "./bannerGroup.css";
 import { h } from "../h.ts";
 import { formatDate } from "../format.ts";
 import type { BannerGroup } from "../select/aboveLane.ts";
+import { rushedToggleFor } from "../widgets/rushedToggle.ts";
+import type { RushBinding } from "../widgets/rushedToggle.ts";
 
-export function bannerGroup(group: BannerGroup): HTMLElement {
+export function bannerGroup(group: BannerGroup, rush: RushBinding): HTMLElement {
   const el = h(
     "div",
     { class: `card card--above${group.predicted ? " card--predicted" : ""}` },
@@ -41,6 +43,7 @@ export function bannerGroup(group: BannerGroup): HTMLElement {
               ),
             ),
           ),
+          banner.rushable ? rushedToggleFor(rush, banner.key) : null,
         ),
       ),
       h("span", { class: "banner-group__date" }, formatDate(group.date)),

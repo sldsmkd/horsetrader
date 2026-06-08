@@ -32,11 +32,12 @@ const ACADEMY: Academy = {
 
 const bundle = () => createBundle(EVENTS, ACADEMY);
 const axis = () => createAxis({ origin: "2026-06-01", pxPerDay: 10 });
+const NOW = "2026-06-08";
 
 const EMPTY_EVENTS: EventsBundle = { events: [] };
 
 test("above-lane: groups by start (all known time), banners only, sorted; shared start → one group", () => {
-  const groups = aboveLaneGroups(bundle(), axis());
+  const groups = aboveLaneGroups(bundle(), axis(), NOW);
   // cm-1 (not a banner) excluded; one group per distinct start, sorted left→right.
   assert.deepEqual(groups.map((g) => g.date), ["2026-01-01", "2026-06-10", "2026-06-25"]);
 
@@ -49,7 +50,7 @@ test("above-lane: groups by start (all known time), banners only, sorted; shared
 });
 
 test("contents resolve to atoms in the kind's grammar — trainee stars, support tier", () => {
-  const groups = aboveLaneGroups(bundle(), axis());
+  const groups = aboveLaneGroups(bundle(), axis(), NOW);
   const shared = groups.find((g) => g.date === "2026-06-10")!;
 
   const trainee = shared.banners.find((b) => b.key === "banner-t")!;
@@ -68,7 +69,7 @@ test("timestamped banners group and position by the selected viewer calendar", (
       { type: "trainee", rushable: true, contents: ["t-spe"], image: "/i/tb.webp", start: "2026-06-10T22:30:00+00:00", end: "2026-06-16T22:30:00+00:00", predicted: false, key: "banner-t" },
     ],
   };
-  const groups = aboveLaneGroups(createBundle(events, ACADEMY, "Australia/Sydney"), axis());
+  const groups = aboveLaneGroups(createBundle(events, ACADEMY, "Australia/Sydney"), axis(), NOW);
 
   assert.deepEqual(groups.map((g) => g.date), ["2026-06-11"]);
   assert.equal(groups[0]!.x, 100); // 2026-06-11 → 10 days after the origin
@@ -81,12 +82,12 @@ test("timestamped banners keep their UTC/server date when the view timezone is U
       { type: "support", rushable: false, contents: ["s-spe"], image: "/i/sb2.webp", start: "2026-06-10T22:00:00+00:00", end: "2026-06-16T22:00:00+00:00", predicted: false, key: "banner-s2" },
     ],
   };
-  const groups = aboveLaneGroups(createBundle(events, ACADEMY, "UTC"), axis());
+  const groups = aboveLaneGroups(createBundle(events, ACADEMY, "UTC"), axis(), NOW);
 
   assert.deepEqual(groups.map((g) => g.date), ["2026-06-10"]);
 });
 
 test("empty bundle input returns no groups", () => {
-  const groups = aboveLaneGroups(createBundle(EMPTY_EVENTS, ACADEMY), axis());
+  const groups = aboveLaneGroups(createBundle(EMPTY_EVENTS, ACADEMY), axis(), NOW);
   assert.deepEqual(groups, []);
 });

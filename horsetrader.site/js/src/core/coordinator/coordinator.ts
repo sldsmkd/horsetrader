@@ -29,7 +29,30 @@ import { GROUND_TRUTH_CHANNELS } from "./channels.ts";
 import type { ChannelDef } from "./channels.ts";
 
 /** The persisted plan sections a UI mutator can patch (never `version`). */
-export type PlanPatch = Pick<PlanDocument, "snapshot" | "config" | "commitments" | "favourites">;
+export type PlanPatch = Pick<PlanDocument, "snapshot" | "config" | "commitments" | "favourites" | "rushed">;
+
+/**
+ * Drop rushed entries for events that are no longer rushable — anything fully in
+ * the past (`end < now`) or no longer in the bundle. You can't rush a finished
+ * event, so a lingering rush is dead state; this is the storage twin of the card's
+ * `end >= now` eligibility gate. Returns the same document when nothing changed
+ * (so the caller skips a redundant write). Run once on load.
+ */
+function pruneRushedPast(doc: PlanDocument, bundle: EventsBundle, now: string): PlanDocument {
+  if (!doc.rushed) return doc;
+  const stillRushable = new Set(bundle.events.filter((ev) => ev.end >= now).map((ev) => ev.key));
+  const kept: PlanDocument["rushed"] = {};
+  let dropped = false;
+  for (const [key, instant] of Object.entries(doc.rushed)) {
+    if (stillRushable.has(key)) kept[key] = instant;
+    else dropped = true;
+  }
+  if (!dropped) return doc;
+  const next = { ...doc };
+  if (Object.keys(kept).length > 0) next.rushed = kept;
+  else delete next.rushed; // omit, don't store empty
+  return next;
+}
 
 /** A channel and whether it is currently contributing — what a toggle UI renders. */
 export interface ChannelState {
@@ -81,7 +104,10 @@ export function createCoordinator(options: CoordinatorOptions): Coordinator {
   const registry = options.channels ?? GROUND_TRUTH_CHANNELS;
 
   const loaded = load(store);
-  let doc = loaded.doc;
+  // Sweep dead rush state (events now fully past) on load; persist only if it
+  // actually pruned, so a clean plan isn't rewritten on every boot.
+  let doc = pruneRushedPast(loaded.doc, bundle, now);
+  if (doc !== loaded.doc) save(doc, store);
   const enabled = new Map<string, boolean>(registry.map((ch) => [ch.name, true]));
   const listeners = new Set<() => void>();
 

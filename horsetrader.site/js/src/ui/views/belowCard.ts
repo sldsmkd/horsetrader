@@ -15,8 +15,10 @@ import "./belowCard.css";
 import { h } from "../h.ts";
 import type { BelowCard } from "../select/belowLane.ts";
 import { rewardStrip } from "../widgets/rewardStrip.ts";
+import { rushedToggleFor } from "../widgets/rushedToggle.ts";
+import type { RushBinding } from "../widgets/rushedToggle.ts";
 
-export function belowCard(card: BelowCard): HTMLElement {
+export function belowCard(card: BelowCard, rush: RushBinding): HTMLElement {
   const cls = `card card--below card--${card.kind}${card.predicted ? " card--predicted" : ""}`;
   const el = h(
     "div",
@@ -26,6 +28,7 @@ export function belowCard(card: BelowCard): HTMLElement {
       "div",
       { class: "card__body" },
       h("span", { class: "card__label" }, card.label),
+      card.rushable ? rushedToggleFor(rush, card.key) : null,
       rewardStrip(card.reward),
     ),
   );

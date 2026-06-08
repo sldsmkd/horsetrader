@@ -32,6 +32,7 @@ test("inputs round-trip through save → load", () => {
       snapshot: { date: "2026-05-28", resources: { free_carats: 1200 } },
       commitments: { "30096": 50 },
       favourites: { "108301": { note: "save him" } },
+      rushed: { "banner-30096": "2026-06-08T11:30:00.000Z" },
     },
     store,
   );
@@ -41,6 +42,21 @@ test("inputs round-trip through save → load", () => {
   assert.equal(doc.snapshot?.resources.free_carats, 1200);
   assert.equal(doc.commitments?.["30096"], 50);
   assert.equal(doc.favourites?.["108301"]?.note, "save him");
+  assert.equal(doc.rushed?.["banner-30096"], "2026-06-08T11:30:00.000Z");
+});
+
+test("rushed: non-string timestamps drop; an emptied map normalises to omitted", () => {
+  const store = memoryStore();
+  store.write(
+    DOCUMENT_KEY,
+    JSON.stringify({ version: 1, rushed: { good: "2026-06-08T11:30:00.000Z", bad: 0, blank: "" } }),
+  );
+  const { doc } = quietly(() => load(store));
+  assert.deepEqual(doc.rushed, { good: "2026-06-08T11:30:00.000Z" });
+
+  // The fully-cleared case app.ts can write (`rushed: {}`) loads back as omitted.
+  store.write(DOCUMENT_KEY, JSON.stringify({ version: 1, rushed: {} }));
+  assert.equal(load(store).doc.rushed, undefined);
 });
 
 test("non-finite resource and commitment values are dropped, not kept", () => {

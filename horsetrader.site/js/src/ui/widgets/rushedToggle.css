@@ -1,0 +1,51 @@
+.rushed-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.35rem;
+  border: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+  border-radius: 0.45rem;
+  background: none;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+  transition: border-color 0.1s, background 0.1s;
+  pointer-events: auto;
+}
+
+.rushed-toggle:hover {
+  background: color-mix(in srgb, currentColor 8%, transparent);
+}
+
+.rushed-toggle__icon {
+  display: block;
+  width: 1.5rem;
+  height: 1.5rem;
+  object-fit: contain;
+}
+
+.rushed-toggle__pill {
+  display: none;
+  padding: 0.1em 0.45em;
+  border-radius: 0.3rem;
+  background: #c0392b;
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.5;
+}
+
+.rushed-toggle--on .rushed-toggle__pill {
+  display: inline;
+}
+
+.rushed-toggle--on {
+  border-color: #c0392b;
+  background: color-mix(in srgb, #c0392b 10%, transparent);
+}
+
+.rushed-toggle--on:hover {
+  background: color-mix(in srgb, #c0392b 16%, transparent);
+}

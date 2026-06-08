@@ -13,6 +13,7 @@
 
 import type { Axis } from "../axis.ts";
 import type { Bundle } from "../bundle/access.ts";
+import { isRushable } from "../../core/bundle/flags.ts";
 
 export type BannerKind = "trainee" | "support";
 
@@ -33,6 +34,8 @@ export interface Banner {
   kind: BannerKind;
   image: string;
   atoms: BannerAtom[];
+  /** True when the event is rush-eligible and not yet ended. */
+  rushable: boolean;
 }
 
 /** Banners sharing an appearance date, the unit the above-lane packer places. */
@@ -59,7 +62,7 @@ function atomOf(bundle: Bundle, kind: BannerKind, id: string): BannerAtom {
   return { id, name: support.display ?? id, rarity: (support.rarity ?? "").toUpperCase() };
 }
 
-export function aboveLaneGroups(bundle: Bundle, axis: Axis): BannerGroup[] {
+export function aboveLaneGroups(bundle: Bundle, axis: Axis, now: string): BannerGroup[] {
   // Every known banner, past and future — the timeline spans all known time, not
   // just the projection horizon (you scroll back into history too).
   const byDate = new Map<string, BannerGroup>();
@@ -68,7 +71,7 @@ export function aboveLaneGroups(bundle: Bundle, axis: Axis): BannerGroup[] {
     let group = byDate.get(ev.start);
     if (!group) byDate.set(ev.start, (group = { key: ev.start, date: ev.start, x: axis.xForDate(ev.start), predicted: false, banners: [] }));
     group.predicted = group.predicted || ev.predicted;
-    group.banners.push({ key: ev.key, kind: ev.type, image: ev.image, atoms: ev.contents.map((id) => atomOf(bundle, ev.type, id)) });
+    group.banners.push({ key: ev.key, kind: ev.type, image: ev.image, atoms: ev.contents.map((id) => atomOf(bundle, ev.type, id)), rushable: isRushable(ev) && ev.end >= now });
   }
 
   const groups = [...byDate.values()];

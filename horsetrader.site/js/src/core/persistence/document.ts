@@ -52,8 +52,17 @@ export interface FavouriteEntry {
 export type Favourites = { [entityId: string]: FavouriteEntry };
 
 /**
- * The four sections split by lifecycle. All optional — a fresh user has none.
- * Maps (commitments/favourites) are omitted entirely rather than stored empty.
+ * Rushed events keyed by ETL stable event id → the UTC instant the rush flag was
+ * set (`new Date().toISOString()`). The value is an action-timestamp (a record of
+ * *when the user chose to rush*), not a timeline date — so it is stored raw UTC
+ * and never run through the calendar/timezone mapper. Sparse like favourites: the
+ * key's presence *is* the fact; unsetting deletes the key (never `null`/empty).
+ */
+export type Rushed = { [eventId: string]: string };
+
+/**
+ * The sections split by lifecycle. All optional — a fresh user has none.
+ * Maps (commitments/favourites/rushed) are omitted entirely rather than stored empty.
  */
 export interface PlanDocument {
   version: number;
@@ -61,6 +70,7 @@ export interface PlanDocument {
   config?: Config;
   commitments?: Commitments;
   favourites?: Favourites;
+  rushed?: Rushed;
 }
 
 /** A clean document for a first-time user or after a fail-soft recovery. */

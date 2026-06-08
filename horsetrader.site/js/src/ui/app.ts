@@ -26,6 +26,7 @@ import { timeline } from "./views/timeline.ts";
 import { minimap } from "./views/minimap.ts";
 import { belowCard } from "./views/belowCard.ts";
 import { bannerGroup } from "./views/bannerGroup.ts";
+import type { RushBinding } from "./widgets/rushedToggle.ts";
 import { overlay } from "./views/overlay.ts";
 import { buildTrainerCard, buildOshiSelectorOverlay, buildPlayStyleOverlay } from "./views/identityOverlay.ts";
 import { menubar } from "./views/menubar.ts";
@@ -194,6 +195,23 @@ export function mountApp(
   // menubar follows the fresh projection. The below-lane packer (4e) runs after
   // mount, once heights can be measured, and resolve overlaps without moving any
   // stem off-tick: below stacks vertically, above nudges groups horizontally.
+  // Rushed state is persisted user input (the `rushed` map: event key → the UTC
+  // instant it was rushed). The binding reads/writes the live document so it never
+  // goes stale; setting writes the timestamp, unsetting deletes the key. `update`
+  // recomputes + notifies → `refresh` rebuilds the cards with the new pressed
+  // state. Storing raw UTC: it's an action-timestamp, not a timeline date. (Fully
+  // clearing leaves a `{}` rather than omitting the key — `update`'s spread merge
+  // can't delete a section; reads `?? {}` so it's behaviourally identical.)
+  const rush: RushBinding = {
+    isRushed: (key) => key in (coord.document().rushed ?? {}),
+    setRushed: (key, on) => {
+      const next = { ...(coord.document().rushed ?? {}) };
+      if (on) next[key] = new Date().toISOString();
+      else delete next[key];
+      coord.update({ rushed: next });
+    },
+  };
+
   function refresh(): void {
     const projection = coord.projection();
     const extent = displayExtent(bundle);
@@ -208,10 +226,10 @@ export function mountApp(
     tl.layout(extent, now);
     const axis = tl.axis();
     if (!axis) return tl.setCards([]);
-    const below = belowLaneCards(projection, bundle, axis);
-    const above = aboveLaneGroups(bundle, axis);
-    const belowEls = below.map(belowCard);
-    const aboveEls = above.map(bannerGroup);
+    const below = belowLaneCards(projection, bundle, axis, now);
+    const above = aboveLaneGroups(bundle, axis, now);
+    const belowEls = below.map((card) => belowCard(card, rush));
+    const aboveEls = above.map((group) => bannerGroup(group, rush));
     tl.setCards([...belowEls, ...aboveEls]);
     // Mounted now → heights are measurable. Pack each lane (below returns its
     // floor depth, above its roof height); the timeline turns these into its
