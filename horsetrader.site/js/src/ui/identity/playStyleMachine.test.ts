@@ -12,15 +12,15 @@ const saved = "focused";
 
 test("identity menu toggles the whole identity family", () => {
   const open = reducePlayStyleMachine(PLAY_STYLE_MACHINE_INITIAL, { type: "toggle-identity" }, saved);
-  assert.deepEqual(open, { overlay: "identity", stagedPlayStyle: null });
+  assert.deepEqual(open, { overlay: "identity", stagedPlayStyle: null, stagedPlayStyleSettings: null });
 
-  const withPlayStyle: PlayStyleMachineState = { overlay: "playstyle", stagedPlayStyle: "casual" };
+  const withPlayStyle: PlayStyleMachineState = { overlay: "playstyle", stagedPlayStyle: "casual", stagedPlayStyleSettings: null };
   assert.deepEqual(reducePlayStyleMachine(withPlayStyle, { type: "toggle-identity" }, saved), PLAY_STYLE_MACHINE_INITIAL);
 
-  const withOshi: PlayStyleMachineState = { overlay: "oshi", stagedPlayStyle: null };
+  const withOshi: PlayStyleMachineState = { overlay: "oshi", stagedPlayStyle: null, stagedPlayStyleSettings: null };
   assert.deepEqual(reducePlayStyleMachine(withOshi, { type: "toggle-identity" }, saved), PLAY_STYLE_MACHINE_INITIAL);
 
-  const withPlayStyleOshi: PlayStyleMachineState = { overlay: "playstyle-oshi", stagedPlayStyle: "casual" };
+  const withPlayStyleOshi: PlayStyleMachineState = { overlay: "playstyle-oshi", stagedPlayStyle: "casual", stagedPlayStyleSettings: null };
   assert.deepEqual(
     reducePlayStyleMachine(withPlayStyleOshi, { type: "toggle-identity" }, saved),
     PLAY_STYLE_MACHINE_INITIAL,
@@ -29,73 +29,79 @@ test("identity menu toggles the whole identity family", () => {
 
 test("previewing an unsaved preset opens the playstyle page and enables staging", () => {
   const state = reducePlayStyleMachine(
-    { overlay: "identity", stagedPlayStyle: null },
+    { overlay: "identity", stagedPlayStyle: null, stagedPlayStyleSettings: null },
     { type: "preview-playstyle", key: "casual" },
     saved,
   );
 
-  assert.deepEqual(state, { overlay: "playstyle", stagedPlayStyle: "casual" });
+  assert.deepEqual(state, { overlay: "playstyle", stagedPlayStyle: "casual", stagedPlayStyleSettings: null });
   assert.equal(previewedPlayStyle(state, saved), "casual");
 });
 
 test("clicking the saved preset first reverts an unsaved preview, then closes the page", () => {
-  const casual: PlayStyleMachineState = { overlay: "playstyle", stagedPlayStyle: "casual" };
+  const casual: PlayStyleMachineState = { overlay: "playstyle", stagedPlayStyle: "casual", stagedPlayStyleSettings: null };
   const reverted = reducePlayStyleMachine(casual, { type: "preview-playstyle", key: saved }, saved);
-  assert.deepEqual(reverted, { overlay: "playstyle", stagedPlayStyle: null });
+  assert.deepEqual(reverted, { overlay: "playstyle", stagedPlayStyle: null, stagedPlayStyleSettings: null });
   assert.equal(previewedPlayStyle(reverted, saved), saved);
 
   assert.deepEqual(reducePlayStyleMachine(reverted, { type: "preview-playstyle", key: saved }, saved), {
     overlay: "identity",
     stagedPlayStyle: null,
+    stagedPlayStyleSettings: null,
   });
 });
 
 test("opening the saved preset stores no redundant staged value", () => {
   const state = reducePlayStyleMachine(
-    { overlay: "identity", stagedPlayStyle: null },
+    { overlay: "identity", stagedPlayStyle: null, stagedPlayStyleSettings: null },
     { type: "preview-playstyle", key: saved },
     saved,
   );
 
-  assert.deepEqual(state, { overlay: "playstyle", stagedPlayStyle: null });
+  assert.deepEqual(state, { overlay: "playstyle", stagedPlayStyle: null, stagedPlayStyleSettings: null });
   assert.deepEqual(reducePlayStyleMachine(state, { type: "preview-playstyle", key: saved }, saved), {
     overlay: "identity",
     stagedPlayStyle: null,
+    stagedPlayStyleSettings: null,
   });
 });
 
 test("discarding or committing returns to the trainer card with no staged preset", () => {
-  const state: PlayStyleMachineState = { overlay: "playstyle", stagedPlayStyle: "dedicated" };
+  const state: PlayStyleMachineState = { overlay: "playstyle", stagedPlayStyle: "dedicated", stagedPlayStyleSettings: null };
   assert.deepEqual(reducePlayStyleMachine(state, { type: "discard-playstyle" }, saved), {
     overlay: "identity",
     stagedPlayStyle: null,
+    stagedPlayStyleSettings: null,
   });
   assert.deepEqual(reducePlayStyleMachine(state, { type: "commit-playstyle" }, saved), {
     overlay: "identity",
     stagedPlayStyle: null,
+    stagedPlayStyleSettings: null,
   });
 });
 
 test("oshi selector is modal over the current identity surface", () => {
   const trainerOshi = reducePlayStyleMachine(
-    { overlay: "identity", stagedPlayStyle: null },
+    { overlay: "identity", stagedPlayStyle: null, stagedPlayStyleSettings: null },
     { type: "open-oshi" },
     saved,
   );
-  assert.deepEqual(trainerOshi, { overlay: "oshi", stagedPlayStyle: null });
+  assert.deepEqual(trainerOshi, { overlay: "oshi", stagedPlayStyle: null, stagedPlayStyleSettings: null });
   assert.deepEqual(reducePlayStyleMachine(trainerOshi, { type: "close-oshi" }, saved), {
     overlay: "identity",
     stagedPlayStyle: null,
+    stagedPlayStyleSettings: null,
   });
 
   const playStyleOshi = reducePlayStyleMachine(
-    { overlay: "playstyle", stagedPlayStyle: "casual" },
+    { overlay: "playstyle", stagedPlayStyle: "casual", stagedPlayStyleSettings: null },
     { type: "open-oshi" },
     saved,
   );
-  assert.deepEqual(playStyleOshi, { overlay: "playstyle-oshi", stagedPlayStyle: "casual" });
+  assert.deepEqual(playStyleOshi, { overlay: "playstyle-oshi", stagedPlayStyle: "casual", stagedPlayStyleSettings: null });
   assert.deepEqual(reducePlayStyleMachine(playStyleOshi, { type: "close-oshi" }, saved), {
     overlay: "playstyle",
     stagedPlayStyle: "casual",
+    stagedPlayStyleSettings: null,
   });
 });

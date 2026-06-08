@@ -24,16 +24,12 @@ each want a focused branch.
 
 ## S — one focused session each
 
-### S1 · Unify staged play-style state
+### S1 · Unify staged play-style state ✓ done 2026-06-08
 
-`playStyleMachine` owns `stagedPlayStyle: PlayStyleKey | null`.
-`app.ts` owns `stagedPlayStyleSettings: PlayStyleSettings | null` as a local
-variable, with manual clearing duplicated across four `sendIdentityEvent` branches.
-
-Move `stagedPlayStyleSettings` into `PlayStyleMachineState` so all staged identity
-state lives in one place. The machine already holds the key; adding the settings
-object alongside it removes the split ownership and the manual clear logic in
-`app.ts`. Related to **#39**.
+`stagedPlayStyleSettings` moved into `PlayStyleMachineState`; machine handles all
+clearing internally. `sendIdentityEvent` collapsed to 2 lines; `toggleOverlay` loses
+its manual clear; `onSettingsChange` fires `stage-settings` instead of direct assignment.
+`preview-playstyle` resets settings to null (renderOverlay's fallback covers preset defaults).
 
 ### S2 · State machine as a general-purpose primitive
 

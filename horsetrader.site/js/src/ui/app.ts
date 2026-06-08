@@ -143,31 +143,12 @@ export function mountApp(
   const search = createSearchIndex(bundle, now);
   const identity = createIdentityController(coord, bundle, strings);
   let identityUi = PLAY_STYLE_MACHINE_INITIAL;
-  let stagedPlayStyleSettings: PlayStyleSettings | null = null;
   const sendIdentityEvent = (event: PlayStyleMachineEvent): void => {
     identityUi = reducePlayStyleMachine(identityUi, event, identity.savedPlayStyleKey());
-    if (
-      event.type === "toggle-identity" ||
-      event.type === "discard-playstyle" ||
-      event.type === "commit-playstyle" ||
-      event.type === "close-all"
-    ) {
-      stagedPlayStyleSettings = null;
-    } else if (event.type === "preview-playstyle") {
-      const savedPlayStyleKey = identity.savedPlayStyleKey();
-      const playStyleKey = previewedPlayStyle(identityUi, savedPlayStyleKey);
-      stagedPlayStyleSettings =
-        identityUi.overlay === "playstyle" || identityUi.overlay === "playstyle-oshi"
-          ? playStyleKey === savedPlayStyleKey
-            ? null
-            : playStyleSettingsForPreset(playStyleKey)
-          : null;
-    }
     view.set({ overlay: appOverlayForIdentityOverlay(identityUi.overlay) });
   };
   const toggleOverlay = (overlay: Exclude<MenubarOverlay, null>) => {
     identityUi = PLAY_STYLE_MACHINE_INITIAL;
-    stagedPlayStyleSettings = null;
     view.set({ overlay: view.get().overlay === overlay ? null : overlay });
   };
 
@@ -292,7 +273,7 @@ export function mountApp(
       const savedPlayStyleSettings = identity.savedPlayStyleSettings();
       const playStyleKey = previewedPlayStyle(identityUi, savedPlayStyleKey);
       const playStyleSettings =
-        stagedPlayStyleSettings ??
+        identityUi.stagedPlayStyleSettings ??
         (playStyleKey === savedPlayStyleKey ? savedPlayStyleSettings : playStyleSettingsForPreset(playStyleKey));
       const playStyleCard = overlay({
         title: strings.playStyle.title,
@@ -302,10 +283,7 @@ export function mountApp(
           settings: playStyleSettings,
           savedSettings: savedPlayStyleSettings,
           strings: strings.playStyle,
-          onSettingsChange: (settings) => {
-            stagedPlayStyleSettings = settings;
-            renderOverlay();
-          },
+          onSettingsChange: (settings) => sendIdentityEvent({ type: "stage-settings", settings }),
           onApply: commitPlayStylePreview,
         }),
         onClose: discardPlayStylePreview,
