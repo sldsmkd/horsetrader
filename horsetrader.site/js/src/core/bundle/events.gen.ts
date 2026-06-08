@@ -29,9 +29,11 @@ export interface EventsBundle {
 }
 export interface SupportBannerRecord {
   type: "support";
-  rushable: boolean;
   contents: string[];
   image: string;
+  rate_overrides?: {
+    [k: string]: number;
+  };
   start: string;
   end: string;
   predicted: boolean;
@@ -43,12 +45,16 @@ export interface SupportBannerRecord {
           [k: string]: number | string | (number | null)[];
         };
   };
+  visible?: boolean;
+  rushable?: boolean;
 }
 export interface TraineeBannerRecord {
   type: "trainee";
-  rushable: boolean;
   contents: string[];
   image: string;
+  rate_overrides?: {
+    [k: string]: number;
+  };
   start: string;
   end: string;
   predicted: boolean;
@@ -60,6 +66,8 @@ export interface TraineeBannerRecord {
           [k: string]: number | string | (number | null)[];
         };
   };
+  visible?: boolean;
+  rushable?: boolean;
 }
 export interface ScenarioRecord {
   type: "scenario";
@@ -77,10 +85,11 @@ export interface ScenarioRecord {
           [k: string]: number | string | (number | null)[];
         };
   };
+  visible?: boolean;
+  rushable?: boolean;
 }
 export interface StoryRecord {
   type: "story";
-  rushable: boolean;
   title: string | null;
   contents: string[];
   image: string | null;
@@ -97,6 +106,8 @@ export interface StoryRecord {
           [k: string]: number | string | (number | null)[];
         };
   };
+  visible?: boolean;
+  rushable?: boolean;
 }
 export interface CMRecord {
   type: "cm";
@@ -112,10 +123,11 @@ export interface CMRecord {
           [k: string]: number | string | (number | null)[];
         };
   };
+  visible?: boolean;
+  rushable?: boolean;
 }
 export interface ShowtimeRecord {
   type: "showtime";
-  rushable: boolean;
   name: string | null;
   start: string;
   end: string;
@@ -128,10 +140,11 @@ export interface ShowtimeRecord {
           [k: string]: number | string | (number | null)[];
         };
   };
+  visible?: boolean;
+  rushable?: boolean;
 }
 export interface SkillTestRecord {
   type: "skilltest";
-  rushable: boolean;
   name: string | null;
   start: string;
   end: string;
@@ -144,10 +157,11 @@ export interface SkillTestRecord {
           [k: string]: number | string | (number | null)[];
         };
   };
+  visible?: boolean;
+  rushable?: boolean;
 }
 export interface RacingCarnivalRecord {
   type: "racingcarnival";
-  rushable: boolean;
   name: string | null;
   start: string;
   end: string;
@@ -160,10 +174,11 @@ export interface RacingCarnivalRecord {
           [k: string]: number | string | (number | null)[];
         };
   };
+  visible?: boolean;
+  rushable?: boolean;
 }
 export interface StrongestTeamRecord {
   type: "strongestteam";
-  rushable: boolean;
   name: string | null;
   start: string;
   end: string;
@@ -176,10 +191,11 @@ export interface StrongestTeamRecord {
           [k: string]: number | string | (number | null)[];
         };
   };
+  visible?: boolean;
+  rushable?: boolean;
 }
 export interface MastersChallengeRecord {
   type: "masterschallenge";
-  rushable: boolean;
   name: string | null;
   start: string;
   end: string;
@@ -192,10 +208,11 @@ export interface MastersChallengeRecord {
           [k: string]: number | string | (number | null)[];
         };
   };
+  visible?: boolean;
+  rushable?: boolean;
 }
 export interface FactorStudiesRecord {
   type: "factorstudies";
-  rushable: boolean;
   name: string | null;
   start: string;
   end: string;
@@ -208,10 +225,11 @@ export interface FactorStudiesRecord {
           [k: string]: number | string | (number | null)[];
         };
   };
+  visible?: boolean;
+  rushable?: boolean;
 }
 export interface LeagueOfHeroesRecord {
   type: "leagueofheroes";
-  rushable: boolean;
   name: string | null;
   start: string;
   end: string;
@@ -224,6 +242,8 @@ export interface LeagueOfHeroesRecord {
           [k: string]: number | string | (number | null)[];
         };
   };
+  visible?: boolean;
+  rushable?: boolean;
 }
 export interface LegendRaceRecord {
   type: "legendrace";
@@ -240,6 +260,8 @@ export interface LegendRaceRecord {
           [k: string]: number | string | (number | null)[];
         };
   };
+  visible?: boolean;
+  rushable?: boolean;
 }
 /**
  * One leg of a Legend Race: a ~3-day sub-window pitting the player against a
@@ -266,6 +288,8 @@ export interface MissionRecord {
           [k: string]: number | string | (number | null)[];
         };
   };
+  visible?: boolean;
+  rushable?: boolean;
 }
 export interface AnchorRecord {
   type: "anchor";
@@ -280,6 +304,8 @@ export interface AnchorRecord {
           [k: string]: number | string | (number | null)[];
         };
   };
+  visible?: boolean;
+  rushable?: boolean;
 }
 export interface AnchoredEventRecord {
   type: "anchoredevent";
@@ -297,4 +323,6 @@ export interface AnchoredEventRecord {
           [k: string]: number | string | (number | null)[];
         };
   };
+  visible?: boolean;
+  rushable?: boolean;
 }
