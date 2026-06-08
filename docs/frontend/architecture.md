@@ -145,5 +145,6 @@ rates/parameters too; see the stream decomposition in
 
 - [persistence.md](persistence.md) — pillar 1 in detail.
 - [projection.md](projection.md) — pillar 2 in detail.
+- [catalog.md](catalog.md) — the entity query broker (a seam over the bundle, not a pillar).
 - [conventions.md](conventions.md) — language, layering, DOM patterns.
 - [trust-and-failure.md](trust-and-failure.md) — trust boundaries and failure model.

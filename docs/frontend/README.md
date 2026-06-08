@@ -26,6 +26,14 @@ As of **2026-06-02** the keystone is laid — both `core/` pillars exist under
   builds channels from the bundle, folds the enabled ones, and recomputes on any
   change. The UI will be a pure consumer of this seam.
 
+A small supporting seam is **planned** (not a pillar):
+
+- **Entity query broker** — a thin `core/` query layer over the bundle so
+  components ask for intent (search, label, image, events featuring a card)
+  instead of reaching into raw records. Mostly a consolidation of lookups that
+  already live in `ui/search` and `ui/oshi`. See [catalog.md](catalog.md);
+  tracked as **#35**.
+
 Two slices of projection are **still to come** (now unblocked — see below):
 the **spends/commitments** channel (the one stream that consumes the fold's own
 output for affordability), **rushed-event posting**, and the **expected-copies
@@ -52,6 +60,7 @@ contract is settled in [`../contract.md`](../contract.md).
 | Understand the whole design in one pass | [architecture.md](architecture.md) |
 | Know what we store and why so little | [persistence.md](persistence.md) |
 | Understand the engine that derives everything | [projection.md](projection.md) |
+| Understand the entity query broker (search/label seam over the bundle) | [catalog.md](catalog.md) |
 | Understand how the site presents itself (the view layer) | [ui.md](ui.md) |
 | Understand the menubar, Identity, Resources, and Tazuna | [menu.md](menu.md) |
 | Track Identity Play Style preset UX and semantics | [identity-presets.md](identity-presets.md) |
