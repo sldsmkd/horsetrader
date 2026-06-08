@@ -57,7 +57,9 @@ function calendarEvent(event: EventRecord, timeZone: string): EventRecord {
 }
 
 export function createBundle(events: EventsBundle, academy: Academy, timeZone: string = UTC_TIME_ZONE): Bundle {
-  const calendarEvents = events.events.map((event) => calendarEvent(event, timeZone));
+  const calendarEvents = events.events
+    .filter((event) => event.visible !== false)
+    .map((event) => calendarEvent(event, timeZone));
   const byKey = new Map<string, EventRecord>(calendarEvents.map((e) => [e.key, e]));
   const characters = Object.entries(academy.characters).map(([id, record]) => ({ id, record }));
   const trainees = Object.entries(academy.trainees).map(([id, record]) => ({ id, record }));

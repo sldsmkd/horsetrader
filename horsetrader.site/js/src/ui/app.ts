@@ -26,7 +26,7 @@ import { timeline } from "./views/timeline.ts";
 import { minimap } from "./views/minimap.ts";
 import { belowCard } from "./views/belowCard.ts";
 import { bannerGroup } from "./views/bannerGroup.ts";
-import { overlay } from "./views/overlay.ts";
+import { overlay, suspendOverlay } from "./views/overlay.ts";
 import { menubar } from "./views/menubar.ts";
 import type { MenubarOverlay } from "./views/menubar.ts";
 import { playStyleSurface } from "./views/playStyleSurface.ts";
@@ -61,16 +61,7 @@ const ABOVE_GAP = 8;
 type AppOverlay = MenubarOverlay | "oshi" | "playstyle" | "playstyle-oshi";
 
 function appOverlayForIdentityOverlay(overlay: IdentityOverlayState): AppOverlay {
-  if (overlay === "closed") return null;
-  if (overlay === "trainer") return "identity";
-  return overlay;
-}
-
-function suspendOverlay(card: HTMLElement): HTMLElement {
-  card.classList.add("overlay--suspended");
-  card.setAttribute("aria-hidden", "true");
-  card.append(h("div", { class: "overlay__modal-shield", attr: { "aria-hidden": "true" } }));
-  return card;
+  return overlay === "closed" ? null : overlay;
 }
 
 /**

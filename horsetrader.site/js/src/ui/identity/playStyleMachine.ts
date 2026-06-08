@@ -1,6 +1,6 @@
 import type { PlayStyleKey } from "../views/playStylePreset.ts";
 
-export type IdentityOverlayState = "closed" | "trainer" | "oshi" | "playstyle" | "playstyle-oshi";
+export type IdentityOverlayState = "closed" | "identity" | "oshi" | "playstyle" | "playstyle-oshi";
 
 export interface PlayStyleMachineState {
   overlay: IdentityOverlayState;
@@ -33,7 +33,7 @@ export function reducePlayStyleMachine(
   switch (event.type) {
     case "toggle-identity":
       return {
-        overlay: state.overlay === "closed" ? "trainer" : "closed",
+        overlay: state.overlay === "closed" ? "identity" : "closed",
         stagedPlayStyle: null,
       };
     case "open-oshi":
@@ -43,19 +43,19 @@ export function reducePlayStyleMachine(
       };
     case "close-oshi":
       return {
-        overlay: state.overlay === "playstyle-oshi" ? "playstyle" : "trainer",
+        overlay: state.overlay === "playstyle-oshi" ? "playstyle" : "identity",
         stagedPlayStyle: state.stagedPlayStyle,
       };
     case "discard-playstyle":
     case "commit-playstyle":
-      return { overlay: "trainer", stagedPlayStyle: null };
+      return { overlay: "identity", stagedPlayStyle: null };
     case "close-all":
       return PLAY_STYLE_MACHINE_INITIAL;
     case "preview-playstyle": {
       if (event.key === "custom") return state;
       if ((state.overlay === "playstyle" || state.overlay === "playstyle-oshi") && event.key === savedPlayStyle) {
         return previewedPlayStyle(state, savedPlayStyle) === savedPlayStyle
-          ? { overlay: "trainer", stagedPlayStyle: null }
+          ? { overlay: "identity", stagedPlayStyle: null }
           : { overlay: "playstyle", stagedPlayStyle: null };
       }
       return {

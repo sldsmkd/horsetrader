@@ -19,7 +19,7 @@ export function rewardStrip(rewards: Record<string, number | undefined>): HTMLEl
         reward.icon
           ? h("img", {
               class: "reward-strip__icon",
-              attr: { src: reward.icon, alt: reward.label, width: 256, height: 256, loading: "lazy", decoding: "async" },
+              attr: { src: reward.icon, alt: reward.label, width: 16, height: 16, loading: "lazy", decoding: "async" },
             })
           : h("span", { class: "reward-strip__fallback-label" }, reward.label),
         h("span", { class: "reward-strip__amount" }, reward.amount),

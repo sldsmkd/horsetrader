@@ -21,6 +21,13 @@ export interface OverlayOpts {
   onClose: () => void;
 }
 
+export function suspendOverlay(card: HTMLElement): HTMLElement {
+  card.classList.add("overlay--suspended");
+  card.setAttribute("aria-hidden", "true");
+  card.append(h("div", { class: "overlay__modal-shield", attr: { "aria-hidden": "true" } }));
+  return card;
+}
+
 export function overlay(opts: OverlayOpts): HTMLElement {
   return h(
     "div",

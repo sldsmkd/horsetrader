@@ -6,7 +6,7 @@ import type { PlayStyleKey } from "../views/playStylePreset.ts";
 import { normalizePlayStyleSettings, playStyleSettingsForPreset } from "./playStyleSettings.ts";
 import type { PlayStyleSettings } from "./playStyleSettings.ts";
 import { oshiSelector } from "../views/oshiSelector.ts";
-import { overlay } from "../views/overlay.ts";
+import { overlay, suspendOverlay } from "../views/overlay.ts";
 import type { UiStrings } from "../strings.ts";
 import type { Coordinator } from "../../core/coordinator/index.ts";
 import type { Bundle } from "../bundle/access.ts";
@@ -104,11 +104,7 @@ export function createIdentityController(coord: Coordinator, bundle: Bundle, str
         }),
         onClose: opts.onClose,
       });
-      if (opts.suspended) {
-        card.classList.add("overlay--suspended");
-        card.setAttribute("aria-hidden", "true");
-        card.append(h("div", { class: "overlay__modal-shield", attr: { "aria-hidden": "true" } }));
-      }
+      if (opts.suspended) suspendOverlay(card);
       return card;
     },
 
