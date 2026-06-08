@@ -18,8 +18,10 @@ import { formatDate } from "../format.ts";
 import type { BannerGroup } from "../select/aboveLane.ts";
 import { rushedToggleFor } from "../widgets/rushedToggle.ts";
 import type { RushBinding } from "../widgets/rushedToggle.ts";
+import { atomChip } from "../widgets/atomChip.ts";
+import type { FavouriteBinding } from "../widgets/atomChip.ts";
 
-export function bannerGroup(group: BannerGroup, rush: RushBinding): HTMLElement {
+export function bannerGroup(group: BannerGroup, rush: RushBinding, fav: FavouriteBinding): HTMLElement {
   const el = h(
     "div",
     { class: `card card--above${group.predicted ? " card--predicted" : ""}` },
@@ -31,18 +33,7 @@ export function bannerGroup(group: BannerGroup, rush: RushBinding): HTMLElement 
           "div",
           { class: `banner banner--${banner.kind}` },
           h("img", { class: "banner__image", attr: { src: banner.image, alt: "", loading: "lazy" } }),
-          h(
-            "ul",
-            { class: "banner__atoms" },
-            ...banner.atoms.map((atom) =>
-              h(
-                "li",
-                { class: "atom" },
-                h("span", { class: "atom__name" }, atom.name),
-                h("span", { class: "atom__rarity" }, atom.rarity),
-              ),
-            ),
-          ),
+          h("ul", { class: "banner__atoms" }, ...banner.atoms.map((atom) => atomChip(atom, fav))),
           banner.rushable ? rushedToggleFor(rush, banner.key) : null,
         ),
       ),

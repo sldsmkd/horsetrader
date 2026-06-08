@@ -27,6 +27,7 @@ import { minimap } from "./views/minimap.ts";
 import { belowCard } from "./views/belowCard.ts";
 import { bannerGroup } from "./views/bannerGroup.ts";
 import type { RushBinding } from "./widgets/rushedToggle.ts";
+import type { FavouriteBinding } from "./widgets/atomChip.ts";
 import { overlay } from "./views/overlay.ts";
 import { buildTrainerCard, buildOshiSelectorOverlay, buildPlayStyleOverlay } from "./views/identityOverlay.ts";
 import { menubar } from "./views/menubar.ts";
@@ -212,6 +213,16 @@ export function mountApp(
     },
   };
 
+  const fav: FavouriteBinding = {
+    isFavourited: (id) => id in (coord.document().favourites ?? {}),
+    setFavourited: (id, on) => {
+      const next = { ...(coord.document().favourites ?? {}) };
+      if (on) next[id] = {};
+      else delete next[id];
+      coord.update({ favourites: next });
+    },
+  };
+
   function refresh(): void {
     const projection = coord.projection();
     const extent = displayExtent(bundle);
@@ -229,7 +240,7 @@ export function mountApp(
     const below = belowLaneCards(projection, bundle, axis, now);
     const above = aboveLaneGroups(bundle, axis, now);
     const belowEls = below.map((card) => belowCard(card, rush));
-    const aboveEls = above.map((group) => bannerGroup(group, rush));
+    const aboveEls = above.map((group) => bannerGroup(group, rush, fav));
     tl.setCards([...belowEls, ...aboveEls]);
     // Mounted now → heights are measurable. Pack each lane (below returns its
     // floor depth, above its roof height); the timeline turns these into its

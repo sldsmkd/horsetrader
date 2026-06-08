@@ -55,11 +55,11 @@ test("contents resolve to atoms in the kind's grammar — trainee stars, support
 
   const trainee = shared.banners.find((b) => b.key === "banner-t")!;
   assert.deepEqual(trainee.atoms, [
-    { id: "t-spe", name: "Special Week", rarity: "3★" },
-    { id: "t-suzuka", name: "Silence Suzuka", rarity: "3★" },
+    { id: "t-spe", name: "Special Week", rarity: "3★", rarityTier: "crystal" },
+    { id: "t-suzuka", name: "Silence Suzuka", rarity: "3★", rarityTier: "crystal" },
   ]);
   const support = shared.banners.find((b) => b.key === "banner-s2")!;
-  assert.deepEqual(support.atoms, [{ id: "s-spe", name: "Special Week", rarity: "SSR" }]);
+  assert.deepEqual(support.atoms, [{ id: "s-spe", name: "Special Week", rarity: "SSR", rarityTier: "crystal", attribute: "guts" }]);
 });
 
 test("timestamped banners group and position by the selected viewer calendar", () => {

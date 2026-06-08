@@ -20,12 +20,19 @@ export type BannerKind = "trainee" | "support";
 /** Within a group, trainee gacha read before support gacha (the prototype order). */
 const KIND_ORDER: Record<BannerKind, number> = { trainee: 0, support: 1 };
 
+/** Normalised rarity tier for the pill border grammar (principle 5). R is culled — never silver. */
+export type RarityTier = "crystal" | "gold";
+
 /** One resolved banner-content pill — the borrowed rarity/attribute grammar (principle 5). */
 export interface BannerAtom {
   id: string;
   name: string;
   /** A display rarity token — trainee stars (`3★`) or support tier (`SSR`). */
   rarity: string;
+  /** Normalised tier for the border/surround grammar — crystal (SSR/3★) or gold (SR/2★). */
+  rarityTier: RarityTier;
+  /** Support type badge icon key — `"speed"`, `"guts"`, etc. Absent for trainees. */
+  attribute?: string;
 }
 
 /** One banner within a group — its identity, art and content pills. */
@@ -51,15 +58,24 @@ export interface BannerGroup {
   banners: Banner[];
 }
 
-/** Resolve one banner-content id to its display atom, by banner kind. */
-function atomOf(bundle: Bundle, kind: BannerKind, id: string): BannerAtom {
+/** Resolve one banner-content id to its display atom; returns null for R/1★ (culled by design). */
+function atomOf(bundle: Bundle, kind: BannerKind, id: string): BannerAtom | null {
   if (kind === "trainee") {
     const trainee = bundle.trainee(id);
+    if (trainee.rarity < 2) return null;
     const character = bundle.character(trainee.character);
-    return { id, name: character.name ?? id, rarity: `${trainee.rarity}★` };
+    return { id, name: character.name ?? id, rarity: `${trainee.rarity}★`, rarityTier: trainee.rarity >= 3 ? "crystal" : "gold" };
   }
   const support = bundle.support(id);
-  return { id, name: support.display ?? id, rarity: (support.rarity ?? "").toUpperCase() };
+  const r = (support.rarity ?? "").toLowerCase();
+  if (r === "r" || r === "") return null;
+  return {
+    id,
+    name: support.display ?? id,
+    rarity: r.toUpperCase(),
+    rarityTier: r === "ssr" ? "crystal" : "gold",
+    attribute: support.type ?? undefined,
+  };
 }
 
 export function aboveLaneGroups(bundle: Bundle, axis: Axis, now: string): BannerGroup[] {
@@ -71,7 +87,8 @@ export function aboveLaneGroups(bundle: Bundle, axis: Axis, now: string): Banner
     let group = byDate.get(ev.start);
     if (!group) byDate.set(ev.start, (group = { key: ev.start, date: ev.start, x: axis.xForDate(ev.start), predicted: false, banners: [] }));
     group.predicted = group.predicted || ev.predicted;
-    group.banners.push({ key: ev.key, kind: ev.type, image: ev.image, atoms: ev.contents.map((id) => atomOf(bundle, ev.type, id)), rushable: isRushable(ev) && ev.end >= now });
+    const atoms = ev.contents.map((id) => atomOf(bundle, ev.type, id)).filter((a): a is BannerAtom => a !== null);
+    group.banners.push({ key: ev.key, kind: ev.type, image: ev.image, atoms, rushable: isRushable(ev) && ev.end >= now });
   }
 
   const groups = [...byDate.values()];
