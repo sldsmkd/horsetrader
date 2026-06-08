@@ -19,6 +19,9 @@ export interface ViewState {
   selection: string | null;
   /** The current search query; the empty string when search is idle. */
   search: string;
+  /** Whether the bookmarks drawer is expanded. Layer-2 chrome, independent of
+   *  `overlay` — the drawer coexists with an open overlay (it is not modal). */
+  bookmarks: boolean;
 }
 
 export interface ViewStore {
@@ -30,7 +33,7 @@ export interface ViewStore {
   subscribe(listener: () => void): () => void;
 }
 
-const INITIAL: ViewState = { overlay: null, selection: null, search: "" };
+const INITIAL: ViewState = { overlay: null, selection: null, search: "", bookmarks: false };
 
 export function createViewStore(initial: Partial<ViewState> = {}): ViewStore {
   let state: ViewState = { ...INITIAL, ...initial };

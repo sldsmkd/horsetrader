@@ -59,7 +59,7 @@ export interface BannerGroup {
 }
 
 /** Resolve one banner-content id to its display atom; returns null for R/1★ (culled by design). */
-function atomOf(bundle: Bundle, kind: BannerKind, id: string): BannerAtom | null {
+export function atomOf(bundle: Bundle, kind: BannerKind, id: string): BannerAtom | null {
   if (kind === "trainee") {
     const trainee = bundle.trainee(id);
     if (trainee.rarity < 2) return null;
@@ -74,7 +74,7 @@ function atomOf(bundle: Bundle, kind: BannerKind, id: string): BannerAtom | null
     name: support.display ?? id,
     rarity: r.toUpperCase(),
     rarityTier: r === "ssr" ? "crystal" : "gold",
-    attribute: support.type ?? undefined,
+    ...(support.type ? { attribute: support.type } : {}),
   };
 }
 

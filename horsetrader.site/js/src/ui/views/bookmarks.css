@@ -1,0 +1,145 @@
+/* The bookmarks drawer — layer-2 chrome docked top-left under the menubar. No
+ * z-index: it sits in DOM order before the overlay layer, so overlays paint over
+ * it where they share the zone (ui.md: overlays "overlay it" but never lock it).
+ * It is sized to its content, so the live canvas shows through everywhere else. */
+.bookmarks {
+  position: fixed;
+  top: 4.5rem;
+  left: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  width: 16rem;
+  max-width: calc(100vw - 1.5rem);
+  max-height: calc(100vh - 5.25rem - var(--minimap-h));
+}
+
+.bookmarks__tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.35rem;
+  padding: 0 0.75rem;
+  border: 1px solid color-mix(in srgb, currentColor 24%, transparent);
+  border-radius: 0.45rem;
+  background: color-mix(in srgb, Canvas 78%, transparent);
+  box-shadow: 0 0.35rem 1.4rem #0000002e;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.bookmarks__tab:hover {
+  background: color-mix(in srgb, Canvas 62%, currentColor 10%);
+}
+
+/* Empty is a quiet inactive state — the universal disabled-control grey on the
+ * tab (not on data), distinct from grey-as-trust (ui.md principle 5/6). */
+.bookmarks--empty .bookmarks__tab {
+  opacity: 0.45;
+  cursor: default;
+  box-shadow: none;
+}
+.bookmarks--empty .bookmarks__tab:hover {
+  background: color-mix(in srgb, Canvas 78%, transparent);
+}
+
+.bookmarks__chevron {
+  display: inline-block;
+  font-size: 1.1rem;
+  line-height: 1;
+  transition: transform 0.12s ease;
+}
+.bookmarks--open .bookmarks__chevron {
+  transform: rotate(90deg);
+}
+
+.bookmarks__tab-label {
+  font-weight: 600;
+}
+
+.bookmarks__panel {
+  display: none;
+  width: 100%;
+  min-height: 0;
+  overflow: auto;
+  border: 1px solid color-mix(in srgb, currentColor 24%, transparent);
+  border-radius: 0.45rem;
+  background: color-mix(in srgb, Canvas 88%, transparent);
+  box-shadow: 0 0.5rem 2rem #00000059;
+}
+.bookmarks--open .bookmarks__panel {
+  display: block;
+}
+
+.bookmarks__list {
+  margin: 0;
+  padding: 0.3rem;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.bookmark-row {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: 0.4rem;
+  border: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+  background: color-mix(in srgb, Canvas 70%, transparent);
+  cursor: pointer;
+}
+.bookmark-row:hover,
+.bookmark-row:focus-visible {
+  border-color: color-mix(in srgb, currentColor 32%, transparent);
+  background: color-mix(in srgb, Canvas 55%, currentColor 8%);
+  outline: 0;
+}
+/* Predicted dates carry the grey trust-language (ui.md principle 5). */
+.bookmark-row--predicted {
+  opacity: 0.55;
+}
+
+.bookmark-row__date {
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: color-mix(in srgb, currentColor 70%, transparent);
+}
+
+.bookmark-row__atoms {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.bookmark-atom {
+  position: relative;
+  padding-left: 0.6rem;
+  font-size: 0.78rem;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* The dot mirrors the minimap dot colours — trainee green, support blue. */
+.bookmark-atom::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.5em;
+  width: 0.35rem;
+  height: 0.35rem;
+  margin-top: -0.175rem;
+  border-radius: 50%;
+}
+.bookmark-atom--trainee::before {
+  background: #27ae60;
+}
+.bookmark-atom--support::before {
+  background: #2980b9;
+}
