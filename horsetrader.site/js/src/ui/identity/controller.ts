@@ -64,7 +64,7 @@ export function createIdentityController(coord: Coordinator, bundle: Bundle): Id
 
   function playStyleKey(): PlayStyleKey {
     const key = identityConfig()["playStyleKey"];
-    return key === "sweetie" || key === "casual" || key === "focused" || key === "dedicated" || key === "unhinged"
+    return key === "sweetie" || key === "casual" || key === "focused" || key === "dedicated" || key === "unhinged" || key === "custom"
       ? key
       : DEFAULT_PLAY_STYLE;
   }
@@ -74,7 +74,7 @@ export function createIdentityController(coord: Coordinator, bundle: Bundle): Id
   }
 
   function commitPlayStyle(key: PlayStyleKey, settings: PlayStyleSettings): void {
-    if (key !== "custom") updateIdentity({ playStyleKey: key, playStyleSettings: settings });
+    updateIdentity({ playStyleKey: key, playStyleSettings: settings });
   }
 
   function currentOshi(): OshiOption {
