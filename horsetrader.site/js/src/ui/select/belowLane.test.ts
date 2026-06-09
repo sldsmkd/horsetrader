@@ -27,7 +27,7 @@ const NOW = "2026-06-08";
 
 /** The real path: extract the events stream, add a login generator, fold. */
 function projectFixture() {
-  return project({ date: "2026-01-01", resources: {} }, [
+  return project({ resources: {} }, [
     { stream: "events", emissions: eventStream(EVENTS, "2026-01-01") },
     { stream: "generators", emissions: [{ date: "2026-06-12", source: "daily-login", deltas: { free_carats: 50 } }] },
   ]);
@@ -58,7 +58,7 @@ test("visibility is opt-out: an explicit `visible: false` hides the card, absenc
       { type: "cm", name: "Shown CM", start: "2026-09-10", end: "2026-09-15", predicted: false, key: "cm-shown" },
     ],
   };
-  const projection = project({ date: "2026-01-01", resources: {} }, [{ stream: "events", emissions: eventStream(events, "2026-01-01") }]);
+  const projection = project({ resources: {} }, [{ stream: "events", emissions: eventStream(events, "2026-01-01") }]);
   const cards = belowLaneCards(projection, createBundle(events, EMPTY_ACADEMY), createAxis({ origin: "2026-06-01", pxPerDay: 10 }), NOW);
 
   assert.deepEqual(cards.map((c) => c.key), ["cm-shown"]); // only the visible one

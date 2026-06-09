@@ -50,6 +50,15 @@
   background: color-mix(in srgb, Canvas 62%, currentColor 10%);
 }
 
+/* Inert: a button that can't act right now — either locked behind a shield, or a
+   surface that isn't built yet (Plan/Tazuna). Dimmed but still readable. Disabled
+   buttons don't fire :hover, so no lift to suppress. */
+.menubar__button:disabled,
+.menubar__button--shielded {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .menubar__home {
   width: 2.35rem;
   padding: 0;
@@ -95,7 +104,17 @@
 }
 
 .menubar__balance {
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.1rem;
   min-width: 8.5rem;
+  padding-block: 0.35rem;
+}
+
+.menubar__balance-primary {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
 }
 
 .menubar__balance-value {
@@ -105,6 +124,12 @@
 
 .menubar__balance-unit {
   color: color-mix(in srgb, currentColor 72%, transparent);
+}
+
+.menubar__balance-tickets {
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  color: color-mix(in srgb, currentColor 60%, transparent);
 }
 
 @media (max-width: 860px) {

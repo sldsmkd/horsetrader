@@ -61,7 +61,6 @@ export function reducePlayStyleMachine(
     case "stage-settings":
       return { ...state, stagedPlayStyleSettings: event.settings };
     case "preview-playstyle": {
-      if (event.key === "custom") return state;
       if ((state.overlay === "playstyle" || state.overlay === "playstyle-oshi") && event.key === savedPlayStyle) {
         return previewedPlayStyle(state, savedPlayStyle) === savedPlayStyle
           ? { overlay: "identity", stagedPlayStyle: null, stagedPlayStyleSettings: null }

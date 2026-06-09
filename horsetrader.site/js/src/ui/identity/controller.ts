@@ -3,6 +3,8 @@ import { DEFAULT_PLAY_STYLE } from "../views/playStylePreset.ts";
 import type { PlayStyleKey } from "../views/playStylePreset.ts";
 import { normalizePlayStyleSettings, playStyleSettingsForPreset } from "./playStyleSettings.ts";
 import type { PlayStyleSettings } from "./playStyleSettings.ts";
+import { loadSupporters, verifySupporter } from "./supporters.ts";
+import type { SupporterRegistry } from "./supporters.ts";
 import type { OshiOption, OshiSearchIndex } from "../query/index.ts";
 import type { Coordinator } from "../../core/coordinator/index.ts";
 import type { Bundle } from "../bundle/access.ts";
@@ -15,17 +17,22 @@ export interface MenuIdentity {
 export interface IdentityController {
   menuIdentity(): MenuIdentity;
   trainerName(): string;
+  trainerId(): string;
+  /** True iff this trainer's ID + name match a published supporter entry. */
+  isSupporter(): Promise<boolean>;
   currentOshi(): OshiOption;
   oshiSearch(): OshiSearchIndex;
   savedPlayStyleKey(): PlayStyleKey;
   savedPlayStyleSettings(): PlayStyleSettings;
   commitPlayStyle(key: PlayStyleKey, settings: PlayStyleSettings): void;
   setTrainerName(name: string): void;
+  setTrainerId(id: string): void;
   setOshiId(id: string): void;
 }
 
 export function createIdentityController(coord: Coordinator, bundle: Bundle): IdentityController {
   const _oshiSearch = createOshiIndex(bundle);
+  let _supporters: Promise<SupporterRegistry> | undefined;
 
   function identityConfig(): Record<string, unknown> {
     const config = coord.document().config;
@@ -45,6 +52,11 @@ export function createIdentityController(coord: Coordinator, bundle: Bundle): Id
     return typeof name === "string" && name.trim() ? name : "Kris";
   }
 
+  function trainerId(): string {
+    const id = identityConfig()["trainerId"];
+    return typeof id === "string" ? id.replace(/\D/g, "").slice(0, 12) : "";
+  }
+
   function oshiId(): string {
     const id = identityConfig()["oshiId"];
     return typeof id === "string" && id.trim() ? id : DEFAULT_OSHI_ID;
@@ -52,7 +64,7 @@ export function createIdentityController(coord: Coordinator, bundle: Bundle): Id
 
   function playStyleKey(): PlayStyleKey {
     const key = identityConfig()["playStyleKey"];
-    return key === "sweetie" || key === "casual" || key === "focused" || key === "dedicated" || key === "unhinged"
+    return key === "sweetie" || key === "casual" || key === "focused" || key === "dedicated" || key === "unhinged" || key === "custom"
       ? key
       : DEFAULT_PLAY_STYLE;
   }
@@ -62,7 +74,7 @@ export function createIdentityController(coord: Coordinator, bundle: Bundle): Id
   }
 
   function commitPlayStyle(key: PlayStyleKey, settings: PlayStyleSettings): void {
-    if (key !== "custom") updateIdentity({ playStyleKey: key, playStyleSettings: settings });
+    updateIdentity({ playStyleKey: key, playStyleSettings: settings });
   }
 
   function currentOshi(): OshiOption {
@@ -76,12 +88,18 @@ export function createIdentityController(coord: Coordinator, bundle: Bundle): Id
     },
 
     trainerName,
+    trainerId,
+    async isSupporter() {
+      _supporters ??= loadSupporters();
+      return verifySupporter(await _supporters, trainerId(), trainerName());
+    },
     currentOshi,
     oshiSearch: () => _oshiSearch,
     savedPlayStyleKey: playStyleKey,
     savedPlayStyleSettings: playStyleSettings,
     commitPlayStyle,
     setTrainerName: (name) => updateIdentity({ trainerName: name }),
+    setTrainerId: (id) => updateIdentity({ trainerId: id }),
     setOshiId: (id) => updateIdentity({ oshiId: id }),
   };
 }

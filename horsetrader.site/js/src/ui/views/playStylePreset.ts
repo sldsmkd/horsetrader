@@ -19,6 +19,8 @@ export interface PlayStylePresetGridOpts {
   selectedKey: PlayStyleKey;
   activeKey: PlayStyleKey;
   strings: PlayStyleStrings;
+  /** Supporter perk: the `locked: true` preset (custom) is unlocked when true. */
+  customUnlocked: boolean;
   onPreview: (key: PlayStyleKey) => void;
 }
 
@@ -30,7 +32,7 @@ export function playStylePresetGrid(opts: PlayStylePresetGridOpts): HTMLElement 
       const copy = opts.strings.presets[style.key];
       const active = style.key === opts.activeKey;
       const selected = style.key === opts.selectedKey;
-      const locked = "locked" in style && style.locked === true;
+      const locked = "locked" in style && style.locked === true && !opts.customUnlocked;
       const attr = {
         type: "button",
         "aria-pressed": String(selected),

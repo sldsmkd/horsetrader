@@ -10,7 +10,7 @@ function banner(key: string, end: string, rewards: NonNullable<TraineeBannerReco
   return { type: "trainee", contents: [], image: "", start: end, end, predicted: false, rushable: false, key, rewards };
 }
 
-const snapshot: Snapshot = { date: "2026-06-01", resources: { free_carats: 1000 } };
+const snapshot: Snapshot = { date: "2026-06-01", recordedAt: "2026-06-01T00:00:00.000Z", resources: { free_carats: 1000 } };
 
 test("project folds streams from the snapshot forward into a queryable balance series", () => {
   const bundle: EventsBundle = {

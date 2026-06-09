@@ -121,7 +121,7 @@ export function createCoordinator(options: CoordinatorOptions): Coordinator {
     const streams = registry
       .filter((ch) => enabled.get(ch.name) !== false)
       .map((ch) => ({ stream: ch.name, emissions: ch.emit({ bundle, after, timeZone }) }));
-    return project({ date: after, resources: base }, streams);
+    return project({ resources: base }, streams);
   }
 
   let current = fold();

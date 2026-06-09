@@ -50,7 +50,11 @@ function validateSnapshot(value: unknown): Snapshot | undefined {
     console.warn("persistence: dropping snapshot with no date");
     return undefined;
   }
-  return { date: value["date"], resources: numberVector(value["resources"]) };
+  const date = value["date"];
+  // `recordedAt` (full UTC instant) is newer than `date`; back-fill legacy
+  // day-only readings at UTC midnight so every loaded snapshot carries one.
+  const recordedAt = typeof value["recordedAt"] === "string" ? value["recordedAt"] : `${date}T00:00:00.000Z`;
+  return { date, recordedAt, resources: numberVector(value["resources"]) };
 }
 
 function validateConfig(value: unknown): Config | undefined {

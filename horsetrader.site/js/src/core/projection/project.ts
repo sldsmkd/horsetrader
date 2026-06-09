@@ -28,8 +28,8 @@ export interface Projection {
   series: BalanceSeries;
 }
 
-export function project(snapshot: Snapshot, streams: NamedStream[]): Projection {
+export function project(origin: Pick<Snapshot, "resources">, streams: NamedStream[]): Projection {
   const ledger: Ledger = streams.flatMap((s) => attribute(s.stream, s.emissions));
-  const series = balanceSeries(snapshot.resources, ledger);
+  const series = balanceSeries(origin.resources, ledger);
   return { ledger, series };
 }

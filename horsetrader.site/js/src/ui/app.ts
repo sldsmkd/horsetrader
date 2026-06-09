@@ -28,19 +28,23 @@ import { belowCard } from "./views/belowCard.ts";
 import { bannerGroup } from "./views/bannerGroup.ts";
 import type { RushBinding } from "./widgets/rushedToggle.ts";
 import type { FavouriteBinding } from "./widgets/atomChip.ts";
-import { overlay } from "./views/overlay.ts";
+import { overlay, suspendOverlay } from "./views/overlay.ts";
+import { resourcesSurface } from "./views/resourcesSurface.ts";
+import type { ResourcesSurfaceHandle } from "./views/resourcesSurface.ts";
+import { resourcesEditor } from "./views/resourcesEditor.ts";
+import { tazunaSurface } from "./views/tazunaSurface.ts";
 import { bookmarks } from "./views/bookmarks.ts";
 import { bookmarkRows } from "./select/bookmarks.ts";
 import { buildTrainerCard, buildOshiSelectorOverlay, buildPlayStyleOverlay } from "./views/identityOverlay.ts";
 import { menubar } from "./views/menubar.ts";
-import type { MenubarOverlay } from "./views/menubar.ts";
+import type { RightSurface } from "./views/menubar.ts";
 import type { PlayStyleKey } from "./views/playStylePreset.ts";
 import { createIdentityController } from "./identity/controller.ts";
 import {
   PLAY_STYLE_MACHINE_INITIAL,
   reducePlayStyleMachine,
 } from "./identity/playStyleMachine.ts";
-import type { IdentityOverlayState, PlayStyleMachineEvent, PlayStyleMachineState } from "./identity/playStyleMachine.ts";
+import type { PlayStyleMachineEvent, PlayStyleMachineState } from "./identity/playStyleMachine.ts";
 import type { PlayStyleSettings } from "./identity/playStyleSettings.ts";
 import type { UiStrings } from "./strings.ts";
 import { belowLaneCards } from "./select/belowLane.ts";
@@ -61,11 +65,6 @@ const BELOW_GAP_Y = 6;
 /** Above-lane horizontal breathing room between adjacent banner groups (px). */
 const ABOVE_GAP = 8;
 
-type AppOverlay = MenubarOverlay | "oshi" | "playstyle" | "playstyle-oshi";
-
-function appOverlayForIdentityOverlay(overlay: IdentityOverlayState): AppOverlay {
-  return overlay === "closed" ? null : overlay;
-}
 
 /**
  * The packer's impure bookend: measure the just-mounted below cards once, run the
@@ -149,13 +148,15 @@ export function mountApp(
     (state, event) => reducePlayStyleMachine(state, event, identity.savedPlayStyleKey()),
     PLAY_STYLE_MACHINE_INITIAL,
   );
-  const sendIdentityEvent = (event: PlayStyleMachineEvent): void => {
-    identityMachine.send(event);
-    view.set({ overlay: appOverlayForIdentityOverlay(identityMachine.get().overlay) });
-  };
-  const toggleOverlay = (overlay: Exclude<MenubarOverlay, null>) => {
-    identityMachine.send({ type: "close-all" });
-    view.set({ overlay: view.get().overlay === overlay ? null : overlay });
+  // The machine IS the left group's state; its `send` notifies subscribers, so
+  // renderOverlay (subscribed below) re-runs. No mirror into view-state.
+  const sendIdentityEvent = (event: PlayStyleMachineEvent): void => identityMachine.send(event);
+  // The right surface group: opening a member replaces whatever right surface was
+  // open (so only one per group), and clears the resources editor child. It does
+  // NOT touch the left group — left and right are independent.
+  const toggleRight = (member: RightSurface): void => {
+    const current = view.get().right;
+    view.set({ right: current === member ? null : member, resourcesEditing: false });
   };
 
   // The minimap is the primary navigation: dragging its track seeks, which pans
@@ -163,15 +164,26 @@ export function mountApp(
   // the window tracks the pan — a two-way cheap-path binding, no broadcast.
   const mini = minimap({ onSeek: (date) => tl.centerOn(date) });
 
+  // Track the current view-centre date for the Resources projected block. Updated
+  // on the cheap path (every pan) so Resources always shows the right projection.
+  let viewDate = now;
+
+  // The open Resources card, when one is up — a live handle the pan path refreshes
+  // imperatively (like the menubar), since `onView` deliberately skips the overlay
+  // rebuild. Null whenever the card isn't mounted; set/cleared in renderOverlay.
+  let liveResources: ResourcesSurfaceHandle | null = null;
+
   // The cheap path: the view centre *is* the focus. The timeline hands us the
   // centre date on every pan; we read the cached series into the menubar and move
   // the minimap window. No broadcast — a 60 Hz pan stays off the render path.
   const tl = timeline({
     onView: (date) => {
+      viewDate = date;
       const balance = coord.balanceAt(date);
       menu.setDate(date);
-      menu.setBalance(balance.free_carats ?? 0);
+      menu.setResources(balance);
       mini.setView(date);
+      liveResources?.update({ viewDate: date, projected: balance });
     },
   });
 
@@ -185,14 +197,13 @@ export function mountApp(
 
   const menu = menubar({
     initialDate: now,
-    initialBalance: coord.balanceAt(now).free_carats ?? 0,
+    initialResources: coord.balanceAt(now),
     identity: identity.menuIdentity(),
-    openOverlay: null,
     onHome: () => tl.warpTo(now),
     onIdentity: () => sendIdentityEvent({ type: "toggle-identity" }),
-    onPlan: () => toggleOverlay("plan"),
-    onResources: () => toggleOverlay("resources"),
-    onTazuna: () => toggleOverlay("tazuna"),
+    onPlan: () => {}, // inert until the planner surface lands
+    onResources: () => toggleRight("resources"),
+    onTazuna: () => toggleRight("tazuna"),
     search,
     onSearch: (result) => {
       view.set({ search: result.label, selection: result.id });
@@ -274,17 +285,6 @@ export function mountApp(
     });
   });
 
-  // The Account overlay's body: the snapshot editor — the domain mutation source.
-  function snapshotEditor(): HTMLElement {
-    const carats = h("input", { class: "snapshot-carats", attr: { type: "number", min: 0, step: 100 } });
-    const saved = coord.document().snapshot?.resources.free_carats;
-    if (saved !== undefined) carats.value = String(saved);
-    carats.addEventListener("change", () => {
-      coord.update({ snapshot: { date: now, resources: { free_carats: carats.valueAsNumber || 0 } } });
-    });
-    return h("label", { class: "field" }, h("span", "Carats now"), carats);
-  }
-
   // The view-state-driven layer: which overlay is open is a discrete change, so
   // it flows through `subscribe` and re-renders here (the render path).
   const overlayLayer = h("div", { class: "overlay-layer" });
@@ -298,14 +298,42 @@ export function mountApp(
     sendIdentityEvent({ type: "commit-playstyle" });
   };
 
+  // Supporter status gates the custom play-style preset. Resolved once at init
+  // (hash + fetch of the published list) — deliberately not re-checked at
+  // runtime; an ID/name edit takes effect on next load.
+  let supporterUnlocked = false;
+  void identity.isSupporter().then((unlocked) => {
+    supporterUnlocked = unlocked;
+    if (unlocked) renderOverlay();
+  });
+
+  // Live read of "is a shield (modal child window) up?" — the fallback guard for
+  // every spawn control. Suspension already makes the controls unreachable; this
+  // belt-and-braces refuses the spawn even if one slips through. A shield is modal
+  // to ALL spawnable windows (feedback_shield_vs_unfold).
+  const shieldOpen = (): boolean => {
+    const left = identityMachine.get().overlay;
+    return left === "oshi" || left === "playstyle-oshi" || view.get().resourcesEditing;
+  };
+
   function renderOverlay(): void {
     const identityUi = identityMachine.get();
-    const open = view.get().overlay as AppOverlay;
+    const left = identityUi.overlay; // left group — the machine is its sole owner
+    const right = view.get().right as RightSurface | null; // right group
+    // A shield (oshi or balance editor) is modal to ALL spawnable windows: it
+    // locks the menu's surface spawners AND suspends every other open surface so
+    // their in-card pencils can't spawn a second shield. One predicate, reused.
+    const anyShield = shieldOpen();
+
     menu.setIdentity(identity.menuIdentity());
-    menu.setOpenOverlay(open === "oshi" || open === "playstyle" || open === "playstyle-oshi" ? "identity" : open);
+    menu.setLeftActive(left !== "closed");
+    menu.setRightActive(right);
+    menu.setShielded(anyShield);
 
     const trainerCardOn = {
-      onOshiSelect: () => sendIdentityEvent({ type: "open-oshi" }),
+      onOshiSelect: () => {
+        if (!shieldOpen()) sendIdentityEvent({ type: "open-oshi" });
+      },
       onPlayStylePreview: previewPlayStyle,
       onClose: () => sendIdentityEvent({ type: "close-all" }),
     };
@@ -317,42 +345,82 @@ export function mountApp(
       onApply: commitPlayStylePreview,
     };
 
-    if (open === "resources") {
-      overlayLayer.replaceChildren(
-        overlay({ title: "Resources", body: snapshotEditor(), onClose: () => view.set({ overlay: null }) }),
-      );
-    } else if (open === "identity") {
-      overlayLayer.replaceChildren(buildTrainerCard(identity, strings, {}, trainerCardOn));
-    } else if (open === "oshi") {
-      overlayLayer.replaceChildren(
-        buildTrainerCard(identity, strings, { suspended: true }, trainerCardOn),
+    const children: Node[] = [];
+    // Rebuilt below if the Resources card is in this frame; the pan path checks it.
+    liveResources = null;
+
+    if (left === "identity") {
+      children.push(buildTrainerCard(identity, strings, { suspended: anyShield, customUnlocked: supporterUnlocked }, trainerCardOn));
+    } else if (left === "oshi") {
+      children.push(
+        buildTrainerCard(identity, strings, { suspended: true, customUnlocked: supporterUnlocked }, trainerCardOn),
         buildOshiSelectorOverlay(identity, { onClose: closeOshiSelector }),
       );
-    } else if (open === "playstyle") {
-      overlayLayer.replaceChildren(buildPlayStyleOverlay(identity, strings, identityUi, {}, playStyleOn));
-    } else if (open === "playstyle-oshi") {
-      overlayLayer.replaceChildren(
-        buildPlayStyleOverlay(identity, strings, identityUi, { suspended: true }, playStyleOn),
+    } else if (left === "playstyle") {
+      children.push(buildPlayStyleOverlay(identity, strings, identityUi, { suspended: anyShield, customUnlocked: supporterUnlocked }, playStyleOn));
+    } else if (left === "playstyle-oshi") {
+      children.push(
+        buildPlayStyleOverlay(identity, strings, identityUi, { suspended: true, customUnlocked: supporterUnlocked }, playStyleOn),
         buildOshiSelectorOverlay(identity, { onClose: closeOshiSelector }),
       );
-    } else if (open === "plan") {
-      overlayLayer.replaceChildren(
-        overlay({ title: "Plan", body: h("p", "No commitments yet."), onClose: () => view.set({ overlay: null }) }),
-      );
-    } else if (open === "tazuna") {
-      overlayLayer.replaceChildren(
-        overlay({
-          title: "Tazuna",
-          body: h("p", "Help and explanations will live here."),
-          onClose: () => view.set({ overlay: null }),
-        }),
-      );
-    } else {
-      overlayLayer.replaceChildren();
     }
+
+    // The right group: one surface (+ its children) at a time, independent of the
+    // left group above.
+    if (right === "resources") {
+      const editing = view.get().resourcesEditing;
+      const resources = resourcesSurface({
+        viewDate,
+        projected: coord.balanceAt(viewDate),
+        snapshot: coord.document().snapshot,
+        now,
+        onEdit: () => {
+          if (!shieldOpen()) view.set({ resourcesEditing: true });
+        },
+      });
+      liveResources = resources; // the pan path refreshes this card in place
+      const resourcesCard = overlay({
+        title: "Resources",
+        placement: "right",
+        body: resources.el,
+        // Closing the surface tears the editor shield down with it.
+        onClose: () => view.set({ right: null, resourcesEditing: false }),
+      });
+      // The editor is a shield over the surface (the oshi/trainer pattern); any
+      // shield up suspends this surface too, so its pencil can't spawn a second.
+      if (anyShield) suspendOverlay(resourcesCard);
+      children.push(resourcesCard);
+
+      if (editing) {
+        children.push(
+          overlay({
+            title: "Edit Balance",
+            placement: "center",
+            body: resourcesEditor({
+              snapshot: coord.document().snapshot,
+              onCommit: (snapshot) => coord.update({ snapshot }),
+              onClose: () => view.set({ resourcesEditing: false }),
+            }),
+            onClose: () => view.set({ resourcesEditing: false }),
+          }),
+        );
+      }
+    } else if (right === "tazuna") {
+      const tazunaCard = overlay({
+        title: "Tazuna",
+        placement: "right",
+        body: tazunaSurface(),
+        onClose: () => view.set({ right: null }),
+      });
+      if (anyShield) suspendOverlay(tazunaCard);
+      children.push(tazunaCard);
+    }
+
+    overlayLayer.replaceChildren(...children);
   }
   view.subscribe(renderOverlay);
   coord.subscribe(renderOverlay);
+  identityMachine.subscribe(renderOverlay); // left group re-renders on its own events
 
   // The drawer is a view over favourites (coord) and its open flag (view-state),
   // so it re-renders on both paths — the same dual-subscribe as the overlay layer.

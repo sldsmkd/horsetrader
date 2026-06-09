@@ -80,6 +80,30 @@ test("discarding or committing returns to the trainer card with no staged preset
   });
 });
 
+test("previewing custom opens the playstyle page like any other preset", () => {
+  const state = reducePlayStyleMachine(
+    { overlay: "identity", stagedPlayStyle: null, stagedPlayStyleSettings: null },
+    { type: "preview-playstyle", key: "custom" },
+    saved,
+  );
+
+  assert.deepEqual(state, { overlay: "playstyle", stagedPlayStyle: "custom", stagedPlayStyleSettings: null });
+  assert.equal(previewedPlayStyle(state, saved), "custom");
+});
+
+test("custom as saved preset follows the same toggle logic as other presets", () => {
+  const savedCustom = "custom" as const;
+  const open = reducePlayStyleMachine(
+    { overlay: "identity", stagedPlayStyle: null, stagedPlayStyleSettings: null },
+    { type: "preview-playstyle", key: "custom" },
+    savedCustom,
+  );
+  assert.deepEqual(open, { overlay: "playstyle", stagedPlayStyle: null, stagedPlayStyleSettings: null });
+
+  const closed = reducePlayStyleMachine(open, { type: "preview-playstyle", key: "custom" }, savedCustom);
+  assert.deepEqual(closed, { overlay: "identity", stagedPlayStyle: null, stagedPlayStyleSettings: null });
+});
+
 test("oshi selector is modal over the current identity surface", () => {
   const trainerOshi = reducePlayStyleMachine(
     { overlay: "identity", stagedPlayStyle: null, stagedPlayStyleSettings: null },

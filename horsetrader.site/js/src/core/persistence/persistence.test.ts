@@ -29,7 +29,7 @@ test("inputs round-trip through save → load", () => {
   save(
     {
       version: 1,
-      snapshot: { date: "2026-05-28", resources: { free_carats: 1200 } },
+      snapshot: { date: "2026-05-28", recordedAt: "2026-05-28T09:15:00.000Z", resources: { free_carats: 1200 } },
       commitments: { "30096": 50 },
       favourites: { "108301": { note: "save him" } },
       rushed: { "banner-30096": "2026-06-08T11:30:00.000Z" },
@@ -39,6 +39,7 @@ test("inputs round-trip through save → load", () => {
   const { doc, recovered } = load(store);
   assert.equal(recovered, false);
   assert.equal(doc.snapshot?.date, "2026-05-28");
+  assert.equal(doc.snapshot?.recordedAt, "2026-05-28T09:15:00.000Z");
   assert.equal(doc.snapshot?.resources.free_carats, 1200);
   assert.equal(doc.commitments?.["30096"], 50);
   assert.equal(doc.favourites?.["108301"]?.note, "save him");
@@ -71,6 +72,8 @@ test("non-finite resource and commitment values are dropped, not kept", () => {
   );
   const { doc } = quietly(() => load(store));
   assert.deepEqual(doc.snapshot?.resources, { free_carats: 1200 });
+  // A legacy day-only snapshot back-fills `recordedAt` at UTC midnight on load.
+  assert.equal(doc.snapshot?.recordedAt, "2026-05-28T00:00:00.000Z");
   assert.deepEqual(doc.commitments, { "30096": 50 });
 });
 
