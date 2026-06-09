@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import { aboveLaneGroups } from "./aboveLane.ts";
 import { createBundle } from "../bundle/access.ts";
+import { TEST_CONFIG } from "../bundle/fixtures.ts";
 import { createAxis } from "../axis.ts";
 import type { EventsBundle } from "../../core/bundle/events.gen.ts";
 import type { Academy } from "../../core/bundle/academy.gen.ts";
@@ -30,7 +31,7 @@ const ACADEMY: Academy = {
   },
 };
 
-const bundle = () => createBundle(EVENTS, ACADEMY);
+const bundle = () => createBundle(EVENTS, ACADEMY, TEST_CONFIG);
 const axis = () => createAxis({ origin: "2026-06-01", pxPerDay: 10 });
 const NOW = "2026-06-08";
 
@@ -69,7 +70,7 @@ test("timestamped banners group and position by the selected viewer calendar", (
       { type: "trainee", rushable: true, contents: ["t-spe"], image: "/i/tb.webp", start: "2026-06-10T22:30:00+00:00", end: "2026-06-16T22:30:00+00:00", predicted: false, key: "banner-t" },
     ],
   };
-  const groups = aboveLaneGroups(createBundle(events, ACADEMY, "Australia/Sydney"), axis(), NOW);
+  const groups = aboveLaneGroups(createBundle(events, ACADEMY, TEST_CONFIG, "Australia/Sydney"), axis(), NOW);
 
   assert.deepEqual(groups.map((g) => g.date), ["2026-06-11"]);
   assert.equal(groups[0]!.x, 100); // 2026-06-11 → 10 days after the origin
@@ -82,12 +83,12 @@ test("timestamped banners keep their UTC/server date when the view timezone is U
       { type: "support", rushable: false, contents: ["s-spe"], image: "/i/sb2.webp", start: "2026-06-10T22:00:00+00:00", end: "2026-06-16T22:00:00+00:00", predicted: false, key: "banner-s2" },
     ],
   };
-  const groups = aboveLaneGroups(createBundle(events, ACADEMY, "UTC"), axis(), NOW);
+  const groups = aboveLaneGroups(createBundle(events, ACADEMY, TEST_CONFIG, "UTC"), axis(), NOW);
 
   assert.deepEqual(groups.map((g) => g.date), ["2026-06-10"]);
 });
 
 test("empty bundle input returns no groups", () => {
-  const groups = aboveLaneGroups(createBundle(EMPTY_EVENTS, ACADEMY), axis(), NOW);
+  const groups = aboveLaneGroups(createBundle(EMPTY_EVENTS, ACADEMY, TEST_CONFIG), axis(), NOW);
   assert.deepEqual(groups, []);
 });

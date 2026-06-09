@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import { createBundle } from "../bundle/access.ts";
+import { TEST_CONFIG } from "../bundle/fixtures.ts";
 import { createOshiIndex, DEFAULT_OSHI_ID, searchOshis, selectedOshiOption, starterOshis } from "./oshi.ts";
 import type { EventsBundle } from "../../core/bundle/events.gen.ts";
 import type { Academy } from "../../core/bundle/academy.gen.ts";
@@ -81,7 +82,7 @@ const ACADEMY: Academy = {
 
 test("starter oshi slot 0 is the player-selection default", () => {
   assert.equal(DEFAULT_OSHI_ID, "char-haru-urara");
-  assert.deepEqual(starterOshis(selectedOshiOption(createBundle(EVENTS, ACADEMY), null))[0], {
+  assert.deepEqual(starterOshis(selectedOshiOption(createBundle(EVENTS, ACADEMY, TEST_CONFIG), null))[0], {
     id: "char-haru-urara",
     name: "Haru Urara",
     icon: "/urara.webp",
@@ -90,7 +91,7 @@ test("starter oshi slot 0 is the player-selection default", () => {
 });
 
 test("starter oshi slot 0 mirrors the persisted selected character", () => {
-  const selected = selectedOshiOption(createBundle(EVENTS, ACADEMY), "char-admire-groove");
+  const selected = selectedOshiOption(createBundle(EVENTS, ACADEMY, TEST_CONFIG), "char-admire-groove");
 
   assert.deepEqual(selected, {
     id: "char-admire-groove",
@@ -102,7 +103,7 @@ test("starter oshi slot 0 mirrors the persisted selected character", () => {
 });
 
 test("starter oshi list dedupes selected seed characters and pads with overflow", () => {
-  const selected = starterOshis(selectedOshiOption(createBundle(EVENTS, ACADEMY), "char-maruzensky"));
+  const selected = starterOshis(selectedOshiOption(createBundle(EVENTS, ACADEMY, TEST_CONFIG), "char-maruzensky"));
 
   assert.equal(selected.length, 12);
   assert.equal(selected.filter((oshi) => oshi.id === "char-maruzensky").length, 1);
@@ -110,7 +111,7 @@ test("starter oshi list dedupes selected seed characters and pads with overflow"
 });
 
 test("search choices keep selected in slot 0 without default backfill", () => {
-  const selected = selectedOshiOption(createBundle(EVENTS, ACADEMY), "char-maruzensky");
+  const selected = selectedOshiOption(createBundle(EVENTS, ACADEMY, TEST_CONFIG), "char-maruzensky");
   const matches = [
     { id: "char-admire-groove", name: "Admire Groove", icon: "/admire.webp", portrait: "/admire-portrait.webp" },
     selected,
@@ -126,7 +127,7 @@ test("search choices keep selected in slot 0 without default backfill", () => {
 });
 
 test("search choices cap wide results at the stable grid size", () => {
-  const selected = selectedOshiOption(createBundle(EVENTS, ACADEMY), "char-maruzensky");
+  const selected = selectedOshiOption(createBundle(EVENTS, ACADEMY, TEST_CONFIG), "char-maruzensky");
   const matches = Array.from({ length: 20 }, (_, i) => ({
     id: `char-match-${i}`,
     name: `Match ${i}`,
@@ -142,7 +143,7 @@ test("search choices cap wide results at the stable grid size", () => {
 });
 
 test("persisted oshi falls back when the character is not trainee-backed", () => {
-  assert.deepEqual(selectedOshiOption(createBundle(EVENTS, ACADEMY), "char-tazuna"), {
+  assert.deepEqual(selectedOshiOption(createBundle(EVENTS, ACADEMY, TEST_CONFIG), "char-tazuna"), {
     id: "char-haru-urara",
     name: "Haru Urara",
     icon: "/img/characters/haru-urara_icon.webp",
@@ -151,7 +152,7 @@ test("persisted oshi falls back when the character is not trainee-backed", () =>
 });
 
 test("oshi search returns base characters that have trainee records", () => {
-  const search = createOshiIndex(createBundle(EVENTS, ACADEMY));
+  const search = createOshiIndex(createBundle(EVENTS, ACADEMY, TEST_CONFIG));
 
   assert.deepEqual(search("tokai"), [
     { id: "char-teio", name: "Tokai Teio", icon: "/teio.webp", portrait: "/teio-portrait.webp" },
@@ -160,7 +161,7 @@ test("oshi search returns base characters that have trainee records", () => {
 });
 
 test("oshi search excludes staff and support-only characters", () => {
-  const search = createOshiIndex(createBundle(EVENTS, ACADEMY));
+  const search = createOshiIndex(createBundle(EVENTS, ACADEMY, TEST_CONFIG));
 
   assert.deepEqual(search("tazuna"), []);
 });

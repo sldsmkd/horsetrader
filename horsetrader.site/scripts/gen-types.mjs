@@ -22,6 +22,7 @@ const outDir = resolve(here, "../js/src/core/bundle");
 const schemas = [
   { in: "academy.schema.json", out: "academy.gen.ts" },
   { in: "events.schema.json", out: "events.gen.ts" },
+  { in: "config.schema.json", out: "config.gen.ts" },
 ];
 
 async function generate({ in: inFile, out: outFile }) {

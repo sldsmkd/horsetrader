@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import { bookmarkRows } from "./bookmarks.ts";
 import { createBundle } from "../bundle/access.ts";
+import { TEST_CONFIG } from "../bundle/fixtures.ts";
 import type { EventsBundle } from "../../core/bundle/events.gen.ts";
 import type { Academy } from "../../core/bundle/academy.gen.ts";
 
@@ -29,7 +30,7 @@ const ACADEMY: Academy = {
   trainees: { "t-spe": { character: "char-spe", variant: null, rarity: 3, release: "2021", thumbnail: null, portrait: null, aliases: [] } },
 };
 
-const bundle = () => createBundle(EVENTS, ACADEMY);
+const bundle = () => createBundle(EVENTS, ACADEMY, TEST_CONFIG);
 
 test("bookmarkRows: future banners holding a favourited atom, sorted nearest-first; past/unfav/non-banner excluded", () => {
   // Favourites are keyed by atom (content) id, not banner key — the real model.

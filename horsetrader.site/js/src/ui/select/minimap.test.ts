@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import { balancePoints, caratToY, fretLevels, dotMarks, BAND, PITY } from "./minimap.ts";
 import { balanceSeries } from "../../core/projection/ledger.ts";
 import { createBundle } from "../bundle/access.ts";
+import { TEST_CONFIG } from "../bundle/fixtures.ts";
 import type { EventsBundle } from "../../core/bundle/events.gen.ts";
 import type { Academy } from "../../core/bundle/academy.gen.ts";
 
@@ -28,7 +29,7 @@ const ACADEMY: Academy = {
   trainees: { "t-spe": { character: "char-spe", variant: null, rarity: 3, release: "2021", thumbnail: null, portrait: null, aliases: [] } },
 };
 
-const bundle = () => createBundle(EVENTS, ACADEMY);
+const bundle = () => createBundle(EVENTS, ACADEMY, TEST_CONFIG);
 
 test("balancePoints: change-points inside extent, plus the two extent ends, sorted; exact carat balance", () => {
   // Two change-points; balance walks +30k then −80k (crosses zero negative).

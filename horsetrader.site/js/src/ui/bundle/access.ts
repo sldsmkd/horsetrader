@@ -18,6 +18,7 @@
 
 import type { EventsBundle } from "../../core/bundle/events.gen.ts";
 import type { Academy, CharacterRecord, SupportRecord, TraineeRecord } from "../../core/bundle/academy.gen.ts";
+import type { ConfigBundle } from "../../core/bundle/config.gen.ts";
 import { UTC_TIME_ZONE, dateStringInTimeZone } from "../../core/projection/dates.ts";
 
 /** One event of any kind — the discriminated union the bundle actually holds. */
@@ -35,6 +36,8 @@ export interface Bundle {
   character(id: string): CharacterRecord;
   support(id: string): SupportRecord;
   trainee(id: string): TraineeRecord;
+  /** The baked non-timeline config — gacha pull-math, reward structures/maps. */
+  config(): ConfigBundle;
 }
 
 export interface AcademyEntry<T> {
@@ -56,7 +59,7 @@ function calendarEvent(event: EventRecord, timeZone: string): EventRecord {
   } as EventRecord;
 }
 
-export function createBundle(events: EventsBundle, academy: Academy, timeZone: string = UTC_TIME_ZONE): Bundle {
+export function createBundle(events: EventsBundle, academy: Academy, config: ConfigBundle, timeZone: string = UTC_TIME_ZONE): Bundle {
   const calendarEvents = events.events
     .filter((event) => event.visible !== false)
     .map((event) => calendarEvent(event, timeZone));
@@ -71,5 +74,6 @@ export function createBundle(events: EventsBundle, academy: Academy, timeZone: s
     character: (id) => must(academy.characters[id], "character", id),
     support: (id) => must(academy.supports[id], "support", id),
     trainee: (id) => must(academy.trainees[id], "trainee", id),
+    config: () => config,
   };
 }

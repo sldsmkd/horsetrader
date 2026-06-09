@@ -259,7 +259,10 @@ export function mountApp(
     const axis = tl.axis();
     if (!axis) return tl.setCards([]);
     const below = belowLaneCards(projection, bundle, axis, now);
-    const above = aboveLaneGroups(bundle, axis, now);
+    const above = aboveLaneGroups(bundle, axis, now, {
+      balanceAt: (date) => coord.balanceAt(date),
+      commitments: coord.document().commitments ?? {},
+    });
     const belowEls = below.map((card) => belowCard(card, rush));
     const aboveEls = above.map((group) => bannerGroup(group, rush, fav));
     tl.setCards([...belowEls, ...aboveEls]);

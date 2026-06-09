@@ -16,6 +16,7 @@ import { mountApp } from "./ui/app.ts";
 import { FALLBACK_STRINGS } from "./ui/strings.ts";
 import type { EventsBundle } from "./core/bundle/events.gen.ts";
 import type { Academy } from "./core/bundle/academy.gen.ts";
+import type { ConfigBundle } from "./core/bundle/config.gen.ts";
 import type { UiStrings } from "./ui/strings.ts";
 
 async function fetchStrings(): Promise<UiStrings> {
@@ -29,17 +30,18 @@ async function fetchStrings(): Promise<UiStrings> {
 }
 
 async function bootstrap(): Promise<void> {
-  // Both baked bundles — upstream-validated, so a plain cast (trust the bake).
-  const [events, academy, strings] = (await Promise.all([
+  // The baked bundles — upstream-validated, so a plain cast (trust the bake).
+  const [events, academy, config, strings] = (await Promise.all([
     fetch("/json/events.json").then((r) => r.json()),
     fetch("/json/academy.json").then((r) => r.json()),
+    fetch("/json/config.json").then((r) => r.json()),
     fetchStrings(),
-  ])) as [EventsBundle, Academy, UiStrings];
+  ])) as [EventsBundle, Academy, ConfigBundle, UiStrings];
   const timeZone = defaultTimeZone();
   const now = todayInTimeZone(timeZone);
 
   const coordinator = createCoordinator({ bundle: events, now, timeZone });
-  mountApp(coordinator, createBundle(events, academy, timeZone), now, strings);
+  mountApp(coordinator, createBundle(events, academy, config, timeZone), now, strings);
 }
 
 bootstrap().catch((err) => {

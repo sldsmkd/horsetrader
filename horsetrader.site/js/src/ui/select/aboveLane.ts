@@ -14,6 +14,30 @@
 import type { Axis } from "../axis.ts";
 import type { Bundle } from "../bundle/access.ts";
 import { isRushable } from "../../core/bundle/flags.ts";
+import type { ResourceVector, Commitments } from "../../core/persistence/document.ts";
+
+/**
+ * "How many pulls do I have, from *any* source?" — the zoomed-out ammo count
+ * (ui.md): carats converted to pulls (at the baked `carats_per_pull` cost), plus
+ * every ticket, plus the free/gift `pulls` the game grants directly. Collapsed to
+ * one scalar because at this altitude *where* the pulls come from doesn't matter,
+ * only that they exist. The per-source breakdown lives in the commit shield.
+ */
+function pullsFrom(v: ResourceVector, caratsPerPull: number): number {
+  const carats = (v.free_carats ?? 0) + (v.paid_carats ?? 0);
+  const tickets = (v.trainee_tickets ?? 0) + (v.support_tickets ?? 0);
+  return Math.floor(carats / caratsPerPull) + tickets + (v.pulls ?? 0);
+}
+
+/** The two live reads the above-lane readout folds in: balance-at-date and commitments. */
+export interface AboveLaneInputs {
+  /** The income fold surfaced at a spend point — `balanceAt(bannerDate)` (ui.md). */
+  balanceAt: (date: string) => ResourceVector;
+  /** Per-banner committed pities, keyed by banner key (the persisted plan). */
+  commitments: Commitments;
+}
+
+const NO_INPUTS: AboveLaneInputs = { balanceAt: () => ({}), commitments: {} };
 
 export type BannerKind = "trainee" | "support";
 
@@ -43,6 +67,12 @@ export interface Banner {
   atoms: BannerAtom[];
   /** True when the event is rush-eligible and not yet ended. */
   rushable: boolean;
+  /** Pulls available from any source by the banner's appearance date (the ammo count). */
+  pullsAvailable: number;
+  /** Free pulls *this banner* grants — the banner's own `rewards.pulls`, the value signal (→ glow later). */
+  freePulls: number;
+  /** Committed spend in pities; null = no commitment (then no line renders). */
+  committedPity: number | null;
 }
 
 /** Banners sharing an appearance date, the unit the above-lane packer places. */
@@ -78,17 +108,35 @@ export function atomOf(bundle: Bundle, kind: BannerKind, id: string): BannerAtom
   };
 }
 
-export function aboveLaneGroups(bundle: Bundle, axis: Axis, now: string): BannerGroup[] {
+export function aboveLaneGroups(bundle: Bundle, axis: Axis, now: string, inputs: AboveLaneInputs = NO_INPUTS): BannerGroup[] {
   // Every known banner, past and future — the timeline spans all known time, not
   // just the projection horizon (you scroll back into history too).
   const byDate = new Map<string, BannerGroup>();
+  const caratsPerPull = bundle.config().gacha.carats_per_pull;
+  // The readout reads `balanceAt(appearance-date)` — the same value for every
+  // banner sharing a date, so fold it once per group, not per banner.
+  const pullsByDate = new Map<string, ResourceVector>();
   for (const ev of bundle.all()) {
     if (ev.type !== "trainee" && ev.type !== "support") continue;
     let group = byDate.get(ev.start);
     if (!group) byDate.set(ev.start, (group = { key: ev.start, date: ev.start, x: axis.xForDate(ev.start), predicted: false, banners: [] }));
     group.predicted = group.predicted || ev.predicted;
+    let balance = pullsByDate.get(ev.start);
+    if (!balance) pullsByDate.set(ev.start, (balance = inputs.balanceAt(ev.start)));
     const atoms = ev.contents.map((id) => atomOf(bundle, ev.type, id)).filter((a): a is BannerAtom => a !== null);
-    group.banners.push({ key: ev.key, kind: ev.type, image: ev.image, atoms, rushable: isRushable(ev) && ev.end >= now });
+    group.banners.push({
+      key: ev.key,
+      kind: ev.type,
+      image: ev.image,
+      atoms,
+      rushable: isRushable(ev) && ev.end >= now,
+      pullsAvailable: pullsFrom(balance, caratsPerPull),
+      // The value signal is *this banner's own* free-pull grant, not the running
+      // balance (ui.md "the banner's free-pull count"). On banners `pulls` is
+      // always a plain number, but the reward map is permissively typed — guard it.
+      freePulls: typeof ev.rewards?.pulls === "number" ? ev.rewards.pulls : 0,
+      committedPity: inputs.commitments[ev.key] ?? null,
+    });
   }
 
   const groups = [...byDate.values()];

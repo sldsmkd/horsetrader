@@ -42,6 +42,24 @@
   max-height: 5.5rem;
   overflow: hidden;
 }
+/* The per-banner readout: three icon+number lines. Wireframe only — plain stack,
+   real layout/skin deferred (commitment editing happens in a shield, not here). */
+.banner__readout {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.2rem 0.3rem 0.3rem;
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+}
+.banner__stat {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.banner__stat-value {
+  opacity: 0.85;
+}
 .banner-group__date {
   position: absolute;
   right: 0.5rem;

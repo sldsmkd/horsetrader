@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import { belowLaneCards } from "./belowLane.ts";
 import { createBundle } from "../bundle/access.ts";
+import { TEST_CONFIG } from "../bundle/fixtures.ts";
 import { createAxis } from "../axis.ts";
 import { eventStream } from "../../core/projection/streams/events.ts";
 import { project } from "../../core/projection/index.ts";
@@ -34,7 +35,7 @@ function projectFixture() {
 }
 
 test("below-lane cards: below-lane events only, resolved + positioned, sorted by date", () => {
-  const cards = belowLaneCards(projectFixture(), createBundle(EVENTS, EMPTY_ACADEMY), createAxis({ origin: "2026-06-01", pxPerDay: 10 }), NOW);
+  const cards = belowLaneCards(projectFixture(), createBundle(EVENTS, EMPTY_ACADEMY, TEST_CONFIG), createAxis({ origin: "2026-06-01", pxPerDay: 10 }), NOW);
 
   // The trainee banner (above-lane) and the daily-login (generators stream) are excluded.
   assert.deepEqual(cards.map((c) => c.key), ["story-1", "anchor-1", "cm-1", "sce-1", "cm-2"]);
@@ -42,7 +43,7 @@ test("below-lane cards: below-lane events only, resolved + positioned, sorted by
 });
 
 test("a reward-less below-lane event still gets a card, with an empty reward", () => {
-  const cards = belowLaneCards(projectFixture(), createBundle(EVENTS, EMPTY_ACADEMY), createAxis({ origin: "2026-06-01", pxPerDay: 10 }), NOW);
+  const cards = belowLaneCards(projectFixture(), createBundle(EVENTS, EMPTY_ACADEMY, TEST_CONFIG), createAxis({ origin: "2026-06-01", pxPerDay: 10 }), NOW);
   const card = cards.find((c) => c.key === "cm-2");
 
   assert.ok(card, "the reward-less CM is on the lane — existence is the appearance, not a payout");
@@ -59,13 +60,13 @@ test("visibility is opt-out: an explicit `visible: false` hides the card, absenc
     ],
   };
   const projection = project({ resources: {} }, [{ stream: "events", emissions: eventStream(events, "2026-01-01") }]);
-  const cards = belowLaneCards(projection, createBundle(events, EMPTY_ACADEMY), createAxis({ origin: "2026-06-01", pxPerDay: 10 }), NOW);
+  const cards = belowLaneCards(projection, createBundle(events, EMPTY_ACADEMY, TEST_CONFIG), createAxis({ origin: "2026-06-01", pxPerDay: 10 }), NOW);
 
   assert.deepEqual(cards.map((c) => c.key), ["cm-shown"]); // only the visible one
 });
 
 test("each card resolves its label (name/title, falling back to key) and predicted flag", () => {
-  const cards = belowLaneCards(projectFixture(), createBundle(EVENTS, EMPTY_ACADEMY), createAxis({ origin: "2026-06-01", pxPerDay: 10 }), NOW);
+  const cards = belowLaneCards(projectFixture(), createBundle(EVENTS, EMPTY_ACADEMY, TEST_CONFIG), createAxis({ origin: "2026-06-01", pxPerDay: 10 }), NOW);
   const byKey = new Map(cards.map((c) => [c.key, c]));
 
   assert.equal(byKey.get("cm-1")!.label, "Summer CM");
@@ -77,7 +78,7 @@ test("each card resolves its label (name/title, falling back to key) and predict
 });
 
 test("x is true-to-date off the axis (arrival date = start) and reward is the event's own delta", () => {
-  const cards = belowLaneCards(projectFixture(), createBundle(EVENTS, EMPTY_ACADEMY), createAxis({ origin: "2026-06-01", pxPerDay: 10 }), NOW);
+  const cards = belowLaneCards(projectFixture(), createBundle(EVENTS, EMPTY_ACADEMY, TEST_CONFIG), createAxis({ origin: "2026-06-01", pxPerDay: 10 }), NOW);
   const byKey = new Map(cards.map((c) => [c.key, c]));
 
   assert.equal(byKey.get("story-1")!.date, "2026-06-14"); // start, not end

@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import { createBundle } from "../bundle/access.ts";
+import { TEST_CONFIG } from "../bundle/fixtures.ts";
 import { createSearchIndex } from "./entities.ts";
 import type { EventsBundle } from "../../core/bundle/events.gen.ts";
 import type { Academy } from "../../core/bundle/academy.gen.ts";
@@ -115,7 +116,7 @@ const ACADEMY: Academy = {
   },
 };
 
-const search = () => createSearchIndex(createBundle(EVENTS, ACADEMY), "2026-06-05");
+const search = () => createSearchIndex(createBundle(EVENTS, ACADEMY, TEST_CONFIG), "2026-06-05");
 
 test("search finds active/future support and trainee banner atoms only", () => {
   const results = search()("toka");
