@@ -6,14 +6,13 @@
  *
  *   1. *What am I pulling for?* — banner artwork + the featured-card grid (the hero;
  *      the cards outrank the commitment control).
- *   2. *What am I planning?* — YOUR PLAN: the **pity** stepper (principle 10 — you
- *      budget in guarantees), with the reserved pull count read back below it.
- *   3. *What will it cost?* — RESOURCE IMPACT: predicted-available → after-commitment,
- *      a worst-case reservation (informational, never a validator — overcommitment is
- *      allowed, so there are deliberately no affordability/short warnings here).
- *   4. *What outcome does that buy?* — FORECAST: a blocked-out slot for the outcome
- *      distribution widget (the binomial+spark model lands later; here it is a
- *      placeholder fill so the layout reserves its space).
+ *   2. *What am I planning, and what does it buy?* — YOUR PLAN: the **pity** stepper
+ *      (principle 10 — you budget in guarantees) sitting beside the FORECAST chart, so
+ *      the outcome reads right where the player dials it (widgets/forecast.ts — the
+ *      binomial-over-pulls + spark-floor distribution, redrawn as the stepper moves).
+ *   3. *What will it cost?* — RESOURCE IMPACT: predicted-available → after-commitment, a
+ *      worst-case reservation (informational, never a validator — overcommitment is
+ *      allowed; it just runs the carat balance negative, which the view flags red).
  *
  * It owns its draft pity in a closure and reads it back only on Save; the banner
  * behind it stays a pure read.
@@ -24,6 +23,7 @@ import "./commitShield.css";
 import { h } from "../h.ts";
 import { formatBalance, formatDate } from "../format.ts";
 import { reserve, type CommitContext, type CommitAtom } from "../select/commit.ts";
+import { forecastWidget } from "../widgets/forecast.ts";
 
 export interface CommitShieldOpts {
   context: CommitContext;
@@ -66,6 +66,13 @@ function featuredCard(atom: CommitAtom): HTMLElement {
   );
 }
 
+/** Write an "after" value, reddening it when the reservation has gone negative — an
+ *  overcommitment (you've planned more than the predicted balance covers). */
+function setAfter(el: HTMLElement, value: number): void {
+  el.textContent = formatBalance(value);
+  el.classList.toggle("commit-shield__impact-value--negative", value < 0);
+}
+
 /** One Resource Impact line — icon, before → after (after re-rendered on commit). */
 function impactLine(icon: string, label: string, value: HTMLElement): HTMLElement {
   return h(
@@ -91,14 +98,18 @@ export function commitShield(opts: CommitShieldOpts): HTMLElement {
   const afterPaid = h("span", { class: "commit-shield__impact-value" });
   const afterTickets = h("span", { class: "commit-shield__impact-value" });
 
+  // FORECAST — the target-copy distribution, redrawn as pity changes.
+  const forecast = forecastWidget({ pullsPerPity: ctx.sparkThreshold, featuredRate: ctx.featuredRate, maxCopies: ctx.maxCopies }, ctx.kind);
+
   const render = (): void => {
     pityValue.textContent = String(pity);
     committedLabel.textContent = `${formatBalance(pity)} PITY COMMITTED`;
     reservedLabel.textContent = `${formatBalance(pity * ctx.sparkThreshold)} pulls reserved for this banner`;
     const after = reserve(ctx, pity);
-    afterFree.textContent = formatBalance(after.freeCarats);
-    afterPaid.textContent = formatBalance(after.paidCarats);
-    afterTickets.textContent = formatBalance(after.tickets);
+    setAfter(afterFree, after.freeCarats);
+    setAfter(afterPaid, after.paidCarats);
+    setAfter(afterTickets, after.tickets);
+    forecast.update(pity);
   };
 
   const step = (delta: number): void => {
@@ -125,20 +136,31 @@ export function commitShield(opts: CommitShieldOpts): HTMLElement {
       ),
     ),
 
-    // 3 — YOUR PLAN: the pity stepper (commitment in guarantees).
+    // 3 — YOUR PLAN + FORECAST, side by side: the outcome the pity buys reads right
+    // where the player is dialling it (and it reclaims the vertical space).
     h(
       "div",
-      { class: "commit-shield__plan" },
-      h("span", { class: "commit-shield__section-label" }, "Your Plan"),
-      committedLabel,
+      { class: "commit-shield__plan-row" },
       h(
         "div",
-        { class: "commit-shield__stepper" },
-        h("button", { class: "commit-shield__step", attr: { type: "button", "aria-label": "Less pity" }, on: { click: () => step(-1) } }, "−"),
-        h("div", { class: "commit-shield__pity" }, pityValue),
-        h("button", { class: "commit-shield__step", attr: { type: "button", "aria-label": "More pity" }, on: { click: () => step(1) } }, "+"),
+        { class: "commit-shield__plan" },
+        h("span", { class: "commit-shield__section-label" }, "Your Plan"),
+        committedLabel,
+        h(
+          "div",
+          { class: "commit-shield__stepper" },
+          h("button", { class: "commit-shield__step", attr: { type: "button", "aria-label": "Less pity" }, on: { click: () => step(-1) } }, "−"),
+          h("div", { class: "commit-shield__pity" }, pityValue),
+          h("button", { class: "commit-shield__step", attr: { type: "button", "aria-label": "More pity" }, on: { click: () => step(1) } }, "+"),
+        ),
+        reservedLabel,
       ),
-      reservedLabel,
+      h(
+        "div",
+        { class: "commit-shield__forecast" },
+        h("span", { class: "commit-shield__section-label" }, "Forecast"),
+        forecast.el,
+      ),
     ),
 
     // 4 — RESOURCE IMPACT: predicted-available → after-commitment.
@@ -166,18 +188,6 @@ export function commitShield(opts: CommitShieldOpts): HTMLElement {
           impactLine(`/icons/${ctx.kind}_ticket.png`, TICKET_LABEL[ctx.kind], afterTickets),
           impactLine("/icons/carat.png", "Paid Carats", afterPaid),
         ),
-      ),
-    ),
-
-    // 5 — FORECAST: blocked-out slot for the outcome-distribution widget (later).
-    h(
-      "div",
-      { class: "commit-shield__forecast" },
-      h("span", { class: "commit-shield__section-label" }, "Forecast"),
-      h(
-        "div",
-        { class: "commit-shield__forecast-slot", attr: { role: "img", "aria-label": "Outcome distribution — coming soon" } },
-        h("span", { class: "commit-shield__forecast-note" }, "Outcome distribution"),
       ),
     ),
 

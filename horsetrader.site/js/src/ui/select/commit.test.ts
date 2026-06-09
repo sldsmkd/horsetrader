@@ -48,6 +48,9 @@ test("commit context: banner identity, kind-appropriate tickets, featured cards 
   assert.equal(ctx.committedPity, null);
   assert.equal(ctx.sparkThreshold, 200);
   assert.equal(ctx.caratsPerPull, 150);
+  assert.equal(ctx.paidDailyPull, 50);
+  assert.equal(ctx.freePulls, 10); // the banner's own rewards.pulls grant
+  assert.equal(ctx.bannerDays, 6); // 2026-06-10 → 2026-06-16
 });
 
 test("commit context: a support banner draws support tickets and surfaces the commitment", () => {
@@ -71,19 +74,24 @@ test("reserve: zero pity touches nothing — the predicted balance passes throug
   assert.deepEqual(reserve(ctx, 0), { freeCarats: 100000, paidCarats: 5000, tickets: 300 });
 });
 
-test("reserve: spends in order — tickets, then paid carats, then free carats", () => {
-  // 300 tickets, 5000 paid, 100000 free; spark 200, 150 carats/pull.
+test("reserve: cost-ascending — free pulls, then tickets, then daily paid, then free carats", () => {
+  // banner-t: 10 free pulls (rewards.pulls), 6-day run. Balance: 300 tickets, 5000 paid,
+  // 100000 free. spark 200, 150/pull, 50/daily-paid.
   const ctx = commitContext(bundle(), "banner-t", { balanceAt: () => ({ free_carats: 100000, paid_carats: 5000, trainee_tickets: 300 }), commitments: {} });
 
-  // 1 pity = 200 pulls: all 200 come from tickets (300 ≥ 200) → only tickets drop.
-  assert.deepEqual(reserve(ctx, 1), { freeCarats: 100000, paidCarats: 5000, tickets: 100 });
+  // 1 pity = 200 pulls: 10 free pulls first, then 190 off tickets (300 → 110).
+  assert.deepEqual(reserve(ctx, 1), { freeCarats: 100000, paidCarats: 5000, tickets: 110 });
 
-  // 2 pity = 400 pulls: 300 tickets exhausted, 100 pulls left = 15,000 carats →
-  // 5,000 paid drained first, then 10,000 off free.
-  assert.deepEqual(reserve(ctx, 2), { freeCarats: 90000, paidCarats: 0, tickets: 0 });
+  // 2 pity = 400 pulls: 10 free + 300 tickets = 310, leaving 90. Daily paid caps at the
+  // 6-day run (6 pulls × 50 = 300 paid), leaving 84 pulls → 84 × 150 = 12,600 free carats.
+  assert.deepEqual(reserve(ctx, 2), { freeCarats: 87400, paidCarats: 4700, tickets: 0 });
 });
 
-test("reserve: overcommitment floors at 0 (no warning — deliberate per the dossier spec)", () => {
+test("reserve: paid carats only leave through the daily window — leftover banks, never drained at full price", () => {
+  // banner-t (6-day): 2 tickets, 600 paid, 1500 free, 10 free pulls. 5 pity = 1000 pulls.
+  // 10 free + 2 tickets = 12 → 988 left. Daily paid: min(6, ⌊600/50⌋=12) = 6 pulls × 50 =
+  // 300 paid (so 300 paid BANKS, not drained), leaving 982 pulls → 982 × 150 = 147,300
+  // off free → 1500 − 147,300 = −145,800 (overcommit shows the shortfall, not floored).
   const ctx = commitContext(bundle(), "banner-t", { balanceAt: () => BALANCE, commitments: {} });
-  assert.deepEqual(reserve(ctx, 5), { freeCarats: 0, paidCarats: 0, tickets: 0 });
+  assert.deepEqual(reserve(ctx, 5), { freeCarats: -145800, paidCarats: 300, tickets: 0 });
 });

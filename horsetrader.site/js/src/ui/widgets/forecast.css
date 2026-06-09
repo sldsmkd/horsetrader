@@ -1,0 +1,66 @@
+.forecast {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.forecast__chart {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  gap: 0.4rem;
+  min-height: 7rem;
+  padding: 0.3rem 0.2rem 0;
+}
+
+.forecast__bar {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.forecast__pct {
+  font-size: 0.6rem;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.6;
+  min-height: 0.8rem;
+}
+
+/* The full-height column the fill grows up from. */
+.forecast__track {
+  position: relative;
+  width: 100%;
+  max-width: 1.6rem;
+  height: 5rem;
+  border-radius: 0.2rem;
+  background: color-mix(in srgb, currentColor 10%, transparent);
+}
+
+.forecast__fill {
+  position: absolute;
+  inset: auto 0 0 0;
+  border-radius: 0.2rem;
+  background: color-mix(in srgb, currentColor 35%, transparent);
+  transition: height 0.12s ease-out;
+}
+/* Spark-guaranteed copies read as solid certainty, not a probabilistic taper. */
+.forecast__fill--guaranteed {
+  background: color-mix(in srgb, currentColor 60%, transparent);
+}
+
+.forecast__count {
+  font-size: 0.66rem;
+  opacity: 0.65;
+  font-variant-numeric: tabular-nums;
+}
+
+.forecast__caption {
+  margin: 0;
+  font-size: 0.72rem;
+  text-align: center;
+  opacity: 0.7;
+  font-variant-numeric: tabular-nums;
+}

@@ -15,21 +15,7 @@ import type { Axis } from "../axis.ts";
 import type { Bundle } from "../bundle/access.ts";
 import { isRushable } from "../../core/bundle/flags.ts";
 import type { ResourceVector, Commitments } from "../../core/persistence/document.ts";
-
-/**
- * "How many pulls do I have, from *carryable* sources?" — the zoomed-out ammo
- * count (ui.md): carats converted to pulls (at the baked `carats_per_pull` cost)
- * plus every ticket. Collapsed to one scalar because at this altitude *where* the
- * pulls come from doesn't matter, only that they exist. Free/gift `pulls` are
- * deliberately NOT here — they are banner-scoped (not a banked resource, see
- * streams/events.ts), so the banner adds its *own* `freePulls` on top. The
- * per-source breakdown lives in the commit shield.
- */
-function pullsFrom(v: ResourceVector, caratsPerPull: number): number {
-  const carats = (v.free_carats ?? 0) + (v.paid_carats ?? 0);
-  const tickets = (v.trainee_tickets ?? 0) + (v.support_tickets ?? 0);
-  return Math.floor(carats / caratsPerPull) + tickets;
-}
+import { pullCapacity, bannerDays } from "./pulls.ts";
 
 /** The two live reads the above-lane readout folds in: balance-at-date and commitments. */
 export interface AboveLaneInputs {
@@ -116,22 +102,35 @@ export function aboveLaneGroups(bundle: Bundle, axis: Axis, now: string, inputs:
   // Every known banner, past and future — the timeline spans all known time, not
   // just the projection horizon (you scroll back into history too).
   const byDate = new Map<string, BannerGroup>();
-  const caratsPerPull = bundle.config().gacha.carats_per_pull;
-  // The readout reads `balanceAt(appearance-date)` — the same value for every
-  // banner sharing a date, so fold it once per group, not per banner.
-  const pullsByDate = new Map<string, ResourceVector>();
+  const { carats_per_pull: caratsPerPull, paid_daily_pull: paidDailyPull } = bundle.config().gacha;
+  // Ammo is measured at each banner's **end** (project_spend_model): every accruing
+  // source has settled by then. Cache the end-balance by date (banners sharing an end
+  // share it), but capacity is per-banner (kind-appropriate tickets + duration).
+  const balanceByEnd = new Map<string, ResourceVector>();
   for (const ev of bundle.all()) {
     if (ev.type !== "trainee" && ev.type !== "support") continue;
     let group = byDate.get(ev.start);
     if (!group) byDate.set(ev.start, (group = { key: ev.start, date: ev.start, x: axis.xForDate(ev.start), predicted: false, banners: [] }));
     group.predicted = group.predicted || ev.predicted;
-    let balance = pullsByDate.get(ev.start);
-    if (!balance) pullsByDate.set(ev.start, (balance = inputs.balanceAt(ev.start)));
+    let balance = balanceByEnd.get(ev.end);
+    if (!balance) balanceByEnd.set(ev.end, (balance = inputs.balanceAt(ev.end)));
     const atoms = ev.contents.map((id) => atomOf(bundle, ev.type, id)).filter((a): a is BannerAtom => a !== null);
     const open = ev.end >= now;
     // This banner's own free-pull grant. On banners `pulls` is always a plain
     // number, but the reward map is permissively typed — guard it.
     const freePulls = typeof ev.rewards?.pulls === "number" ? ev.rewards.pulls : 0;
+    // The effective pulls under the spend model: free pulls + kind-appropriate tickets
+    // + duration-capped daily paid pulls + full-price free carats (shared with the
+    // commit shield's reservation so card and shield never disagree).
+    const capacity = pullCapacity(
+      {
+        freePulls,
+        tickets: (ev.type === "support" ? balance.support_tickets : balance.trainee_tickets) ?? 0,
+        freeCarats: balance.free_carats ?? 0,
+        paidCarats: balance.paid_carats ?? 0,
+      },
+      { caratsPerPull, paidDailyPull, bannerDays: bannerDays(ev.start, ev.end) },
+    );
     group.banners.push({
       key: ev.key,
       kind: ev.type,
@@ -139,13 +138,9 @@ export function aboveLaneGroups(bundle: Bundle, axis: Axis, now: string, inputs:
       atoms,
       rushable: isRushable(ev) && open,
       open,
-      // Add the banner's own free pulls on top of the carryable ammo: they are
-      // banner-scoped (never banked into `balance`, see streams/events.ts), so this
-      // is what you'll actually have to spend *on this banner*. The standalone
-      // `freePulls` line stays as the value signal.
-      pullsAvailable: pullsFrom(balance, caratsPerPull) + freePulls,
+      pullsAvailable: capacity.total,
       // The value signal — *this banner's own* free-pull count (ui.md), shown
-      // separately even though it's now also part of the total above.
+      // separately even though it's also part of the total above.
       freePulls,
       committedPity: inputs.commitments[ev.key] ?? null,
     });
