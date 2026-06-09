@@ -67,6 +67,8 @@ export interface Banner {
   atoms: BannerAtom[];
   /** True when the event is rush-eligible and not yet ended. */
   rushable: boolean;
+  /** Still open to pull — `end >= now`. A closed banner is gone: no readout at all. */
+  open: boolean;
   /** Pulls available from any source by the banner's appearance date (the ammo count). */
   pullsAvailable: number;
   /** Free pulls *this banner* grants — the banner's own `rewards.pulls`, the value signal (→ glow later). */
@@ -124,12 +126,14 @@ export function aboveLaneGroups(bundle: Bundle, axis: Axis, now: string, inputs:
     let balance = pullsByDate.get(ev.start);
     if (!balance) pullsByDate.set(ev.start, (balance = inputs.balanceAt(ev.start)));
     const atoms = ev.contents.map((id) => atomOf(bundle, ev.type, id)).filter((a): a is BannerAtom => a !== null);
+    const open = ev.end >= now;
     group.banners.push({
       key: ev.key,
       kind: ev.type,
       image: ev.image,
       atoms,
-      rushable: isRushable(ev) && ev.end >= now,
+      rushable: isRushable(ev) && open,
+      open,
       pullsAvailable: pullsFrom(balance, caratsPerPull),
       // The value signal is *this banner's own* free-pull grant, not the running
       // balance (ui.md "the banner's free-pull count"). On banners `pulls` is

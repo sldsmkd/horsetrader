@@ -35,7 +35,7 @@ export function bannerGroup(group: BannerGroup, rush: RushBinding, fav: Favourit
           h("img", { class: "banner__image", attr: { src: banner.image, alt: "", loading: "lazy" } }),
           h("ul", { class: "banner__atoms" }, ...banner.atoms.map((atom) => atomChip(atom, fav))),
           banner.rushable ? rushedToggleFor(rush, banner.key) : null,
-          readout(banner),
+          banner.open ? readout(banner) : null,
         ),
       ),
       h("span", { class: "banner-group__date" }, formatDate(group.date)),

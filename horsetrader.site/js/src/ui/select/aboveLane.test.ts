@@ -48,6 +48,10 @@ test("above-lane: groups by start (all known time), banners only, sorted; shared
   assert.deepEqual(shared.banners.map((b) => b.kind), ["trainee", "support"]);
 
   assert.equal(groups[2]!.predicted, true); // any predicted banner → group predicted
+
+  // A closed banner (end < now) is gone — `open` false, so no readout renders.
+  assert.equal(groups[0]!.banners[0]!.open, false); // banner-past ended 2026-01-07
+  assert.equal(shared.banners[0]!.open, true); // banner-t ends 2026-06-16, still open
 });
 
 test("contents resolve to atoms in the kind's grammar — trainee stars, support tier", () => {
