@@ -24,6 +24,13 @@ import { UTC_TIME_ZONE, dateStringInTimeZone } from "../dates.ts";
  * channel's concern — its nested value is skipped here and expanded separately
  * by the generator stream, which owns the recurrence (see ./generator.ts). This
  * keeps the two provenances on separate channels.
+ *
+ * `pulls` is also skipped: a banner's free pulls are **scoped to that banner**
+ * (use-them-or-lose-them on its own run), never a carried resource — banking them
+ * would let one banner's free 10-roll be "spent" on a later banner. They are read
+ * straight off the banner record at the point of spend (the readout's `freePulls`
+ * and the commit shield's Free stream), never folded. Only carryable resources
+ * (carats, tickets, crystals/shards) accumulate here.
  */
 export function eventStream(bundle: EventsBundle, after: string, timeZone: string = UTC_TIME_ZONE): StreamEmission[] {
   const emissions: StreamEmission[] = [];
@@ -35,6 +42,7 @@ export function eventStream(bundle: EventsBundle, after: string, timeZone: strin
     const deltas: ResourceVector = {};
     for (const [key, value] of Object.entries(event.rewards)) {
       if (typeof value !== "number") continue; // generator (nested) — separate channel
+      if (key === "pulls") continue; // banner-scoped free pulls — read at the banner, never banked
       deltas[key] = (deltas[key] ?? 0) + value;
     }
     if (Object.keys(deltas).length) emissions.push({ date, source: event.key, deltas });

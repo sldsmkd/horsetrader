@@ -56,21 +56,37 @@ remaining work, roughly one epic:
   `league-of-heroes`, `masters`, `strongest-team` — plus `gacha` constants like
   `carats_per_pull`, `spark_threshold`). The PvP tier maps are deliberately *not*
   stamped onto events (PvP events carry no rewards by design — issue #19) precisely
-  because the row depends on the user's rank/engagement. **The gap is on the client,
-  and it's unbuilt but unblocked:** nothing consumes `config.json` yet — there is no
-  `config.gen.ts` type, no loader, and no channel that selects a row from a reward
-  map by the user's engagement setting and emits it as recurring income. The work is
-  (a) bake a `config.json` type via `gen:types` + load it into the bundle, (b) wire
-  each engagement slider's commit to `config`, (c) a channel that reads the user's
-  level, picks the table row, and emits. The only *narrower* ETL-side question left
-  is #19's account-pager / "sweatiness" model — how a single rank choice grades over
-  a season — not the raw rates, which are here.
+  because the row depends on the user's rank/engagement. **The data channel is now
+  built (2026-06-09):** `config.schema.json` generates `config.gen.ts` (root
+  `ConfigBundle` + `GachaConfig`) via `gen:types`; `config.json` is fetched in
+  `main.ts` alongside events/academy and exposed as `bundle.config()` (resolve-or-throw,
+  a required peer of events/academy). First consumer: the above-lane banner readout
+  reads `gacha.carats_per_pull` for the pulls count. **What's still unbuilt is the
+  *channels*:** (a) ~~load config~~ done; (b) wire each engagement slider's commit to
+  `config`; (c) a channel that reads the user's level, picks the reward-map row, and
+  emits it as recurring income (and, for the commit shield, feeds `spark_threshold` /
+  `rarity_rates` / `featured_rates` into affordability + the LB distribution). The
+  only *narrower* ETL-side question left is #19's account-pager / "sweatiness" model —
+  how a single rank choice grades over a season — not the raw rates, which are here.
 - **Commitments → spends channel (the debit side).** Spending plans are the mirror
   of engagement income: a planned pull on a banner is a **negative** carat delta
   landing on that banner's date — a debit on the timeline. This is the one stream
-  that consumes the fold's own output (affordability: pity → pulls → carats). Parked,
-  now unblocked. See [projection.md](projection.md). The same audit below applies:
-  a commitment goes in the fold only when it resolves to a concrete, *dated* debit.
+  that consumes the fold's own output (affordability: pity → pulls → carats). The
+  same audit below applies: a commitment goes in the fold only when it resolves to a
+  concrete, *dated* debit. **The write/persist half is now built (2026-06-09):** the
+  **commit shield** (`views/commitShield.ts`, spawned at source from the banner
+  readout — `state.committing`, the same modal-shield grammar as the balance editor)
+  lays one banner's pull sources back out (the `select/commit.ts` view-model: Carat
+  Est. / Paid Carat Est. / Max Pulls + the Henry Free·Tickets·Paid split), takes the
+  commitment as a **pity** stepper (principle 10, cost derived), and writes it to
+  `commitments[bannerKey]` via `coord.update`. Affordability is computed *in the
+  shield* against the income fold's `pullsAvailable` (pity × `spark_threshold` vs Max
+  Pulls — a red "short by N pulls" verdict) — note this does **not** need the spends
+  channel, since it reads the *income* balance at the banner date. **Still parked:**
+  (a) the spends *channel* itself — folding the committed pity as a dated carat debit
+  so downstream banners' `pullsAvailable` drops live; (b) the expected-copies
+  distribution (None/0LB…MLB), in as a **layout placeholder** until the probability
+  model (binomial over pulls + spark guarantees) lands. See [projection.md](projection.md).
 - **Update callbacks for live re-render.** Every customisation surface that can be
   open while another surface reads must trigger the refold path on commit, and the
   open readers must follow. The handle/`update()` pattern above is how; the work

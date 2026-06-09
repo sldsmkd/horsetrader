@@ -31,6 +31,11 @@ export interface ViewState {
    *  meaningful while `right === "resources"`; the editor is a write transaction
    *  that suspends the read surface behind it (feedback_shield_vs_unfold). */
   resourcesEditing: boolean;
+  /** The banner key whose commit shield is up, or `null`. A shield like the
+   *  balance editor — spawned at source from the banner readout — so it is modal
+   *  to every other spawnable window (feedback_shield_vs_unfold). Independent of
+   *  the left/right surface groups; the timeline behind it stays live. */
+  committing: string | null;
 }
 
 export interface ViewStore {
@@ -48,6 +53,7 @@ const INITIAL: ViewState = {
   bookmarks: false,
   right: null,
   resourcesEditing: false,
+  committing: null,
 };
 
 export function createViewStore(initial: Partial<ViewState> = {}): ViewStore {

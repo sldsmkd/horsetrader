@@ -17,16 +17,18 @@ import { isRushable } from "../../core/bundle/flags.ts";
 import type { ResourceVector, Commitments } from "../../core/persistence/document.ts";
 
 /**
- * "How many pulls do I have, from *any* source?" — the zoomed-out ammo count
- * (ui.md): carats converted to pulls (at the baked `carats_per_pull` cost), plus
- * every ticket, plus the free/gift `pulls` the game grants directly. Collapsed to
- * one scalar because at this altitude *where* the pulls come from doesn't matter,
- * only that they exist. The per-source breakdown lives in the commit shield.
+ * "How many pulls do I have, from *carryable* sources?" — the zoomed-out ammo
+ * count (ui.md): carats converted to pulls (at the baked `carats_per_pull` cost)
+ * plus every ticket. Collapsed to one scalar because at this altitude *where* the
+ * pulls come from doesn't matter, only that they exist. Free/gift `pulls` are
+ * deliberately NOT here — they are banner-scoped (not a banked resource, see
+ * streams/events.ts), so the banner adds its *own* `freePulls` on top. The
+ * per-source breakdown lives in the commit shield.
  */
 function pullsFrom(v: ResourceVector, caratsPerPull: number): number {
   const carats = (v.free_carats ?? 0) + (v.paid_carats ?? 0);
   const tickets = (v.trainee_tickets ?? 0) + (v.support_tickets ?? 0);
-  return Math.floor(carats / caratsPerPull) + tickets + (v.pulls ?? 0);
+  return Math.floor(carats / caratsPerPull) + tickets;
 }
 
 /** The two live reads the above-lane readout folds in: balance-at-date and commitments. */
@@ -127,6 +129,9 @@ export function aboveLaneGroups(bundle: Bundle, axis: Axis, now: string, inputs:
     if (!balance) pullsByDate.set(ev.start, (balance = inputs.balanceAt(ev.start)));
     const atoms = ev.contents.map((id) => atomOf(bundle, ev.type, id)).filter((a): a is BannerAtom => a !== null);
     const open = ev.end >= now;
+    // This banner's own free-pull grant. On banners `pulls` is always a plain
+    // number, but the reward map is permissively typed — guard it.
+    const freePulls = typeof ev.rewards?.pulls === "number" ? ev.rewards.pulls : 0;
     group.banners.push({
       key: ev.key,
       kind: ev.type,
@@ -134,11 +139,14 @@ export function aboveLaneGroups(bundle: Bundle, axis: Axis, now: string, inputs:
       atoms,
       rushable: isRushable(ev) && open,
       open,
-      pullsAvailable: pullsFrom(balance, caratsPerPull),
-      // The value signal is *this banner's own* free-pull grant, not the running
-      // balance (ui.md "the banner's free-pull count"). On banners `pulls` is
-      // always a plain number, but the reward map is permissively typed — guard it.
-      freePulls: typeof ev.rewards?.pulls === "number" ? ev.rewards.pulls : 0,
+      // Add the banner's own free pulls on top of the carryable ammo: they are
+      // banner-scoped (never banked into `balance`, see streams/events.ts), so this
+      // is what you'll actually have to spend *on this banner*. The standalone
+      // `freePulls` line stays as the value signal.
+      pullsAvailable: pullsFrom(balance, caratsPerPull) + freePulls,
+      // The value signal — *this banner's own* free-pull count (ui.md), shown
+      // separately even though it's now also part of the total above.
+      freePulls,
       committedPity: inputs.commitments[ev.key] ?? null,
     });
   }

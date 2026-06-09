@@ -60,6 +60,26 @@
 .banner__stat-value {
   opacity: 0.85;
 }
+/* The commit affordance: a stat-shaped button that spawns the commit shield.
+   Inherits the readout's font/colour; the pointer + subtle hover mark it live. */
+.banner__commit {
+  font: inherit;
+  border: none;
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  pointer-events: auto;
+}
+.banner__commit:hover .banner__stat-value {
+  opacity: 1;
+  text-decoration: underline;
+}
+.banner__commit:not(.banner__commit--set) .banner__stat-value {
+  opacity: 0.5;
+  font-style: italic;
+}
 .banner-group__date {
   position: absolute;
   right: 0.5rem;

@@ -32,6 +32,9 @@ import { overlay, suspendOverlay } from "./views/overlay.ts";
 import { resourcesSurface } from "./views/resourcesSurface.ts";
 import type { ResourcesSurfaceHandle } from "./views/resourcesSurface.ts";
 import { resourcesEditor } from "./views/resourcesEditor.ts";
+import { commitShield, commitTitle } from "./views/commitShield.ts";
+import { commitContext } from "./select/commit.ts";
+import type { CommitBinding } from "./views/bannerGroup.ts";
 import { tazunaSurface } from "./views/tazunaSurface.ts";
 import { bookmarks } from "./views/bookmarks.ts";
 import { bookmarkRows } from "./select/bookmarks.ts";
@@ -264,7 +267,7 @@ export function mountApp(
       commitments: coord.document().commitments ?? {},
     });
     const belowEls = below.map((card) => belowCard(card, rush));
-    const aboveEls = above.map((group) => bannerGroup(group, rush, fav));
+    const aboveEls = above.map((group) => bannerGroup(group, rush, fav, commit));
     tl.setCards([...belowEls, ...aboveEls]);
     // Mounted now → heights are measurable. Pack each lane (below returns its
     // floor depth, above its roof height); the timeline turns these into its
@@ -316,7 +319,18 @@ export function mountApp(
   // to ALL spawnable windows (feedback_shield_vs_unfold).
   const shieldOpen = (): boolean => {
     const left = identityMachine.get().overlay;
-    return left === "oshi" || left === "playstyle-oshi" || view.get().resourcesEditing;
+    return left === "oshi" || left === "playstyle-oshi" || view.get().resourcesEditing || view.get().committing !== null;
+  };
+
+  // The commit shield's spawn seam, handed to every banner readout: a banner's
+  // commit control opens its shield, refused while any shield is already up (the
+  // belt-and-braces guard — suspension already hides in-card pencils behind a
+  // shield, this refuses a spawn that slips through). The shield itself renders in
+  // the overlay layer (renderOverlay), modal to all spawnable windows.
+  const commit: CommitBinding = {
+    open: (bannerKey) => {
+      if (!shieldOpen()) view.set({ committing: bannerKey });
+    },
   };
 
   function renderOverlay(): void {
@@ -417,6 +431,37 @@ export function mountApp(
       });
       if (anyShield) suspendOverlay(tazunaCard);
       children.push(tazunaCard);
+    }
+
+    // The commit shield: spawned at source from a banner readout, independent of
+    // the left/right groups. A shield (so it sits in `anyShield` above, suspending
+    // the other surfaces); the timeline behind it stays live (it is transparent to
+    // the canvas, like the balance editor).
+    const committing = view.get().committing;
+    if (committing !== null) {
+      const ctx = commitContext(bundle, committing, {
+        balanceAt: (date) => coord.balanceAt(date),
+        commitments: coord.document().commitments ?? {},
+      });
+      children.push(
+        overlay({
+          title: commitTitle(ctx), // kind + run; the artwork is dropped from the body
+          placement: "center",
+          body: commitShield({
+            context: ctx,
+            // Persist the pity as the unit of account; the carat cost stays derived
+            // (principle 10). A null clears the commitment (no row, like unsetting).
+            onCommit: (pity) => {
+              const next = { ...(coord.document().commitments ?? {}) };
+              if (pity === null) delete next[committing];
+              else next[committing] = pity;
+              coord.update({ commitments: next });
+            },
+            onClose: () => view.set({ committing: null }),
+          }),
+          onClose: () => view.set({ committing: null }),
+        }),
+      );
     }
 
     overlayLayer.replaceChildren(...children);

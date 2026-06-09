@@ -21,7 +21,14 @@ import type { RushBinding } from "../widgets/rushedToggle.ts";
 import { atomChip } from "../widgets/atomChip.ts";
 import type { FavouriteBinding } from "../widgets/atomChip.ts";
 
-export function bannerGroup(group: BannerGroup, rush: RushBinding, fav: FavouriteBinding): HTMLElement {
+/** The commit seam handed to the banner readout: spawn the commit shield for a
+ *  banner (the write transaction lives there, not on the card). Keyed by banner
+ *  key; `open` is a no-op when a shield is already up (app.ts guards it). */
+export interface CommitBinding {
+  open: (bannerKey: string) => void;
+}
+
+export function bannerGroup(group: BannerGroup, rush: RushBinding, fav: FavouriteBinding, commit: CommitBinding): HTMLElement {
   const el = h(
     "div",
     { class: `card card--above${group.predicted ? " card--predicted" : ""}` },
@@ -35,7 +42,7 @@ export function bannerGroup(group: BannerGroup, rush: RushBinding, fav: Favourit
           h("img", { class: "banner__image", attr: { src: banner.image, alt: "", loading: "lazy" } }),
           h("ul", { class: "banner__atoms" }, ...banner.atoms.map((atom) => atomChip(atom, fav))),
           banner.rushable ? rushedToggleFor(rush, banner.key) : null,
-          banner.open ? readout(banner) : null,
+          banner.open ? readout(banner, commit) : null,
         ),
       ),
       h("span", { class: "banner-group__date" }, formatDate(group.date)),
@@ -52,16 +59,37 @@ export function bannerGroup(group: BannerGroup, rush: RushBinding, fav: Favourit
  *   2. free pulls the game grants — a number for now, the value signal later;
  *   3. what I committed, in pities — conditional: no commitment, no line.
  * Wireframe fidelity: plain glyph + value, structure only (skin/layout deferred).
- * Editing the commitment is *not* done here — it spawns a shield (the surface/shield
- * split); this readout is the read-back of what that shield wrote.
+ * Editing the commitment is *not* done here — the commit control spawns a shield
+ * (the surface/shield split); the pity line is the read-back of what it wrote.
  */
-function readout(banner: Banner): HTMLElement {
+function readout(banner: Banner, commit: CommitBinding): HTMLElement {
   return h(
     "div",
     { class: "banner__readout" },
     stat("pulls", "🎲", formatBalance(banner.pullsAvailable)),
     stat("free", "🎁", formatBalance(banner.freePulls)),
-    banner.committedPity !== null ? stat("pity", "🎯", `${formatBalance(banner.committedPity)} pity`) : null,
+    commitButton(banner, commit),
+  );
+}
+
+/** The seam back to the commit shield (ui.md: commitment is entered *at source*,
+ *  on the banner). Reads as the pity line when committed, a quiet prompt otherwise.
+ *  An in-timeline control, so it stops `pointerdown` from the pan capture (the same
+ *  guard the rush toggle and favourite star carry). */
+function commitButton(banner: Banner, commit: CommitBinding): HTMLElement {
+  const committed = banner.committedPity !== null;
+  return h(
+    "button",
+    {
+      class: `banner__stat banner__stat--pity banner__commit${committed ? " banner__commit--set" : ""}`,
+      attr: { type: "button", "aria-label": committed ? "Edit commitment" : "Plan a pull" },
+      on: {
+        pointerdown: (ev) => ev.stopPropagation(),
+        click: () => commit.open(banner.key),
+      },
+    },
+    h("span", { class: "banner__stat-icon" }, "🎯"),
+    h("span", { class: "banner__stat-value" }, committed ? `${formatBalance(banner.committedPity!)} pity` : "Commit"),
   );
 }
 
