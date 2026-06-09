@@ -13,15 +13,24 @@
  */
 
 export interface ViewState {
-  /** The open overlay's id, or `null` when the bare timeline is in front. */
-  overlay: string | null;
   /** The selected entity id (a banner, a favourite), or `null`. */
   selection: string | null;
   /** The current search query; the empty string when search is idle. */
   search: string;
   /** Whether the bookmarks drawer is expanded. Layer-2 chrome, independent of
-   *  `overlay` — the drawer coexists with an open overlay (it is not modal). */
+   *  the surface groups — the drawer coexists with an open surface (not modal). */
   bookmarks: boolean;
+  /** The open member of the RIGHT surface group (`"resources"` | `"tazuna"`),
+   *  or `null`. Surfaces split into a left group (the identity machine, which
+   *  owns its own state — not here) and a right group (this); each holds at most
+   *  one surface + its children, and the two groups are independent — a left and
+   *  a right surface can be open at once, but opening a right surface closes the
+   *  other right one. */
+  right: string | null;
+  /** Whether the balance editor shield is up over the Resources surface. Only
+   *  meaningful while `right === "resources"`; the editor is a write transaction
+   *  that suspends the read surface behind it (feedback_shield_vs_unfold). */
+  resourcesEditing: boolean;
 }
 
 export interface ViewStore {
@@ -33,7 +42,13 @@ export interface ViewStore {
   subscribe(listener: () => void): () => void;
 }
 
-const INITIAL: ViewState = { overlay: null, selection: null, search: "", bookmarks: false };
+const INITIAL: ViewState = {
+  selection: null,
+  search: "",
+  bookmarks: false,
+  right: null,
+  resourcesEditing: false,
+};
 
 export function createViewStore(initial: Partial<ViewState> = {}): ViewStore {
   let state: ViewState = { ...INITIAL, ...initial };

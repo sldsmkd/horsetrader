@@ -1,0 +1,79 @@
+.resources-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 22rem;
+}
+
+.resources-editor__as-of {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.resources-editor__as-of-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.5;
+}
+
+.resources-editor__date {
+  font: inherit;
+  font-size: 0.85rem;
+  background: transparent;
+  border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
+  border-radius: 0.25rem;
+  color: inherit;
+  padding: 0.2rem 0.4rem;
+  color-scheme: dark;
+}
+
+.resources-editor__cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.resources-editor__daily-pack {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  opacity: 0.8;
+  cursor: pointer;
+}
+
+.resources-editor__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.resources-editor__cancel,
+.resources-editor__save {
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 0.35rem 0.9rem;
+  border-radius: 0.35rem;
+  border: 1px solid currentColor;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.resources-editor__cancel {
+  opacity: 0.6;
+}
+
+.resources-editor__save {
+  background: color-mix(in srgb, currentColor 15%, transparent);
+  font-weight: 600;
+}
+
+.resources-editor__save:hover {
+  background: color-mix(in srgb, currentColor 25%, transparent);
+}

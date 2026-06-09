@@ -5,9 +5,9 @@ import { createViewStore } from "./viewState.ts";
 
 test("starts idle; set merges a patch and exposes it", () => {
   const store = createViewStore();
-  assert.deepEqual(store.get(), { overlay: null, selection: null, search: "", bookmarks: false });
-  store.set({ overlay: "resources" });
-  assert.deepEqual(store.get(), { overlay: "resources", selection: null, search: "", bookmarks: false });
+  assert.deepEqual(store.get(), { selection: null, search: "", bookmarks: false, right: null, resourcesEditing: false });
+  store.set({ right: "resources" });
+  assert.deepEqual(store.get(), { selection: null, search: "", bookmarks: false, right: "resources", resourcesEditing: false });
 });
 
 test("subscribe fires on set; unsubscribe stops delivery", () => {

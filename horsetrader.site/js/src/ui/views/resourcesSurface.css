@@ -1,0 +1,54 @@
+.resources-surface {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.resources-surface__block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.resources-surface__block-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.resources-surface__block-title {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.5;
+}
+
+.resources-surface__edit {
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  line-height: 1;
+  padding: 0.2rem;
+  background: transparent;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  opacity: 0.55;
+}
+
+.resources-surface__edit:hover {
+  opacity: 1;
+}
+
+.resources-surface__cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.resources-surface__updated {
+  font-size: 0.75rem;
+  opacity: 0.5;
+  margin-top: 0.25rem;
+}

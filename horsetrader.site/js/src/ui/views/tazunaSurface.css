@@ -1,0 +1,14 @@
+.tazuna-surface {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  /* Roughly the trainer-card body height, so the dummy reads as a real panel. */
+  min-height: 26rem;
+}
+
+.tazuna-surface__placeholder {
+  max-width: 18rem;
+  font-size: 0.9rem;
+  opacity: 0.45;
+}

@@ -1,0 +1,51 @@
+.resource-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.resource-grid__row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+}
+
+.resource-field__heading {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  opacity: 0.5;
+}
+
+.resource-field__icon {
+  flex-shrink: 0;
+  width: 0.9rem;
+  height: 0.9rem;
+  object-fit: contain;
+}
+
+.resource-field__value {
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.resource-field__input {
+  font: inherit;
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+  width: 100%;
+  background: transparent;
+  border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
+  border-radius: 0.25rem;
+  color: inherit;
+  padding: 0.2rem 0.4rem;
+}
+
+.resource-field__input:focus {
+  outline: none;
+  border-color: color-mix(in srgb, currentColor 60%, transparent);
+}

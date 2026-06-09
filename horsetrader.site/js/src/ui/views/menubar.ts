@@ -11,16 +11,27 @@ import { h } from "../h.ts";
 import { formatBalance, formatDate } from "../format.ts";
 import { searchBox } from "./searchBox.ts";
 import type { SearchIndex, SearchResult } from "../query/index.ts";
+import type { ResourceVector } from "../../core/projection/index.ts";
 import { pressedGroup } from "../widgets/pressedGroup.ts";
 
-export type MenubarOverlay = "identity" | "plan" | "resources" | "tazuna" | null;
+/** A member of the right-hand surface group. The left group (identity) is a
+ *  single button, so it takes a plain boolean. */
+export type RightSurface = "resources" | "tazuna";
 
 export interface Menubar {
   readonly el: HTMLElement;
   setDate(date: string): void;
-  setBalance(carats: number): void;
+  setResources(resources: ResourceVector): void;
   setIdentity(identity: MenubarIdentity): void;
-  setOpenOverlay(overlay: MenubarOverlay): void;
+  /** Highlight the left group (identity) as open or not. */
+  setLeftActive(active: boolean): void;
+  /** Highlight which right-group surface is open (balance/tazuna), or none. */
+  setRightActive(member: RightSurface | null): void;
+  /** Lock the surface-spawning buttons while a shield (modal child window) is up.
+   *  Navigation (home, search) stays live; so do the independent higher layers
+   *  (bookmarks, minimap, timeline). A shield is modal only against its peers —
+   *  the other menu surfaces it could otherwise spawn over. */
+  setShielded(shielded: boolean): void;
 }
 
 export interface MenubarIdentity {
@@ -30,9 +41,8 @@ export interface MenubarIdentity {
 
 export interface MenubarOpts {
   initialDate: string;
-  initialBalance: number;
+  initialResources: ResourceVector;
   identity: MenubarIdentity;
-  openOverlay: MenubarOverlay;
   onHome: () => void;
   onIdentity: () => void;
   onPlan: () => void;
@@ -54,8 +64,17 @@ function menuButton(label: string, onClick: () => void): HTMLButtonElement {
   );
 }
 
+function ticketsLabel(trainee: number, support: number): string {
+  return `${formatBalance(trainee)}t · ${formatBalance(support)}s`;
+}
+
 export function menubar(opts: MenubarOpts): Menubar {
   const date = h("span", { class: "menubar__item menubar__date" }, formatDate(opts.initialDate));
+  const balanceValue = h("span", { class: "menubar__balance-value" }, formatBalance(opts.initialResources.free_carats ?? 0));
+  const balanceTickets = h("span", { class: "menubar__balance-tickets" }, ticketsLabel(
+    opts.initialResources.trainee_tickets ?? 0,
+    opts.initialResources.support_tickets ?? 0,
+  ));
   const balance = h(
     "button",
     {
@@ -63,8 +82,11 @@ export function menubar(opts: MenubarOpts): Menubar {
       attr: { type: "button" },
       on: { click: opts.onResources },
     },
-    h("span", { class: "menubar__balance-value" }, formatBalance(opts.initialBalance)),
-    h("span", { class: "menubar__balance-unit" }, "carats"),
+    h("span", { class: "menubar__balance-primary" },
+      balanceValue,
+      h("span", { class: "menubar__balance-unit" }, "carats"),
+    ),
+    balanceTickets,
   );
   const search = searchBox({ search: opts.search, onSearch: opts.onSearch });
   const identityIcon = h("img", {
@@ -87,6 +109,10 @@ export function menubar(opts: MenubarOpts): Menubar {
   );
   const plan = menuButton("Plan", opts.onPlan);
   const tazuna = menuButton("Tazuna", opts.onTazuna);
+  // Plan is not built yet — keep it visibly inert rather than letting a click
+  // tear down the real cards. Flip this off when the planner surface lands.
+  plan.disabled = true;
+  plan.title = "Coming soon";
 
   const el = h(
     "nav",
@@ -110,32 +136,50 @@ export function menubar(opts: MenubarOpts): Menubar {
     h("div", { class: "menubar__cluster menubar__cluster--right" }, plan, balance, tazuna),
   );
 
-  const overlayButtons = new Map<Exclude<MenubarOverlay, null>, HTMLElement>([
-    ["identity", identity],
-    ["plan", plan],
-    ["resources", balance],
-    ["tazuna", tazuna],
-  ]);
-  const setPressed = pressedGroup(overlayButtons, "menubar__button--active");
+  // Two independent highlight groups: the left group is the single identity
+  // button (a plain on/off), the right group is a pressed-group over its members
+  // (at most one lit). Both can be lit at once — left and right are independent.
+  const setRightPressed = pressedGroup(
+    new Map<RightSurface, HTMLElement>([
+      ["resources", balance],
+      ["tazuna", tazuna],
+    ]),
+    "menubar__button--active",
+  );
 
-  function setOpenOverlay(open: MenubarOverlay): void {
-    setPressed(open);
+  function setLeftActive(active: boolean): void {
+    identity.setAttribute("aria-pressed", String(active));
+    identity.classList.toggle("menubar__button--active", active);
   }
-  setOpenOverlay(opts.openOverlay);
+  setLeftActive(false);
+  setRightPressed(null);
+
+  // The surface spawners a shield locks — every *live* menu item that opens a
+  // same-layer surface (not home/search, which are navigation). Plan is inert for
+  // now, so there's nothing to lock there.
+  const lockable: HTMLButtonElement[] = [identity, balance, tazuna];
+  function setShielded(shielded: boolean): void {
+    for (const button of lockable) {
+      button.disabled = shielded;
+      button.classList.toggle("menubar__button--shielded", shielded);
+    }
+  }
 
   return {
     el,
     setDate: (next) => {
       date.textContent = formatDate(next);
     },
-    setBalance: (carats) => {
-      const value = balance.querySelector(".menubar__balance-value");
-      if (value) value.textContent = formatBalance(carats);
+    setResources: (resources) => {
+      balanceValue.textContent = formatBalance(resources.free_carats ?? 0);
+      balanceTickets.textContent = ticketsLabel(resources.trainee_tickets ?? 0, resources.support_tickets ?? 0);
     },
     setIdentity: (next) => {
       identity.setAttribute("aria-label", `Identity: ${next.label}`);
       identityIcon.src = next.icon;
     },
-    setOpenOverlay,
+    setLeftActive,
+    setRightActive: (member) => setRightPressed(member),
+    setShielded,
   };
 }
