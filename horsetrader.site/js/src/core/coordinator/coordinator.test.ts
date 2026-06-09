@@ -22,7 +22,7 @@ function bundle(): EventsBundle {
   };
 }
 
-const snapshot = { date: "2026-06-01", resources: { free_carats: 1000 } };
+const snapshot = { date: "2026-06-01", recordedAt: "2026-06-01T00:00:00.000Z", resources: { free_carats: 1000 } };
 const FAR = "2026-06-30"; // past every event
 
 test("folds all channels from the snapshot forward into a queryable balance", () => {
@@ -89,7 +89,7 @@ test("update persists the plan and recomputes against the new base", () => {
   coord.update({ snapshot });
   assert.deepEqual(coord.balanceAt(FAR), { free_carats: 1270 });
 
-  coord.update({ snapshot: { date: "2026-06-01", resources: { free_carats: 5000 } } });
+  coord.update({ snapshot: { date: "2026-06-01", recordedAt: "2026-06-01T00:00:00.000Z", resources: { free_carats: 5000 } } });
   assert.deepEqual(coord.balanceAt(FAR), { free_carats: 5270 });
   assert.equal(load(store).doc.snapshot?.resources.free_carats, 5000);
 });

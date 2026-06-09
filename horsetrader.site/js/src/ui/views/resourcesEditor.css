@@ -5,32 +5,6 @@
   min-width: 22rem;
 }
 
-.resources-editor__as-of {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.85rem;
-}
-
-.resources-editor__as-of-label {
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  opacity: 0.5;
-}
-
-.resources-editor__date {
-  font: inherit;
-  font-size: 0.85rem;
-  background: transparent;
-  border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
-  border-radius: 0.25rem;
-  color: inherit;
-  padding: 0.2rem 0.4rem;
-  color-scheme: dark;
-}
-
 .resources-editor__cell {
   display: flex;
   flex-direction: column;

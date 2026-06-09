@@ -30,6 +30,7 @@ import type { RushBinding } from "./widgets/rushedToggle.ts";
 import type { FavouriteBinding } from "./widgets/atomChip.ts";
 import { overlay, suspendOverlay } from "./views/overlay.ts";
 import { resourcesSurface } from "./views/resourcesSurface.ts";
+import type { ResourcesSurfaceHandle } from "./views/resourcesSurface.ts";
 import { resourcesEditor } from "./views/resourcesEditor.ts";
 import { tazunaSurface } from "./views/tazunaSurface.ts";
 import { bookmarks } from "./views/bookmarks.ts";
@@ -167,6 +168,11 @@ export function mountApp(
   // on the cheap path (every pan) so Resources always shows the right projection.
   let viewDate = now;
 
+  // The open Resources card, when one is up — a live handle the pan path refreshes
+  // imperatively (like the menubar), since `onView` deliberately skips the overlay
+  // rebuild. Null whenever the card isn't mounted; set/cleared in renderOverlay.
+  let liveResources: ResourcesSurfaceHandle | null = null;
+
   // The cheap path: the view centre *is* the focus. The timeline hands us the
   // centre date on every pan; we read the cached series into the menubar and move
   // the minimap window. No broadcast — a 60 Hz pan stays off the render path.
@@ -177,6 +183,7 @@ export function mountApp(
       menu.setDate(date);
       menu.setResources(balance);
       mini.setView(date);
+      liveResources?.update({ viewDate: date, projected: balance });
     },
   });
 
@@ -339,6 +346,8 @@ export function mountApp(
     };
 
     const children: Node[] = [];
+    // Rebuilt below if the Resources card is in this frame; the pan path checks it.
+    liveResources = null;
 
     if (left === "identity") {
       children.push(buildTrainerCard(identity, strings, { suspended: anyShield, customUnlocked: supporterUnlocked }, trainerCardOn));
@@ -360,18 +369,20 @@ export function mountApp(
     // left group above.
     if (right === "resources") {
       const editing = view.get().resourcesEditing;
+      const resources = resourcesSurface({
+        viewDate,
+        projected: coord.balanceAt(viewDate),
+        snapshot: coord.document().snapshot,
+        now,
+        onEdit: () => {
+          if (!shieldOpen()) view.set({ resourcesEditing: true });
+        },
+      });
+      liveResources = resources; // the pan path refreshes this card in place
       const resourcesCard = overlay({
         title: "Resources",
         placement: "right",
-        body: resourcesSurface({
-          viewDate,
-          projected: coord.balanceAt(viewDate),
-          snapshot: coord.document().snapshot,
-          now,
-          onEdit: () => {
-            if (!shieldOpen()) view.set({ resourcesEditing: true });
-          },
-        }),
+        body: resources.el,
         // Closing the surface tears the editor shield down with it.
         onClose: () => view.set({ right: null, resourcesEditing: false }),
       });
@@ -387,7 +398,6 @@ export function mountApp(
             placement: "center",
             body: resourcesEditor({
               snapshot: coord.document().snapshot,
-              now,
               onCommit: (snapshot) => coord.update({ snapshot }),
               onClose: () => view.set({ resourcesEditing: false }),
             }),

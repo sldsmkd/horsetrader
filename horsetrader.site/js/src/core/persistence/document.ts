@@ -16,11 +16,18 @@ export const CURRENT_VERSION = 1;
 export type ResourceVector = { [resource: string]: number };
 
 /**
- * A *dated* point-in-time reading of resources — the origin projections run
- * forward from. `date` is the moment the reading was taken.
+ * A point-in-time reading of resources — the origin projections run forward from.
+ * `recordedAt` is the full UTC instant the reading was taken (`new Date().toISOString()`,
+ * the same action-timestamp shape as [[Rushed]]). Wall-clock time is load-bearing,
+ * not cosmetic: the game's daily resets and content drops land at specific times,
+ * so *when in the day* a reading was taken decides whether that day's drops are
+ * already counted in it. `date` is that instant's UTC calendar day — the
+ * daily-granular origin the fold runs from today (see coordinator `fold`); the two
+ * stay consistent (`date === recordedAt.slice(0, 10)`).
  */
 export interface Snapshot {
   date: string;
+  recordedAt: string;
   resources: ResourceVector;
 }
 
