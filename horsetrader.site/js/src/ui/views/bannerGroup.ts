@@ -16,8 +16,6 @@ import "./bannerGroup.css";
 import { h } from "../h.ts";
 import { formatDate, formatBalance } from "../format.ts";
 import type { Banner, BannerGroup } from "../select/aboveLane.ts";
-import { rushedToggleFor } from "../widgets/rushedToggle.ts";
-import type { RushBinding } from "../widgets/rushedToggle.ts";
 import { atomChip } from "../widgets/atomChip.ts";
 import type { FavouriteBinding } from "../widgets/atomChip.ts";
 
@@ -28,7 +26,7 @@ export interface CommitBinding {
   open: (bannerKey: string) => void;
 }
 
-export function bannerGroup(group: BannerGroup, rush: RushBinding, fav: FavouriteBinding, commit: CommitBinding): HTMLElement {
+export function bannerGroup(group: BannerGroup, fav: FavouriteBinding, commit: CommitBinding): HTMLElement {
   const el = h(
     "div",
     { class: `card card--above${group.predicted ? " card--predicted" : ""}` },
@@ -41,7 +39,6 @@ export function bannerGroup(group: BannerGroup, rush: RushBinding, fav: Favourit
           { class: `banner banner--${banner.kind}` },
           h("img", { class: "banner__image", attr: { src: banner.image, alt: "", loading: "lazy" } }),
           h("ul", { class: "banner__atoms" }, ...banner.atoms.map((atom) => atomChip(atom, fav))),
-          banner.rushable ? rushedToggleFor(rush, banner.key) : null,
           banner.open ? readout(banner, commit) : null,
         ),
       ),
@@ -75,7 +72,7 @@ function readout(banner: Banner, commit: CommitBinding): HTMLElement {
 /** The seam back to the commit shield (ui.md: commitment is entered *at source*,
  *  on the banner). Reads as the pity line when committed, a quiet prompt otherwise.
  *  An in-timeline control, so it stops `pointerdown` from the pan capture (the same
- *  guard the rush toggle and favourite star carry). */
+ *  guard the favourite star carries). */
 function commitButton(banner: Banner, commit: CommitBinding): HTMLElement {
   const committed = banner.committedPity !== null;
   return h(

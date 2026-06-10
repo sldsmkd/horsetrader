@@ -23,6 +23,10 @@ export interface ChannelContext {
   after: CalendarDate;
   /** The calendar timezone the day-bucketed projection is viewed in. */
   timeZone: string;
+  /** Event keys the player has rushed — their discrete payout attributes at
+   *  `start`, not `end`. The events channel is the only one that honours it
+   *  (compound rewards don't move); other channels ignore it. */
+  rushed: ReadonlySet<string>;
 }
 
 export interface ChannelDef {
@@ -30,9 +34,11 @@ export interface ChannelDef {
   emit(ctx: ChannelContext): StreamEmission[];
 }
 
-/** The ground-truth channels, in fold order — immutable bundle data, no user input. */
+/** The ground-truth channels, in fold order — immutable bundle data. The only
+ *  user input they read is `rushed` (the events channel pulls a rushed event's
+ *  discrete payout forward to its start); amounts are never user-authored here. */
 export const GROUND_TRUTH_CHANNELS: ChannelDef[] = [
-  { name: "events", emit: ({ bundle, after, timeZone }) => eventStream(bundle, after, timeZone) },
+  { name: "events", emit: ({ bundle, after, timeZone, rushed }) => eventStream(bundle, after, timeZone, rushed) },
   { name: "generator", emit: ({ bundle, after, timeZone }) => generatorStream(generatorsFromBundle(bundle, timeZone), after) },
   { name: "sequence", emit: ({ bundle, after, timeZone }) => sequenceStream(sequencesFromBundle(bundle, timeZone), after) },
 ];

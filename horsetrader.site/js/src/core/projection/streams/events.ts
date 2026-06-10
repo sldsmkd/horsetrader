@@ -17,14 +17,19 @@ import { UTC_TIME_ZONE, dateStringInTimeZone } from "../dates.ts";
 
 /**
  * Emit the timeline's discrete rewards as dated deltas. Rewards land on an
- * event's `end` — the point the event has fully paid out. Only events landing
- * strictly after `after` (the snapshot date; anything on or before it is already
- * baked into the reading the projection starts from) are emitted.
+ * event's `end` — the point the event has fully paid out — *unless the player
+ * has rushed it*, in which case the discrete payout is pulled forward to the
+ * event's `start` (its key is in `rushed`; the impulse-control decision, not a
+ * planning one — see project_rushed_feature). Only events whose effective date
+ * lands strictly after `after` (the snapshot date; anything on or before it is
+ * already baked into the reading the projection starts from) are emitted — so
+ * rushing an event whose `start` precedes the snapshot drops it (already banked).
  *
  * The repeating-bonus `generator` shape (`{payload, repeat}`) is *not* this
  * channel's concern — its nested value is skipped here and expanded separately
  * by the generator stream, which owns the recurrence (see ./generator.ts). This
- * keeps the two provenances on separate channels.
+ * keeps the two provenances on separate channels. Compound rewards are likewise
+ * unmoved by rush: only this channel's discrete payout shifts to `start`.
  *
  * `pulls` is also skipped: a banner's free pulls are **scoped to that banner**
  * (use-them-or-lose-them on its own run), never a carried resource — banking them
@@ -33,11 +38,17 @@ import { UTC_TIME_ZONE, dateStringInTimeZone } from "../dates.ts";
  * and the commit shield's Free stream), never folded. Only carryable resources
  * (carats, tickets, crystals/shards) accumulate here.
  */
-export function eventStream(bundle: EventsBundle, after: CalendarDate, timeZone: string = UTC_TIME_ZONE): StreamEmission[] {
+export function eventStream(
+  bundle: EventsBundle,
+  after: CalendarDate,
+  timeZone: string = UTC_TIME_ZONE,
+  rushed: ReadonlySet<string> = new Set(),
+): StreamEmission[] {
   const emissions: StreamEmission[] = [];
   for (const event of bundle.events) {
     if (!event.rewards) continue;
-    const date = dateStringInTimeZone(event.end, timeZone);
+    // Rushed → the discrete payout is brought forward from `end` to `start`.
+    const date = dateStringInTimeZone(rushed.has(event.key) ? event.start : event.end, timeZone);
     if (date <= after) continue;
 
     const deltas: ResourceVector = {};

@@ -269,7 +269,7 @@ export function mountApp(
       commitments: coord.document().commitments ?? {},
     });
     const belowEls = below.map((card) => belowCard(card, rush));
-    const aboveEls = above.map((group) => bannerGroup(group, rush, fav, commit));
+    const aboveEls = above.map((group) => bannerGroup(group, fav, commit));
     tl.setCards([...belowEls, ...aboveEls]);
     // Mounted now → heights are measurable. Pack each lane (below returns its
     // floor depth, above its roof height); the timeline turns these into its

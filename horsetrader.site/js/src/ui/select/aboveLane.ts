@@ -13,7 +13,6 @@
 
 import type { Axis } from "../axis.ts";
 import type { Bundle } from "../bundle/access.ts";
-import { isRushable } from "../../core/bundle/flags.ts";
 import type { ResourceVector, Commitments } from "../../core/persistence/document.ts";
 import { pullCapacity, bannerDays } from "../../core/projection/pulls.ts";
 import type { CalendarDate } from "../../core/projection/dates.ts";
@@ -58,8 +57,6 @@ export interface Banner {
   kind: BannerKind;
   image: string;
   atoms: BannerAtom[];
-  /** True when the event is rush-eligible and not yet ended. */
-  rushable: boolean;
   /** Still open to pull — `end >= now`. A closed banner is gone: no readout at all. */
   open: boolean;
   /** Pulls available from any source by the banner's appearance date (the ammo count). */
@@ -139,7 +136,6 @@ export function aboveLaneGroups(bundle: Bundle, axis: Axis, now: CalendarDate, i
       kind: ev.type,
       image: ev.image,
       atoms,
-      rushable: isRushable(ev) && open,
       open,
       pullsAvailable: capacity.total,
       // The value signal — *this banner's own* free-pull count (ui.md), shown

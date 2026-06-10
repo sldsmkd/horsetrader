@@ -52,6 +52,21 @@ test("a committed banner's spend folds at its calendar end date, not the raw ins
   assert.deepEqual(coord.bannerAvailable("sb"), { free_carats: 100000, support_tickets: 50 });
 });
 
+test("rushing an event re-folds its discrete payout from end to start, live", () => {
+  // A span-event: rewards at end 2026-06-15 unrushed, pulled forward to start 2026-06-05 rushed.
+  const span: EventsBundle = {
+    events: [{ type: "trainee", contents: [], image: "", start: "2026-06-05", end: "2026-06-15", predicted: false, rushable: true, key: "ev", rewards: { free_carats: 100 } }],
+  };
+  const coord = createCoordinator({ bundle: span, now: cal("2026-06-01"), store: memoryStore() });
+  coord.update({ snapshot });
+  const MID = cal("2026-06-10"); // inside the run — before end, after start
+  // Unrushed: the payout lands at end, so mid-run the balance is just the base.
+  assert.deepEqual(coord.balanceAt(MID), { free_carats: 1000 });
+  // Rushed: update re-folds → the payout now lands at start, visible mid-run.
+  coord.update({ rushed: { ev: "2026-06-02T00:00:00.000Z" } });
+  assert.deepEqual(coord.balanceAt(MID), { free_carats: 1100 });
+});
+
 test("with no snapshot, the origin is `now` and the base is empty", () => {
   const coord = createCoordinator({ bundle: bundle(), now: cal("2026-06-01"), store: memoryStore() });
   assert.deepEqual(coord.balanceAt(FAR), { free_carats: 270 });

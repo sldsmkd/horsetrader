@@ -20,6 +20,11 @@ function banner(key: string, end: string, rewards?: TraineeBannerRecord["rewards
   };
 }
 
+/** A banner with a distinct start and end — needed to observe rush moving the payout. */
+function span(key: string, start: string, end: string, rewards?: TraineeBannerRecord["rewards"]): TraineeBannerRecord {
+  return { ...banner(key, end, rewards), start };
+}
+
 function bundle(...events: EventsBundle["events"]): EventsBundle {
   return { events };
 }
@@ -74,5 +79,34 @@ test("flat rewards alongside a generator keep the flat deltas and drop only the 
   );
   assert.deepEqual(eventStream(b, cal("2026-06-01")), [
     { date: "2026-06-10", source: "mixed", deltas: { free_carats: 50 } },
+  ]);
+});
+
+test("a rushed event's discrete payout is pulled forward to its start", () => {
+  const b = bundle(span("ev", "2026-06-05", "2026-06-15", { free_carats: 100 }));
+  // Not rushed → lands on end; rushed → lands on start, same deltas.
+  assert.deepEqual(eventStream(b, cal("2026-06-01")), [
+    { date: "2026-06-15", source: "ev", deltas: { free_carats: 100 } },
+  ]);
+  assert.deepEqual(eventStream(b, cal("2026-06-01"), "UTC", new Set(["ev"])), [
+    { date: "2026-06-05", source: "ev", deltas: { free_carats: 100 } },
+  ]);
+});
+
+test("rushing an event whose start precedes the snapshot drops it (already banked), end notwithstanding", () => {
+  const b = bundle(span("ev", "2026-05-28", "2026-06-15", { free_carats: 100 }));
+  // End is after the snapshot, so unrushed it emits; rushed, its start is on/before → dropped.
+  assert.deepEqual(eventStream(b, cal("2026-06-01")).map((e) => e.date), ["2026-06-15"]);
+  assert.deepEqual(eventStream(b, cal("2026-06-01"), "UTC", new Set(["ev"])), []);
+});
+
+test("only the listed keys are rushed; an unlisted event still lands on its end", () => {
+  const b = bundle(
+    span("rushed", "2026-06-05", "2026-06-15", { free_carats: 100 }),
+    span("kept", "2026-06-06", "2026-06-16", { free_carats: 200 }),
+  );
+  assert.deepEqual(eventStream(b, cal("2026-06-01"), "UTC", new Set(["rushed"])), [
+    { date: "2026-06-05", source: "rushed", deltas: { free_carats: 100 } },
+    { date: "2026-06-16", source: "kept", deltas: { free_carats: 200 } },
   ]);
 });

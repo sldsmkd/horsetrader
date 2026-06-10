@@ -164,9 +164,11 @@ export function createCoordinator(options: CoordinatorOptions): Coordinator {
     // (validated) so it shares the projection's bucket space. Falls back to `now`.
     const after: CalendarDate = doc.snapshot?.date ? cal(doc.snapshot.date) : now;
     const base = doc.snapshot?.resources ?? {};
+    // The rushed plan (event keys → bring their discrete payout forward to `start`).
+    const rushed = new Set(Object.keys(doc.rushed ?? {}));
     const income = registry
       .filter((ch) => enabled.get(ch.name) !== false)
-      .map((ch) => ({ stream: ch.name, emissions: ch.emit({ bundle, after, timeZone }) }));
+      .map((ch) => ({ stream: ch.name, emissions: ch.emit({ bundle, after, timeZone, rushed }) }));
     const incomeProjection = project({ resources: base }, income);
     const spends = spendStream(committedBanners(bundle, doc.commitments ?? {}, timeZone), incomeProjection.series.balanceAt, gacha, after);
     const projection = project({ resources: base }, [...income, { stream: "spends", emissions: spends.emissions }]);
