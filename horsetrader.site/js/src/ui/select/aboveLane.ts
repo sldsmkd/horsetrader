@@ -15,17 +15,21 @@ import type { Axis } from "../axis.ts";
 import type { Bundle } from "../bundle/access.ts";
 import { isRushable } from "../../core/bundle/flags.ts";
 import type { ResourceVector, Commitments } from "../../core/persistence/document.ts";
-import { pullCapacity, bannerDays } from "./pulls.ts";
+import { pullCapacity, bannerDays } from "../../core/projection/pulls.ts";
 
-/** The two live reads the above-lane readout folds in: balance-at-date and commitments. */
+/** The live reads the above-lane readout folds in: balance-at-date, the per-banner
+ *  self-excluded available (for committed banners), and commitments. */
 export interface AboveLaneInputs {
   /** The income fold surfaced at a spend point — `balanceAt(bannerDate)` (ui.md). */
   balanceAt: (date: string) => ResourceVector;
+  /** A committed banner's resources *before its own spend* (self-excluded — see
+   *  project_spend_model); `undefined` for an uncommitted banner, which reads the series. */
+  bannerAvailable: (bannerKey: string) => ResourceVector | undefined;
   /** Per-banner committed pities, keyed by banner key (the persisted plan). */
   commitments: Commitments;
 }
 
-const NO_INPUTS: AboveLaneInputs = { balanceAt: () => ({}), commitments: {} };
+const NO_INPUTS: AboveLaneInputs = { balanceAt: () => ({}), bannerAvailable: () => undefined, commitments: {} };
 
 export type BannerKind = "trainee" | "support";
 
@@ -103,17 +107,15 @@ export function aboveLaneGroups(bundle: Bundle, axis: Axis, now: string, inputs:
   // just the projection horizon (you scroll back into history too).
   const byDate = new Map<string, BannerGroup>();
   const { carats_per_pull: caratsPerPull, paid_daily_pull: paidDailyPull } = bundle.config().gacha;
-  // Ammo is measured at each banner's **end** (project_spend_model): every accruing
-  // source has settled by then. Cache the end-balance by date (banners sharing an end
-  // share it), but capacity is per-banner (kind-appropriate tickets + duration).
-  const balanceByEnd = new Map<string, ResourceVector>();
   for (const ev of bundle.all()) {
     if (ev.type !== "trainee" && ev.type !== "support") continue;
     let group = byDate.get(ev.start);
     if (!group) byDate.set(ev.start, (group = { key: ev.start, date: ev.start, x: axis.xForDate(ev.start), predicted: false, banners: [] }));
     group.predicted = group.predicted || ev.predicted;
-    let balance = balanceByEnd.get(ev.end);
-    if (!balance) balanceByEnd.set(ev.end, (balance = inputs.balanceAt(ev.end)));
+    // Ammo is measured at the banner's **end** (project_spend_model). A committed banner
+    // reads its self-excluded available (income minus *earlier* spends, not its own); an
+    // uncommitted one reads the series at its end (which already nets out earlier spends).
+    const balance = inputs.bannerAvailable(ev.key) ?? inputs.balanceAt(ev.end);
     const atoms = ev.contents.map((id) => atomOf(bundle, ev.type, id)).filter((a): a is BannerAtom => a !== null);
     const open = ev.end >= now;
     // This banner's own free-pull grant. On banners `pulls` is always a plain

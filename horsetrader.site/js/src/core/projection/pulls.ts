@@ -1,9 +1,9 @@
 /**
- * The banner pull-math: how a balance becomes *effective pulls on a banner*, under the
- * efficiency spend model (project_spend_model). It is the single primitive both the
- * card readout (`aboveLane` — "how much could I spend") and the commit shield's
- * reservation (`commit.ts reserve` — "what's left after I commit") run, so the two
- * surfaces can never disagree on the rules.
+ * The banner pull-math: how a balance becomes *effective pulls on a banner*, and how a
+ * committed pity *spends* that balance, under the efficiency spend model
+ * (project_spend_model). It lives in `core` because the projection's spend stream owns
+ * it now (the `ui` card readout and commit shield import it from here too, so all three
+ * agree on the rules).
  *
  * The rules (all measured at `ev.end` — see the callers):
  *   - **Free pulls** (this banner's grant) are free and banner-local — count them first.
@@ -13,10 +13,6 @@
  *     carats are *only* ever spent this way; any the cap can't absorb bank forward (they
  *     are deliberately NOT counted as available pulls here).
  *   - **Free carats** are the full-price floor: `⌊free / 150⌋` pulls at 150 each.
- *
- * NB this is a prototype scoped to the availability half of the model. The *fold* half —
- * debiting the committed spend forward so later banners react — is deliberately not here
- * yet (Part 2, see project_spend_model / the glue epic).
  */
 
 /** A banner's spendable sources at its measurement instant — tickets already narrowed
@@ -63,6 +59,36 @@ export function pullCapacity(s: PullSources, c: PullCaps): PullCapacity {
     dailyPaid,
     freeCaratPulls,
     total: s.freePulls + s.tickets + dailyPaid + freeCaratPulls,
+  };
+}
+
+/** The resources a committed pity *consumes* (positive amounts), cheapest-first. The
+ *  caller debits these from the balance — free carats can exceed what's available (the
+ *  overcommit shortfall), so the resulting balance may go negative; tickets and paid
+ *  carats never over-spend (paid only ever leaves through the daily window). */
+export interface SpendDebit {
+  freeCarats: number;
+  paidCarats: number;
+  tickets: number;
+}
+
+/** Cover `pity × sparkThreshold` pulls cheapest-first (free pulls → tickets → daily paid
+ *  → free carats) and return what each pool gave up. The single source of truth for both
+ *  the shield's "after" (balance − debit) and the projection's spend emission (−debit). */
+export function spend(s: PullSources, c: PullCaps, sparkThreshold: number, pity: number): SpendDebit {
+  const cap = pullCapacity(s, c);
+  let need = Math.max(0, pity) * sparkThreshold;
+  need -= Math.min(cap.freePulls, need); // free pulls evaporate into the need (banner-local)
+  const ticketsUsed = Math.min(cap.tickets, need);
+  need -= ticketsUsed;
+  const dailyUsed = Math.min(cap.dailyPaid, need);
+  need -= dailyUsed;
+  return {
+    // Whatever's left is full-price free carats — can exceed the pool (overcommit short).
+    freeCarats: need * c.caratsPerPull,
+    // Paid carats only leave through the daily window; the rest banks forward.
+    paidCarats: dailyUsed * c.paidDailyPull,
+    tickets: ticketsUsed,
   };
 }
 

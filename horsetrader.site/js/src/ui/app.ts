@@ -264,6 +264,7 @@ export function mountApp(
     const below = belowLaneCards(projection, bundle, axis, now);
     const above = aboveLaneGroups(bundle, axis, now, {
       balanceAt: (date) => coord.balanceAt(date),
+      bannerAvailable: (key) => coord.bannerAvailable(key),
       commitments: coord.document().commitments ?? {},
     });
     const belowEls = below.map((card) => belowCard(card, rush));
@@ -440,7 +441,10 @@ export function mountApp(
     const committing = view.get().committing;
     if (committing !== null) {
       const ctx = commitContext(bundle, committing, {
-        balanceAt: (date) => coord.balanceAt(date),
+        // The shield reads this banner's *self-excluded* available (income minus earlier
+        // banners' spends, not its own) so editing a committed pity never double-debits;
+        // an uncommitted banner has no own-spend yet, so the series at its end is right.
+        balanceAt: (date) => coord.bannerAvailable(committing) ?? coord.balanceAt(date),
         commitments: coord.document().commitments ?? {},
       });
       children.push(

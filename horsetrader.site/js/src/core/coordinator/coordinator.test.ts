@@ -32,6 +32,25 @@ test("folds all channels from the snapshot forward into a queryable balance", ()
   assert.deepEqual(coord.balanceAt(FAR), { free_carats: 1000 + 100 + 150 + 20 });
 });
 
+test("a committed banner's spend folds at its calendar end date, not the raw instant", () => {
+  // Regression: the bake stores full instants; the spend pass must bucket them to a
+  // calendar date like the income streams, or the emission lands in a date-space nothing
+  // reads — the spend silently never applies, and the available reads the far-future tail.
+  const banners: EventsBundle = {
+    events: [{ type: "support", contents: [], image: "", start: "2026-06-08T22:00:00+00:00", end: "2026-06-20T22:00:00+00:00", predicted: false, rushable: false, key: "sb" }],
+  };
+  const coord = createCoordinator({ bundle: banners, now: "2026-06-01", store: memoryStore() });
+  coord.update({ snapshot: { date: "2026-06-01", recordedAt: "2026-06-01T00:00:00.000Z", resources: { free_carats: 100000, support_tickets: 50 } } });
+  const END = "2026-06-20"; // the calendar bucket of the 22:00 UTC instant
+
+  assert.deepEqual(coord.balanceAt(END), { free_carats: 100000, support_tickets: 50 });
+  coord.update({ commitments: { sb: 1 } }); // 200 pulls: 50 tickets + 150 × 150 free carats
+  // The spend actually folds: tickets emptied, free carats down 22,500.
+  assert.deepEqual(coord.balanceAt(END), { free_carats: 100000 - 22500, support_tickets: 0 });
+  // ...while the banner's own available stays pre-spend (self-excluded).
+  assert.deepEqual(coord.bannerAvailable("sb"), { free_carats: 100000, support_tickets: 50 });
+});
+
 test("with no snapshot, the origin is `now` and the base is empty", () => {
   const coord = createCoordinator({ bundle: bundle(), now: "2026-06-01", store: memoryStore() });
   assert.deepEqual(coord.balanceAt(FAR), { free_carats: 270 });

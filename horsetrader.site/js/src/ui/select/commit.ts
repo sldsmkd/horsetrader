@@ -16,7 +16,7 @@
 import type { Bundle } from "../bundle/access.ts";
 import type { ResourceVector, Commitments } from "../../core/persistence/document.ts";
 import { atomOf, type BannerAtom, type BannerKind, type RarityTier } from "./aboveLane.ts";
-import { pullCapacity, bannerDays } from "./pulls.ts";
+import { spend, bannerDays } from "../../core/projection/pulls.ts";
 
 /** Featured-card sort: hero rarity bands first (crystal → gold), then alpha within
  *  a band — so the highest-rarity pickups lead from the left. */
@@ -148,23 +148,17 @@ export interface ReservedBalance {
 }
 
 export function reserve(ctx: CommitContext, pity: number): ReservedBalance {
-  const cap = pullCapacity(
+  const debit = spend(
     { freePulls: ctx.freePulls, tickets: ctx.tickets, freeCarats: ctx.freeCarats, paidCarats: ctx.paidCarats },
     { caratsPerPull: ctx.caratsPerPull, paidDailyPull: ctx.paidDailyPull, bannerDays: ctx.bannerDays },
+    ctx.sparkThreshold,
+    pity,
   );
-
-  let need = Math.max(0, pity) * ctx.sparkThreshold;
-  need -= Math.min(cap.freePulls, need); // free pulls evaporate into the need (banner-local)
-  const ticketsUsed = Math.min(cap.tickets, need);
-  need -= ticketsUsed;
-  const dailyUsed = Math.min(cap.dailyPaid, need);
-  need -= dailyUsed;
-
   return {
-    // Whatever's left is full-price free carats — past zero if you're short.
-    freeCarats: ctx.freeCarats - need * ctx.caratsPerPull,
-    // Paid carats only leave through the daily window; the rest banks forward.
-    paidCarats: ctx.paidCarats - dailyUsed * ctx.paidDailyPull,
-    tickets: ctx.tickets - ticketsUsed,
+    // The shield's "after" is just the predicted balance minus what the commitment spends
+    // (free carats can go negative — the overcommit shortfall the view reds).
+    freeCarats: ctx.freeCarats - debit.freeCarats,
+    paidCarats: ctx.paidCarats - debit.paidCarats,
+    tickets: ctx.tickets - debit.tickets,
   };
 }

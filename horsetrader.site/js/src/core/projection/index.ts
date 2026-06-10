@@ -12,3 +12,7 @@ export { generatorStream, generatorsFromBundle } from "./streams/generator.ts";
 export type { GeneratorSpec } from "./streams/generator.ts";
 export { sequenceStream, sequencesFromBundle } from "./streams/sequence.ts";
 export type { SequenceSpec } from "./streams/sequence.ts";
+export { spendStream } from "./streams/spends.ts";
+export type { CommittedBanner, SpendGacha, SpendStreamResult, BannerKind } from "./streams/spends.ts";
+export { pullCapacity, spend, bannerDays } from "./pulls.ts";
+export type { PullSources, PullCaps, PullCapacity, SpendDebit } from "./pulls.ts";

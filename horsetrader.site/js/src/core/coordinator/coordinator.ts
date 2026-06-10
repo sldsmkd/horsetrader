@@ -22,11 +22,35 @@ import type { PlanDocument } from "../persistence/index.ts";
 import { load, save } from "../persistence/index.ts";
 import type { KeyValueStore } from "../persistence/storage.ts";
 import { defaultStore } from "../persistence/storage.ts";
-import { project } from "../projection/index.ts";
-import type { Projection, ResourceVector } from "../projection/index.ts";
-import { UTC_TIME_ZONE } from "../projection/dates.ts";
+import { project, spendStream } from "../projection/index.ts";
+import type { Projection, ResourceVector, SpendGacha, CommittedBanner, BannerKind } from "../projection/index.ts";
+import { UTC_TIME_ZONE, dateStringInTimeZone } from "../projection/dates.ts";
 import { GROUND_TRUTH_CHANNELS } from "./channels.ts";
 import type { ChannelDef } from "./channels.ts";
+
+/** The committed banners the spend pass resolves: every banner with a positive pity in
+ *  the plan, paired with the run/grant details the debit math needs. The run instants are
+ *  bucketed to **calendar dates** in the projection's timezone (exactly as `eventStream`
+ *  buckets `event.end`) so the spend emission lands in the same date-space as the income
+ *  series — otherwise its date matches no bucket and the lookup falls through. */
+function committedBanners(bundle: EventsBundle, commitments: Record<string, number>, timeZone: string): CommittedBanner[] {
+  const banners: CommittedBanner[] = [];
+  for (const ev of bundle.events) {
+    if (ev.type !== "trainee" && ev.type !== "support") continue;
+    const pity = commitments[ev.key];
+    if (!pity) continue; // unset or 0 — no spend to resolve
+    const freePulls = typeof ev.rewards?.pulls === "number" ? ev.rewards.pulls : 0;
+    banners.push({
+      key: ev.key,
+      kind: ev.type as BannerKind,
+      start: dateStringInTimeZone(ev.start, timeZone),
+      end: dateStringInTimeZone(ev.end, timeZone),
+      freePulls,
+      pity,
+    });
+  }
+  return banners;
+}
 
 /** The persisted plan sections a UI mutator can patch (never `version`). */
 export type PlanPatch = Pick<PlanDocument, "snapshot" | "config" | "commitments" | "favourites" | "rushed">;
@@ -65,6 +89,13 @@ export interface Coordinator {
   projection(): Projection;
   /** Convenience: the balance at a cursor date (O(1) into the cached series). */
   balanceAt(date: string): ResourceVector;
+  /**
+   * A committed banner's resources available *before its own spend* — income at the
+   * banner's end minus every earlier-resolving banner's spend (project_spend_model's
+   * self-exclusion). The card and shield read this for committed banners rather than the
+   * flattened series, so a banner never sees its own debit. `undefined` when uncommitted.
+   */
+  bannerAvailable(bannerKey: string): ResourceVector | undefined;
   /** The current persisted plan (read-only view). */
   document(): PlanDocument;
   /** Every known channel and its enabled state — for a toggle UI. */
@@ -87,6 +118,9 @@ export interface Coordinator {
 
 export interface CoordinatorOptions {
   bundle: EventsBundle;
+  /** Gacha pull-math constants the spend pass debits committed pity with. Optional —
+   *  defaults to the game-true constants; the app passes the baked `config.gacha`. */
+  gacha?: SpendGacha;
   /** Today as an ISO date — the projection origin when no snapshot is set yet. */
   now: string;
   /** Calendar timezone used to bucket baked event instants into projection dates. */
@@ -99,6 +133,7 @@ export interface CoordinatorOptions {
 
 export function createCoordinator(options: CoordinatorOptions): Coordinator {
   const { bundle, now } = options;
+  const gacha = options.gacha ?? { caratsPerPull: 150, paidDailyPull: 50, sparkThreshold: 200 };
   const timeZone = options.timeZone ?? UTC_TIME_ZONE;
   const store = options.store ?? defaultStore();
   const registry = options.channels ?? GROUND_TRUTH_CHANNELS;
@@ -115,20 +150,27 @@ export function createCoordinator(options: CoordinatorOptions): Coordinator {
     for (const listener of listeners) listener();
   }
 
-  function fold(): Projection {
+  // The two-pass fold: the income channels first (independent fixed deltas), then the
+  // dependent spends pass resolved against that income balance, then a final flatten of
+  // both. `available` carries each committed banner's pre-spend balance (self-excluded).
+  function fold(): { projection: Projection; available: Map<string, ResourceVector> } {
     const after = doc.snapshot?.date ?? now;
     const base = doc.snapshot?.resources ?? {};
-    const streams = registry
+    const income = registry
       .filter((ch) => enabled.get(ch.name) !== false)
       .map((ch) => ({ stream: ch.name, emissions: ch.emit({ bundle, after, timeZone }) }));
-    return project({ resources: base }, streams);
+    const incomeProjection = project({ resources: base }, income);
+    const spends = spendStream(committedBanners(bundle, doc.commitments ?? {}, timeZone), incomeProjection.series.balanceAt, gacha, after);
+    const projection = project({ resources: base }, [...income, { stream: "spends", emissions: spends.emissions }]);
+    return { projection, available: spends.available };
   }
 
   let current = fold();
 
   return {
-    projection: () => current,
-    balanceAt: (date) => current.series.balanceAt(date),
+    projection: () => current.projection,
+    balanceAt: (date) => current.projection.series.balanceAt(date),
+    bannerAvailable: (bannerKey) => current.available.get(bannerKey),
     document: () => doc,
     channels: () => registry.map((ch) => ({ name: ch.name, enabled: enabled.get(ch.name) !== false })),
     recovered: () => loaded.recovered,

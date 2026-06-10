@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { pullCapacity, bannerDays, type PullSources, type PullCaps } from "./pulls.ts";
+import { pullCapacity, spend, bannerDays, type PullSources, type PullCaps } from "./pulls.ts";
 
 const CAPS: PullCaps = { caratsPerPull: 150, paidDailyPull: 50, bannerDays: 12 };
 const EMPTY: PullSources = { freePulls: 0, tickets: 0, freeCarats: 0, paidCarats: 0 };
@@ -56,4 +56,26 @@ test("bannerDays is the whole-day span, at least 1", () => {
   assert.equal(bannerDays("2026-06-10", "2026-06-16"), 6);
   assert.equal(bannerDays("2026-07-20T22:00:00+00:00", "2026-08-08T22:00:00+00:00"), 19);
   assert.equal(bannerDays("2026-06-10", "2026-06-10"), 1); // same-day still gives one window
+});
+
+test("spend: nothing at zero pity", () => {
+  assert.deepEqual(spend({ freePulls: 5, tickets: 5, freeCarats: 9000, paidCarats: 600 }, CAPS, 200, 0), { freeCarats: 0, paidCarats: 0, tickets: 0 });
+});
+
+test("spend: cost-ascending — free pulls, tickets, daily paid, then free carats", () => {
+  // 12-day caps. 2 pity = 400 pulls: 10 free pulls + 30 tickets = 40 → 360 left; daily
+  // paid min(12, ⌊600/50⌋=12) = 12 pulls (600 paid), 348 left → 348 × 150 free carats.
+  const d = spend({ freePulls: 10, tickets: 30, freeCarats: 100000, paidCarats: 600 }, CAPS, 200, 2);
+  assert.deepEqual(d, { freeCarats: 348 * 150, paidCarats: 600, tickets: 30 });
+});
+
+test("spend: overcommit — free carats consumed past what's available (caller goes negative)", () => {
+  const d = spend({ freePulls: 0, tickets: 0, freeCarats: 1500, paidCarats: 0 }, { caratsPerPull: 150, paidDailyPull: 50, bannerDays: 6 }, 200, 1);
+  assert.equal(d.freeCarats, 200 * 150); // 30,000 spent against 1,500 available
+});
+
+test("spend: paid carats only leave through the daily window — the rest banks", () => {
+  // 5000 paid on a 6-day banner → 6 daily pulls (300 paid); the other 4,700 never spends.
+  const d = spend({ freePulls: 0, tickets: 0, freeCarats: 0, paidCarats: 5000 }, { caratsPerPull: 150, paidDailyPull: 50, bannerDays: 6 }, 200, 1);
+  assert.equal(d.paidCarats, 300);
 });

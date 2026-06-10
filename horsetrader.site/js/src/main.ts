@@ -40,7 +40,12 @@ async function bootstrap(): Promise<void> {
   const timeZone = defaultTimeZone();
   const now = todayInTimeZone(timeZone);
 
-  const coordinator = createCoordinator({ bundle: events, now, timeZone });
+  const coordinator = createCoordinator({
+    bundle: events,
+    gacha: { caratsPerPull: config.gacha.carats_per_pull, paidDailyPull: config.gacha.paid_daily_pull, sparkThreshold: config.gacha.spark_threshold },
+    now,
+    timeZone,
+  });
   mountApp(coordinator, createBundle(events, academy, config, timeZone), now, strings);
 }
 
