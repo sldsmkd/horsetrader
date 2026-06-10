@@ -1,6 +1,5 @@
 import type {
   ChampionsMeetingKey,
-  LegendRaceKey,
   MissionKey,
   PlayStyleKey,
   ShopTicketKey,
@@ -34,7 +33,6 @@ export interface PlayStyleStrings {
   settings: {
     weeklyPlay: PlayStyleSettingStrings<WeeklyPlayKey>;
     teamTrials: PlayStyleSettingStrings<TeamTrialKey>;
-    legendRaces: PlayStyleSettingStrings<LegendRaceKey>;
     missions: PlayStyleSettingStrings<MissionKey>;
     specialMissions: PlayStyleSettingStrings<SpecialMissionKey>;
     storyEvents: PlayStyleSettingStrings<StoryEventKey>;
@@ -101,21 +99,6 @@ export const FALLBACK_STRINGS: UiStrings = {
           rank5: { value: "Rank 5", description: "I push into the higher weekly rewards." },
           rank55: { value: "Rank 5.5", description: "I bounce around the Rank 5 promotion line." },
           rank6: { value: "Rank 6", description: "I hold the top weekly rank." },
-        },
-      },
-      legendRaces: {
-        title: "Legend Races",
-        steps: {
-          none: { value: "0 legends", description: "I usually miss the event or skip it." },
-          one: { value: "1 legend", description: "I usually notice the event and beat one opponent." },
-          allPartial: {
-            value: "All legends",
-            description: "I beat every opponent, but I do not always come back every day.",
-          },
-          allFull: {
-            value: "All legends daily",
-            description: "I beat every opponent and keep up with the daily attempts.",
-          },
         },
       },
       missions: {

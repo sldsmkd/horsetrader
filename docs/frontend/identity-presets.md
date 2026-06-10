@@ -120,7 +120,6 @@ Core engagement and recurring income:
 | --- | --- | --- | --- | --- | --- |
 | Weekly play | 2 days | 4 days | 6 days | Every day | Every day |
 | Team Trials | Rank 4 | Rank 5 | Rank 5.5 | Rank 6 | Rank 6 |
-| Legend Races | 1 legend | 1 legend | All legends, partial daily rewards | All legends, full daily rewards | All legends, full daily rewards |
 | Missions | 0% | 20% | 70% | 100% | 100% |
 
 Campaign and event income:
@@ -179,13 +178,14 @@ the daily attempts.
 - A sequence starts with three days against one featured legend, then continues
   through `1-3` additional legends.
 - First clear is chunky, with a notable carat reward per legend.
-- Additional rewards depend on how many event days the player enters.
-- These can be hard for a brand-new account, but are usually doable.
-- Sweetie and Casual notice and clear one legend.
-- Focused clears every opponent once, but misses some repeat-entry rewards.
-- Dedicated and Unhinged clear every event day; there is no extra Unhinged
-  ceiling here.
-- Custom should include `0 legends` for missing the event entirely.
+
+There is **no Legend Races slider**: the first-clear carats are baked onto every
+legend-race event (`rewards.sequence`, one 250 per leg) and fold as ground-truth
+income for every account. A slider could only have *down-graded* a low-engagement
+plan, and the repeat-entry "daily" rewards aren't in the bake to begin with — so
+the setting was removed rather than reshape a baked reward (see
+[glue.md](glue.md), the `legend-races` audit verdict). Planners are engaged players
+who collect the full reward anyway.
 
 ### Missions
 

@@ -6,7 +6,6 @@ import { PLAY_STYLES } from "./playStylePreset.ts";
 import type { PlayStyleKey } from "./playStylePreset.ts";
 import {
   CHAMPIONS_MEETING_KEYS,
-  LEGEND_RACE_KEYS,
   MISSION_KEYS,
   SHOP_TICKET_KEYS,
   SPECIAL_MISSION_KEYS,
@@ -23,7 +22,6 @@ type SliderKey = keyof PlayStyleSettings;
 const SLIDER_ROWS: readonly SliderKey[] = [
   "weeklyPlay",
   "teamTrials",
-  "legendRaces",
   "missions",
   "specialMissions",
   "storyEvents",
@@ -34,7 +32,6 @@ const SLIDER_ROWS: readonly SliderKey[] = [
 const SLIDER_KEYS = {
   weeklyPlay: WEEKLY_PLAY_KEYS,
   teamTrials: TEAM_TRIAL_KEYS,
-  legendRaces: LEGEND_RACE_KEYS,
   missions: MISSION_KEYS,
   specialMissions: SPECIAL_MISSION_KEYS,
   storyEvents: STORY_EVENT_KEYS,

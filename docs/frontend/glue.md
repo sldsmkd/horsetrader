@@ -144,6 +144,36 @@ remaining work, roughly one epic:
   cadence primitives were lifted out for these monthly twins: `streams/span.ts` (`bundleSpan` — the
   epoch/horizon scan, now shared by routine/team-trials/club-rank/shop-tickets, N=4) and
   `streams/monthly.ts` (`monthlyStream` — the 1st-of-month walk, club-rank + shop-tickets, N=2).
+  **`legend-races` was audited and the slider was *removed* (2026-06-10).** Legend race carats are
+  *already baked* — each event (`type: "legendrace"`) carries a `rewards.sequence` of one 250
+  `free_carats` first-clear per leg (122 entries across 54 events), and the ground-truth `sequence`
+  channel already folds them unconditionally for every account. That baked value *is* the
+  all-legends-first-clear case, so the would-be `legendRaces` slider (`none/one/allPartial/allFull`)
+  could only ever *down-grade* a low-engagement account, and `allFull`'s repeat-entry rewards aren't
+  in the bake at all. We chose **not** to wire it *and* to delete the dangling setting outright,
+  rather than keep it as identity flavour: reshaping a baked ground-truth reward by play-style would
+  set a precedent we don't want (it differs from `champions-meeting`, which *adds* to a reward-less
+  event rather than carving down a baked one), the engagement effort is low, and anyone planning years
+  ahead is the engaged player who collects the full reward regardless. So `legendRaces` is gone from
+  `PlayStyleSettings`/presets/strings/the play-style surface; the baked sequence stands as the
+  universal legend-race income. (`LegendRaceRecord` in the events bundle is unrelated — that's the
+  event shape, untouched.)
+  **`missions` / `story-events` / `special-missions` were audited and are a *bake* problem, not a
+  frontend one (2026-06-10) — the exception to "don't alter prebaked."** These are not the
+  `legendRaces` case. Unlike legend races (where the baked full reward is the *right* information,
+  since a planner clears all legends anyway → cut the slider), missions/stories/special-missions are
+  genuinely engagement-graded streams — mission completion %, "will you show up for the festival" —
+  yet the bake currently stamps them **flat at full completion** (194/194 `mission` events and 53/53
+  `story` events all carry full rewards: carats + tickets + crystal shards). A flat full-value stamp
+  on a graded stream is the *wrong information for our purpose* — the same class of decision as
+  PvP/CM carrying **no** rewards *by design* (#19) precisely because the payout depends on engagement.
+  So the disposition is: **do not cut the slider, do not reshape on the frontend** (that would split
+  source-of-truth, the very precedent `legendRaces` established). The fix belongs in the **bake/ETL**:
+  stop over-stamping the engagement-dependent reward — strip it like CM/PvP so a frontend income
+  channel can synthesise by engagement (the champions-meeting/team-trials pattern), or carry the
+  gradation. Until then the `missions`/`specialMissions`/`storyEvents` sliders **stay on the Play
+  Style surface, unwired** — pending state, not unwired-by-design. (A backend session's work; don't
+  touch the bake from a frontend session.)
   **What's still unbuilt is the rest of the income:** (a) ~~load config~~ done; (b) wire each
   engagement slider's commit to `config`; (c) the remaining *graded* sources by rank
   (`league-of-heroes`, `masters`, `strongest-team`) — the PvP ones are events → enrich like

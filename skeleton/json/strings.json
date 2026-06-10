@@ -78,27 +78,6 @@
           }
         }
       },
-      "legendRaces": {
-        "title": "Legend Races",
-        "steps": {
-          "none": {
-            "value": "0 legends",
-            "description": "I usually miss the event or skip it."
-          },
-          "one": {
-            "value": "1 legend",
-            "description": "I usually notice the event and beat one opponent."
-          },
-          "allPartial": {
-            "value": "All legends",
-            "description": "I beat every opponent, but I do not always come back every day."
-          },
-          "allFull": {
-            "value": "All legends daily",
-            "description": "I beat every opponent and keep up with the daily attempts."
-          }
-        }
-      },
       "missions": {
         "title": "Missions",
         "steps": {

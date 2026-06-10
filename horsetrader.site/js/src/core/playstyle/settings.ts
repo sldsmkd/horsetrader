@@ -10,7 +10,6 @@ import type { PlayStyleKey } from "./keys.ts";
 
 export const WEEKLY_PLAY_KEYS = ["twoDays", "fourDays", "sixDays", "sevenDays"] as const;
 export const TEAM_TRIAL_KEYS = ["rank4", "rank5", "rank55", "rank6"] as const;
-export const LEGEND_RACE_KEYS = ["none", "one", "allPartial", "allFull"] as const;
 export const MISSION_KEYS = ["none", "some", "most", "all"] as const;
 export const SPECIAL_MISSION_KEYS = ["some", "welfare", "major", "all"] as const;
 export const STORY_EVENT_KEYS = ["story", "welfare", "major", "achievement", "earlyAchievement"] as const;
@@ -19,7 +18,6 @@ export const SHOP_TICKET_KEYS = ["none", "cleats", "friendPoints", "rainbow"] as
 
 export type WeeklyPlayKey = (typeof WEEKLY_PLAY_KEYS)[number];
 export type TeamTrialKey = (typeof TEAM_TRIAL_KEYS)[number];
-export type LegendRaceKey = (typeof LEGEND_RACE_KEYS)[number];
 export type MissionKey = (typeof MISSION_KEYS)[number];
 export type SpecialMissionKey = (typeof SPECIAL_MISSION_KEYS)[number];
 export type StoryEventKey = (typeof STORY_EVENT_KEYS)[number];
@@ -29,7 +27,6 @@ export type ShopTicketKey = (typeof SHOP_TICKET_KEYS)[number];
 export interface PlayStyleSettings {
   weeklyPlay: WeeklyPlayKey;
   teamTrials: TeamTrialKey;
-  legendRaces: LegendRaceKey;
   missions: MissionKey;
   specialMissions: SpecialMissionKey;
   storyEvents: StoryEventKey;
@@ -41,7 +38,6 @@ const PRESET_SETTINGS: Record<Exclude<PlayStyleKey, "custom">, PlayStyleSettings
   sweetie: {
     weeklyPlay: "twoDays",
     teamTrials: "rank4",
-    legendRaces: "one",
     missions: "none",
     specialMissions: "some",
     storyEvents: "story",
@@ -51,7 +47,6 @@ const PRESET_SETTINGS: Record<Exclude<PlayStyleKey, "custom">, PlayStyleSettings
   casual: {
     weeklyPlay: "fourDays",
     teamTrials: "rank5",
-    legendRaces: "one",
     missions: "some",
     specialMissions: "welfare",
     storyEvents: "welfare",
@@ -61,7 +56,6 @@ const PRESET_SETTINGS: Record<Exclude<PlayStyleKey, "custom">, PlayStyleSettings
   focused: {
     weeklyPlay: "sixDays",
     teamTrials: "rank55",
-    legendRaces: "allPartial",
     missions: "most",
     specialMissions: "major",
     storyEvents: "major",
@@ -71,7 +65,6 @@ const PRESET_SETTINGS: Record<Exclude<PlayStyleKey, "custom">, PlayStyleSettings
   dedicated: {
     weeklyPlay: "sevenDays",
     teamTrials: "rank6",
-    legendRaces: "allFull",
     missions: "all",
     specialMissions: "all",
     storyEvents: "achievement",
@@ -81,7 +74,6 @@ const PRESET_SETTINGS: Record<Exclude<PlayStyleKey, "custom">, PlayStyleSettings
   unhinged: {
     weeklyPlay: "sevenDays",
     teamTrials: "rank6",
-    legendRaces: "allFull",
     missions: "all",
     specialMissions: "all",
     storyEvents: "earlyAchievement",
@@ -104,7 +96,6 @@ export function normalizePlayStyleSettings(value: unknown, fallback: PlayStyleSe
   return {
     weeklyPlay: isOneOf(raw["weeklyPlay"], WEEKLY_PLAY_KEYS) ? raw["weeklyPlay"] : fallback.weeklyPlay,
     teamTrials: isOneOf(raw["teamTrials"], TEAM_TRIAL_KEYS) ? raw["teamTrials"] : fallback.teamTrials,
-    legendRaces: isOneOf(raw["legendRaces"], LEGEND_RACE_KEYS) ? raw["legendRaces"] : fallback.legendRaces,
     missions: isOneOf(raw["missions"], MISSION_KEYS) ? raw["missions"] : fallback.missions,
     specialMissions: isOneOf(raw["specialMissions"], SPECIAL_MISSION_KEYS)
       ? raw["specialMissions"]
@@ -121,7 +112,6 @@ export function samePlayStyleSettings(a: PlayStyleSettings, b: PlayStyleSettings
   return (
     a.weeklyPlay === b.weeklyPlay &&
     a.teamTrials === b.teamTrials &&
-    a.legendRaces === b.legendRaces &&
     a.missions === b.missions &&
     a.specialMissions === b.specialMissions &&
     a.storyEvents === b.storyEvents &&

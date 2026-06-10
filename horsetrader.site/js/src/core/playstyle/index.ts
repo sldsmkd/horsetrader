@@ -6,7 +6,6 @@ export type { PlayStyleKey } from "./keys.ts";
 export {
   WEEKLY_PLAY_KEYS,
   TEAM_TRIAL_KEYS,
-  LEGEND_RACE_KEYS,
   MISSION_KEYS,
   SPECIAL_MISSION_KEYS,
   STORY_EVENT_KEYS,
@@ -19,7 +18,6 @@ export {
 export type {
   WeeklyPlayKey,
   TeamTrialKey,
-  LegendRaceKey,
   MissionKey,
   SpecialMissionKey,
   StoryEventKey,
