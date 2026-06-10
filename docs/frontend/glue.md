@@ -80,7 +80,8 @@ remaining work, roughly one epic:
   and the account's `play.teamTrials` level, and synthesises the weekly Team Trials
   carats, **granted on the calendar Monday at server reset** (epoch→horizon, the
   realised moment for the week that just closed — not epoch+7k). The settled model
-  reshaped the ETL data (a boundary-break, isolated for a later proper ETL pass): the
+  reshaped the ETL data — and that reshape is the **accepted state, no ETL pass owed**
+  (a full `make` re-baked clean, `config.json` in sync, 2026-06-10): the
   Team Trials carats depend on the *transition into* a class that week, not the class
   alone, so the reward map is now keyed `<class>:<state>` (`6:promotion` 300,
   `6:retention` 375, `5:demotion` 225, …) off the in-client Class Rewards table — only
