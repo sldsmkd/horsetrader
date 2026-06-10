@@ -26,7 +26,7 @@ from horsetrader.models.rewards import (
 from horsetrader.output._records import SupportBannerRecord, TraineeBannerRecord
 from horsetrader.semantics import daitaku
 
-from .event import Event, Rushable
+from .event import Event
 from .events import Events
 
 logger = Logger.get(__name__)

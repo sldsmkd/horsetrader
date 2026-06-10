@@ -374,23 +374,28 @@ A **core/projection semantic** with a load-bearing UI consequence (the engine ru
 lives in [projection.md](projection.md); captured here for its visual effect and
 the lesson behind it):
 
-- **Everything debits/credits on the *last day it runs*, not the first.** A
-  Championship Meeting pays out at the **end** (reward set by final placement); a
-  story is grinded ambiently and its rewards land when it **finishes**; a banner is
-  most efficiently spent at its **end**, because by then you've accrued the
-  window's tickets + daily + free pulls and minimised raw carat spend. The realised
-  moment *is* the last day.
+- **Income credits on the *last day it runs*, not the first.** A Championship
+  Meeting pays out at the **end** (reward set by final placement); a story is
+  grinded ambiently and its rewards land when it **finishes**. The realised moment
+  *is* the last day.
+- **A banner commitment is the exception — it's a *claim*, not a spend.**
+  Availability is still *measured* at the banner's **end** (by then you've accrued
+  the window's tickets + daily + free pulls and minimised raw carat spend), but the
+  **claim *debits* at the banner's *start*** — committing earmarks resources the
+  moment the banner opens. So a banner's balance reaction sits at its appearance-dot,
+  not after it.
 - **Exception: sequences/generators** post **multiple discrete transactions**
   rather than a single end-post.
 
-**The dot and the line sit at different x — by design.** The **dot marks the
-banner's *appearance*** (its start); the **balance line reacts at the banner's
-*end*** (last-day posting). So **the line *lags* the dot** — that gap is the
-*correct, intended* consequence of the rule, not a defect. The prototype's wrong
-turn was trying to **model complex plans** to smooth it; the simple last-day model
-is right. And on reflection **the lag itself is acceptable** — players read it as
-*how the instrument works* and internalise it; it is not a problem to engineer
-around.
+**For income, the dot and the line sit at different x — by design.** The **dot
+marks an event's *appearance*** (its start); an income event's **balance line
+reacts at its *end*** (last-day posting). So **the income line *lags* the dot** —
+that gap is the *correct, intended* consequence of the rule, not a defect. The
+prototype's wrong turn was trying to **model complex plans** to smooth it; the
+simple last-day model is right, and the lag is **accepted** — players read it as
+*how the instrument works*. **Banners no longer lag**: because the claim debits at
+`start`, a banner's line reacts *at* its dot — the start-debit model dissolved the
+banner lag entirely (one of the simplifications it bought).
 
 > Resolved (lean): the lag is **accepted as-is**. Making it more legible (e.g.
 > visibly tying a banner's appearance-dot to its later balance-reaction) is at most
@@ -410,9 +415,9 @@ between the player and the game** — "I grabbed that payout early" — not a pl
 lever. Some events are **rushable**, some aren't (a per-event property). The marking
 is an *optional* flag: read it `ev.rushable === true`, absence means not rushable
 (the [contract's optional-flag convention](../contract.md#optional-flags-presence-encoded-absence-defaulted)).
-**Banners are not rushable** — a banner is pulls/commitment, not a collect-the-payout
-moment, so the toggle lives only on **non-banner** below-lane cards (stories,
-scenarios, …).
+**Banners are not rushable** (stripped in the ETL 2026-06-10) — a banner is
+pulls/commitment, not a collect-the-payout moment, so the toggle lives only on
+**non-banner** below-lane cards (stories, scenarios, …).
 
 Toggling a rushable event into a **rushed** state **moves its discrete rewards** from
 the `end` to the `start` — *when the player actually grabbed them*. That is the whole
@@ -1026,7 +1031,8 @@ remains is not new surfaces but:
 - **Cross-side ETL dependencies** (search, free pulls) — tracked in the
   live tracker (GitHub issues / board on `sldsmkd/horsetrader`). Frontend
   consumes; don't action from a frontend
-  session.
+  session. (Rushable marking is **done** — ETL stamps it, and banners are
+  deliberately not rushable.)
 - **Then `ui/` code.** With the intent foundation in place, crystallise these
   surfaces into the view layer — the doc's whole purpose. The **implementation
   architecture** for that — the layer cake, the subscribe seam, the two-tier change

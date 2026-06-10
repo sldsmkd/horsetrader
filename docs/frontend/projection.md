@@ -205,28 +205,45 @@ decomposes into three ownerships:
 *numbers* — the `50` belongs in the bundle. This means the bundle must carry the
 parameters/rates for procedural streams, not just the discrete event timeline.
 
-### Transactions post on the last day a stream runs
+### Income posts on the last day; a commitment's claim debits on the first
 
-Each contribution lands on the day a stream has *fully* run — the realised
-moment — not the day it starts. Discrete events credit/debit on their `end`: a
+**Income** contributions land on the day a stream has *fully* run — the realised
+moment — not the day it starts. Discrete income events credit on their `end`: a
 Championship Meeting's reward is set by final placement; a story's rewards land
-when it finishes; a banner is most efficiently spent at its end, by which point
-the window's tickets + daily + free pulls have accrued. The events stream already
-does exactly this (lands on `event.end`).
+when it finishes. The events stream does exactly this (lands on `event.end`).
+
+A **banner commitment** splits the two timings, because it is not a tracked spend
+but an accounting **claim** (an earmark against resources):
+
+- **Availability is *measured* at the banner's `end`** — by which point the
+  window's tickets + daily + free pulls have all accrued, so that is where you
+  read "how much could I spend."
+- **But the claim *debits* at the banner's `start`** — committing earmarks the
+  resources the moment the banner opens, so any later banner sees them already
+  spoken for. The spends stream emits its negative deltas at `event.start`
+  (`core/projection/streams/spends.ts`). The debit can dip the balance transiently
+  negative mid-run (income still arriving) — that is fine and *meaningful*: a
+  planner is not a bank, and a negative reads as a claim against income not yet in
+  hand. By construction the overflow lands only on **free carats** (the
+  cost-ascending order floors tickets at 0 and banks paid carats), so negative
+  free carats is the single pressure dimension.
 
 - **Exception — sequences/generators post per day.** A daily-cadence stream emits
   one discrete transaction *each* day across its run, not a single end-post —
   that is the whole point of those channels.
-- **Rushing inverts it (built).** An opt-in *rushed* event posts its **discrete**
-  rewards at `start` instead of `end` — the impulse-control decision to grab the
-  payout now rather than wait. There is **no efficiency penalty**: rush only moves
-  *where* the discrete deltas land, never their amount. Compound rewards
-  (sequences/generators) do **not** move — their per-day attribution is unchanged.
-  The `events` channel honours a `rushed` set (event keys → post-at-start) threaded
-  through `ChannelContext`; the `after`-boundary check uses the *effective* date,
-  so rushing an event whose `start` precedes the snapshot drops it (already banked).
-  Only non-banner events are rushable (banners are pulls/commitment, not a
-  collect-the-payout decision). See the rushable-events section in [ui.md](ui.md).
+- **Rushing posts discrete rewards early (non-banner only, built).** An opt-in
+  *rushed* event posts its **discrete** rewards at `start` instead of `end` — the
+  impulse-control decision to grab the payout now rather than wait (not a planning
+  lever). There is **no efficiency penalty**: rush only moves *where* the discrete
+  deltas land, never their amount. Compound
+  rewards (sequences/generators) do **not** move — their per-day attribution is
+  unchanged. The `events` channel honours a `rushed` set (event keys → post-at-start)
+  threaded through `ChannelContext`; the `after`-boundary check uses the *effective*
+  date, so rushing an event whose `start` precedes the snapshot drops it (already
+  banked). **Banners are not rushable** (stripped in the ETL 2026-06-10): a banner
+  has exactly one settle behaviour, the start-debit above, so there is no banner-rush
+  variant and `spends.ts` has no rush coupling. See the rushable-events section in
+  [ui.md](ui.md).
 
 The UI leans on this rule — the minimap's balance line "lags" the appearance dots
 by design — and [ui.md](ui.md) treats it as a core/projection semantic. This is

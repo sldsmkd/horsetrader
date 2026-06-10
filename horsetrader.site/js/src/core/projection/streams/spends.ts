@@ -1,15 +1,25 @@
 /**
  * The spends stream — the one *dependent* projection stream. Every other stream is an
- * independent fixed-delta producer; a banner's spend is not, because its debit is
- * computed against the **balance at its `ev.end`**, which already reflects every earlier
- * banner's spend (shared pools — tickets, free carats — drained ahead of it). So it is
- * resolved by a single ordered pass: walk the committed banners in **(end-date,
- * banner-id)** order, threading the running spend, and at each one attribute the cost
- * against what's left (project_spend_model). If an earlier banner stole the tickets, a
- * later one simply re-attributes — the order is the whole mechanism.
+ * independent fixed-delta producer; a banner's spend is not. A commitment is a **claim**
+ * (an accounting earmark against resources), not a tracked transaction, and that reframe
+ * splits its two timings (project_spend_model):
+ *   - **measured** against the balance at its `ev.end` (max ammo — daily income, free
+ *     pulls and tickets are all in by the banner's close), but
+ *   - **debited at its `ev.start`** — once committed you start earmarking the moment the
+ *     banner opens, so any later banner sees those resources already spoken for.
+ * The availability still reflects every *earlier-by-start* banner's spend (shared pools —
+ * tickets, free carats — drained ahead of it), so it is resolved by a single ordered
+ * pass: walk the committed banners in **(start-date, banner-id)** order, threading the
+ * running spend, and at each one attribute the cost against what's left. If an earlier
+ * banner stole the tickets, a later one simply re-attributes — the order is the mechanism.
+ *
+ * Overcommit is fine (this is a planner, not a bank): the cost-ascending order routes all
+ * overflow to **free carats**, the one pool that can go negative — a claim against income
+ * that hasn't arrived yet. Tickets floor at 0 and paid carats bank rather than overdraw,
+ * so negative free carats is the single pressure dimension by construction (see `spend`).
  *
  * It is layered *after* the income fold: it takes the income-only `balanceAt` and emits
- * negative deltas at each `ev.end`, which the final fold flattens alongside the income
+ * negative deltas at each `ev.start`, which the final fold flattens alongside the income
  * streams. It also returns the **per-banner available** (the balance *before* each
  * banner's own spend) — the card and shield read that, not the flattened series, so a
  * banner never sees its own debit fold back into its own availability (self-exclusion).
@@ -39,7 +49,7 @@ export interface SpendGacha {
 }
 
 export interface SpendStreamResult {
-  /** Negative-delta emissions at each banner's `ev.end`, for the final flatten. */
+  /** Negative-delta emissions at each banner's `ev.start` (the claim), for the final flatten. */
   emissions: StreamEmission[];
   /** Per committed banner: the balance available BEFORE its own spend (income minus the
    *  spends of every banner that resolves earlier) — what the card/shield show for it. */
@@ -55,11 +65,13 @@ export function spendStream(
   gacha: SpendGacha,
   after: CalendarDate,
 ): SpendStreamResult {
-  // Only committed, still-future banners (a past banner's spend has already happened).
-  // Resolve in (end-date, banner-id) order so each attributes against what's left.
+  // Only committed banners whose claim is still future — a banner that has already opened
+  // (`start <= after`) has its real spend baked into the snapshot, so re-debiting it would
+  // double-count. Resolve in (start-date, banner-id) order so each attributes against
+  // what's left, because the debit now lands at the banner's start.
   const ordered = banners
-    .filter((b) => b.pity > 0 && b.end > after)
-    .sort((a, b) => (a.end < b.end ? -1 : a.end > b.end ? 1 : a.key < b.key ? -1 : a.key > b.key ? 1 : 0));
+    .filter((b) => b.pity > 0 && b.start > after)
+    .sort((a, b) => (a.start < b.start ? -1 : a.start > b.start ? 1 : a.key < b.key ? -1 : a.key > b.key ? 1 : 0));
 
   const emissions: StreamEmission[] = [];
   const available = new Map<string, ResourceVector>();
@@ -67,7 +79,8 @@ export function spendStream(
 
   for (const b of ordered) {
     const ticketKey = ticketKeyOf(b.kind);
-    // Available = income at this banner's end, minus every *earlier* spend (not its own).
+    // Available = income at this banner's end (measured at max ammo), minus every
+    // earlier-by-start spend (not its own).
     const avail: ResourceVector = { ...incomeBalanceAt(b.end) };
     for (const [k, amount] of Object.entries(spent)) avail[k] = (avail[k] ?? 0) - amount;
     available.set(b.key, avail);
@@ -84,7 +97,8 @@ export function spendStream(
     if (debit.freeCarats) deltas.free_carats = -debit.freeCarats;
     if (debit.paidCarats) deltas.paid_carats = -debit.paidCarats;
     if (debit.tickets) deltas[ticketKey] = -debit.tickets;
-    emissions.push({ date: b.end, source: b.key, deltas });
+    // The claim debits at the banner's start — committing earmarks resources as it opens.
+    emissions.push({ date: b.start, source: b.key, deltas });
     spent.free_carats = (spent.free_carats ?? 0) + debit.freeCarats;
     spent.paid_carats = (spent.paid_carats ?? 0) + debit.paidCarats;
     spent[ticketKey] = (spent[ticketKey] ?? 0) + debit.tickets;
