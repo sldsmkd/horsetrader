@@ -61,13 +61,68 @@ remaining work, roughly one epic:
   `ConfigBundle` + `GachaConfig`) via `gen:types`; `config.json` is fetched in
   `main.ts` alongside events/academy and exposed as `bundle.config()` (resolve-or-throw,
   a required peer of events/academy). First consumer: the above-lane banner readout
-  reads `gacha.carats_per_pull` for the pulls count. **What's still unbuilt is the
-  *channels*:** (a) ~~load config~~ done; (b) wire each engagement slider's commit to
-  `config`; (c) a channel that reads the user's level, picks the reward-map row, and
-  emits it as recurring income (and, for the commit shield, feeds `spark_threshold` /
-  `rarity_rates` / `featured_rates` into affordability + the LB distribution). The
-  only *narrower* ETL-side question left is #19's account-pager / "sweatiness" model —
-  how a single rank choice grades over a season — not the raw rates, which are here.
+  reads `gacha.carats_per_pull` for the pulls count. **The first income channel is now
+  built (2026-06-10): `routine`** (`streams/routine.ts`, in the new `INCOME_CHANNELS`
+  list beside the ground-truth ones). It reads `reward_structures.dailies` (flat per
+  login) + `reward_structures.weekly-login` (the 7-entry cycle) and the account's
+  `play.weeklyPlay` level, and synthesises login-day income from the **server epoch**
+  (the earliest bundle date) to the timeline's right edge (the latest bundle date).
+  The settled model: login days are spread evenly across each 7-day block
+  (`daysPerWeek` of every 7 — "prorate the logins"); the daily payload lands on every
+  login; the login bonus **advances one slot per login and resets every 7 logins** —
+  NOT use-or-lose by weekday — so its slot is indexed by login *count* from the epoch,
+  a `null` entry just being a login with no bonus carat. The cycle phase advances
+  across the snapshot (logins ≤ `after` still count) so it's snapshot-independent.
+  Note `reward_structures.daily-carats` (the paid 30-day pack) is deliberately *not*
+  this channel — it's a purchase, not login-gated income.
+  **The first *graded* income channel is now built (2026-06-10): `team-trials`**
+  (`streams/teamtrials.ts`, in `INCOME_CHANNELS`). It reads `reward_maps.team-trials`
+  and the account's `play.teamTrials` level, and synthesises the weekly Team Trials
+  carats, **granted on the calendar Monday at server reset** (epoch→horizon, the
+  realised moment for the week that just closed — not epoch+7k). The settled model
+  reshaped the ETL data (a boundary-break, isolated for a later proper ETL pass): the
+  Team Trials carats depend on the *transition into* a class that week, not the class
+  alone, so the reward map is now keyed `<class>:<state>` (`6:promotion` 300,
+  `6:retention` 375, `5:demotion` 225, …) off the in-client Class Rewards table — only
+  Class 6 actually differs by state; Class ≤5 pays the same in every transition. The
+  client owns the **per-Monday state cadence**: a stable class collects its
+  `:retention` (length-1 cycle); a **"flapping"** mid account that cycles promote-to-6 /
+  demote-to-5 alternates `6:promotion` (300) and `5:demotion` (225) — a real two-week
+  cadence the old synthetic `5.5: 262` row had pre-collapsed to their mean. The flap
+  phase anchors at the epoch and advances across the snapshot, so it's
+  snapshot-independent. (The Friend-Point reward component is not carats/pulls, so it's
+  dropped.) `play.teamTrials` is **class only** — `weeklyPlay` does not gate it.
+  **The second graded play-style reward is now built (2026-06-10):
+  `champions-meeting` — but as an *event enrichment*, not a channel**
+  (`streams/championsmeeting.ts`). The decisive difference from `team-trials`: a CM
+  *is a real event* on the timeline (`type: "cm"`, 45 of them, a below-lane card each),
+  the bake just stamps no rewards on it (PvP carries none by design, #19, *because* the
+  payout depends on the rank reached). So the right move isn't a parallel income channel
+  attributed to its own source — that would fold the carats but the below-lane card would
+  never show them, since the card reads its reward from the **`events`-stream ledger entry
+  keyed by the event's own key** (`select/belowLane.ts`). Instead `applyChampionsMeetingRewards`
+  **stamps the rank's reward onto every CM record before the fold** (merging: insert + replace
+  on key conflict, non-mutating). Then the existing ground-truth `events` channel folds it —
+  attributed to the CM key, paid on `end` (the last day) **for free** — *and* the card renders
+  the icon. The coordinator's `fold()` does the reshape (config + `play.championsMeeting`), the
+  same grammar as `rushed` reshaping event timing, so the `events` channel itself stays
+  config/play-agnostic. The level→label map (`CHAMPIONS_MEETING_LABELS`) is an explicit
+  **frontend interpretation** — the slider exposes fewer outcomes (skip / Group B
+  contender·winner / Group A runner-up·champion) than the table enumerates (Open League +
+  the spare 2nd-place rows go unused; Group A "Third" ≈ Group B 1st and nobody runs Open
+  League only); `skip` stamps nothing (bundle passes through). The mapping is the only soft
+  spot, flagged for the user's correction, not the mechanism. **Lesson for the rest:** a
+  graded reward attaches to its event when one exists (enrich), and synthesises a channel
+  only when there's no event to hang it on (team-trials/routine).
+  **What's still unbuilt is the rest of the income:** (a) ~~load config~~ done; (b) wire each
+  engagement slider's commit to `config`; (c) the remaining *graded* sources by rank
+  (`club-rank`, `league-of-heroes`, `masters`, `strongest-team`) — each sorted the same way:
+  the PvP ones (`league-of-heroes`/`masters`/`strongest-team`) are events → enrich like
+  `champions-meeting`; `club-rank` has no event → synthesise a channel like `team-trials`.
+  Plus, for the commit shield, feed `spark_threshold` / `rarity_rates` / `featured_rates`
+  into affordability + the LB distribution. The only *narrower* ETL-side question left is
+  #19's account-pager / "sweatiness" model — how a single rank choice grades over a season —
+  not the raw rates, which are here.
 - **Commitments → spends channel (the debit side).** Spending plans are the mirror
   of engagement income: a committed banner is a **claim** (an accounting earmark),
   emitted as a **negative** carat delta landing on that banner's **start** date — a

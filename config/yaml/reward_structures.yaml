@@ -37,15 +37,27 @@ reward-structure-strongest-team: # limited mission component — baseline everyo
 # rank label to a baked-shape rewards block. The client selects the rank
 # (sweatiness / account state); we don't care about frequency.
 
-reward-map-team-trials: # Team Trials weekly income, graded by class (5.5 = flapping)
+reward-map-team-trials: # Team Trials weekly carats, granted Monday at server reset.
+  # Keyed <class>:<transition> — the carats depend on how you entered the class that
+  # week (promotion in / retention / demotion in), not the class alone. The client
+  # owns the weekly cadence: a stable class collects its `:retention` every Monday; a
+  # "flapping" 5↔6 account alternates `6:promotion` (300) and `5:demotion` (225) —
+  # which the old synthetic `5.5: 262` had pre-collapsed to their average. Values read
+  # off the in-client Class Rewards table (free carats only; the Friend-Point
+  # component is not carats/pulls, so it is dropped). Unobserved cells (lower-class
+  # promotion, the class-1/2 edges) are omitted until captured.
   tiers:
-    "1": { free_carats: 0 }
-    "2": { free_carats: 35 }
-    "3": { free_carats: 75 }
-    "4": { free_carats: 150 }
-    "5": { free_carats: 225 }
-    "5.5": { free_carats: 262 }
-    "6": { free_carats: 375 }
+    "6:promotion": { free_carats: 300 }
+    "6:retention": { free_carats: 375 }
+    "5:promotion": { free_carats: 225 }
+    "5:retention": { free_carats: 225 }
+    "5:demotion":  { free_carats: 225 }
+    "4:promotion": { free_carats: 150 }
+    "4:retention": { free_carats: 150 }
+    "4:demotion":  { free_carats: 150 }
+    "3:retention": { free_carats: 75 }
+    "3:demotion":  { free_carats: 75 }
+    "2:retention": { free_carats: 35 }
 
 reward-map-club-rank: # Club Rank monthly income, graded by rank (placement is the client's selector)
   tiers:
