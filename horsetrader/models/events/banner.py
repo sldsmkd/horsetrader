@@ -49,7 +49,7 @@ def _canonical(value: str) -> str:
 
 @daitaku
 @dataclass
-class Banner(Rushable, Event):
+class Banner(Event):
     """A gacha banner event with a start/end date and a guest list.
 
     Banner is the abstract parent for the two concrete gacha kinds
