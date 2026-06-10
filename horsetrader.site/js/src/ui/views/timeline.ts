@@ -259,6 +259,14 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
 
   el.addEventListener("pointerdown", (ev) => {
     stopAnim(); // grabbing the world halts any glide/spring in progress
+    // Resync the readout on every grab: clear the `onView` dedupe sentinel so the
+    // first `applyPan` of this gesture re-emits the centre date even if it rounds
+    // to the same day. Belt-and-braces against a rare drift where `viewDate` falls
+    // out of step with what the menubar/minimap actually show (repro unknown —
+    // observed once as a stuck carats readout that a minimap click + re-pan fixed,
+    // which is exactly this forced re-emit). Cost is one extra emit per gesture,
+    // not per pixel, so it doesn't undo the per-day dedupe.
+    viewDate = null;
     dragging = true;
     axisLock = "none";
     grabX = ev.clientX;
