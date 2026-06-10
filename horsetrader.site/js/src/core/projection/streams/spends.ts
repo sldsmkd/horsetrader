@@ -16,6 +16,7 @@
  */
 
 import type { ResourceVector, StreamEmission } from "../ledger.ts";
+import type { CalendarDate } from "../dates.ts";
 import { spend, bannerDays } from "../pulls.ts";
 
 export type BannerKind = "trainee" | "support";
@@ -24,8 +25,8 @@ export type BannerKind = "trainee" | "support";
 export interface CommittedBanner {
   key: string;
   kind: BannerKind;
-  start: string;
-  end: string;
+  start: CalendarDate;
+  end: CalendarDate;
   freePulls: number;
   pity: number;
 }
@@ -50,9 +51,9 @@ const ticketKeyOf = (kind: BannerKind): "support_tickets" | "trainee_tickets" =>
 
 export function spendStream(
   banners: CommittedBanner[],
-  incomeBalanceAt: (date: string) => ResourceVector,
+  incomeBalanceAt: (date: CalendarDate) => ResourceVector,
   gacha: SpendGacha,
-  after: string,
+  after: CalendarDate,
 ): SpendStreamResult {
   // Only committed, still-future banners (a past banner's spend has already happened).
   // Resolve in (end-date, banner-id) order so each attributes against what's left.

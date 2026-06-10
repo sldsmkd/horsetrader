@@ -7,6 +7,7 @@ import { createBundle } from "../bundle/access.ts";
 import { TEST_CONFIG } from "../bundle/fixtures.ts";
 import type { EventsBundle } from "../../core/bundle/events.gen.ts";
 import type { Academy } from "../../core/bundle/academy.gen.ts";
+import { cal } from "../../core/projection/dates.ts";
 
 const EVENTS: EventsBundle = {
   events: [
@@ -36,26 +37,26 @@ test("balancePoints: change-points inside extent, plus the two extent ends, sort
   const series = balanceSeries(
     { free_carats: 0 },
     [
-      { date: "2026-06-05", stream: "x", source: "a", resource: "free_carats", amount: 30_000 },
-      { date: "2026-06-08", stream: "x", source: "b", resource: "free_carats", amount: -80_000 },
+      { date: cal("2026-06-05"), stream: "x", source: "a", resource: "free_carats", amount: 30_000 },
+      { date: cal("2026-06-08"), stream: "x", source: "b", resource: "free_carats", amount: -80_000 },
     ],
   );
-  const pts = balancePoints(series, ["2026-06-01", "2026-06-12"]);
+  const pts = balancePoints(series, [cal("2026-06-01"), cal("2026-06-12")]);
   assert.deepEqual(pts, [
-    { date: "2026-06-01", carats: 0 }, // extent start — flat run before the first change-point (base)
-    { date: "2026-06-05", carats: 30_000 },
-    { date: "2026-06-08", carats: -50_000 },
-    { date: "2026-06-12", carats: -50_000 }, // extent end — holds the final balance
+    { date: cal("2026-06-01"), carats: 0 }, // extent start — flat run before the first change-point (base)
+    { date: cal("2026-06-05"), carats: 30_000 },
+    { date: cal("2026-06-08"), carats: -50_000 },
+    { date: cal("2026-06-12"), carats: -50_000 }, // extent end — holds the final balance
   ]);
 });
 
 test("balancePoints: change-points outside the extent are dropped", () => {
   const series = balanceSeries(
     { free_carats: 100 },
-    [{ date: "2026-01-01", stream: "x", source: "a", resource: "free_carats", amount: 50 }],
+    [{ date: cal("2026-01-01"), stream: "x", source: "a", resource: "free_carats", amount: 50 }],
   );
   // Extent sits entirely after the only change-point: just the two ends, both final.
-  const pts = balancePoints(series, ["2026-06-01", "2026-06-02"]);
+  const pts = balancePoints(series, [cal("2026-06-01"), cal("2026-06-02")]);
   assert.deepEqual(pts.map((p) => p.date), ["2026-06-01", "2026-06-02"]);
   assert.deepEqual(pts.map((p) => p.carats), [150, 150]);
 });
@@ -76,9 +77,9 @@ test("fretLevels: every pity boundary across ±3, top to bottom", () => {
 
 test("dotMarks: favourited future banners only, kind preserved; past/unfav/non-banner excluded", () => {
   const favourites = { "banner-past": {}, "banner-fav-t": {}, "banner-fav-s": {}, "cm-fav": {} };
-  const marks = dotMarks(bundle(), favourites, "2026-06-01");
+  const marks = dotMarks(bundle(), favourites, cal("2026-06-01"));
   assert.deepEqual(marks, [
-    { date: "2026-06-10", kind: "trainee" },
-    { date: "2026-06-20", kind: "support" },
+    { date: cal("2026-06-10"), kind: "trainee" },
+    { date: cal("2026-06-20"), kind: "support" },
   ]);
 });

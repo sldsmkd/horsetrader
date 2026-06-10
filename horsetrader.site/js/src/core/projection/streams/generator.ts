@@ -14,12 +14,13 @@
 
 import type { EventsBundle } from "../../bundle/events.gen.ts";
 import type { ResourceVector, StreamEmission } from "../ledger.ts";
+import type { CalendarDate } from "../dates.ts";
 import { UTC_TIME_ZONE, addDays, dateStringInTimeZone } from "../dates.ts";
 
 /** A recurring daily payout: `payload` each day from `start`, for `repeat` days. */
 export interface GeneratorSpec {
   source: string;
-  start: string;
+  start: CalendarDate;
   payload: ResourceVector;
   repeat: number;
 }
@@ -32,7 +33,7 @@ export interface GeneratorSpec {
  * snapshot, so straddling generators stay correct (see the anchor-boundary
  * warning in docs/frontend/projection.md).
  */
-export function generatorStream(specs: GeneratorSpec[], after: string): StreamEmission[] {
+export function generatorStream(specs: GeneratorSpec[], after: CalendarDate): StreamEmission[] {
   const emissions: StreamEmission[] = [];
   for (const spec of specs) {
     for (let day = 0; day < spec.repeat; day++) {

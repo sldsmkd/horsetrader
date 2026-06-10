@@ -14,21 +14,22 @@
  */
 
 import { addDays, daysBetween } from "../core/projection/dates.ts";
+import type { CalendarDate } from "../core/projection/dates.ts";
 
 /**
  * What the mapping reads. `origin` is the date at content-x = 0; `pxPerDay` is
  * the zoom (discrete view-state). `pxPerDay` must be > 0.
  */
 export interface AxisScale {
-  origin: string;
+  origin: CalendarDate;
   pxPerDay: number;
 }
 
 export interface Axis {
-  /** Content-space x (px) for an ISO date. Exact; negative for dates before the origin. */
-  xForDate(date: string): number;
-  /** The ISO date whose tick is nearest a content-space x — for hit-testing the cursor. */
-  dateForX(x: number): string;
+  /** Content-space x (px) for a calendar date. Exact; negative for dates before the origin. */
+  xForDate(date: CalendarDate): number;
+  /** The calendar date whose tick is nearest a content-space x — for hit-testing the cursor. */
+  dateForX(x: number): CalendarDate;
 }
 
 /**

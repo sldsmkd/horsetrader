@@ -10,6 +10,7 @@
  */
 
 import type { BalanceSeries } from "../../core/projection/ledger.ts";
+import type { CalendarDate } from "../../core/projection/dates.ts";
 import type { Bundle } from "../bundle/access.ts";
 import type { BannerKind } from "./aboveLane.ts";
 import type { Favourites } from "../../core/persistence/document.ts";
@@ -25,13 +26,13 @@ export const BAND = PITY * BAND_PITIES;
 /** One sampled balance point — a date and its carat balance. The view maps the
  *  date to x (minimap axis) and the carats to y (`caratToY`). */
 export interface BalancePoint {
-  date: string;
+  date: CalendarDate;
   carats: number;
 }
 
 /** One favourited banner appearance — its date and kind (→ dot colour). */
 export interface DotMark {
-  date: string;
+  date: CalendarDate;
   kind: BannerKind;
 }
 
@@ -41,9 +42,9 @@ export interface DotMark {
  * extent (plus the two extent ends, which anchor the flat runs before the first
  * and after the last) is *exact* and O(change-points) — no per-day sampling.
  */
-export function balancePoints(series: BalanceSeries, extent: readonly [string, string]): BalancePoint[] {
+export function balancePoints(series: BalanceSeries, extent: readonly [CalendarDate, CalendarDate]): BalancePoint[] {
   const [lo, hi] = extent;
-  const dates = new Set<string>([lo, hi]);
+  const dates = new Set<CalendarDate>([lo, hi]);
   for (const date of series.dates) {
     if (date >= lo && date <= hi) dates.add(date);
   }
@@ -75,7 +76,7 @@ export function fretLevels(): number[] {
  * (start on/after `now`), at their appearance date (`start`). Reuses the
  * `bundle.all()` + banner-type filter shape from the above-lane selector.
  */
-export function dotMarks(bundle: Bundle, favourites: Favourites, now: string): DotMark[] {
+export function dotMarks(bundle: Bundle, favourites: Favourites, now: CalendarDate): DotMark[] {
   const marks: DotMark[] = [];
   for (const ev of bundle.all()) {
     if (ev.type !== "trainee" && ev.type !== "support") continue;

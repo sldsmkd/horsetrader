@@ -9,6 +9,7 @@ import { eventStream } from "../../core/projection/streams/events.ts";
 import { project } from "../../core/projection/index.ts";
 import type { EventsBundle } from "../../core/bundle/events.gen.ts";
 import type { Academy } from "../../core/bundle/academy.gen.ts";
+import { cal } from "../../core/projection/dates.ts";
 
 const EVENTS: EventsBundle = {
   events: [
@@ -24,18 +25,18 @@ const EVENTS: EventsBundle = {
 };
 
 const EMPTY_ACADEMY: Academy = { characters: {}, supports: {}, trainees: {} };
-const NOW = "2026-06-08";
+const NOW = cal("2026-06-08");
 
 /** The real path: extract the events stream, add a login generator, fold. */
 function projectFixture() {
   return project({ resources: {} }, [
-    { stream: "events", emissions: eventStream(EVENTS, "2026-01-01") },
-    { stream: "generators", emissions: [{ date: "2026-06-12", source: "daily-login", deltas: { free_carats: 50 } }] },
+    { stream: "events", emissions: eventStream(EVENTS, cal("2026-01-01")) },
+    { stream: "generators", emissions: [{ date: cal("2026-06-12"), source: "daily-login", deltas: { free_carats: 50 } }] },
   ]);
 }
 
 test("below-lane cards: below-lane events only, resolved + positioned, sorted by date", () => {
-  const cards = belowLaneCards(projectFixture(), createBundle(EVENTS, EMPTY_ACADEMY, TEST_CONFIG), createAxis({ origin: "2026-06-01", pxPerDay: 10 }), NOW);
+  const cards = belowLaneCards(projectFixture(), createBundle(EVENTS, EMPTY_ACADEMY, TEST_CONFIG), createAxis({ origin: cal("2026-06-01"), pxPerDay: 10 }), NOW);
 
   // The trainee banner (above-lane) and the daily-login (generators stream) are excluded.
   assert.deepEqual(cards.map((c) => c.key), ["story-1", "anchor-1", "cm-1", "sce-1", "cm-2"]);
@@ -43,7 +44,7 @@ test("below-lane cards: below-lane events only, resolved + positioned, sorted by
 });
 
 test("a reward-less below-lane event still gets a card, with an empty reward", () => {
-  const cards = belowLaneCards(projectFixture(), createBundle(EVENTS, EMPTY_ACADEMY, TEST_CONFIG), createAxis({ origin: "2026-06-01", pxPerDay: 10 }), NOW);
+  const cards = belowLaneCards(projectFixture(), createBundle(EVENTS, EMPTY_ACADEMY, TEST_CONFIG), createAxis({ origin: cal("2026-06-01"), pxPerDay: 10 }), NOW);
   const card = cards.find((c) => c.key === "cm-2");
 
   assert.ok(card, "the reward-less CM is on the lane — existence is the appearance, not a payout");
@@ -59,14 +60,14 @@ test("visibility is opt-out: an explicit `visible: false` hides the card, absenc
       { type: "cm", name: "Shown CM", start: "2026-09-10", end: "2026-09-15", predicted: false, key: "cm-shown" },
     ],
   };
-  const projection = project({ resources: {} }, [{ stream: "events", emissions: eventStream(events, "2026-01-01") }]);
-  const cards = belowLaneCards(projection, createBundle(events, EMPTY_ACADEMY, TEST_CONFIG), createAxis({ origin: "2026-06-01", pxPerDay: 10 }), NOW);
+  const projection = project({ resources: {} }, [{ stream: "events", emissions: eventStream(events, cal("2026-01-01")) }]);
+  const cards = belowLaneCards(projection, createBundle(events, EMPTY_ACADEMY, TEST_CONFIG), createAxis({ origin: cal("2026-06-01"), pxPerDay: 10 }), NOW);
 
   assert.deepEqual(cards.map((c) => c.key), ["cm-shown"]); // only the visible one
 });
 
 test("each card resolves its label (name/title, falling back to key) and predicted flag", () => {
-  const cards = belowLaneCards(projectFixture(), createBundle(EVENTS, EMPTY_ACADEMY, TEST_CONFIG), createAxis({ origin: "2026-06-01", pxPerDay: 10 }), NOW);
+  const cards = belowLaneCards(projectFixture(), createBundle(EVENTS, EMPTY_ACADEMY, TEST_CONFIG), createAxis({ origin: cal("2026-06-01"), pxPerDay: 10 }), NOW);
   const byKey = new Map(cards.map((c) => [c.key, c]));
 
   assert.equal(byKey.get("cm-1")!.label, "Summer CM");
@@ -78,7 +79,7 @@ test("each card resolves its label (name/title, falling back to key) and predict
 });
 
 test("x is true-to-date off the axis (arrival date = start) and reward is the event's own delta", () => {
-  const cards = belowLaneCards(projectFixture(), createBundle(EVENTS, EMPTY_ACADEMY, TEST_CONFIG), createAxis({ origin: "2026-06-01", pxPerDay: 10 }), NOW);
+  const cards = belowLaneCards(projectFixture(), createBundle(EVENTS, EMPTY_ACADEMY, TEST_CONFIG), createAxis({ origin: cal("2026-06-01"), pxPerDay: 10 }), NOW);
   const byKey = new Map(cards.map((c) => [c.key, c]));
 
   assert.equal(byKey.get("story-1")!.date, "2026-06-14"); // start, not end

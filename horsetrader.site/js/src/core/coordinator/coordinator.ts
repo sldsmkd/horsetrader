@@ -24,7 +24,8 @@ import type { KeyValueStore } from "../persistence/storage.ts";
 import { defaultStore } from "../persistence/storage.ts";
 import { project, spendStream } from "../projection/index.ts";
 import type { Projection, ResourceVector, SpendGacha, CommittedBanner, BannerKind } from "../projection/index.ts";
-import { UTC_TIME_ZONE, dateStringInTimeZone } from "../projection/dates.ts";
+import { UTC_TIME_ZONE, cal, dateStringInTimeZone } from "../projection/dates.ts";
+import type { CalendarDate } from "../projection/dates.ts";
 import { GROUND_TRUTH_CHANNELS } from "./channels.ts";
 import type { ChannelDef } from "./channels.ts";
 
@@ -62,9 +63,14 @@ export type PlanPatch = Pick<PlanDocument, "snapshot" | "config" | "commitments"
  * `end >= now` eligibility gate. Returns the same document when nothing changed
  * (so the caller skips a redundant write). Run once on load.
  */
-function pruneRushedPast(doc: PlanDocument, bundle: EventsBundle, now: string): PlanDocument {
+function pruneRushedPast(doc: PlanDocument, bundle: EventsBundle, now: CalendarDate, timeZone: string): PlanDocument {
   if (!doc.rushed) return doc;
-  const stillRushable = new Set(bundle.events.filter((ev) => ev.end >= now).map((ev) => ev.key));
+  // `ev.end` is a baked instant; bucket it to the same calendar-date space as `now`
+  // before comparing — a raw instant vs date-only compare is the mismatch class this
+  // module's branding now guards against (project_core_utc_and_ingress).
+  const stillRushable = new Set(
+    bundle.events.filter((ev) => dateStringInTimeZone(ev.end, timeZone) >= now).map((ev) => ev.key),
+  );
   const kept: PlanDocument["rushed"] = {};
   let dropped = false;
   for (const [key, instant] of Object.entries(doc.rushed)) {
@@ -88,7 +94,7 @@ export interface Coordinator {
   /** The current immutable projection (ledger + cached balance series). */
   projection(): Projection;
   /** Convenience: the balance at a cursor date (O(1) into the cached series). */
-  balanceAt(date: string): ResourceVector;
+  balanceAt(date: CalendarDate): ResourceVector;
   /**
    * A committed banner's resources available *before its own spend* — income at the
    * banner's end minus every earlier-resolving banner's spend (project_spend_model's
@@ -121,8 +127,8 @@ export interface CoordinatorOptions {
   /** Gacha pull-math constants the spend pass debits committed pity with. Optional —
    *  defaults to the game-true constants; the app passes the baked `config.gacha`. */
   gacha?: SpendGacha;
-  /** Today as an ISO date — the projection origin when no snapshot is set yet. */
-  now: string;
+  /** Today as a calendar date — the projection origin when no snapshot is set yet. */
+  now: CalendarDate;
   /** Calendar timezone used to bucket baked event instants into projection dates. */
   timeZone?: string;
   /** Defaults to localStorage (or an in-memory store outside the browser). */
@@ -141,7 +147,7 @@ export function createCoordinator(options: CoordinatorOptions): Coordinator {
   const loaded = load(store);
   // Sweep dead rush state (events now fully past) on load; persist only if it
   // actually pruned, so a clean plan isn't rewritten on every boot.
-  let doc = pruneRushedPast(loaded.doc, bundle, now);
+  let doc = pruneRushedPast(loaded.doc, bundle, now, timeZone);
   if (doc !== loaded.doc) save(doc, store);
   const enabled = new Map<string, boolean>(registry.map((ch) => [ch.name, true]));
   const listeners = new Set<() => void>();
@@ -154,7 +160,9 @@ export function createCoordinator(options: CoordinatorOptions): Coordinator {
   // dependent spends pass resolved against that income balance, then a final flatten of
   // both. `available` carries each committed banner's pre-spend balance (self-excluded).
   function fold(): { projection: Projection; available: Map<string, ResourceVector> } {
-    const after = doc.snapshot?.date ?? now;
+    // The snapshot date is a stored string; brand it as the calendar date it is
+    // (validated) so it shares the projection's bucket space. Falls back to `now`.
+    const after: CalendarDate = doc.snapshot?.date ? cal(doc.snapshot.date) : now;
     const base = doc.snapshot?.resources ?? {};
     const income = registry
       .filter((ch) => enabled.get(ch.name) !== false)

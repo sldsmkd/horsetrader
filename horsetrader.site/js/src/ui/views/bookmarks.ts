@@ -18,12 +18,13 @@ import "./bookmarks.css";
 import { h } from "../h.ts";
 import { formatDate } from "../format.ts";
 import type { BookmarkRow } from "../select/bookmarks.ts";
+import type { CalendarDate } from "../../core/projection/dates.ts";
 
 export interface BookmarksHandlers {
   /** Toggle the drawer open/collapsed (the chevron tab). */
   onToggle(): void;
   /** Warp the timeline view to a row's appearance date. */
-  onWarp(date: string): void;
+  onWarp(date: CalendarDate): void;
 }
 
 /** What `refresh` needs: the derived rows and whether the drawer is open. */

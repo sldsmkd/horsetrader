@@ -12,6 +12,7 @@
 
 import type { EventsBundle } from "../../bundle/events.gen.ts";
 import type { ResourceVector, StreamEmission } from "../ledger.ts";
+import type { CalendarDate } from "../dates.ts";
 import { UTC_TIME_ZONE, dateStringInTimeZone } from "../dates.ts";
 
 /**
@@ -32,7 +33,7 @@ import { UTC_TIME_ZONE, dateStringInTimeZone } from "../dates.ts";
  * and the commit shield's Free stream), never folded. Only carryable resources
  * (carats, tickets, crystals/shards) accumulate here.
  */
-export function eventStream(bundle: EventsBundle, after: string, timeZone: string = UTC_TIME_ZONE): StreamEmission[] {
+export function eventStream(bundle: EventsBundle, after: CalendarDate, timeZone: string = UTC_TIME_ZONE): StreamEmission[] {
   const emissions: StreamEmission[] = [];
   for (const event of bundle.events) {
     if (!event.rewards) continue;

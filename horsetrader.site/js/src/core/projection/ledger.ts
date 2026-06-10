@@ -15,6 +15,7 @@
  */
 
 import type { ResourceVector } from "../persistence/document.ts";
+import type { CalendarDate } from "./dates.ts";
 import { addDays } from "./dates.ts";
 
 export type { ResourceVector } from "../persistence/document.ts";
@@ -26,7 +27,7 @@ export type { ResourceVector } from "../persistence/document.ts";
  * its sources but not its own kind-name — the projection supplies that.
  */
 export interface StreamEmission {
-  date: string;
+  date: CalendarDate;
   source: string;
   deltas: ResourceVector;
 }
@@ -37,7 +38,7 @@ export interface StreamEmission {
  * specific contributor for the tooltip. A single date carries many of these.
  */
 export interface LedgerEntry {
-  date: string;
+  date: CalendarDate;
   stream: string;
   source: string;
   resource: string;
@@ -72,8 +73,8 @@ function accumulate(into: ResourceVector, delta: ResourceVector): void {
  * Per-date subtotal: the entries on each date summed per resource — what the
  * per-day hover tooltip shows. Sparse: only dates that carry entries appear.
  */
-export function subtotals(ledger: Ledger): Map<string, ResourceVector> {
-  const byDate = new Map<string, ResourceVector>();
+export function subtotals(ledger: Ledger): Map<CalendarDate, ResourceVector> {
+  const byDate = new Map<CalendarDate, ResourceVector>();
   for (const { date, resource, amount } of ledger) {
     let vector = byDate.get(date);
     if (!vector) byDate.set(date, (vector = {}));
@@ -97,15 +98,15 @@ export function subtotals(ledger: Ledger): Map<string, ResourceVector> {
  */
 export interface BalanceSeries {
   /** Sorted change-point dates — the dates where the balance actually moves. */
-  readonly dates: readonly string[];
+  readonly dates: readonly CalendarDate[];
   /** The dense range `[first, last]` (the change-point extent), or null if empty. */
-  readonly extent: readonly [string, string] | null;
+  readonly extent: readonly [CalendarDate, CalendarDate] | null;
   /**
    * Balance at any cursor date — O(1). The base reading before the first
    * change-point; the final balance after the last; the dense per-day value in
    * between. A copy, safe to mutate.
    */
-  balanceAt(date: string): ResourceVector;
+  balanceAt(date: CalendarDate): ResourceVector;
 }
 
 export function balanceSeries(base: ResourceVector, ledger: Ledger): BalanceSeries {
@@ -119,7 +120,7 @@ export function balanceSeries(base: ResourceVector, ledger: Ledger): BalanceSeri
   const first = dates[0]!;
   const last = dates[dates.length - 1]!;
 
-  const dense = new Map<string, ResourceVector>();
+  const dense = new Map<CalendarDate, ResourceVector>();
   const running: ResourceVector = { ...base };
   for (let date = first; date <= last; date = addDays(date, 1)) {
     const delta = perDate.get(date);
@@ -127,7 +128,7 @@ export function balanceSeries(base: ResourceVector, ledger: Ledger): BalanceSeri
     dense.set(date, { ...running });
   }
 
-  function balanceAt(date: string): ResourceVector {
+  function balanceAt(date: CalendarDate): ResourceVector {
     if (date < first) return { ...base };
     const hit = dense.get(date);
     if (hit) return { ...hit };

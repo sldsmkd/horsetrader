@@ -18,6 +18,7 @@
 
 import type { Bundle } from "../bundle/access.ts";
 import type { Favourites } from "../../core/persistence/document.ts";
+import type { CalendarDate } from "../../core/projection/dates.ts";
 import { atomOf } from "./aboveLane.ts";
 import type { BannerAtom, BannerKind } from "./aboveLane.ts";
 
@@ -30,7 +31,7 @@ export interface BookmarkAtom {
 /** One bookmark row: a future appearance beat carrying the favourited atoms that land on it. */
 export interface BookmarkRow {
   /** The appearance date — the warp target and the row's heading. */
-  date: string;
+  date: CalendarDate;
   /** Any contributing banner predicted → the row reads predicted (grey trust-language). */
   predicted: boolean;
   atoms: BookmarkAtom[];
@@ -43,7 +44,7 @@ export interface BookmarkRow {
  * filter, `atomOf` resolution) but keys the membership test on `ev.contents`
  * against the atom-keyed `favourites` map.
  */
-export function bookmarkRows(bundle: Bundle, favourites: Favourites, now: string): BookmarkRow[] {
+export function bookmarkRows(bundle: Bundle, favourites: Favourites, now: CalendarDate): BookmarkRow[] {
   const byDate = new Map<string, BookmarkRow>();
   for (const ev of bundle.all()) {
     if (ev.type !== "trainee" && ev.type !== "support") continue;

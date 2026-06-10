@@ -8,7 +8,7 @@
  */
 
 import type { EventsBundle } from "../bundle/events.gen.ts";
-import type { StreamEmission } from "../projection/index.ts";
+import type { CalendarDate, StreamEmission } from "../projection/index.ts";
 import {
   eventStream,
   generatorStream,
@@ -20,7 +20,7 @@ import {
 export interface ChannelContext {
   bundle: EventsBundle;
   /** The projection origin date; channels emit only strictly after it. */
-  after: string;
+  after: CalendarDate;
   /** The calendar timezone the day-bucketed projection is viewed in. */
   timeZone: string;
 }

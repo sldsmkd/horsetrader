@@ -154,6 +154,28 @@ status* above; this is the real signature). Start at the dated snapshot,
 accumulate each stream's deltas in date order. Deterministic and side-effect-free,
 like the ETL's own discipline.
 
+### The core runs on calendar dates, branded at one ingress wall
+
+The fold, ledger, axis and dense balance cache are **day-bucketed** (`YYYY-MM-DD`),
+not instant-based — deliberately. The dense `date → balance` cache (the O(1) scrub
+lookup) is built by iterating *days*, and which calendar day a baked instant lands
+on is **timezone-dependent** (the view timezone), a real feature. So we do **not**
+carry full UTC instants through the core (a possibility once weighed and rejected:
+its only real upside — a distinct sort order — is moot because banners release
+simultaneously and fall back to id-tiebreak anyway).
+
+Baked event periods arrive as instants (`…T22:00:00+00:00`). They are converted to
+a calendar date **once, at ingress** — `dateStringInTimeZone` in each stream's
+`*fromBundle`, in the coordinator's `committedBanners`, and in the UI bundle's
+`createBundle`. That bucketed space is the branded `CalendarDate` type
+(`core/projection/dates.ts`): a raw instant (a plain `string`) is not assignable
+where a `CalendarDate` is expected, so the one place that skips the conversion is a
+compile error rather than a silent fall-through. (This is the durable fix for the
+spend-fold bug where a raw instant fell past the dense series to the far-future
+tail — see `committedBanners` and its regression test.) The brand is compile-time
+only, erased at build; mint one via the converters or `cal()` for a value already
+known to be a calendar date.
+
 ### Resources are a typed, keyed vector — per-dimension arithmetic
 
 The accumulator is a map of named resources (free/paid carats, trainee/support

@@ -20,7 +20,7 @@
  *     the card shows up when the event lands, "the line lags the dots".)
  */
 
-import type { Projection, ResourceVector } from "../../core/projection/index.ts";
+import type { Projection, ResourceVector, CalendarDate } from "../../core/projection/index.ts";
 import { isVisible, isRushable } from "../../core/bundle/flags.ts";
 import type { Axis } from "../axis.ts";
 import type { Bundle, EventRecord } from "../bundle/access.ts";
@@ -68,7 +68,7 @@ export interface BelowCard {
   label: string;
   /** The arrival date — when the event shows up on the timeline; the stem's true
    *  date (principle 4). The reward still posts on `end` in the ledger. */
-  date: string;
+  date: CalendarDate;
   /** Content-space x for `date` off the axis (true-to-date, principle 2). */
   x: number;
   /** Predicted dates trust less — the grey grammar (principle 5). */
@@ -86,7 +86,7 @@ function labelOf(ev: EventRecord): string {
   return ev.key;
 }
 
-export function belowLaneCards(projection: Projection, bundle: Bundle, axis: Axis, now: string): BelowCard[] {
+export function belowLaneCards(projection: Projection, bundle: Bundle, axis: Axis, now: CalendarDate): BelowCard[] {
   // Each below-lane event posts once (on its `end`), so a source maps to one
   // reward bag; accumulate per source across its single-resource ledger entries.
   // Many below-lane kinds post nothing — that's normal, not a missing card.

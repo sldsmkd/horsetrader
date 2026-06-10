@@ -20,6 +20,7 @@ import { h } from "../h.ts";
 import { createAxis } from "../axis.ts";
 import type { Axis } from "../axis.ts";
 import { daysBetween } from "../../core/projection/dates.ts";
+import type { CalendarDate } from "../../core/projection/dates.ts";
 import { balancePoints, caratToY, fretLevels, dotMarks } from "../select/minimap.ts";
 import type { BalanceSeries } from "../../core/projection/ledger.ts";
 import type { Bundle } from "../bundle/access.ts";
@@ -36,8 +37,8 @@ export interface MinimapRefresh {
   series: BalanceSeries;
   bundle: Bundle;
   favourites: Favourites;
-  extent: readonly [string, string] | null;
-  now: string;
+  extent: readonly [CalendarDate, CalendarDate] | null;
+  now: CalendarDate;
 }
 
 export interface Minimap {
@@ -46,12 +47,12 @@ export interface Minimap {
   /** Repaint line/frets/dots for the current projection + extent — the render path. */
   refresh(p: MinimapRefresh): void;
   /** Move the window to centre on `date` — the cheap path (a pan pushed this here). */
-  setView(date: string): void;
+  setView(date: CalendarDate): void;
 }
 
 export interface MinimapHandlers {
   /** Fired as the user drags the track — the date to navigate to (→ `centerOn`). */
-  onSeek(date: string): void;
+  onSeek(date: CalendarDate): void;
 }
 
 function svg<K extends keyof SVGElementTagNameMap>(tag: K, attrs: Record<string, string | number>): SVGElementTagNameMap[K] {
@@ -64,7 +65,7 @@ export function minimap({ onSeek }: MinimapHandlers): Minimap {
   // The minimap-scale axis the last refresh built (full extent → strip width), and
   // the extent itself — kept for `setView` and for hit-testing a seek.
   let axis: Axis | null = null;
-  let extent: readonly [string, string] | null = null;
+  let extent: readonly [CalendarDate, CalendarDate] | null = null;
 
   // Back-to-front: the sign-tinted background bands, then the frets, then the
   // white balance line. The line itself stays white (an instrument needle); the

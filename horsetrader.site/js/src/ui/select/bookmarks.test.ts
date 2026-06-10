@@ -6,6 +6,7 @@ import { createBundle } from "../bundle/access.ts";
 import { TEST_CONFIG } from "../bundle/fixtures.ts";
 import type { EventsBundle } from "../../core/bundle/events.gen.ts";
 import type { Academy } from "../../core/bundle/academy.gen.ts";
+import { cal } from "../../core/projection/dates.ts";
 
 const EVENTS: EventsBundle = {
   events: [
@@ -35,7 +36,7 @@ const bundle = () => createBundle(EVENTS, ACADEMY, TEST_CONFIG);
 test("bookmarkRows: future banners holding a favourited atom, sorted nearest-first; past/unfav/non-banner excluded", () => {
   // Favourites are keyed by atom (content) id, not banner key — the real model.
   const favourites = { "t-spe": {}, "s-spe": {}, "cm-fav": {} };
-  const rows = bookmarkRows(bundle(), favourites, "2026-06-01");
+  const rows = bookmarkRows(bundle(), favourites, cal("2026-06-01"));
 
   assert.deepEqual(
     rows.map((r) => ({ date: r.date, predicted: r.predicted })),
@@ -48,7 +49,7 @@ test("bookmarkRows: future banners holding a favourited atom, sorted nearest-fir
 
 test("bookmarkRows: co-occurring favourites combine into one row, kinds preserved", () => {
   const favourites = { "t-spe": {}, "s-spe": {} };
-  const rows = bookmarkRows(bundle(), favourites, "2026-06-01");
+  const rows = bookmarkRows(bundle(), favourites, cal("2026-06-01"));
 
   const co = rows.find((r) => r.date === "2026-06-25");
   assert.ok(co, "expected a combined row on the shared beat");
@@ -57,5 +58,5 @@ test("bookmarkRows: co-occurring favourites combine into one row, kinds preserve
 });
 
 test("bookmarkRows: no favourites ⇒ no rows (the drawer's empty state)", () => {
-  assert.deepEqual(bookmarkRows(bundle(), {}, "2026-06-01"), []);
+  assert.deepEqual(bookmarkRows(bundle(), {}, cal("2026-06-01")), []);
 });

@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import { eventStream } from "./events.ts";
+import { cal } from "../dates.ts";
 import type { EventsBundle, TraineeBannerRecord } from "../../bundle/events.gen.ts";
 
 /** A trainee banner is the lightest record carrying rewards — enough to drive the stream. */
@@ -27,7 +28,7 @@ test("rewards land on the event end as one delta vector", () => {
   const b = bundle(
     banner("banner-1", "2026-06-10", { free_carats: 720, trainee_tickets: 2 }),
   );
-  const out = eventStream(b, "2026-06-01");
+  const out = eventStream(b, cal("2026-06-01"));
   assert.deepEqual(out, [
     { date: "2026-06-10", source: "banner-1", deltas: { free_carats: 720, trainee_tickets: 2 } },
   ]);
@@ -37,10 +38,10 @@ test("timestamped rewards land on the event end date in the selected timezone", 
   const b = bundle(
     banner("banner-1", "2026-06-10T22:00:00+00:00", { free_carats: 720 }),
   );
-  assert.deepEqual(eventStream(b, "2026-06-01", "UTC"), [
+  assert.deepEqual(eventStream(b, cal("2026-06-01"), "UTC"), [
     { date: "2026-06-10", source: "banner-1", deltas: { free_carats: 720 } },
   ]);
-  assert.deepEqual(eventStream(b, "2026-06-01", "Australia/Sydney"), [
+  assert.deepEqual(eventStream(b, cal("2026-06-01"), "Australia/Sydney"), [
     { date: "2026-06-11", source: "banner-1", deltas: { free_carats: 720 } },
   ]);
 });
@@ -51,27 +52,27 @@ test("only events landing strictly after the snapshot date are emitted", () => {
     banner("on-snapshot", "2026-06-01", { free_carats: 100 }),
     banner("after", "2026-06-02", { free_carats: 100 }),
   );
-  const out = eventStream(b, "2026-06-01");
+  const out = eventStream(b, cal("2026-06-01"));
   assert.deepEqual(out.map((e) => e.date), ["2026-06-02"]);
 });
 
 test("events without rewards emit nothing", () => {
   const b = bundle(banner("no-rewards", "2026-06-10"));
-  assert.deepEqual(eventStream(b, "2026-06-01"), []);
+  assert.deepEqual(eventStream(b, cal("2026-06-01")), []);
 });
 
 test("the events channel ignores generators (own channel) — its nested value is skipped", () => {
   const b = bundle(
     banner("anchor", "2026-06-10", { generator: { free_carats: 564, repeat: 10 } }),
   );
-  assert.deepEqual(eventStream(b, "2026-06-01"), []);
+  assert.deepEqual(eventStream(b, cal("2026-06-01")), []);
 });
 
 test("flat rewards alongside a generator keep the flat deltas and drop only the generator", () => {
   const b = bundle(
     banner("mixed", "2026-06-10", { free_carats: 50, generator: { free_carats: 564, repeat: 10 } }),
   );
-  assert.deepEqual(eventStream(b, "2026-06-01"), [
+  assert.deepEqual(eventStream(b, cal("2026-06-01")), [
     { date: "2026-06-10", source: "mixed", deltas: { free_carats: 50 } },
   ]);
 });

@@ -16,12 +16,13 @@
 
 import type { EventsBundle } from "../../bundle/events.gen.ts";
 import type { StreamEmission } from "../ledger.ts";
+import type { CalendarDate } from "../dates.ts";
 import { UTC_TIME_ZONE, addDays, dateStringInTimeZone } from "../dates.ts";
 
 /** A per-day amount schedule for one resource, anchored at `start`; null = unpaid that day. */
 export interface SequenceSpec {
   source: string;
-  start: string;
+  start: CalendarDate;
   resource: string;
   amounts: (number | null)[];
 }
@@ -33,7 +34,7 @@ export interface SequenceSpec {
  * computed from `start`, so a sequence straddling the snapshot keeps its later
  * days correct.
  */
-export function sequenceStream(specs: SequenceSpec[], after: string): StreamEmission[] {
+export function sequenceStream(specs: SequenceSpec[], after: CalendarDate): StreamEmission[] {
   const emissions: StreamEmission[] = [];
   for (const spec of specs) {
     spec.amounts.forEach((amount, day) => {

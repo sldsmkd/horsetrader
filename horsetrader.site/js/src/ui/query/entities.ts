@@ -9,6 +9,7 @@
 
 import type { SupportRecord, TraineeRecord } from "../../core/bundle/academy.gen.ts";
 import type { Bundle, EventRecord } from "../bundle/access.ts";
+import type { CalendarDate } from "../../core/projection/dates.ts";
 import { normalize, rankPrefixMatch } from "./match.ts";
 
 export type SearchKind = "support" | "trainee";
@@ -20,7 +21,7 @@ export interface SearchResult {
   /** Typeahead label, in the game's naming grammar. */
   label: string;
   /** First known timeline appearance for this entity. */
-  date: string;
+  date: CalendarDate;
   /** Event key for that first appearance, useful once selection/details exist. */
   eventKey: string;
 }
@@ -75,8 +76,8 @@ function searchableEvents(bundle: Bundle, now: string): readonly EventRecord[] {
   return bundle.all().filter((event) => (event.type === "support" || event.type === "trainee") && event.end >= now);
 }
 
-function appearanceMap(events: readonly EventRecord[]): Map<string, { date: string; eventKey: string }> {
-  const firstAppearance = new Map<string, { date: string; eventKey: string }>();
+function appearanceMap(events: readonly EventRecord[]): Map<string, { date: CalendarDate; eventKey: string }> {
+  const firstAppearance = new Map<string, { date: CalendarDate; eventKey: string }>();
   const noteAppearance = (id: string, event: EventRecord) => {
     const prev = firstAppearance.get(id);
     if (!prev || event.start < prev.date) firstAppearance.set(id, { date: event.start, eventKey: event.key });

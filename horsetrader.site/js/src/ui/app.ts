@@ -59,6 +59,7 @@ import type { BannerGroup } from "./select/aboveLane.ts";
 import { createViewStore } from "./state/viewState.ts";
 import { createMachine } from "./state/machine.ts";
 import type { Coordinator } from "../core/coordinator/index.ts";
+import type { CalendarDate } from "../core/projection/dates.ts";
 import type { Bundle } from "./bundle/access.ts";
 
 /** Below-lane collision spacing (content px): horizontal breathing room between
@@ -127,20 +128,20 @@ function packAboveLane(groups: readonly BannerGroup[], els: readonly HTMLElement
  * scroll back into the past too). Cards anchor at `start`, so both ends measure
  * `start`: the latest *end* would trail dead time past the final card.
  */
-function displayExtent(bundle: Bundle): readonly [string, string] | null {
-  let lo: string | null = null;
-  let hi: string | null = null;
+function displayExtent(bundle: Bundle): readonly [CalendarDate, CalendarDate] | null {
+  let lo: CalendarDate | null = null;
+  let hi: CalendarDate | null = null;
   for (const ev of bundle.all()) {
     if (lo === null || ev.start < lo) lo = ev.start;
     if (hi === null || ev.start > hi) hi = ev.start;
   }
-  return lo === null ? null : [lo, hi as string];
+  return lo === null ? null : [lo, hi as CalendarDate];
 }
 
 export function mountApp(
   coord: Coordinator,
   bundle: Bundle,
-  now: string,
+  now: CalendarDate,
   strings: UiStrings,
   root: HTMLElement = qs("#app"),
 ): void {

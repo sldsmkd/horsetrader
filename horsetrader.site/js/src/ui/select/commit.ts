@@ -17,6 +17,7 @@ import type { Bundle } from "../bundle/access.ts";
 import type { ResourceVector, Commitments } from "../../core/persistence/document.ts";
 import { atomOf, type BannerAtom, type BannerKind, type RarityTier } from "./aboveLane.ts";
 import { spend, bannerDays } from "../../core/projection/pulls.ts";
+import type { CalendarDate } from "../../core/projection/dates.ts";
 
 /** Featured-card sort: hero rarity bands first (crystal → gold), then alpha within
  *  a band — so the highest-rarity pickups lead from the left. */
@@ -79,7 +80,7 @@ function featuredRate(ev: { rate_overrides?: Record<string, number> }, atoms: Co
 
 /** The two live reads the shield folds in, mirroring `AboveLaneInputs`. */
 export interface CommitInputs {
-  balanceAt: (date: string) => ResourceVector;
+  balanceAt: (date: CalendarDate) => ResourceVector;
   commitments: Commitments;
 }
 

@@ -16,12 +16,13 @@ import type { Bundle } from "../bundle/access.ts";
 import { isRushable } from "../../core/bundle/flags.ts";
 import type { ResourceVector, Commitments } from "../../core/persistence/document.ts";
 import { pullCapacity, bannerDays } from "../../core/projection/pulls.ts";
+import type { CalendarDate } from "../../core/projection/dates.ts";
 
 /** The live reads the above-lane readout folds in: balance-at-date, the per-banner
  *  self-excluded available (for committed banners), and commitments. */
 export interface AboveLaneInputs {
   /** The income fold surfaced at a spend point — `balanceAt(bannerDate)` (ui.md). */
-  balanceAt: (date: string) => ResourceVector;
+  balanceAt: (date: CalendarDate) => ResourceVector;
   /** A committed banner's resources *before its own spend* (self-excluded — see
    *  project_spend_model); `undefined` for an uncommitted banner, which reads the series. */
   bannerAvailable: (bannerKey: string) => ResourceVector | undefined;
@@ -74,7 +75,7 @@ export interface BannerGroup {
   /** Group identity — the shared start date. */
   key: string;
   /** The appearance date — the stem's true date (principle 4). */
-  date: string;
+  date: CalendarDate;
   /** Content-space x for `date` off the axis (true-to-date, principle 2). */
   x: number;
   /** Any banner in the group predicted → the group reads as predicted. */
@@ -102,7 +103,7 @@ export function atomOf(bundle: Bundle, kind: BannerKind, id: string): BannerAtom
   };
 }
 
-export function aboveLaneGroups(bundle: Bundle, axis: Axis, now: string, inputs: AboveLaneInputs = NO_INPUTS): BannerGroup[] {
+export function aboveLaneGroups(bundle: Bundle, axis: Axis, now: CalendarDate, inputs: AboveLaneInputs = NO_INPUTS): BannerGroup[] {
   // Every known banner, past and future — the timeline spans all known time, not
   // just the projection horizon (you scroll back into history too).
   const byDate = new Map<string, BannerGroup>();

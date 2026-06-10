@@ -16,3 +16,5 @@ export { spendStream } from "./streams/spends.ts";
 export type { CommittedBanner, SpendGacha, SpendStreamResult, BannerKind } from "./streams/spends.ts";
 export { pullCapacity, spend, bannerDays } from "./pulls.ts";
 export type { PullSources, PullCaps, PullCapacity, SpendDebit } from "./pulls.ts";
+export { cal } from "./dates.ts";
+export type { CalendarDate } from "./dates.ts";

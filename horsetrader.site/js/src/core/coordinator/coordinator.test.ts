@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import { createCoordinator } from "./coordinator.ts";
 import { memoryStore, DOCUMENT_KEY } from "../persistence/storage.ts";
 import { load } from "../persistence/index.ts";
+import { cal } from "../projection/dates.ts";
 import type { EventsBundle } from "../bundle/events.gen.ts";
 
 /**
@@ -23,11 +24,11 @@ function bundle(): EventsBundle {
 }
 
 const snapshot = { date: "2026-06-01", recordedAt: "2026-06-01T00:00:00.000Z", resources: { free_carats: 1000 } };
-const FAR = "2026-06-30"; // past every event
+const FAR = cal("2026-06-30"); // past every event
 
 test("folds all channels from the snapshot forward into a queryable balance", () => {
   const store = memoryStore();
-  const coord = createCoordinator({ bundle: bundle(), now: "2026-06-01", store });
+  const coord = createCoordinator({ bundle: bundle(), now: cal("2026-06-01"), store });
   coord.update({ snapshot });
   assert.deepEqual(coord.balanceAt(FAR), { free_carats: 1000 + 100 + 150 + 20 });
 });
@@ -39,9 +40,9 @@ test("a committed banner's spend folds at its calendar end date, not the raw ins
   const banners: EventsBundle = {
     events: [{ type: "support", contents: [], image: "", start: "2026-06-08T22:00:00+00:00", end: "2026-06-20T22:00:00+00:00", predicted: false, rushable: false, key: "sb" }],
   };
-  const coord = createCoordinator({ bundle: banners, now: "2026-06-01", store: memoryStore() });
+  const coord = createCoordinator({ bundle: banners, now: cal("2026-06-01"), store: memoryStore() });
   coord.update({ snapshot: { date: "2026-06-01", recordedAt: "2026-06-01T00:00:00.000Z", resources: { free_carats: 100000, support_tickets: 50 } } });
-  const END = "2026-06-20"; // the calendar bucket of the 22:00 UTC instant
+  const END = cal("2026-06-20"); // the calendar bucket of the 22:00 UTC instant
 
   assert.deepEqual(coord.balanceAt(END), { free_carats: 100000, support_tickets: 50 });
   coord.update({ commitments: { sb: 1 } }); // 200 pulls: 50 tickets + 150 × 150 free carats
@@ -52,13 +53,13 @@ test("a committed banner's spend folds at its calendar end date, not the raw ins
 });
 
 test("with no snapshot, the origin is `now` and the base is empty", () => {
-  const coord = createCoordinator({ bundle: bundle(), now: "2026-06-01", store: memoryStore() });
+  const coord = createCoordinator({ bundle: bundle(), now: cal("2026-06-01"), store: memoryStore() });
   assert.deepEqual(coord.balanceAt(FAR), { free_carats: 270 });
 });
 
 test("toggling a channel off removes its contribution; back on restores it", () => {
   const store = memoryStore();
-  const coord = createCoordinator({ bundle: bundle(), now: "2026-06-01", store });
+  const coord = createCoordinator({ bundle: bundle(), now: cal("2026-06-01"), store });
   coord.update({ snapshot });
 
   coord.setEnabled("generator", false);
@@ -73,7 +74,7 @@ test("toggling a channel off removes its contribution; back on restores it", () 
 });
 
 test("channels() reports every channel and its enabled state", () => {
-  const coord = createCoordinator({ bundle: bundle(), now: "2026-06-01", store: memoryStore() });
+  const coord = createCoordinator({ bundle: bundle(), now: cal("2026-06-01"), store: memoryStore() });
   assert.deepEqual(coord.channels(), [
     { name: "events", enabled: true },
     { name: "generator", enabled: true },
@@ -84,7 +85,7 @@ test("channels() reports every channel and its enabled state", () => {
 });
 
 test("toggling an unknown channel is a no-op", () => {
-  const coord = createCoordinator({ bundle: bundle(), now: "2026-06-01", store: memoryStore() });
+  const coord = createCoordinator({ bundle: bundle(), now: cal("2026-06-01"), store: memoryStore() });
   coord.setEnabled("nonsense", false);
   assert.equal(coord.channels().length, 3);
   assert.deepEqual(coord.balanceAt(FAR), { free_carats: 270 });
@@ -92,19 +93,19 @@ test("toggling an unknown channel is a no-op", () => {
 
 test("toggles are ephemeral — never persisted into the plan", () => {
   const store = memoryStore();
-  const coord = createCoordinator({ bundle: bundle(), now: "2026-06-01", store });
+  const coord = createCoordinator({ bundle: bundle(), now: cal("2026-06-01"), store });
   coord.update({ snapshot });
   coord.setEnabled("generator", false);
 
   // The saved plan carries no channel state; a fresh coordinator starts all-on.
   assert.equal(load(store).doc.snapshot?.date, "2026-06-01");
-  const fresh = createCoordinator({ bundle: bundle(), now: "2026-06-01", store });
+  const fresh = createCoordinator({ bundle: bundle(), now: cal("2026-06-01"), store });
   assert.deepEqual(fresh.balanceAt(FAR), { free_carats: 1270 });
 });
 
 test("update persists the plan and recomputes against the new base", () => {
   const store = memoryStore();
-  const coord = createCoordinator({ bundle: bundle(), now: "2026-06-01", store });
+  const coord = createCoordinator({ bundle: bundle(), now: cal("2026-06-01"), store });
   coord.update({ snapshot });
   assert.deepEqual(coord.balanceAt(FAR), { free_carats: 1270 });
 
@@ -127,7 +128,7 @@ test("on load, rushed entries for ended/unknown events are pruned and persisted"
     }),
   );
 
-  const coord = createCoordinator({ bundle: bundle(), now: "2026-06-10", store });
+  const coord = createCoordinator({ bundle: bundle(), now: cal("2026-06-10"), store });
   assert.deepEqual(coord.document().rushed, { "banner-1": "2026-06-05T00:00:00.000Z" });
   // The sweep rewrote the store, so a reload sees the pruned map too.
   assert.deepEqual(load(store).doc.rushed, { "banner-1": "2026-06-05T00:00:00.000Z" });
@@ -136,12 +137,12 @@ test("on load, rushed entries for ended/unknown events are pruned and persisted"
 test("a rushed map that is all-past prunes to omitted, not an empty object", () => {
   const store = memoryStore();
   store.write(DOCUMENT_KEY, JSON.stringify({ version: 1, rushed: { "anchor-1": "2026-06-05T00:00:00.000Z" } }));
-  const coord = createCoordinator({ bundle: bundle(), now: "2026-06-10", store });
+  const coord = createCoordinator({ bundle: bundle(), now: cal("2026-06-10"), store });
   assert.equal(coord.document().rushed, undefined);
 });
 
 test("subscribers fire on a mutation, exactly once, and never on a read", () => {
-  const coord = createCoordinator({ bundle: bundle(), now: "2026-06-01", store: memoryStore() });
+  const coord = createCoordinator({ bundle: bundle(), now: cal("2026-06-01"), store: memoryStore() });
   let notals = 0;
   const off = coord.subscribe(() => notals++);
 
@@ -172,7 +173,7 @@ test("an unreadable stored plan surfaces recovered and still folds (clean base)"
   console.error = () => {};
   try {
     store.write(DOCUMENT_KEY, "{not json");
-    const coord = createCoordinator({ bundle: bundle(), now: "2026-06-01", store });
+    const coord = createCoordinator({ bundle: bundle(), now: cal("2026-06-01"), store });
     assert.equal(coord.recovered(), true);
     assert.deepEqual(coord.balanceAt(FAR), { free_carats: 270 });
   } finally {

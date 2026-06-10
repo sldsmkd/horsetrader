@@ -20,9 +20,24 @@ import type { EventsBundle } from "../../core/bundle/events.gen.ts";
 import type { Academy, CharacterRecord, SupportRecord, TraineeRecord } from "../../core/bundle/academy.gen.ts";
 import type { ConfigBundle } from "../../core/bundle/config.gen.ts";
 import { UTC_TIME_ZONE, dateStringInTimeZone } from "../../core/projection/dates.ts";
+import type { CalendarDate } from "../../core/projection/dates.ts";
 
-/** One event of any kind — the discriminated union the bundle actually holds. */
-export type EventRecord = EventsBundle["events"][number];
+/** One *baked* event of any kind — the discriminated union the bundle holds, run
+ *  periods still as instants. The UI never sees this shape directly. */
+type BakedEventRecord = EventsBundle["events"][number];
+
+/**
+ * One event as the UI consumes it: identical to the baked record, but its `start`/
+ * `end` instants bucketed to `CalendarDate` in the view timezone (createBundle does
+ * this once, below). The brand carries the guarantee — a selector can hand `ev.end`
+ * straight to `balanceAt` and the day-bucket spaces are known to match. `Omit` is
+ * distributed so the `type` discriminant survives for narrowing.
+ */
+export type EventRecord = BakedEventRecord extends infer E
+  ? E extends unknown
+    ? Omit<E, "start" | "end"> & { start: CalendarDate; end: CalendarDate }
+    : never
+  : never;
 
 export interface Bundle {
   /** Every event, bake order (tz-start-sorted) — for selectors that scan, e.g. banners. */
@@ -51,7 +66,7 @@ function must<T>(value: T | undefined, kind: string, id: string): T {
   return value;
 }
 
-function calendarEvent(event: EventRecord, timeZone: string): EventRecord {
+function calendarEvent(event: BakedEventRecord, timeZone: string): EventRecord {
   return {
     ...event,
     start: dateStringInTimeZone(event.start, timeZone),

@@ -2,15 +2,16 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import { generatorStream, generatorsFromBundle } from "./generator.ts";
+import { cal } from "../dates.ts";
 import type { GeneratorSpec } from "./generator.ts";
 import type { EventsBundle, AnchorRecord } from "../../bundle/events.gen.ts";
 
 function spec(source: string, start: string, repeat: number, payload: Record<string, number>): GeneratorSpec {
-  return { source, start, repeat, payload };
+  return { source, start: cal(start), repeat, payload };
 }
 
 test("a generator emits its payload once a day from start for repeat days, then stops", () => {
-  const out = generatorStream([spec("daily", "2026-06-09", 3, { free_carats: 50 })], "2026-06-01");
+  const out = generatorStream([spec("daily", "2026-06-09", 3, { free_carats: 50 })], cal("2026-06-01"));
   assert.deepEqual(out, [
     { date: "2026-06-09", source: "daily", deltas: { free_carats: 50 } },
     { date: "2026-06-10", source: "daily", deltas: { free_carats: 50 } },
@@ -19,12 +20,12 @@ test("a generator emits its payload once a day from start for repeat days, then 
 });
 
 test("a generator straddling the snapshot keeps its later days — cadence is computed from start", () => {
-  const out = generatorStream([spec("daily", "2026-05-30", 5, { free_carats: 50 })], "2026-06-01");
+  const out = generatorStream([spec("daily", "2026-05-30", 5, { free_carats: 50 })], cal("2026-06-01"));
   assert.deepEqual(out.map((e) => e.date), ["2026-06-02", "2026-06-03"]);
 });
 
 test("a generator stepping over a month boundary advances the calendar correctly", () => {
-  const out = generatorStream([spec("daily", "2026-06-29", 4, { free_carats: 10 })], "2026-06-01");
+  const out = generatorStream([spec("daily", "2026-06-29", 4, { free_carats: 10 })], cal("2026-06-01"));
   assert.deepEqual(out.map((e) => e.date), ["2026-06-29", "2026-06-30", "2026-07-01", "2026-07-02"]);
 });
 
@@ -80,7 +81,7 @@ test("the bundle generator round-trips through extraction into a daily emission 
       { type: "anchor", start: "2026-06-09", end: "2026-06-09", predicted: false, key: "anchor-x", rewards: { generator: { free_carats: 564, repeat: 10 } } } satisfies AnchorRecord,
     ],
   };
-  const out = generatorStream(generatorsFromBundle(bundle), "2026-06-01");
+  const out = generatorStream(generatorsFromBundle(bundle), cal("2026-06-01"));
   assert.equal(out.length, 10);
   assert.equal(out[0]?.date, "2026-06-09");
   assert.equal(out[9]?.date, "2026-06-18");

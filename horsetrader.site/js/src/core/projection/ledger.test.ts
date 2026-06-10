@@ -3,9 +3,10 @@ import assert from "node:assert/strict";
 
 import { attribute, subtotals, balanceSeries } from "./ledger.ts";
 import type { StreamEmission } from "./ledger.ts";
+import { cal } from "./dates.ts";
 
 function emit(date: string, source: string, deltas: Record<string, number>): StreamEmission {
-  return { date, source, deltas };
+  return { date: cal(date), source, deltas };
 }
 
 test("attribute flattens emissions into single-resource entries tagged with stream + source", () => {
@@ -24,8 +25,8 @@ test("subtotals sum entries per resource per date, sparse over dates with entrie
   ];
   const byDate = subtotals(ledger);
   assert.deepEqual([...byDate.keys()].sort(), ["2026-06-10", "2026-06-12"]);
-  assert.deepEqual(byDate.get("2026-06-10"), { free_carats: 150, trainee_tickets: 1 });
-  assert.deepEqual(byDate.get("2026-06-12"), { free_carats: 30 });
+  assert.deepEqual(byDate.get(cal("2026-06-10")), { free_carats: 150, trainee_tickets: 1 });
+  assert.deepEqual(byDate.get(cal("2026-06-12")), { free_carats: 30 });
 });
 
 test("balanceSeries exposes the change-points and the dense extent", () => {
@@ -45,14 +46,14 @@ test("the balance is materialised densely — every day in the extent is filled,
     ...attribute("events", [emit("2026-06-12", "y", { free_carats: 50 })]),
   ]);
   // 2026-06-11 has no entry but still resolves to the carried-forward balance.
-  assert.deepEqual(series.balanceAt("2026-06-11"), { free_carats: 1100 });
+  assert.deepEqual(series.balanceAt(cal("2026-06-11")), { free_carats: 1100 });
 });
 
 test("an empty ledger has no change-points, a null extent, and always returns the base", () => {
   const series = balanceSeries({ free_carats: 1000 }, []);
   assert.deepEqual(series.dates, []);
   assert.equal(series.extent, null);
-  assert.deepEqual(series.balanceAt("2026-06-11"), { free_carats: 1000 });
+  assert.deepEqual(series.balanceAt(cal("2026-06-11")), { free_carats: 1000 });
 });
 
 test("balanceAt holds flat between change-points and returns the base before the first", () => {
@@ -60,21 +61,21 @@ test("balanceAt holds flat between change-points and returns the base before the
     ...attribute("events", [emit("2026-06-10", "x", { free_carats: 100 })]),
     ...attribute("events", [emit("2026-06-12", "y", { free_carats: 50 })]),
   ]);
-  assert.deepEqual(series.balanceAt("2026-06-01"), { free_carats: 1000 }); // before first
-  assert.deepEqual(series.balanceAt("2026-06-10"), { free_carats: 1100 }); // on a change-point
-  assert.deepEqual(series.balanceAt("2026-06-11"), { free_carats: 1100 }); // flat between
-  assert.deepEqual(series.balanceAt("2026-06-12"), { free_carats: 1150 }); // next change-point
-  assert.deepEqual(series.balanceAt("2026-07-01"), { free_carats: 1150 }); // after last
+  assert.deepEqual(series.balanceAt(cal("2026-06-01")), { free_carats: 1000 }); // before first
+  assert.deepEqual(series.balanceAt(cal("2026-06-10")), { free_carats: 1100 }); // on a change-point
+  assert.deepEqual(series.balanceAt(cal("2026-06-11")), { free_carats: 1100 }); // flat between
+  assert.deepEqual(series.balanceAt(cal("2026-06-12")), { free_carats: 1150 }); // next change-point
+  assert.deepEqual(series.balanceAt(cal("2026-07-01")), { free_carats: 1150 }); // after last
 });
 
 test("balances are allowed to go negative — no clamp at zero", () => {
   const series = balanceSeries({ free_carats: 30 }, attribute("spends", [emit("2026-06-10", "banner-1", { free_carats: -150 })]));
-  assert.deepEqual(series.balanceAt("2026-06-10"), { free_carats: -120 });
+  assert.deepEqual(series.balanceAt(cal("2026-06-10")), { free_carats: -120 });
 });
 
 test("balanceAt returns a copy — mutating it does not corrupt the cache", () => {
   const series = balanceSeries({ free_carats: 1000 }, attribute("events", [emit("2026-06-10", "x", { free_carats: 100 })]));
-  const balance = series.balanceAt("2026-06-10");
+  const balance = series.balanceAt(cal("2026-06-10"));
   balance.free_carats = 0;
-  assert.deepEqual(series.balanceAt("2026-06-10"), { free_carats: 1100 });
+  assert.deepEqual(series.balanceAt(cal("2026-06-10")), { free_carats: 1100 });
 });

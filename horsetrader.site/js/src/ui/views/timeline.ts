@@ -20,6 +20,7 @@ import { h } from "../h.ts";
 import { createAxis } from "../axis.ts";
 import type { Axis } from "../axis.ts";
 import { addDays } from "../../core/projection/dates.ts";
+import type { CalendarDate } from "../../core/projection/dates.ts";
 
 /** Px per day — the fixed true-to-date scale (ui.md principle 2). We don't zoom
  *  beyond browser ctrl-+/-, so this is a constant, not view-state. Matches the
@@ -59,7 +60,7 @@ const WARP_MIN_MS = 650;
 const WARP_MAX_MS = 1500;
 const WARP_DISTANCE_SCALE_PX = 4000;
 
-type Extent = readonly [string, string] | null;
+type Extent = readonly [CalendarDate, CalendarDate] | null;
 
 export interface Timeline {
   /** The always-mounted canvas viewport. */
@@ -70,7 +71,7 @@ export interface Timeline {
    * re-emit the cursor date so chrome reflects the current projection.
    * Called on mount and after every recompute — the render path. Rare.
    */
-  layout(extent: Extent, today: string): void;
+  layout(extent: Extent, today: CalendarDate): void;
   /**
    * The axis the last `layout` built (origin/scale), or `null` before the first
    * layout / on an empty extent. The **shared seam**: the shell reads it so the
@@ -94,13 +95,13 @@ export interface Timeline {
    * seek's target. Halts any glide so the navigation is authoritative; emits the
    * new view date through `onView` (via the pan), closing the two-way binding.
    */
-  centerOn(date: string): void;
+  centerOn(date: CalendarDate): void;
   /**
    * Smoothly travel so `date` sits at the viewport centre. This is the shared
    * deliberate-navigation primitive for Home, bookmarks, and search: accelerated,
    * bounded by distance, and still cheap-path only.
    */
-  warpTo(date: string): void;
+  warpTo(date: CalendarDate): void;
 }
 
 export interface TimelineHandlers {
@@ -110,11 +111,11 @@ export interface TimelineHandlers {
    * into a `balanceAt` + menubar write and routes it to the minimap window, so
    * both track the pan. Cheap path, deduped by date; never broadcasts.
    */
-  onView(date: string): void;
+  onView(date: CalendarDate): void;
 }
 
-/** Clamp an ISO date into `[lo, hi]` — lexical compare is correct for `YYYY-MM-DD`. */
-function clampDate(date: string, [lo, hi]: readonly [string, string]): string {
+/** Clamp a calendar date into `[lo, hi]` — lexical compare is correct for `YYYY-MM-DD`. */
+function clampDate(date: CalendarDate, [lo, hi]: readonly [CalendarDate, CalendarDate]): CalendarDate {
   return date < lo ? lo : date > hi ? hi : date;
 }
 
@@ -133,7 +134,7 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
   let panY = 0; // vertical peek offset; rests at 0 (the line recentred)
   let axis: Axis | null = null;
   let extent: Extent = null;
-  let viewDate: string | null = null; // last emitted view-centre date, for dedupe
+  let viewDate: CalendarDate | null = null; // last emitted view-centre date, for dedupe
   let centerX = 0; // exact content-space x at the viewport middle — preserved across resizes
   let centered = false; // first layout centres the view on today; later ones keep the pan
   // How far cards reach above / below the centre line (px), set after each pack.
@@ -213,7 +214,7 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
     if (anim) cancelAnimationFrame(anim);
     anim = 0;
   };
-  const targetPanForDate = (date: string) => {
+  const targetPanForDate = (date: CalendarDate) => {
     if (!axis) return null;
     const { min, max } = panBounds();
     return Math.max(min, Math.min(max, el.clientWidth / 2 - axis.xForDate(date)));

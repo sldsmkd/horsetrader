@@ -7,6 +7,7 @@ import { TEST_CONFIG } from "../bundle/fixtures.ts";
 import { createAxis } from "../axis.ts";
 import type { EventsBundle } from "../../core/bundle/events.gen.ts";
 import type { Academy } from "../../core/bundle/academy.gen.ts";
+import { cal } from "../../core/projection/dates.ts";
 
 const EVENTS: EventsBundle = {
   events: [
@@ -32,8 +33,8 @@ const ACADEMY: Academy = {
 };
 
 const bundle = () => createBundle(EVENTS, ACADEMY, TEST_CONFIG);
-const axis = () => createAxis({ origin: "2026-06-01", pxPerDay: 10 });
-const NOW = "2026-06-08";
+const axis = () => createAxis({ origin: cal("2026-06-01"), pxPerDay: 10 });
+const NOW = cal("2026-06-08");
 
 const EMPTY_EVENTS: EventsBundle = { events: [] };
 
