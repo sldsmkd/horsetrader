@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 
 from horsetrader.core import JST, UTC, Period
-from horsetrader.models.events import Anchor
+from horsetrader.models.events import Anniversary
 from horsetrader.semantics import matikanefukukitaru
 
 from ..timeline import Timeline
@@ -9,7 +9,7 @@ from .base import Predictor, nearest_weekday
 
 
 def _is_anniversary(event) -> bool:
-    return isinstance(event, Anchor) and event.kind == "anniversary"
+    return isinstance(event, Anniversary)
 
 
 @matikanefukukitaru

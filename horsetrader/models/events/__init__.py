@@ -3,6 +3,8 @@ from .events import Events
 
 from .anchor import Anchor, Anchors
 from .anchored import AnchoredEvent, AnchoredEvents
+from .anniversary import Anniversaries, Anniversary
+from .anniversary_mission import AnniversaryMission, AnniversaryMissions
 from .banner import Banner, Banners, SupportBanner, TraineeBanner
 from .champions_meeting import ChampionsMeeting, ChampionsMeetings
 from .factor_studies import FactorStudies, FactorStudiesEvents
@@ -23,6 +25,10 @@ __all__ = [
     "Anchors",
     "AnchoredEvent",
     "AnchoredEvents",
+    "Anniversaries",
+    "Anniversary",
+    "AnniversaryMission",
+    "AnniversaryMissions",
     "Banner",
     "Banners",
     "ChampionsMeeting",

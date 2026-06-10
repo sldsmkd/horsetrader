@@ -267,12 +267,24 @@ matching.
 ## Limited Missions
 
 High-volume, **flat catalogue** of dated mission campaigns (the autumn G1
-celebrations, anniversary missions, collab/tie-in mission sets, …). Each is a
-window granting a fixed reward set — a meaningful carat source for below-lane
-timeline density (≈41k carats across the full catalogue). Scraped from
-Gametora's per-year history pages; **no curated YAML** (the EN side is itself a
-live scrape, not a hand-maintained overlay). See
+celebrations, collab/tie-in mission sets, …). Each is a window granting a fixed
+reward set — a meaningful carat source for below-lane timeline density (≈41k
+carats across the full catalogue). Scraped from Gametora's per-year history
+pages; **no curated YAML** (the EN side is itself a live scrape, not a
+hand-maintained overlay). See
 [`extractors/gametora/missions.py`](../horsetrader/extractors/gametora/missions.py).
+
+**Anniversary missions are split out.** The anniversary *celebration* missions
+(`Half`/`Nth`/`N.5th Anniversary … 第N弾`) are a structurally different class —
+premium, multi-currency (carats + gacha tickets + crystal shards, plus
+unmodelled selectors/textbooks), a marketing beat, not chores. They self-classify
+out of the shared scrape into [`AnniversaryMission`s](../horsetrader/models/events/anniversary_mission.py)
+(29 records, exact: the Latin `Anniversary` token in the JP title gives the
+version, `第N弾` the part). Each references its `anniversary-N_M` anchor (the link
+points *up*; the `Anniversary` never reaches for them) and carries its `part`
+(1 = countdown before the date, 2 = on the date, 3 = continuation; all parts
+share one close). `Missions` keeps the remaining 165 chores. `記念`
+("commemorative") is *not* a marker — the weekly G1 race missions share it.
 
 **Two surfaces, one shared keyspace.** The JA history (`missions/history-{year}`,
 launch 2021 →) is the substrate — JP title, JST window, and the reward rows. The

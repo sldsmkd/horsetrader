@@ -1,7 +1,7 @@
 from datetime import date, datetime, timedelta
 
 from horsetrader.core import JST, UTC, Period
-from horsetrader.models.events import Anchor, Scenario
+from horsetrader.models.events import Anniversary, Scenario
 from horsetrader.semantics import matikanefukukitaru
 
 from ..timeline import Timeline
@@ -17,7 +17,7 @@ class ScenarioPredictor(Predictor):
         # snap their EN date to the anniversary EN date (confirmed or predicted).
         anni_en_by_jp_date: dict[date, Period] = {}
         for event in self._timeline:
-            if isinstance(event, Anchor) and event.kind == "anniversary":
+            if isinstance(event, Anniversary):
                 jp = next((p for p in event.periods if p.tzinfo == JST), None)
                 en = next((p for p in event.periods if p.tzinfo == UTC), None)
                 if jp and en:

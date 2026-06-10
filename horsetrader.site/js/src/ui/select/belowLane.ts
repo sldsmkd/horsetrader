@@ -13,8 +13,12 @@
  *     anchors) grant nothing and still get a card. Visibility is **opt-out**:
  *     only an explicit `visible: false` hides a card; absence means visible;
  *   - attaches each event's own attributed reward from the ledger's `events`-
- *     stream facts — the card's height/breakdown signal, not the whole day's
- *     subtotal, and `{}` for the (many) kinds that grant nothing;
+ *     and `sequence`-stream facts — the card's height/breakdown signal, not the
+ *     whole day's subtotal, and `{}` for the (many) kinds that grant nothing.
+ *     The flat discrete payout (`events`, on `end`) and the baked per-day
+ *     sequence (`sequence`, anchored at `start`) share the event's key as their
+ *     source, so both fold onto the one card; the `generator` stream (the global
+ *     daily login) is *not* event-attributed and stays off the cards;
  *   - computes the true-date x off the axis at the event's `start` — when it
  *     *arrives* on the timeline. (The reward still posts on `end` in the ledger;
  *     the card shows up when the event lands, "the line lags the dots".)
@@ -34,6 +38,8 @@ export type BelowKind =
   | "anchor"
   | "anchoredevent"
   | "mission"
+  | "anniversary"
+  | "anniversarymission"
   | "legendrace"
   | "factorstudies"
   | "skilltest"
@@ -49,6 +55,8 @@ const BELOW_LANE = new Set<string>([
   "anchor",
   "anchoredevent",
   "mission",
+  "anniversary",
+  "anniversarymission",
   "legendrace",
   "factorstudies",
   "skilltest",
@@ -92,7 +100,11 @@ export function belowLaneCards(projection: Projection, bundle: Bundle, axis: Axi
   // Many below-lane kinds post nothing — that's normal, not a missing card.
   const rewardBySource = new Map<string, ResourceVector>();
   for (const entry of projection.ledger) {
-    if (entry.stream !== "events") continue; // generators/sequences (logins) resolve differently — later
+    // The two event-attributed streams: `events` (flat discrete payout) and
+    // `sequence` (the baked per-day schedule, e.g. an anniversary mission's daily
+    // carats), both keyed by the event's key. The `generator` stream (daily login)
+    // is global income, not a card's own reward, so it stays off the cards.
+    if (entry.stream !== "events" && entry.stream !== "sequence") continue;
     let bag = rewardBySource.get(entry.source);
     if (!bag) rewardBySource.set(entry.source, (bag = {}));
     bag[entry.resource] = (bag[entry.resource] ?? 0) + entry.amount;

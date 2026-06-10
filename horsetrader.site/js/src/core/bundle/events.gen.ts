@@ -23,6 +23,8 @@ export interface EventsBundle {
     | LeagueOfHeroesRecord
     | LegendRaceRecord
     | MissionRecord
+    | AnniversaryRecord
+    | AnniversaryMissionRecord
     | AnchorRecord
     | AnchoredEventRecord
   )[];
@@ -277,6 +279,42 @@ export interface LegendLegRecord {
 export interface MissionRecord {
   type: "mission";
   name: string | null;
+  start: string;
+  end: string;
+  predicted: boolean;
+  key: string;
+  rewards?: {
+    [k: string]:
+      | number
+      | {
+          [k: string]: number | string | (number | null)[];
+        };
+  };
+  visible?: boolean;
+  rushable?: boolean;
+}
+export interface AnniversaryRecord {
+  type: "anniversary";
+  name: string | null;
+  start: string;
+  end: string;
+  predicted: boolean;
+  key: string;
+  rewards?: {
+    [k: string]:
+      | number
+      | {
+          [k: string]: number | string | (number | null)[];
+        };
+  };
+  visible?: boolean;
+  rushable?: boolean;
+}
+export interface AnniversaryMissionRecord {
+  type: "anniversarymission";
+  name: string | null;
+  anniversary: string;
+  part: number;
   start: string;
   end: string;
   predicted: boolean;

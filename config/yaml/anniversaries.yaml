@@ -1,50 +1,164 @@
-anchor-anni-0_5: # NOQA
+## Anniversary launches + celebration reward streams (consolidated JP + EN ground truth)
+##
+## DATES. Each `start:` is a fully-qualified ISO timestamp (date + time + offset),
+## VERIFIED ground truth — cross-checked against wikiru and umamusume.com, not derived
+## from a cadence formula. JP drops 12:00 JST; EN 22:00 UTC (the canonical "appeared on
+## Global" instant). An `en:` block is present only once an anniversary has reached
+## Global (0.5 and 1.0 so far); the rest get their EN date from the predictor. An
+## anniversary is a scenario-shaped below-line launch (verified dates + derived name),
+## NOT an empty anchor peg; the half/full version lives in the `anniversary-N_M` key.
+##
+## REWARD STREAMS hang on the part-MISSION keys (`mission-NNNNN`), co-located under their
+## anniversary. The mission is the peg: it's the name the player saw, and its scraped
+## window IS the phase window, so a sequence tiles the mission's own period — no
+## hand-authored dates. Each value is a `SequenceReward(FreeCarats)` anchored at the
+## part's START; the mission's scraped completion carats/tickets are left untouched
+## (don't double-count). The scraped claim-windows are long and share one far deadline
+## (player generosity, not cadence) — IGNORE them; `duration` below is the real window.
+##
+##   en.duration: the part's active EN WINDOW (ISO 8601, e.g. P10D) = the login length, so it
+##             ends on the last login day. EN-only — it overrides the predicted/scraped EN span
+##             (the generous claim window); the JP period keeps its scraped span (substrate). So
+##             the EN parts flow on their real cadence and no reward is shown crediting a month late.
+##   login:   per-day login bonus. Shapes (all 150/day except main):
+##              p1 countdown  150 ×10  — len = anniversary-date − p1-start gap (halves
+##                                       that open Aug16 run ×8 = 1200)
+##              p2 main       300 ×10  — but 12 SLOTS: 2 entries are `Null` (no carats),
+##                                       the days that pay an SSR welfare copy instead
+##                                       (out of currency model → None per the int|None
+##                                       skip; positions guessed until an anni hits Global)
+##              p3 mid        150 ×15  — 4-phase majors only (sourced from 2.0's 第3弾);
+##                                       halves' p3 is "late" = mission carats only, NO login
+##
+## PRESENT FOLDED IN: every main part also gets a 3,000-jewel mailbox present on the
+## anniversary day (= login day-0). The baked rewards shape carries ONE sequence per event
+## and both are FreeCarats on the same day, so the present is folded into login[0] in the DATA
+## here (300 daily + 3000 = 3300), not merged in code. That's why each main part's login total
+## is 6,000, day-0 = 3300 (2.0's Cygames-confirmed "up to 6000 jewels").
+
+anniversary-0_5:
+  jp:
+    start: 2021-08-24T12:00:00+09:00
   en:
     start: 2025-11-03T22:00:00+00:00 # Unity Cup
+mission-00100:                                   # p1 countdown 第1弾 (8d → 1200)
+  en: {name: "Half Anniversary Celebration Part 1", duration: P8D}
+  login: [150, 150, 150, 150, 150, 150, 150, 150]
+mission-00101:                                   # p2 main 第2弾
+  en: {name: "Half Anniversary Celebration Part 2", duration: P12D}
+  login: [3300, 300, Null, 300, 300, 300, 300, 300, Null, 300, 300, 300]   # day-0 = 300 + 3000 present
+# p3 (mission-00102) = late, mission carats only — no login
+
+anniversary-1_0:
   jp:
-    start: 2021-08-24T12:00:00+09:00 # Aoharu Hai - started on 2021-08-30, anni was earlier
-anchor-anni-1_0:
+    start: 2022-02-24T12:00:00+09:00
   en:
     start: 2026-03-12T22:00:00+00:00 # Trackblazer
-  jp:
-    start: 2022-02-24T12:00:00+09:00 # Make a New Track
 
-# 1.5th Anniversary
-anchor-anni-1_5:
-  jp:
-    start: 2022-08-24T12:00:00+09:00 # Grand Live
-during-anni-1_5: # Part 2
-  anchor: anchor-anni-1_5
-  name: 1.5th Anniversary Celebration Part 2
-  duration: P28D
-  rewards:
-    free_carats: 3000
-    sequence:
-      type: free_carats
-      sequence: [150,150,Null,150,150,150,150,150,Null,150,150,150]
-after-anni-1_5p2: # Part 3 starts 9/2
-  anchor: during-anni-1_5
-  name: 1.5th Anniversary Celebration Part 3
-  duration: P28D
+mission-00137:                                   # p1 countdown 第1弾
+  en: {name: "1st Anniversary Celebration Part 1", duration: P10D}
+  login: [150, 150, 150, 150, 150, 150, 150, 150, 150, 150]
+mission-00138:                                   # p2 main 第2弾
+  en: {name: "1st Anniversary Celebration Part 2", duration: P12D}
+  login: [3300, 300, Null, 300, 300, 300, 300, 300, Null, 300, 300, 300]   # day-0 = 300 + 3000 present
+mission-00139:                                   # p3 mid 第3弾
+  en: {name: "1st Anniversary Celebration Part 3", duration: P15D}
+  login: [150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150]
 
-anchor-anni-2_0:
+anniversary-1_5:
   jp:
-    start: 2023-02-24T12:00:00+09:00 # Grand Masters
-anchor-anni-2_5:
+    start: 2022-08-24T12:00:00+09:00
+mission-00217:                                   # p1 countdown 第1弾 (8d → 1200)
+  en: {name: "1.5th Anniversary Celebration Part 1", duration: P8D}
+  login: [150, 150, 150, 150, 150, 150, 150, 150]
+mission-00218:                                   # p2 main 第2弾
+  en: {name: "1.5th Anniversary Celebration Part 2", duration: P12D}
+  login: [3300, 300, Null, 300, 300, 300, 300, 300, Null, 300, 300, 300]   # day-0 = 300 + 3000 present
+# no 第3弾 — 1.5's "late" was permanent missions, no peg
+
+anniversary-2_0:
   jp:
-    start: 2023-08-24T12:00:00+09:00 # Project L'Arc
-anchor-anni-3_0:
+    start: 2023-02-24T12:00:00+09:00
+mission-00301:                                   # p1 countdown 第1弾
+  en: {name: "2nd Anniversary Celebration Part 1", duration: P10D}
+  login: [150, 150, 150, 150, 150, 150, 150, 150, 150, 150]
+mission-00302:                                   # p2 main 第2弾
+  en: {name: "2nd Anniversary Celebration Part 2", duration: P12D}
+  login: [3300, 300, Null, 300, 300, 300, 300, 300, Null, 300, 300, 300]   # day-0 = 300 + 3000 present (Cygames "6000 jewels" = 6000 login total)
+mission-00303:                                   # p3 mid 第3弾
+  en: {name: "2nd Anniversary Celebration Part 3", duration: P15D}
+  login: [150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150]
+
+anniversary-2_5:
   jp:
-    start: 2024-02-24T12:00:00+09:00 # U.A.F. Ready GO!
-anchor-anni-3_5:
+    start: 2023-08-24T12:00:00+09:00
+mission-00372:                                   # p1 countdown 第1弾
+  en: {name: "2.5th Anniversary Celebration Part 1", duration: P10D}
+  login: [150, 150, 150, 150, 150, 150, 150, 150, 150, 150]
+mission-00373:                                   # p2 main 第2弾
+  en: {name: "2.5th Anniversary Celebration Part 2", duration: P12D}
+  login: [3300, 300, Null, 300, 300, 300, 300, 300, Null, 300, 300, 300]   # day-0 = 300 + 3000 present
+# p3 (mission-00374) = late, mission carats only — no login
+
+anniversary-3_0:
+  jp:
+    start: 2024-02-24T12:00:00+09:00
+mission-00631:                                   # p1 countdown 第1弾
+  en: {name: "3rd Anniversary Celebration Part 1", duration: P10D}
+  login: [150, 150, 150, 150, 150, 150, 150, 150, 150, 150]
+mission-00632:                                   # p2 main 第2弾
+  en: {name: "3rd Anniversary Celebration Part 2", duration: P12D}
+  login: [3300, 300, Null, 300, 300, 300, 300, 300, Null, 300, 300, 300]   # day-0 = 300 + 3000 present
+mission-00633:                                   # p3 mid 第3弾
+  en: {name: "3rd Anniversary Celebration Part 3", duration: P15D}
+  login: [150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150]
+
+anniversary-3_5:
   jp:
     start: 2024-08-24T12:00:00+09:00
-anchor-anni-4_0:
+mission-00675:                                   # p1 countdown 第1弾
+  en: {name: "3.5th Anniversary Celebration Part 1", duration: P10D}
+  login: [150, 150, 150, 150, 150, 150, 150, 150, 150, 150]
+mission-00676:                                   # p2 main 第2弾
+  en: {name: "3.5th Anniversary Celebration Part 2", duration: P12D}
+  login: [3300, 300, Null, 300, 300, 300, 300, 300, Null, 300, 300, 300]   # day-0 = 300 + 3000 present
+# p3 (mission-00677) = late, mission carats only — no login
+
+anniversary-4_0:
   jp:
-    start: 2025-02-24T12:00:00+09:00 # The Twinkle Legends
-anchor-anni-4_5:
+    start: 2025-02-24T12:00:00+09:00
+mission-00808:                                   # p1 countdown 第1弾
+  en: {name: "4th Anniversary Celebration Part 1", duration: P10D}
+  login: [150, 150, 150, 150, 150, 150, 150, 150, 150, 150]
+mission-00809:                                   # p2 main 第2弾
+  en: {name: "4th Anniversary Celebration Part 2", duration: P12D}
+  login: [3300, 300, Null, 300, 300, 300, 300, 300, Null, 300, 300, 300]   # day-0 = 300 + 3000 present
+  # (livestream present ~650 deliberately IGNORED — irregular mailbox drop, not dependable income)
+mission-00810:                                   # p3 mid 第3弾
+  en: {name: "4th Anniversary Celebration Part 3", duration: P15D}
+  login: [150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150]
+
+anniversary-4_5:
   jp:
     start: 2025-08-24T12:00:00+09:00
-anchor-anni-5_0:
+mission-00864:                                   # p1 countdown 第1弾
+  en: {name: "4.5th Anniversary Celebration Part 1", duration: P10D}
+  login: [150, 150, 150, 150, 150, 150, 150, 150, 150, 150]
+mission-00865:                                   # p2 main 第2弾
+  en: {name: "4.5th Anniversary Celebration Part 2", duration: P12D}
+  login: [3300, 300, Null, 300, 300, 300, 300, 300, Null, 300, 300, 300]   # day-0 = 300 + 3000 present
+# p3 (mission-00866) = late, mission carats only — no login
+
+anniversary-5_0:
   jp:
-    start: 2026-02-24T12:00:00+09:00 # Beyond Dreams
+    start: 2026-02-24T12:00:00+09:00
+mission-01006:                                   # p1 countdown 第1弾
+  en: {name: "5th Anniversary Celebration Part 1", duration: P10D}
+  login: [150, 150, 150, 150, 150, 150, 150, 150, 150, 150]
+mission-01007:                                   # p2 main 第2弾
+  en: {name: "5th Anniversary Celebration Part 2", duration: P12D}
+  login: [3300, 300, Null, 300, 300, 300, 300, 300, Null, 300, 300, 300]   # day-0 = 300 + 3000 present
+  # (PakaLive 950 deliberately IGNORED — 800 is pinball-bug compensation, a one-off)
+mission-01008:                                   # p3 mid 第3弾
+  en: {name: "5th Anniversary Celebration Part 3", duration: P15D}
+  login: [150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150]

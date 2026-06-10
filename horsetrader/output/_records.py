@@ -242,6 +242,23 @@ class MissionRecord(EventRecord, tag="mission"):
 
 
 @eishin
+class AnniversaryRecord(EventRecord, tag="anniversary"):
+    # A scenario-shaped anniversary launch: the shared envelope plus a derived
+    # display `name` ("1st Anniversary", "Half Anniversary").
+    name: str | None
+
+
+@eishin
+class AnniversaryMissionRecord(EventRecord, tag="anniversarymission"):
+    # An anniversary celebration mission: a `Mission` that references its
+    # anniversary (`anniversary-N_M`) and carries its `part` (第N弾 wave —
+    # 1 = countdown, 2 = on the date, 3 = continuation).
+    name: str | None
+    anniversary: str
+    part: int
+
+
+@eishin
 class AnchorRecord(EventRecord, tag="anchor"):
     # Calendar point: nothing past the shared envelope (+ any curated rewards).
     pass
@@ -272,6 +289,8 @@ EventRecordUnion = (
     | LeagueOfHeroesRecord
     | LegendRaceRecord
     | MissionRecord
+    | AnniversaryRecord
+    | AnniversaryMissionRecord
     | AnchorRecord
     | AnchoredEventRecord
 )

@@ -150,11 +150,14 @@ remaining work, roughly one epic:
   channel already folds them unconditionally for every account. That baked value *is* the
   all-legends-first-clear case, so the would-be `legendRaces` slider (`none/one/allPartial/allFull`)
   could only ever *down-grade* a low-engagement account, and `allFull`'s repeat-entry rewards aren't
-  in the bake at all. We chose **not** to wire it *and* to delete the dangling setting outright,
-  rather than keep it as identity flavour: reshaping a baked ground-truth reward by play-style would
-  set a precedent we don't want (it differs from `champions-meeting`, which *adds* to a reward-less
-  event rather than carving down a baked one), the engagement effort is low, and anyone planning years
-  ahead is the engaged player who collects the full reward regardless. So `legendRaces` is gone from
+  in the bake at all. The **decisive** reason for cutting was a **decision-value** one, not a
+  flavour purge: legend races are low-effort, high-reward, with no daily-login requirement (~2 min),
+  so effectively *every* user in our (self-selecting, engaged) planning audience collects the full
+  reward — the choice has near-zero variance across the people who'd actually use the tool, so a
+  slider isn't worth the wiring. (It's also baked-correctly and could-only-down-grade, and reshaping
+  a baked reward is a precedent we avoid — but the audience-variance judgment is what settled it.)
+  This does **not** mean flavour-only sliders are banned; it's a per-slider judgment about whether
+  the answer meaningfully differs across our users. So `legendRaces` is gone from
   `PlayStyleSettings`/presets/strings/the play-style surface; the baked sequence stands as the
   universal legend-race income. (`LegendRaceRecord` in the events bundle is unrelated — that's the
   event shape, untouched.)
@@ -167,13 +170,38 @@ remaining work, roughly one epic:
   `story` events all carry full rewards: carats + tickets + crystal shards). A flat full-value stamp
   on a graded stream is the *wrong information for our purpose* — the same class of decision as
   PvP/CM carrying **no** rewards *by design* (#19) precisely because the payout depends on engagement.
-  So the disposition is: **do not cut the slider, do not reshape on the frontend** (that would split
-  source-of-truth, the very precedent `legendRaces` established). The fix belongs in the **bake/ETL**:
-  stop over-stamping the engagement-dependent reward — strip it like CM/PvP so a frontend income
-  channel can synthesise by engagement (the champions-meeting/team-trials pattern), or carry the
-  gradation. Until then the `missions`/`specialMissions`/`storyEvents` sliders **stay on the Play
-  Style surface, unwired** — pending state, not unwired-by-design. (A backend session's work; don't
-  touch the bake from a frontend session.)
+  So the disposition is: **do not reshape on the frontend** (that would split source-of-truth, the
+  very precedent `legendRaces` established). The fix belongs in the **bake/ETL**: stop over-stamping
+  the engagement-dependent reward — strip it like CM/PvP so a frontend income channel can synthesise
+  by engagement (the champions-meeting/team-trials pattern), or carry the gradation.
+
+  **The mission model (2026-06-10, settled). The `none/some/most/all` = 0/20/70/100% slider shape is
+  *wrong* — completion is not a linear percentage.** Two axes, in order:
+
+  **Axis 1 — the PRIMARY bake job: split `special` missions OUT of normal `mission` entirely.** They
+  are conflated today (the 194 flat `mission` records; there is no `specialmission` event type, yet a
+  `specialMissions` slider already exists with no backing data). They are a different beast: normal
+  missions cap at **≈150 carats total (~one pull, `carats_per_pull`)** — low-grade chore-routing —
+  while **special missions** are the big anniversary/release campaign sets (gems, tickets, **selectors**,
+  weeks long) worth real planning. Once carved out, `specialMissions` likely **genuinely earns its
+  slider** (real variance — frontload hard vs skip a campaign — and the reward is big enough to matter);
+  it is *not* "same shape as `missions`."
+
+  **Axis 2 — within NORMAL missions, two populations:** (1) **incidental/baseline** you complete just
+  by playing — for our engaged audience effectively *universal* (legends decision-value logic from the
+  *everybody* end), so → **ground-truth income, no slider** (arguably gated on `weeklyPlay`); the part
+  we can do now once separable. (2) **grindy/off-path** ("win Spring G1 Tenno Shō," 10 careers,
+    dirt/sprint builds) — ≈150 carats, but *carats are carats*. The `missions` control is a simple
+  **yes/no slider: do you do these?** Not a percentage. Default ON for Dedicated/Unhinged (they do
+  them anyway).
+
+  **Bake ask (net):** (a) split `special` out of normal `mission`; (b) within normal, separate the
+  baseline reward from the grindy reward, so baseline folds as universal ground truth and the grindy
+  portion is what the binary toggle gates. This is the exception in
+  [[feedback_no_reshaping_baked_rewards]] (baked *wrong info* → a bake fix, never a frontend reshape).
+  `storyEvents` wants its own audit. Until the bake lands, the `missions`/`specialMissions`/`storyEvents`
+  sliders **stay on the Play Style surface as-is** — pending state, not unwired-by-design. (Backend
+  session's work; don't touch the bake from a frontend session.)
   **What's still unbuilt is the rest of the income:** (a) ~~load config~~ done; (b) wire each
   engagement slider's commit to `config`; (c) the remaining *graded* sources by rank
   (`league-of-heroes`, `masters`, `strongest-team`) — the PvP ones are events → enrich like

@@ -6,6 +6,7 @@ import { createBundle } from "../bundle/access.ts";
 import { TEST_CONFIG } from "../bundle/fixtures.ts";
 import { createAxis } from "../axis.ts";
 import { eventStream } from "../../core/projection/streams/events.ts";
+import { sequenceStream, sequencesFromBundle } from "../../core/projection/streams/sequence.ts";
 import { project } from "../../core/projection/index.ts";
 import type { EventsBundle } from "../../core/bundle/events.gen.ts";
 import type { Academy } from "../../core/bundle/academy.gen.ts";
@@ -90,4 +91,35 @@ test("x is true-to-date off the axis (arrival date = start) and reward is the ev
   // The card carries its own reward, not the day's subtotal.
   assert.deepEqual(byKey.get("cm-1")!.reward, { free_carats: 1000 });
   assert.deepEqual(byKey.get("anchor-1")!.reward, { free_carats: 50 });
+});
+
+test("an anniversary mission's card combines its flat payout and its baked daily sequence", () => {
+  // The flat reward posts on `end` via the events stream; the per-day sequence
+  // (anchored at `start`) posts via the sequence stream. Both key off the event,
+  // so the card shows their sum.
+  const events: EventsBundle = {
+    events: [
+      {
+        type: "anniversarymission",
+        name: "1st Anniversary Missions Part 1",
+        anniversary: "anniversary-1_0",
+        part: 1,
+        start: "2026-07-01",
+        end: "2026-07-10",
+        predicted: false,
+        key: "anni-mission-1",
+        rewards: { trainee_tickets: 3, free_carats: 500, sequence: { type: "free_carats", sequence: [150, 150] } },
+      } as EventsBundle["events"][number],
+    ],
+  };
+  const after = cal("2026-01-01");
+  const projection = project({ resources: {} }, [
+    { stream: "events", emissions: eventStream(events, after) },
+    { stream: "sequence", emissions: sequenceStream(sequencesFromBundle(events), after) },
+  ]);
+  const cards = belowLaneCards(projection, createBundle(events, EMPTY_ACADEMY, TEST_CONFIG), createAxis({ origin: cal("2026-06-01"), pxPerDay: 10 }), NOW);
+
+  assert.deepEqual(cards.map((c) => c.kind), ["anniversarymission"]);
+  // free_carats: 500 (flat) + 150 + 150 (sequence); trainee_tickets: 3 (flat).
+  assert.deepEqual(cards[0]!.reward, { trainee_tickets: 3, free_carats: 800 });
 });

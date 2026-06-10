@@ -19,7 +19,6 @@ logger = Logger.get(__name__)
 _KIND_BY_PREFIX = {
     "new-year-": "new-year",
     "golden-week-": "golden-week",
-    "anni-": "anniversary",
 }
 
 
@@ -28,14 +27,15 @@ _KIND_BY_PREFIX = {
 class Anchor(Event):
     """A span-0 calendar launch that anchored events hang their spans off.
 
-    New Year, Golden Week and anniversary launches were once distinct `Event`
-    subclasses, but once their lead-ins / extensions moved to `AnchoredEvent`s
-    (and Golden Week's themed name with them), nothing distinguished them at the
-    model level: each is just a dated point carrying at most a curated login
-    bonus. They collapse into this one type. The *kind* still matters to the EN
-    predictors (New Year, Golden Week and anniversaries each predict on their
-    own cadence), so it is carried by the stable key (`anchor-<kind>-…`) and
-    read back via `kind` rather than the runtime class.
+    New Year and Golden Week launches were once distinct `Event` subclasses, but
+    once their lead-ins / extensions moved to `AnchoredEvent`s (and Golden Week's
+    themed name with them), nothing distinguished them at the model level: each
+    is just a dated point carrying at most a curated login bonus. They collapse
+    into this one type. The *kind* still matters to the EN predictors (New Year
+    and Golden Week each predict on their own cadence), so it is carried by the
+    stable key (`anchor-<kind>-…`) and read back via `kind` rather than the
+    runtime class. (Anniversaries were once a third kind here; they are now their
+    own scenario-shaped `Anniversary` type, not an anchor.)
     """
 
     def __post_init__(self) -> None:
@@ -49,8 +49,8 @@ class Anchor(Event):
         """The launch flavour, parsed from the `anchor-…` key prefix.
 
         `anchor-new-year-2024` → "new-year", `anchor-golden-week-2024` →
-        "golden-week", `anchor-anni-3_0` → "anniversary". Predictors filter on
-        this where they once filtered on the concrete subclass.
+        "golden-week". Predictors filter on this where they once filtered on the
+        concrete subclass.
         """
         body = self.key.removeprefix("anchor-")
         for prefix, kind in _KIND_BY_PREFIX.items():
@@ -67,18 +67,18 @@ class Anchor(Event):
     def bake(self, period: Period) -> AnchorRecord:
         # Anchors are calendar points: no contents/art, just a date and any
         # curated rewards (the login-bonus generator), all of which the base
-        # envelope already carries. All flavours (new year / golden week /
-        # anniversary) collapse to one `type: "anchor"` — the client splits
-        # them by key prefix, the same way `kind` does here.
+        # envelope already carries. Both flavours (new year / golden week)
+        # collapse to one `type: "anchor"` — the client splits them by key
+        # prefix, the same way `kind` does here.
         return AnchorRecord(**self._envelope(period))
 
 
 @daitaku
 class Anchors(Events[Anchor], metaclass=SingletonMeta):
-    """Every base anchor — holidays (New Year / Golden Week) and anniversaries —
-    in one collection. They share a shape (a dated point + optional rewards) and
-    a role (a launch other events pin to), so they load side by side from their
-    two curated sources."""
+    """Every base anchor — the holidays (New Year / Golden Week). They share a
+    shape (a dated point + optional rewards) and a role (a launch other events
+    pin to). (Anniversaries used to load here too; they are now their own
+    `Anniversary` collection.)"""
 
     def search(self, query) -> list[Anchor]:
         return super().search(query)
@@ -88,10 +88,7 @@ class Anchors(Events[Anchor], metaclass=SingletonMeta):
             logger.warning("Anchor %s has no periods", item.key)
 
     def _fetch_primary(self) -> list[Anchor]:
-        anchors: list[Anchor] = []
-        anchors.extend(self._load(Static().holidays()))
-        anchors.extend(self._load(Static().anniversaries()))
-        return anchors
+        return self._load(Static().holidays())
 
     @staticmethod
     def _load(records: list[dict]) -> list[Anchor]:

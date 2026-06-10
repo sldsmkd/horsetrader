@@ -1,3 +1,4 @@
+import functools
 from dataclasses import dataclass
 
 from horsetrader.core import Japlish, Period, Periods, SingletonMeta, StableKey
@@ -9,10 +10,69 @@ from horsetrader.models.rewards import Rewards, reward_for_gametora_icon
 from horsetrader.output._records import MissionRecord
 from horsetrader.semantics import daitaku
 
+from .anniversary import classify_anniversary_mission
 from .event import Event
 from .events import Events
 
 logger = Logger.get(__name__)
+
+
+def _resolve_rewards(reward_items: list[tuple[str, int]], key: str) -> Rewards | None:
+    # One Reward per scraped row; the bake mapper sums same-keyed entries.
+    # Allowlist by design: scraped icons without a typed `Reward` subclass
+    # (manie, friend points, …) drop at debug — same stance as story events.
+    rewards = Rewards()
+    for icon_id, amount in reward_items:
+        cls = reward_for_gametora_icon(icon_id)
+        if cls is None:
+            logger.debug("Unmapped reward icon %s in %s (x%d)", icon_id, key, amount)
+            continue
+        rewards.append(cls(amount=amount))
+    return rewards or None
+
+
+@functools.cache
+def scraped_missions() -> list[dict]:
+    """The shared scraped mission substrate — one built record per Gametora
+    mission (JP + EN overlay, resolved rewards, curated flags).
+
+    Both `Missions` and `AnniversaryMissions` partition this by
+    `classify_anniversary_mission`; neither owns the other's records, and the
+    heavy per-record build (the EN join + reward resolution) happens once.
+    """
+    en_by_key = {r["key"]: r for r in Gametora().missions_en()}
+
+    built: list[dict] = []
+    for record in Gametora().missions():
+        key = record["key"]
+        en = en_by_key.get(key)
+
+        title = Japlish(record["title"], encoding="jp")
+        if en is not None:
+            try:
+                title.en = en["title"]
+            except ValueError as exc:
+                logger.warning("Bad EN title for %s: %s", key, exc)
+
+        periods = Periods([record["period"]])
+        references = References(record.get("references", []))
+        if en is not None:
+            periods.append(en["period"])
+            references.add(en.get("references", []))
+
+        flags = Static().event_flags(str(key))
+        if flags:
+            references.add(store.source())
+
+        built.append({
+            "key": StableKey(key),
+            "title": title,
+            "periods": periods,
+            "references": references,
+            "rewards": _resolve_rewards(record.get("reward_items", []), key),
+            "flags": flags,
+        })
+    return built
 
 
 @daitaku
@@ -55,52 +115,21 @@ class Missions(Events[Mission], metaclass=SingletonMeta):
             logger.warning("Mission %s has no period", item.key)
 
     def _fetch_primary(self) -> list[Mission]:
-        en_by_key = {r["key"]: r for r in Gametora().missions_en()}
-
+        # The chore-mission catalogue: every scraped mission whose title is NOT
+        # an anniversary celebration mission (those are AnniversaryMissions' —
+        # the partition is the shared `classify_anniversary_mission`).
         missions: list[Mission] = []
-        for record in Gametora().missions():
-            key = record["key"]
-            en = en_by_key.get(key)
-
-            title = Japlish(record["title"], encoding="jp")
-            if en is not None:
-                try:
-                    title.en = en["title"]
-                except ValueError as exc:
-                    logger.warning("Bad EN title for %s: %s", key, exc)
-
-            periods = Periods([record["period"]])
-            references = References(record.get("references", []))
-            if en is not None:
-                periods.append(en["period"])
-                references.add(en.get("references", []))
-
+        for r in scraped_missions():
+            if classify_anniversary_mission(r["title"].jp) is not None:
+                continue
             mission = Mission(
-                key=StableKey(key),
-                periods=periods,
-                title=title,
-                rewards=self._resolve_rewards(record.get("reward_items", []), key),
-                references=references,
+                key=r["key"],
+                periods=r["periods"],
+                title=r["title"],
+                rewards=r["rewards"],
+                references=r["references"],
             )
-            flags = Static().event_flags(str(mission.key))
-            if flags:
-                mission.apply_flags(flags)
-                mission.references.add(store.source())
+            if r["flags"]:
+                mission.apply_flags(r["flags"])
             missions.append(mission)
         return missions
-
-    @staticmethod
-    def _resolve_rewards(
-        reward_items: list[tuple[str, int]], key: str
-    ) -> Rewards | None:
-        # One Reward per scraped row; the bake mapper sums same-keyed entries.
-        # Allowlist by design: scraped icons without a typed `Reward` subclass
-        # (manie, friend points, …) drop at debug — same stance as story events.
-        rewards = Rewards()
-        for icon_id, amount in reward_items:
-            cls = reward_for_gametora_icon(icon_id)
-            if cls is None:
-                logger.debug("Unmapped reward icon %s in %s (x%d)", icon_id, key, amount)
-                continue
-            rewards.append(cls(amount=amount))
-        return rewards or None

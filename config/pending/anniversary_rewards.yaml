@@ -1,0 +1,213 @@
+## Anniversary celebration reward streams — CAPTURED, not yet wired.
+##
+## NUMBER AUTHORITY: the official Cygames campaign announcements (umamusume.jp
+## news). The GameWith wiki UNDERCOUNTS — it folds the separate mailbox present
+## into the login bonus — and login_bonus.yaml's bottom QA list inherited that
+## error. Cygames > wiki. Gemini's research had the numbers RIGHT (it just got
+## tangled in the major/minor phase divergence); use it as the structural backbone
+## and the numbers, pending per-anniversary Cygames confirmation.
+##
+## STATUS: staging (config/pending/ — not loaded). Awaiting the remaining Cygames
+## announcements (user is pasting on reset). 2.0 is Cygames-CONFIRMED below;
+## others carry `verify: cygames`.
+##
+## THE TWO P2 CARAT SOURCES ARE SEPARATE AND ADDITIVE (the correction):
+## - `present`: a standalone 3,000-jewel mailbox gift ([Present] on home, ~30-day
+##   claim). Authoritative for 2.0: "a gift of up to 6000 jewels" = present 3,000
+##   + login 3,000.
+## - `login`: the commemorative login BONUS — 300/day, up to 3,000 over ≤10 days
+##   (P2); countdown 1,500/1,200 (P1); mid 2,250 (P3, major). Separate from the
+##   present.
+## So a major P2 contributes ~6,000 (3,000 + 3,000), NOT 3,000.
+##
+## - This layer is the login + present streams. Mission carats (~500/part) are
+##   already on the scraped AnniversaryMissions — do NOT re-add them here.
+## - Free pulls are banner-owned (banners.yaml `pulls: N`, HH.5.16); `# free pulls`
+##   notes only. Major-anni P4 is a pure banner-pull window.
+## - `premium:` = out of model scope (2+3 SSR promo card → 5 copies = full 4凸,
+##   SSR selector ticket, livestream materials).
+## Dates JP, date-only; phase N = 第N弾 part N (windows scrape-corroborated).
+
+anniversary-0_5:        # Half Anniversary — Aug 2021
+  phase_count: 3
+  p1: {role: countdown, window: {start: 2021-08-16, end: 2021-08-24}, login: 1200}
+  p2:
+    role: main
+    window: {start: 2021-08-24, end: 2021-09-30}
+    login: 3000
+    premium: {ssr: "Silence Suzuka (Stamina)", ssr_copies_via_login: 2}
+  p3:
+    role: late
+    window: {start: 2021-08-30, end: 2021-09-30}
+    premium: {ssr_copies_via_missions: 3, ticket: "Half Anniversary SSR Exchange Ticket"}
+
+anniversary-1_0:        # 1st Anniversary — Feb 2022 (gamewith show/314978)
+  phase_count: 4
+  p1:
+    role: countdown
+    window: {start: 2022-02-14, end: 2022-02-24}
+    login: 1500
+    # free pulls (daily single, support) — banner-owned
+  p2:
+    role: main
+    window: {start: 2022-02-24, end: 2022-03-30}
+    login: 3000
+    premium: {ssr: "Satono Diamond (Stamina)", ssr_copies_via_login: 2}
+  p3:
+    role: mid
+    window: {start: 2022-03-07, end: 2022-03-30}
+    login: 2250
+    premium: {ssr_copies_via_missions: 3, ticket: "SSR Exchange Ticket (via P3 missions)"}
+  p4:
+    role: late
+    window: {start: 2022-03-18, end: 2022-03-29}
+    # free pulls (daily single, max 12, support) — banner-owned
+
+anniversary-1_5:        # 1.5th Anniversary — Aug 2022 (gamewith show/353545)
+  phase_count: 3
+  p1:
+    role: countdown
+    window: {start: 2022-08-16, end: 2022-08-24}
+    login: 1200
+    # free pulls (daily single) — banner-owned
+  p2:
+    role: main
+    window: {start: 2022-08-24, end: 2022-09-30}
+    login: 3000
+    premium: {ssr: "Mihono Bourbon (Speed)", ssr_copies_via_login: 2}
+  p3:
+    role: late
+    window: {start: 2022-09-02, end: 2022-09-30}
+    premium: {ssr_copies_via_missions: 3, ticket: "1.5th Anniversary SSR Exchange Ticket (via permanent missions, NOT a 第3弾)"}
+
+anniversary-2_0:        # 2nd Anniversary — Feb 2023 (gamewith show/385484)
+  phase_count: 4
+  p1:
+    role: countdown
+    window: {start: 2023-02-14, end: 2023-02-24}
+    login: 1500
+    # free pulls (daily single, character+support) — banner-owned
+  p2:
+    role: main
+    source: cygames                                      # CONFIRMED: umamusume.jp "2nd Anniversary Campaign Vol.2"
+    window: {start: 2023-02-24, end: 2023-03-30}
+    login: 3000                                          # login bonus: 300/day, up to 3000 over ≤10 days
+    present: 3000                                         # standalone mailbox gift → "up to 6000 jewels" total
+    premium: {ssr: "Symboli Kris S (Guts)", ssr_copies_via_login: 2, ssr_copies_via_missions: 3, ssr_total: 5}
+  p3:
+    role: mid
+    window: {start: 2023-03-10, end: 2023-03-30}
+    login: 2250
+    premium: {ssr_copies_via_missions: 3, ticket: "SSR Support Card Exchange Ticket (via P3 missions)"}
+  p4:
+    role: late
+    window: {start: 2023-03-20, end: 2023-03-29}
+    # free pulls (daily 10-pull, up to 120, support) — banner-owned
+
+anniversary-2_5:        # 2.5th Anniversary — Aug 2023 (gamewith show/411415)
+  phase_count: 3
+  p1: {role: countdown, window: {start: 2023-08-14, end: 2023-08-24}, login: 1500}
+  p2:
+    role: main
+    window: {start: 2023-08-24, end: 2023-09-30}
+    login: 3000
+    premium: {ssr: "[Precious Moments] Admire Vega (Stamina)", ssr_copies_via_login: 2}
+  p3:
+    role: late                                           # P3 = mission carats only (no login)
+    window: {start: 2023-09-04, end: 2023-09-30}
+    premium: {ssr_copies_via_missions: 3, ticket: "2.5th Anniversary SSR Exchange Ticket (via P3 missions)"}
+
+anniversary-3_0:        # 3rd Anniversary — Feb 2024
+  phase_count: 4
+  p1:
+    role: countdown
+    window: {start: 2024-02-14, end: 2024-02-24}
+    login: 1500
+    # free pulls (daily single) — banner-owned
+  p2:
+    role: main
+    window: {start: 2024-02-24, end: 2024-03-30}
+    login: 3000
+    premium: {ssr: "Gentildonna (Speed)", ssr_copies_via_login: 2}
+  p3:
+    role: mid
+    window: {start: 2024-03-12, end: 2024-03-30}
+    login: 2250
+    premium: {ssr_copies_via_missions: 3, ticket: "3rd Anniversary SSR Exchange Ticket (via P3 missions)"}
+  p4:
+    role: late
+    window: {start: 2024-03-21, end: 2024-03-29}
+    # free pulls (daily single, max 9, support) — banner-owned
+    premium: {scenario_linked_ssr: "via Main Story Part 2 Ch.1"}
+
+anniversary-3_5:        # 3.5th Anniversary — Aug 2024 (gamewith show/459658)
+  phase_count: 3
+  p1:
+    role: countdown
+    window: {start: 2024-08-14, end: 2024-08-24}
+    login: 1500
+    # free pulls (daily single, support) — banner-owned
+  p2:
+    role: main                                           # P2 feature = Zenkokukougyou (permanent), NOT a new scenario
+    window: {start: 2024-08-24, end: 2024-10-01}
+    login: 3000
+    premium: {ssr: "Buena Vista", ssr_copies_via_login: 2}
+  p3:
+    role: late
+    window: {start: 2024-09-10, end: 2024-10-01}
+    premium: {ssr_copies_via_missions: 3, ticket: "3.5th Anniversary SSR Exchange Ticket (via P3 missions)"}
+
+anniversary-4_0:        # 4th Anniversary — Feb 2025 (gamewith show/485098)
+  phase_count: 4
+  p1:
+    role: countdown
+    window: {start: 2025-02-14, end: 2025-02-24}
+    login: 1500
+    # free pulls (daily single) — banner-owned
+  p2:
+    role: main
+    window: {start: 2025-02-24, end: 2025-04-01}
+    login: 3000
+    livestream: {free_carats: 650, premium: "300k Mani, 50k Support Pt, 10 Kirameki", verify: true}
+    premium: {ssr: "Gran Alegria (Power)", ssr_copies_via_login: 2}
+  p3:
+    role: mid
+    window: {start: 2025-03-11, end: 2025-04-01}
+    login: 2250
+    premium: {ssr_copies_via_missions: 3, ticket: "4th Anniversary SSR Exchange Ticket (via P3 missions)"}
+  p4:
+    role: late
+    window: {start: 2025-03-21, end: 2025-03-31}
+    # free pulls (daily single, max 11, support) — banner-owned
+
+anniversary-4_5:        # 4.5th Anniversary — Aug 2025 (gamewith show/513813)
+  phase_count: 3
+  p1: {role: countdown, window: {start: 2025-08-14, end: 2025-08-24}, login: 1500}
+  p2:
+    role: main                                           # P2 feature = Uma Sampo (permanent), NOT a new scenario
+    window: {start: 2025-08-24, end: 2025-09-30}
+    login: 3000
+    premium: {ssr: "Chrono Genesis", ssr_copies_via_login: 2}
+  p3:
+    role: late
+    window: {start: 2025-09-09, end: 2025-09-30}
+    premium: {ssr_copies_via_missions: 3, ticket: "4.5th Anniversary SSR Exchange Ticket (via P3 missions)"}
+
+anniversary-5_0:        # 5th Anniversary — Feb 2026 (gamewith show/545130), major consolidated to 3 phases
+  phase_count: 3
+  p1:
+    role: countdown
+    window: {start: 2026-02-14, end: 2026-02-24}
+    login: 1500
+    # free pulls (daily single, character+support) — banner-owned
+  p2:
+    role: main
+    window: {start: 2026-02-24, end: 2026-03-31}
+    login: 3000
+    livestream: {free_carats: 950, note: "PakaLive Vol.62: 800 pinball compensation + 150", verify: true}
+    premium: {ssr: "Victoire Pisa (Speed)", ssr_copies_via_login: 2}
+  p3:
+    role: mid                                            # consolidated mid+late
+    window: {start: 2026-03-11, end: 2026-03-31}
+    login: 2250
+    premium: {ssr_copies_via_missions: 3, ticket: "5th Anniversary SSR Exchange Ticket (via P3 missions)"}

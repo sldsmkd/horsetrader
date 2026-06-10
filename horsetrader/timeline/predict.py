@@ -4,15 +4,16 @@ from horsetrader.semantics import matikanefukukitaru
 
 from .predictors import (
     AnchorPredictor,
+    AnniversaryMissionPredictor,
     AnniversaryPredictor,
     BannerPredictor,
     ChampionsMeetingPredictor,
     FallthroughPredictor,
     HolidayPredictor,
     LegendRacePredictor,
-    MissionPredictor,
     ScenarioPredictor,
     StoryPredictor,
+    shape_anniversary_mission_windows,
 )
 from .timeline import Timeline
 
@@ -39,6 +40,10 @@ class Predict:
     def predict(self, timeline: Timeline) -> Timeline:
         for predictor in (
             AnniversaryPredictor(timeline),
+            # Celebration missions ARE part of the anniversary — pinned to it by
+            # key — so they place immediately behind it (it must land first; Mati
+            # keys off its EN date), ahead of the general cadence fills.
+            AnniversaryMissionPredictor(timeline),
             HolidayPredictor(timeline),
             ScenarioPredictor(timeline),
             StoryPredictor(timeline),
@@ -64,9 +69,6 @@ class Predict:
             # Anchored campaigns derive their UTC from the anchor dates the
             # predictors above have just stamped (and chain off one another).
             AnchorPredictor(timeline),
-            # Anniversary missions anchor to the anniversary beat (placed above);
-            # the rest of the catalogue is left for the fallthrough by design.
-            MissionPredictor(timeline),
         ):
             key = type(predictor).__name__.lower().removesuffix("predictor")
             self._stats[key] = predictor.predict(timeline)
@@ -81,6 +83,13 @@ class Predict:
         fallthrough.predict(timeline)
         self._stats["fallthrough"] = fallthrough.surprises
         self._stats["uncategorised"] = fallthrough.uncategorised
+
+        # Not a placement: reshape the anniversary missions' EN spans to their
+        # curated login-bonus window (`en.duration`), over both predicted and
+        # confirmed periods. Runs last so every EN period it touches already exists.
+        self._stats["anniversarymissionwindow"] = shape_anniversary_mission_windows(
+            timeline
+        )
 
         utc = Timeline(
             timezone.utc,

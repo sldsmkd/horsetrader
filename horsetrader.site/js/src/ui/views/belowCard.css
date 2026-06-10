@@ -26,6 +26,8 @@
 .card--scenario .card__body { border-left-color: #27ae60; }
 .card--anchor .card__body { border-left-color: #8e44ad; }
 .card--anchoredevent .card__body { border-left-color: #d35400; }
+.card--anniversary .card__body { border-left-color: #d4af37; }
+.card--anniversarymission .card__body { border-left-color: #c9a227; }
 
 .card__label {
   padding: 0.4rem 0.5rem 0.35rem;

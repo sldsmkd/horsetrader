@@ -8,17 +8,21 @@ from . import store
 
 logger = Logger.get(__name__)
 
-_KEY_PATTERN = re.compile(r"^anchor-anni-\d+_\d+$")
+_KEY_PATTERN = re.compile(r"^anniversary-\d+_\d+$")
 
 
 @functools.cache
 def load() -> list[dict]:
-    """Anniversary anchors from the merged store (JP + EN).
+    """Anniversary launches from the merged store (JP + EN ground truth).
 
     Each record has ``key``, ``period`` (JP launch, 12:00 JST), ``source``,
     and an ``en`` key (``dict | None``) carrying the EN ``period`` (22:00 UTC)
     and ``source`` — present only once an anniversary has reached Global.
-    Selected by the ``anchor-anni-N_M`` key shape, corpus-wide.
+    Selected by the ``anniversary-N_M`` key shape, corpus-wide.
+
+    Dates only: the curated record carries no rewards. An anniversary is a
+    scenario-shaped launch; its reward haul / celebration campaign is a
+    separate layer, not loaded here.
     """
     source = store.source()
     records: list[dict] = []
