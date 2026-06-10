@@ -24,12 +24,12 @@ const banner = (over: Partial<CommittedBanner>): CommittedBanner => ({
   ...over,
 });
 
-test("a committed banner emits a negative debit at its end and exposes its available", () => {
+test("a committed banner emits a negative debit at its start (the claim) and exposes its available", () => {
   const a = banner({ key: "a", pity: 1 }); // 200 pulls, 300 tickets cover them
   const { emissions, available } = spendStream([a], flatIncome({ free_carats: 100000, support_tickets: 300 }), GACHA, AFTER);
 
   assert.equal(emissions.length, 1);
-  assert.equal(emissions[0].date, "2026-07-13");
+  assert.equal(emissions[0].date, "2026-07-01"); // debits at start, not end (2026-07-13)
   assert.equal(emissions[0].source, "a");
   assert.equal(emissions[0].deltas.support_tickets, -200); // 200 pulls off tickets
   assert.equal(available.get("a")?.support_tickets, 300); // its own spend NOT subtracted
@@ -44,11 +44,11 @@ test("self-exclusion: a banner's available never nets out its own spend", () => 
 
 test("ticket-stealing: a later banner attributes against what the earlier one left", () => {
   // Both support, 1 pity (200 pulls). Income 300 tickets, lots of free carats.
-  const a = banner({ key: "a", end: cal("2026-07-13"), pity: 1 });
-  const b = banner({ key: "b", end: cal("2026-08-13"), pity: 1 });
+  const a = banner({ key: "a", start: cal("2026-07-01"), end: cal("2026-07-13"), pity: 1 });
+  const b = banner({ key: "b", start: cal("2026-08-01"), end: cal("2026-08-13"), pity: 1 });
   const { emissions, available } = spendStream([b, a], flatIncome({ free_carats: 100000, support_tickets: 300 }), GACHA, AFTER);
 
-  // Resolved a (earlier end) then b. a takes 200 tickets; b sees only 100 left and falls
+  // Resolved a (earlier start) then b. a takes 200 tickets; b sees only 100 left and falls
   // back to free carats for the other 100 pulls (100 × 150 = 15,000).
   assert.equal(available.get("a")?.support_tickets, 300);
   assert.equal(available.get("b")?.support_tickets, 100);
@@ -57,19 +57,20 @@ test("ticket-stealing: a later banner attributes against what the earlier one le
   assert.equal(bEmit.deltas.free_carats, -15000);
 });
 
-test("same end date resolves by banner id (deterministic tie-break)", () => {
-  // Two banners ending the same day; "a" < "z", so a resolves first and drains tickets.
-  const z = banner({ key: "z", end: cal("2026-07-13"), pity: 1 });
-  const a = banner({ key: "a", end: cal("2026-07-13"), pity: 1 });
+test("same start date resolves by banner id (deterministic tie-break)", () => {
+  // Two banners opening the same day; "a" < "z", so a resolves first and drains tickets.
+  const z = banner({ key: "z", start: cal("2026-07-01"), pity: 1 });
+  const a = banner({ key: "a", start: cal("2026-07-01"), pity: 1 });
   const { available } = spendStream([z, a], flatIncome({ support_tickets: 300, free_carats: 100000 }), GACHA, AFTER);
   assert.equal(available.get("a")?.support_tickets, 300); // first
   assert.equal(available.get("z")?.support_tickets, 100); // sees a's 200 already gone
 });
 
-test("only committed, still-future banners are resolved", () => {
-  const past = banner({ key: "past", end: cal("2026-05-01"), pity: 5 }); // ends before AFTER
-  const zero = banner({ key: "zero", end: cal("2026-09-01"), pity: 0 }); // not committed
-  const live = banner({ key: "live", end: cal("2026-09-13"), pity: 1 });
+test("only committed banners whose claim is still future are resolved", () => {
+  // `past` already opened (start before AFTER) — its real spend is in the snapshot.
+  const past = banner({ key: "past", start: cal("2026-04-01"), end: cal("2026-05-01"), pity: 5 });
+  const zero = banner({ key: "zero", start: cal("2026-09-01"), pity: 0 }); // not committed
+  const live = banner({ key: "live", start: cal("2026-09-01"), end: cal("2026-09-13"), pity: 1 });
   const { emissions, available } = spendStream([past, zero, live], flatIncome({ support_tickets: 500 }), GACHA, AFTER);
   assert.deepEqual(
     emissions.map((e) => e.source),

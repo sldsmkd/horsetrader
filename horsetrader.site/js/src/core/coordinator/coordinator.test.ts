@@ -33,20 +33,26 @@ test("folds all channels from the snapshot forward into a queryable balance", ()
   assert.deepEqual(coord.balanceAt(FAR), { free_carats: 1000 + 100 + 150 + 20 });
 });
 
-test("a committed banner's spend folds at its calendar end date, not the raw instant", () => {
-  // Regression: the bake stores full instants; the spend pass must bucket them to a
-  // calendar date like the income streams, or the emission lands in a date-space nothing
-  // reads — the spend silently never applies, and the available reads the far-future tail.
+test("a committed banner's spend (the claim) folds at its calendar start date, not the raw instant", () => {
+  // Two regressions in one: (1) the claim debits at the banner's *start* — committing
+  // earmarks resources as it opens, visible mid-run before the banner closes; (2) the bake
+  // stores full instants, so the spend pass must bucket them to a calendar date like the
+  // income streams, or the emission lands in a date-space nothing reads (silently dropped).
   const banners: EventsBundle = {
     events: [{ type: "support", contents: [], image: "", start: "2026-06-08T22:00:00+00:00", end: "2026-06-20T22:00:00+00:00", predicted: false, rushable: false, key: "sb" }],
   };
   const coord = createCoordinator({ bundle: banners, now: cal("2026-06-01"), store: memoryStore() });
   coord.update({ snapshot: { date: "2026-06-01", recordedAt: "2026-06-01T00:00:00.000Z", resources: { free_carats: 100000, support_tickets: 50 } } });
-  const END = cal("2026-06-20"); // the calendar bucket of the 22:00 UTC instant
+  const START = cal("2026-06-08"); // calendar bucket of the start instant
+  const BEFORE = cal("2026-06-07"); // the day before the banner opens
+  const END = cal("2026-06-20");
 
   assert.deepEqual(coord.balanceAt(END), { free_carats: 100000, support_tickets: 50 });
   coord.update({ commitments: { sb: 1 } }); // 200 pulls: 50 tickets + 150 × 150 free carats
-  // The spend actually folds: tickets emptied, free carats down 22,500.
+  // The claim lands at the start: not yet debited the day before it opens...
+  assert.deepEqual(coord.balanceAt(BEFORE), { free_carats: 100000, support_tickets: 50 });
+  // ...debited from the start onward (tickets emptied, free carats down 22,500), held to end.
+  assert.deepEqual(coord.balanceAt(START), { free_carats: 100000 - 22500, support_tickets: 0 });
   assert.deepEqual(coord.balanceAt(END), { free_carats: 100000 - 22500, support_tickets: 0 });
   // ...while the banner's own available stays pre-spend (self-excluded).
   assert.deepEqual(coord.bannerAvailable("sb"), { free_carats: 100000, support_tickets: 50 });

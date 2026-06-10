@@ -374,23 +374,28 @@ A **core/projection semantic** with a load-bearing UI consequence (the engine ru
 lives in [projection.md](projection.md); captured here for its visual effect and
 the lesson behind it):
 
-- **Everything debits/credits on the *last day it runs*, not the first.** A
-  Championship Meeting pays out at the **end** (reward set by final placement); a
-  story is grinded ambiently and its rewards land when it **finishes**; a banner is
-  most efficiently spent at its **end**, because by then you've accrued the
-  window's tickets + daily + free pulls and minimised raw carat spend. The realised
-  moment *is* the last day.
+- **Income credits on the *last day it runs*, not the first.** A Championship
+  Meeting pays out at the **end** (reward set by final placement); a story is
+  grinded ambiently and its rewards land when it **finishes**. The realised moment
+  *is* the last day.
+- **A banner commitment is the exception — it's a *claim*, not a spend.**
+  Availability is still *measured* at the banner's **end** (by then you've accrued
+  the window's tickets + daily + free pulls and minimised raw carat spend), but the
+  **claim *debits* at the banner's *start*** — committing earmarks resources the
+  moment the banner opens. So a banner's balance reaction sits at its appearance-dot,
+  not after it.
 - **Exception: sequences/generators** post **multiple discrete transactions**
   rather than a single end-post.
 
-**The dot and the line sit at different x — by design.** The **dot marks the
-banner's *appearance*** (its start); the **balance line reacts at the banner's
-*end*** (last-day posting). So **the line *lags* the dot** — that gap is the
-*correct, intended* consequence of the rule, not a defect. The prototype's wrong
-turn was trying to **model complex plans** to smooth it; the simple last-day model
-is right. And on reflection **the lag itself is acceptable** — players read it as
-*how the instrument works* and internalise it; it is not a problem to engineer
-around.
+**For income, the dot and the line sit at different x — by design.** The **dot
+marks an event's *appearance*** (its start); an income event's **balance line
+reacts at its *end*** (last-day posting). So **the income line *lags* the dot** —
+that gap is the *correct, intended* consequence of the rule, not a defect. The
+prototype's wrong turn was trying to **model complex plans** to smooth it; the
+simple last-day model is right, and the lag is **accepted** — players read it as
+*how the instrument works*. **Banners no longer lag**: because the claim debits at
+`start`, a banner's line reacts *at* its dot — the start-debit model dissolved the
+banner lag entirely (one of the simplifications it bought).
 
 > Resolved (lean): the lag is **accepted as-is**. Making it more legible (e.g.
 > visibly tying a banner's appearance-dot to its later balance-reaction) is at most
@@ -404,43 +409,47 @@ around.
 
 ### Rushable events (the opt-in inversion)
 
-The default is last-day posting; **rushing is the player's opt-in inversion of it**,
-and the *semi-fix* for the lag above. Some events are **rushable**, some aren't (a
-per-event property — **needs upstream/ETL marking**). The marking is an *optional*
-flag: read it `ev.rushable === true`, absence means not rushable (the
+The default is last-day income posting; **rushing is the player's opt-in inversion
+of it** for the *income* side, and the *semi-fix* for the income lag above. Some
+events are **rushable**, some aren't (a per-event property — **ETL-marked**). The
+marking is an *optional* flag: read it `ev.rushable === true`, absence means not
+rushable (the
 [contract's optional-flag convention](../contract.md#optional-flags-presence-encoded-absence-defaulted)).
-Toggling a rushable event
-into a **rushed** state **flips the semantics**: rewards/costs post at the **start**
-instead of the end, **at an efficiency cost**.
+Toggling a rushable event into a **rushed** state **frontloads its payout**: its
+discrete rewards post at the **start** instead of the end — carats in hand earlier
+to clear a downstream banner's claim.
 
-- **Rush a banner** → spend all upfront, but forfeit the free pulls / daily pulls /
-  maybe some tickets you'd have accrued by waiting to the end.
-- **Rush a story** → the player going ham, grinding it out early.
+**Banners are not rushable** (stripped in the ETL 2026-06-10). A banner has exactly
+one settle behaviour — the claim debits at `start` (above) — so there is no
+banner-rush variant; rushing is purely an *income* lever now. This deliberately
+collapsed the old two-strategy framing (the prototype once let you "rush a banner"
+to spend upfront at an efficiency cost — that's gone).
 
-> The efficiency-cost computation (what you forfeit by rushing) is **core/projection
-> logic, not UI**. This whole feature **needs upstream work** — ETL to mark which
-> events are rushable, core to model the rushed (start-post + penalty) semantics.
-> The UI part is the **toggle** and showing the flipped state; flagged as a
-> cross-side dependency, not actioned in this frontend session. The data cost is
-> nil: the event corpus is tiny (~1000), so a per-event `rushable` bool on the
-> subset is free — no clever encoding (reinforcing principle 9: at this scale the
-> data side is never the bottleneck; don't over-engineer it).
+- **Rush a story** → the player going ham, grinding it out early so the rewards
+  land when they actually got them.
+
+> **Built** (2026-06-10). The reschedule is **core/projection logic, not UI**: the
+> events channel re-posts a rushed event's *discrete* rewards at its `start`
+> (compound rewards never move). There is no efficiency penalty — that notion
+> belonged to the cut banner-rush; frontloading an income reward is a pure timing
+> move. The data cost is nil: a per-event `rushable` bool on the tiny event corpus
+> is free — no clever encoding (principle 9: at this scale the data side is never
+> the bottleneck). The UI part is the **toggle** and showing the flipped state.
 
 It is another **stored input on the atom** (a per-event toggle, persist → derive —
-principle 7), and pure **principle 6**: it *shows* the efficiency cost, it never
-blocks the choice. And it only **semi**-fixes the lag — a rushed event's line
-reacts at its start-dot (lag collapses), but it's opt-in and costs efficiency, so
-you'd never rush *just* to fix the display; the default last-day case keeps the
-parked legibility problem.
+principle 7), and pure **principle 6**: it *shows* the rescheduled timing, it never
+blocks the choice. It also **semi**-fixes the income lag — a rushed event's line
+reacts at its start-dot (lag collapses) — but it's opt-in, so the default last-day
+case keeps the parked legibility problem.
 
 **Two use cases:**
 
 1. **Reconcile with reality — "I've already finished that."** A story realistically
    gets done ~halfway through its window (engagement- and red-bull-dependent), so
    the player marks it rushed to post the rewards *when they actually landed them*.
-2. **Opportunity cost & what-if planning.** Rush a banner because the unit is meta
-   for tomorrow's PVP (worth the hit); or explore a counterfactual — *"the planner
-   says I can't afford it, but if I grind like mad, can I make it work?"* This makes
+2. **What-if planning.** Frontload an income event's reward to explore a
+   counterfactual — *"the planner says I can't afford that banner, but if I grind
+   this event out early, do the carats land in time to clear the claim?"* This makes
    the **planner a hypothetical-explorer, not just a recorder** — toggles let you
    probe counterfactuals, not only record what happened.
 
@@ -1026,10 +1035,11 @@ remains is not new surfaces but:
   callouts: the pity-vs-pull input *label* (principle 10), how to render
   source-density on a compact banner, the minimap positive-band buffer, EC3 pill
   ordering.
-- **Cross-side ETL dependencies** (search, free pulls, rushable) — tracked in the
+- **Cross-side ETL dependencies** (search, free pulls) — tracked in the
   live tracker (GitHub issues / board on `sldsmkd/horsetrader`). Frontend
   consumes; don't action from a frontend
-  session.
+  session. (Rushable marking is **done** — ETL stamps it, and banners are
+  deliberately not rushable.)
 - **Then `ui/` code.** With the intent foundation in place, crystallise these
   surfaces into the view layer — the doc's whole purpose. The **implementation
   architecture** for that — the layer cake, the subscribe seam, the two-tier change

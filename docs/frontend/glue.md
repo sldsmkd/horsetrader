@@ -69,9 +69,10 @@ remaining work, roughly one epic:
   only *narrower* ETL-side question left is #19's account-pager / "sweatiness" model —
   how a single rank choice grades over a season — not the raw rates, which are here.
 - **Commitments → spends channel (the debit side).** Spending plans are the mirror
-  of engagement income: a planned pull on a banner is a **negative** carat delta
-  landing on that banner's date — a debit on the timeline. This is the one stream
-  that consumes the fold's own output (affordability: pity → pulls → carats). The
+  of engagement income: a committed banner is a **claim** (an accounting earmark),
+  emitted as a **negative** carat delta landing on that banner's **start** date — a
+  debit on the timeline the moment the banner opens. This is the one stream that
+  consumes the fold's own output (affordability: pity → pulls → carats). The
   same audit below applies: a commitment goes in the fold only when it resolves to a
   concrete, *dated* debit. **The write/persist half is now built (2026-06-09):** the
   **commit shield** (`views/commitShield.ts`, spawned at source from the banner
@@ -82,11 +83,13 @@ remaining work, roughly one epic:
   `commitments[bannerKey]` via `coord.update`. Affordability is computed *in the
   shield* against the income fold's `pullsAvailable` (pity × `spark_threshold` vs Max
   Pulls — a red "short by N pulls" verdict) — note this does **not** need the spends
-  channel, since it reads the *income* balance at the banner date. **Still parked:**
-  (a) the spends *channel* itself — folding the committed pity as a dated carat debit
-  so downstream banners' `pullsAvailable` drops live; (b) the expected-copies
-  distribution (None/0LB…MLB), in as a **layout placeholder** until the probability
-  model (binomial over pulls + spark guarantees) lands. See [projection.md](projection.md).
+  channel, since it reads the *income* balance at the banner date. **Both formerly-parked
+  pieces are now built:** (a) the spends *channel* (`streams/spends.ts`, built 2026-06-09)
+  folds each committed pity as a dated carat debit so downstream banners' `pullsAvailable`
+  drops live — and as of 2026-06-10 the debit lands at the banner's **start** (the claim
+  model: measured at `end`, debited at `start`); (b) the expected-copies distribution
+  (None/0LB…MLB) shipped as the **Forecast** (`select/forecast.ts` + `widgets/forecast.ts`,
+  spark-floored binomial over pulls). See [projection.md](projection.md).
 - **Update callbacks for live re-render.** Every customisation surface that can be
   open while another surface reads must trigger the refold path on commit, and the
   open readers must follow. The handle/`update()` pattern above is how; the work
