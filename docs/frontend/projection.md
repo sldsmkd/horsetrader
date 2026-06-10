@@ -95,12 +95,7 @@ regardless of the comparator.
    This is the one channel that consumes the fold's own output, so it slots into
    the coordinator's recompute as a second phase *after* the ground-truth fold,
    not as another independent entry in the `channels.ts` registry.
-2. **Rushed-event posting** — the opt-in start-post + efficiency-penalty semantics
-   (see *Transactions post on the last day* above). The stored input is a
-   per-event toggle (persist → derive). **Cross-side**: gated on the ETL marking
-  rushable events first (live tracker: GitHub issues / board on
-  `sldsmkd/horsetrader`).
-3. **Expected-copies distribution** — the plan surface ([ui.md](ui.md)) wants a
+2. **Expected-copies distribution** — the plan surface ([ui.md](ui.md)) wants a
    probability distribution over outcomes (None / 0LB … MLB) for committed pulls:
    deterministic derived math over the commitment + **baked drop rates** (the
    rates are game-data, so they come from the bundle, never a client literal).
@@ -222,12 +217,16 @@ does exactly this (lands on `event.end`).
 - **Exception — sequences/generators post per day.** A daily-cadence stream emits
   one discrete transaction *each* day across its run, not a single end-post —
   that is the whole point of those channels.
-- **Future — rushing inverts it.** An opt-in *rushed* event posts at its `start`
-  instead of its `end`, at a derived efficiency penalty (the free/daily pulls
-  forfeited by not waiting). The penalty computation is core/projection logic, but
-  it is **cross-side**: it needs the ETL to mark which events are rushable first
-  (live tracker: GitHub issues / board on `sldsmkd/horsetrader`). Not built; see
-  the rushable-events section in [ui.md](ui.md).
+- **Rushing inverts it (built).** An opt-in *rushed* event posts its **discrete**
+  rewards at `start` instead of `end` — the impulse-control decision to grab the
+  payout now rather than wait. There is **no efficiency penalty**: rush only moves
+  *where* the discrete deltas land, never their amount. Compound rewards
+  (sequences/generators) do **not** move — their per-day attribution is unchanged.
+  The `events` channel honours a `rushed` set (event keys → post-at-start) threaded
+  through `ChannelContext`; the `after`-boundary check uses the *effective* date,
+  so rushing an event whose `start` precedes the snapshot drops it (already banked).
+  Only non-banner events are rushable (banners are pulls/commitment, not a
+  collect-the-payout decision). See the rushable-events section in [ui.md](ui.md).
 
 The UI leans on this rule — the minimap's balance line "lags" the appearance dots
 by design — and [ui.md](ui.md) treats it as a core/projection semantic. This is

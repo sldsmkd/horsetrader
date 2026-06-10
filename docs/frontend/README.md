@@ -36,8 +36,10 @@ A small supporting seam is **planned** (not a pillar):
 
 Two slices of projection are **still to come** (now unblocked — see below):
 the **spends/commitments** channel (the one stream that consumes the fold's own
-output for affordability), **rushed-event posting**, and the **expected-copies
-distribution**. [projection.md](projection.md) has the ordered next-steps.
+output for affordability) and the **expected-copies distribution**.
+**Rushed-event posting** is now **built** (the `events` channel posts a rushed
+event's discrete rewards at `start`). [projection.md](projection.md) has the
+ordered next-steps.
 
 The **view layer** is fully captured intent-first, surface by surface, in
 [ui.md](ui.md) — **every surface is documented** as of 2026-06-02, but `ui/`

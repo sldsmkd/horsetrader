@@ -405,44 +405,41 @@ around.
 ### Rushable events (the opt-in inversion)
 
 The default is last-day posting; **rushing is the player's opt-in inversion of it**,
-and the *semi-fix* for the lag above. Some events are **rushable**, some aren't (a
-per-event property — **needs upstream/ETL marking**). The marking is an *optional*
-flag: read it `ev.rushable === true`, absence means not rushable (the
-[contract's optional-flag convention](../contract.md#optional-flags-presence-encoded-absence-defaulted)).
-Toggling a rushable event
-into a **rushed** state **flips the semantics**: rewards/costs post at the **start**
-instead of the end, **at an efficiency cost**.
+and the *semi-fix* for the lag above. Rushing is an **impulse-control decision
+between the player and the game** — "I grabbed that payout early" — not a planning
+lever. Some events are **rushable**, some aren't (a per-event property). The marking
+is an *optional* flag: read it `ev.rushable === true`, absence means not rushable
+(the [contract's optional-flag convention](../contract.md#optional-flags-presence-encoded-absence-defaulted)).
+**Banners are not rushable** — a banner is pulls/commitment, not a collect-the-payout
+moment, so the toggle lives only on **non-banner** below-lane cards (stories,
+scenarios, …).
 
-- **Rush a banner** → spend all upfront, but forfeit the free pulls / daily pulls /
-  maybe some tickets you'd have accrued by waiting to the end.
-- **Rush a story** → the player going ham, grinding it out early.
+Toggling a rushable event into a **rushed** state **moves its discrete rewards** from
+the `end` to the `start` — *when the player actually grabbed them*. That is the whole
+mechanic, and it is exact:
 
-> The efficiency-cost computation (what you forfeit by rushing) is **core/projection
-> logic, not UI**. This whole feature **needs upstream work** — ETL to mark which
-> events are rushable, core to model the rushed (start-post + penalty) semantics.
-> The UI part is the **toggle** and showing the flipped state; flagged as a
-> cross-side dependency, not actioned in this frontend session. The data cost is
-> nil: the event corpus is tiny (~1000), so a per-event `rushable` bool on the
-> subset is free — no clever encoding (reinforcing principle 9: at this scale the
-> data side is never the bottleneck; don't over-engineer it).
+- **No efficiency cost.** Rush moves *where* the discrete deltas post, never their
+  amount. There is no penalty model — an earlier draft imagined one; it was cut.
+- **Compound rewards don't move.** Sequences/generators keep their per-day
+  attribution rushed or not — only the discrete payout shifts to `start`.
+- **Rush a story** → the player going ham, grinding it out early, so the rewards
+  land on the timeline when they really landed.
 
-It is another **stored input on the atom** (a per-event toggle, persist → derive —
-principle 7), and pure **principle 6**: it *shows* the efficiency cost, it never
-blocks the choice. And it only **semi**-fixes the lag — a rushed event's line
-reacts at its start-dot (lag collapses), but it's opt-in and costs efficiency, so
-you'd never rush *just* to fix the display; the default last-day case keeps the
-parked legibility problem.
+> This is **built** (see [projection.md](projection.md) — the `events` channel honours
+> a `rushed` set). The semantics live in **core/projection**; the UI part is the
+> **toggle** and showing the flipped state.
 
-**Two use cases:**
+It is a **stored input on the atom** (a per-event toggle, persist → derive —
+principle 7), and pure **principle 6**: it never blocks a choice. And it only
+**semi**-fixes the lag — a rushed event's line reacts at its start-dot (lag
+collapses), but it's opt-in, so you'd rarely rush *just* to fix the display; the
+default last-day case keeps the parked legibility problem.
 
-1. **Reconcile with reality — "I've already finished that."** A story realistically
-   gets done ~halfway through its window (engagement- and red-bull-dependent), so
-   the player marks it rushed to post the rewards *when they actually landed them*.
-2. **Opportunity cost & what-if planning.** Rush a banner because the unit is meta
-   for tomorrow's PVP (worth the hit); or explore a counterfactual — *"the planner
-   says I can't afford it, but if I grind like mad, can I make it work?"* This makes
-   the **planner a hypothetical-explorer, not just a recorder** — toggles let you
-   probe counterfactuals, not only record what happened.
+**Use case — reconcile with reality, "I've already finished that."** A story
+realistically gets done ~halfway through its window (engagement- and
+red-bull-dependent), so the player marks it rushed to post the rewards *when they
+actually landed them*. The toggle makes the **planner a recorder of what happened**,
+not just a forecaster of the default schedule.
 
 ---
 
@@ -1026,7 +1023,7 @@ remains is not new surfaces but:
   callouts: the pity-vs-pull input *label* (principle 10), how to render
   source-density on a compact banner, the minimap positive-band buffer, EC3 pill
   ordering.
-- **Cross-side ETL dependencies** (search, free pulls, rushable) — tracked in the
+- **Cross-side ETL dependencies** (search, free pulls) — tracked in the
   live tracker (GitHub issues / board on `sldsmkd/horsetrader`). Frontend
   consumes; don't action from a frontend
   session.
