@@ -205,7 +205,19 @@ There are **two kinds of stream**:
   per-Monday state cadence — a stable class walks a length-1 `:retention` cycle, a
   "flapping" account alternates `6:promotion`/`5:demotion` (a real two-week cycle, not the
   old `5.5` average). The flap phase anchors at the epoch and advances across the snapshot.
-  See [glue.md](glue.md).
+  The third is the **`club-rank` channel** (`streams/clubrank.ts`, also `INCOME_CHANNELS`):
+  the team-trials twin, but **monthly** — it reads `reward_maps.club-rank` and emits a flat
+  carat row **on the 1st of each month** at server reset (the monthly analogue of the Monday
+  cadence; no transition state, so no cycle). Its selector is **identity, not play-style** —
+  the rank comes from `resolveClubRank(config.identity.clubRank)` (defaulting to the trainer
+  sheet's `B+` placeholder until an identity picker lands), threaded into the channel context
+  as `clubRank`. The fourth is the **`shop-tickets` channel** (`streams/shoptickets.ts`): also
+  **monthly on the 1st** (the shop refresh), but it has **no baked table** — its `shopTickets`
+  play-style bracket *is* the count of scout tickets bought (`none`/`cleats`/`friendPoints`/
+  `rainbow` → 0/4/6/7 of *each* type per month), an engagement gating choice like routine's
+  days-per-week, not a game-data rate. The two monthly channels share `streams/monthly.ts`
+  (`monthlyStream`); all four synthesised channels share `streams/span.ts` (`bundleSpan`). See
+  [glue.md](glue.md).
 
 Either way the **values are never the client's to invent.** A procedural stream
 decomposes into three ownerships:

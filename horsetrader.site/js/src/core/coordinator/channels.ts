@@ -9,9 +9,12 @@
 
 import type { ConfigBundle } from "../bundle/config.gen.ts";
 import type { EventsBundle } from "../bundle/events.gen.ts";
+import type { ClubRankTier } from "../identity/clubrank.ts";
 import type { PlayStyleSettings } from "../playstyle/index.ts";
 import type { CalendarDate, StreamEmission } from "../projection/index.ts";
 import {
+  clubRankSpecFromBundle,
+  clubRankStream,
   eventStream,
   generatorStream,
   generatorsFromBundle,
@@ -19,6 +22,8 @@ import {
   routineStream,
   sequenceStream,
   sequencesFromBundle,
+  shopTicketsSpecFromBundle,
+  shopTicketsStream,
   teamTrialsSpecFromBundle,
   teamTrialsStream,
 } from "../projection/index.ts";
@@ -42,6 +47,10 @@ export interface ChannelContext {
    *  income channels pick a reward row/scale from these; ground-truth channels
    *  ignore it. Always present (resolves to the default preset when unset). */
   play: PlayStyleSettings;
+  /** The account's resolved club rank — an **identity** selector (not play-style),
+   *  the `reward_maps.club-rank` label the club-rank channel pays monthly. Always
+   *  present (resolves to the default tier when unset). See core/identity/clubrank. */
+  clubRank: ClubRankTier;
 }
 
 export interface ChannelDef {
@@ -77,6 +86,25 @@ export const INCOME_CHANNELS: ChannelDef[] = [
       if (!config) return [];
       const spec = teamTrialsSpecFromBundle(bundle, config, play.teamTrials, timeZone);
       return spec ? teamTrialsStream(spec, after) : [];
+    },
+  },
+  {
+    name: "club-rank",
+    emit: ({ bundle, config, clubRank, after, timeZone }) => {
+      if (!config) return [];
+      const spec = clubRankSpecFromBundle(bundle, config, clubRank, timeZone);
+      return spec ? clubRankStream(spec, after) : [];
+    },
+  },
+  {
+    // Shop tickets needs no baked table (the bracket count *is* the payload), but it
+    // still gates on `config` so the income channels stay uniformly inert in the
+    // config-less tests that exercise only the ground-truth fold.
+    name: "shop-tickets",
+    emit: ({ bundle, config, play, after, timeZone }) => {
+      if (!config) return [];
+      const spec = shopTicketsSpecFromBundle(bundle, play.shopTickets, timeZone);
+      return spec ? shopTicketsStream(spec, after) : [];
     },
   },
 ];

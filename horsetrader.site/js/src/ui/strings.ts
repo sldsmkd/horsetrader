@@ -3,6 +3,7 @@ import type {
   LegendRaceKey,
   MissionKey,
   PlayStyleKey,
+  ShopTicketKey,
   SpecialMissionKey,
   StoryEventKey,
   TeamTrialKey,
@@ -38,6 +39,7 @@ export interface PlayStyleStrings {
     specialMissions: PlayStyleSettingStrings<SpecialMissionKey>;
     storyEvents: PlayStyleSettingStrings<StoryEventKey>;
     championsMeeting: PlayStyleSettingStrings<ChampionsMeetingKey>;
+    shopTickets: PlayStyleSettingStrings<ShopTicketKey>;
   };
 }
 
@@ -152,6 +154,15 @@ export const FALLBACK_STRINGS: UiStrings = {
           groupBWinner: { value: "Group B winner", description: "I can win Group B." },
           groupARunnerUp: { value: "Group A runner-up", description: "I can reach the Group A final." },
           groupAChampion: { value: "Group A champion", description: "I aim to win Group A." },
+        },
+      },
+      shopTickets: {
+        title: "Shop tickets",
+        steps: {
+          none: { value: "None", description: "I didn't know there were tickets in the shop?" },
+          cleats: { value: "4 / month", description: "I buy tickets with silver and gold cleats." },
+          friendPoints: { value: "6 / month", description: "I use gold & silver cleats and friend points." },
+          rainbow: { value: "7 / month", description: "I salvage junk welfare cards for rainbow cleats too." },
         },
       },
     },

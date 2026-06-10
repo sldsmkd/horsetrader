@@ -31,7 +31,8 @@ import type { EventsBundle } from "../../bundle/events.gen.ts";
 import type { WeeklyPlayKey } from "../../playstyle/index.ts";
 import type { ResourceVector, StreamEmission } from "../ledger.ts";
 import type { CalendarDate } from "../dates.ts";
-import { UTC_TIME_ZONE, addDays, dateStringInTimeZone } from "../dates.ts";
+import { UTC_TIME_ZONE, addDays } from "../dates.ts";
+import { bundleSpan } from "./span.ts";
 
 /** Login days per 7-day block for each weekly-play level — the cadence reading of
  *  the gating choice (self-evident from the key; not a game-data value). */
@@ -137,15 +138,8 @@ export function routineSpecFromBundle(
   const amounts = login["sequence"];
   if (typeof resource !== "string" || !Array.isArray(amounts)) return null;
 
-  let epoch: CalendarDate | undefined;
-  let horizon: CalendarDate | undefined;
-  for (const event of bundle.events) {
-    const start = dateStringInTimeZone(event.start, timeZone);
-    const end = dateStringInTimeZone(event.end, timeZone);
-    if (epoch === undefined || start < epoch) epoch = start;
-    if (horizon === undefined || end > horizon) horizon = end;
-  }
-  if (epoch === undefined || horizon === undefined) return null;
+  const span = bundleSpan(bundle, timeZone);
+  if (span === null) return null;
 
-  return { epoch, horizon, daysPerWeek, daily, cycle: { resource, amounts } };
+  return { epoch: span.epoch, horizon: span.horizon, daysPerWeek, daily, cycle: { resource, amounts } };
 }

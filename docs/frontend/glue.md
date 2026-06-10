@@ -115,11 +115,39 @@ remaining work, roughly one epic:
   spot, flagged for the user's correction, not the mechanism. **Lesson for the rest:** a
   graded reward attaches to its event when one exists (enrich), and synthesises a channel
   only when there's no event to hang it on (team-trials/routine).
+  **The first *identity*-sourced income channel is now built (2026-06-10): `club-rank`**
+  (`streams/clubrank.ts`, in `INCOME_CHANNELS`). Structurally it is the team-trials twin —
+  synthesise a channel (no event to hang it on), read `reward_maps.club-rank` and one
+  resolved selector, walk a procedural cadence epoch→horizon. Two differences: the cadence
+  is **monthly, paid on the 1st** at server reset (the realised reset for the month that just
+  closed, the monthly analogue of team-trials' Monday); and the payout is **flat per rank, no
+  transition state** — Club Rank pays the same whether you climbed in or held, so a single
+  `ResourceVector` repeats every month (no flap cycle). The decisive lesson: **the selector is
+  *identity*, not play-style.** Club is identity (a trainer's affiliation, see menu.md), so
+  the rank is *not* a `PlayStyleSettings` slider — it rides in the same `config.identity` block
+  but is read through its own precedence, `resolveClubRank` (`core/identity/clubrank.ts`), the
+  parallel of `resolvePlayStyle`. The coordinator resolves it and threads it into the channel
+  context as `clubRank`. For now `resolveClubRank` **defaults to the trainer sheet's hard-coded
+  placeholder (`B+`)** — the income flows at B+ until the identity surface grows a real club-rank
+  picker (deferred, post-art; the channel is picker-ready, it just reads `config.identity.clubRank`).
+  The graded-row payload selector `flatPayload` was lifted to a shared `streams/rewardmap.ts`
+  (team-trials + club-rank, N=2).
+  **A second monthly channel is now built (2026-06-10): `shop-tickets`** (`streams/shoptickets.ts`,
+  in `INCOME_CHANNELS`) — the scout tickets bought from the shop each month, credited on the 1st
+  when the stores refresh (same `monthlyStream` cadence as club-rank). It is a **play-style slider**
+  (`shopTickets`), and the instructive contrast with the carat channels: its number is **pure
+  engagement, no baked table**. The bracket *is* the ticket count — `none` 0 / `cleats` 4 /
+  `friendPoints` 6 / `rainbow` 7 of *each* scout-ticket type (`trainee_tickets` + `support_tickets`)
+  per month — exactly as routine's `DAYS_PER_WEEK` maps an engagement level straight to a number.
+  No `reward_maps` row: the count is a gating choice, not a game-data literal, so the channel needs
+  no `config` (it gates on config presence only to stay inert in the config-less fold tests). Two
+  cadence primitives were lifted out for these monthly twins: `streams/span.ts` (`bundleSpan` — the
+  epoch/horizon scan, now shared by routine/team-trials/club-rank/shop-tickets, N=4) and
+  `streams/monthly.ts` (`monthlyStream` — the 1st-of-month walk, club-rank + shop-tickets, N=2).
   **What's still unbuilt is the rest of the income:** (a) ~~load config~~ done; (b) wire each
   engagement slider's commit to `config`; (c) the remaining *graded* sources by rank
-  (`club-rank`, `league-of-heroes`, `masters`, `strongest-team`) — each sorted the same way:
-  the PvP ones (`league-of-heroes`/`masters`/`strongest-team`) are events → enrich like
-  `champions-meeting`; `club-rank` has no event → synthesise a channel like `team-trials`.
+  (`league-of-heroes`, `masters`, `strongest-team`) — the PvP ones are events → enrich like
+  `champions-meeting`. (`club-rank` was the no-event/synthesise case — now built, #59.)
   Plus, for the commit shield, feed `spark_threshold` / `rarity_rates` / `featured_rates`
   into affordability + the LB distribution. The only *narrower* ETL-side question left is
   #19's account-pager / "sweatiness" model — how a single rank choice grades over a season —

@@ -19,6 +19,7 @@
 
 import type { ConfigBundle } from "../bundle/config.gen.ts";
 import type { EventsBundle } from "../bundle/events.gen.ts";
+import { resolveClubRank } from "../identity/clubrank.ts";
 import { resolvePlayStyle } from "../playstyle/index.ts";
 import type { PlanDocument } from "../persistence/index.ts";
 import { load, save } from "../persistence/index.ts";
@@ -175,6 +176,9 @@ export function createCoordinator(options: CoordinatorOptions): Coordinator {
     // The account's engagement assumptions, resolved from the persisted config —
     // the single precedence shared with the identity surface (resolvePlayStyle).
     const play = resolvePlayStyle(doc.config).settings;
+    // The club rank — an identity selector (not play-style), resolved from the same
+    // config.identity block but through its own precedence. Feeds the club-rank channel.
+    const clubRank = resolveClubRank(doc.config);
     // Reconstitute the rank-dependent CM rewards the bake omits (issue #19): stamp the
     // player's CM rank payout onto every CM event so the ground-truth `events` channel
     // folds it (on each CM's last day) and the below-lane card renders it — without the
@@ -182,7 +186,7 @@ export function createCoordinator(options: CoordinatorOptions): Coordinator {
     const folded = config ? applyChampionsMeetingRewards(bundle, config, play.championsMeeting) : bundle;
     const income = registry
       .filter((ch) => enabled.get(ch.name) !== false)
-      .map((ch) => ({ stream: ch.name, emissions: ch.emit({ bundle: folded, after, timeZone, rushed, config, play }) }));
+      .map((ch) => ({ stream: ch.name, emissions: ch.emit({ bundle: folded, after, timeZone, rushed, config, play, clubRank }) }));
     const incomeProjection = project({ resources: base }, income);
     const spends = spendStream(committedBanners(bundle, doc.commitments ?? {}, timeZone), incomeProjection.series.balanceAt, gacha, after);
     const projection = project({ resources: base }, [...income, { stream: "spends", emissions: spends.emissions }]);

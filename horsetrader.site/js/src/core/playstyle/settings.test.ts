@@ -16,6 +16,7 @@ test("preset settings define the persisted assumption defaults", () => {
     specialMissions: "welfare",
     storyEvents: "welfare",
     championsMeeting: "groupBContender",
+    shopTickets: "none",
   });
   assert.deepEqual(playStyleSettingsForPreset("focused"), {
     weeklyPlay: "sixDays",
@@ -25,6 +26,7 @@ test("preset settings define the persisted assumption defaults", () => {
     specialMissions: "major",
     storyEvents: "major",
     championsMeeting: "groupBWinner",
+    shopTickets: "cleats",
   });
   assert.equal(playStyleSettingsForPreset("dedicated").legendRaces, "allFull");
 });
@@ -40,6 +42,7 @@ test("normalizes stored settings against a fallback", () => {
       specialMissions: "all",
       storyEvents: "earlyAchievement",
       championsMeeting: "groupAChampion",
+      shopTickets: "rainbow",
     },
     fallback,
   );
@@ -52,6 +55,7 @@ test("normalizes stored settings against a fallback", () => {
     specialMissions: "all",
     storyEvents: "earlyAchievement",
     championsMeeting: "groupAChampion",
+    shopTickets: "rainbow",
   });
   assert.deepEqual(normalizePlayStyleSettings({ legendRaces: "oops" }, fallback), fallback);
   assert.deepEqual(normalizePlayStyleSettings(null, fallback), fallback);

@@ -8,6 +8,7 @@ import {
   CHAMPIONS_MEETING_KEYS,
   LEGEND_RACE_KEYS,
   MISSION_KEYS,
+  SHOP_TICKET_KEYS,
   SPECIAL_MISSION_KEYS,
   STORY_EVENT_KEYS,
   TEAM_TRIAL_KEYS,
@@ -27,6 +28,7 @@ const SLIDER_ROWS: readonly SliderKey[] = [
   "specialMissions",
   "storyEvents",
   "championsMeeting",
+  "shopTickets",
 ];
 
 const SLIDER_KEYS = {
@@ -37,6 +39,7 @@ const SLIDER_KEYS = {
   specialMissions: SPECIAL_MISSION_KEYS,
   storyEvents: STORY_EVENT_KEYS,
   championsMeeting: CHAMPIONS_MEETING_KEYS,
+  shopTickets: SHOP_TICKET_KEYS,
 } as const;
 
 export interface PlayStyleSurfaceOpts {

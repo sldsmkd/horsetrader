@@ -30,7 +30,9 @@ import type { EventsBundle } from "../../bundle/events.gen.ts";
 import type { TeamTrialKey } from "../../playstyle/index.ts";
 import type { ResourceVector, StreamEmission } from "../ledger.ts";
 import type { CalendarDate } from "../dates.ts";
-import { UTC_TIME_ZONE, addDays, dateStringInTimeZone } from "../dates.ts";
+import { UTC_TIME_ZONE, addDays } from "../dates.ts";
+import { flatPayload } from "./rewardmap.ts";
+import { bundleSpan } from "./span.ts";
 
 /** The attribution source for this channel — traceable to the reward-map slug. */
 const TEAM_TRIALS_SOURCE = "team-trials";
@@ -85,15 +87,6 @@ export function teamTrialsStream(spec: TeamTrialsSpec, after: CalendarDate): Str
   return emissions;
 }
 
-/** Pull the numeric payload off a baked reward-map row (`{free_carats: 300}`). */
-function flatPayload(row: ConfigBundle["reward_maps"][string][string]): ResourceVector {
-  const payload: ResourceVector = {};
-  for (const [key, value] of Object.entries(row)) {
-    if (typeof value === "number") payload[key] = value;
-  }
-  return payload;
-}
-
 /**
  * Build the team-trials spec from the baked config, the bundle's date span, and
  * the play-style team-trials level. Returns `null` when the channel can't run —
@@ -119,15 +112,8 @@ export function teamTrialsSpecFromBundle(
     cycle.push(flatPayload(row));
   }
 
-  let epoch: CalendarDate | undefined;
-  let horizon: CalendarDate | undefined;
-  for (const event of bundle.events) {
-    const start = dateStringInTimeZone(event.start, timeZone);
-    const end = dateStringInTimeZone(event.end, timeZone);
-    if (epoch === undefined || start < epoch) epoch = start;
-    if (horizon === undefined || end > horizon) horizon = end;
-  }
-  if (epoch === undefined || horizon === undefined) return null;
+  const span = bundleSpan(bundle, timeZone);
+  if (span === null) return null;
 
-  return { epoch, horizon, cycle };
+  return { epoch: span.epoch, horizon: span.horizon, cycle };
 }

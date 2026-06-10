@@ -15,6 +15,7 @@ export const MISSION_KEYS = ["none", "some", "most", "all"] as const;
 export const SPECIAL_MISSION_KEYS = ["some", "welfare", "major", "all"] as const;
 export const STORY_EVENT_KEYS = ["story", "welfare", "major", "achievement", "earlyAchievement"] as const;
 export const CHAMPIONS_MEETING_KEYS = ["skip", "groupBContender", "groupBWinner", "groupARunnerUp", "groupAChampion"] as const;
+export const SHOP_TICKET_KEYS = ["none", "cleats", "friendPoints", "rainbow"] as const;
 
 export type WeeklyPlayKey = (typeof WEEKLY_PLAY_KEYS)[number];
 export type TeamTrialKey = (typeof TEAM_TRIAL_KEYS)[number];
@@ -23,6 +24,7 @@ export type MissionKey = (typeof MISSION_KEYS)[number];
 export type SpecialMissionKey = (typeof SPECIAL_MISSION_KEYS)[number];
 export type StoryEventKey = (typeof STORY_EVENT_KEYS)[number];
 export type ChampionsMeetingKey = (typeof CHAMPIONS_MEETING_KEYS)[number];
+export type ShopTicketKey = (typeof SHOP_TICKET_KEYS)[number];
 
 export interface PlayStyleSettings {
   weeklyPlay: WeeklyPlayKey;
@@ -32,6 +34,7 @@ export interface PlayStyleSettings {
   specialMissions: SpecialMissionKey;
   storyEvents: StoryEventKey;
   championsMeeting: ChampionsMeetingKey;
+  shopTickets: ShopTicketKey;
 }
 
 const PRESET_SETTINGS: Record<Exclude<PlayStyleKey, "custom">, PlayStyleSettings> = {
@@ -43,6 +46,7 @@ const PRESET_SETTINGS: Record<Exclude<PlayStyleKey, "custom">, PlayStyleSettings
     specialMissions: "some",
     storyEvents: "story",
     championsMeeting: "skip",
+    shopTickets: "none",
   },
   casual: {
     weeklyPlay: "fourDays",
@@ -52,6 +56,7 @@ const PRESET_SETTINGS: Record<Exclude<PlayStyleKey, "custom">, PlayStyleSettings
     specialMissions: "welfare",
     storyEvents: "welfare",
     championsMeeting: "groupBContender",
+    shopTickets: "none",
   },
   focused: {
     weeklyPlay: "sixDays",
@@ -61,6 +66,7 @@ const PRESET_SETTINGS: Record<Exclude<PlayStyleKey, "custom">, PlayStyleSettings
     specialMissions: "major",
     storyEvents: "major",
     championsMeeting: "groupBWinner",
+    shopTickets: "cleats",
   },
   dedicated: {
     weeklyPlay: "sevenDays",
@@ -70,6 +76,7 @@ const PRESET_SETTINGS: Record<Exclude<PlayStyleKey, "custom">, PlayStyleSettings
     specialMissions: "all",
     storyEvents: "achievement",
     championsMeeting: "groupARunnerUp",
+    shopTickets: "friendPoints",
   },
   unhinged: {
     weeklyPlay: "sevenDays",
@@ -79,6 +86,7 @@ const PRESET_SETTINGS: Record<Exclude<PlayStyleKey, "custom">, PlayStyleSettings
     specialMissions: "all",
     storyEvents: "earlyAchievement",
     championsMeeting: "groupAChampion",
+    shopTickets: "rainbow",
   },
 };
 
@@ -105,6 +113,7 @@ export function normalizePlayStyleSettings(value: unknown, fallback: PlayStyleSe
     championsMeeting: isOneOf(raw["championsMeeting"], CHAMPIONS_MEETING_KEYS)
       ? raw["championsMeeting"]
       : fallback.championsMeeting,
+    shopTickets: isOneOf(raw["shopTickets"], SHOP_TICKET_KEYS) ? raw["shopTickets"] : fallback.shopTickets,
   };
 }
 
@@ -116,6 +125,7 @@ export function samePlayStyleSettings(a: PlayStyleSettings, b: PlayStyleSettings
     a.missions === b.missions &&
     a.specialMissions === b.specialMissions &&
     a.storyEvents === b.storyEvents &&
-    a.championsMeeting === b.championsMeeting
+    a.championsMeeting === b.championsMeeting &&
+    a.shopTickets === b.shopTickets
   );
 }
