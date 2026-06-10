@@ -24,11 +24,11 @@ import type { PlanDocument } from "../persistence/index.ts";
 import { load, save } from "../persistence/index.ts";
 import type { KeyValueStore } from "../persistence/storage.ts";
 import { defaultStore } from "../persistence/storage.ts";
-import { project, spendStream } from "../projection/index.ts";
+import { applyChampionsMeetingRewards, project, spendStream } from "../projection/index.ts";
 import type { Projection, ResourceVector, SpendGacha, CommittedBanner, BannerKind } from "../projection/index.ts";
 import { UTC_TIME_ZONE, cal, dateStringInTimeZone } from "../projection/dates.ts";
 import type { CalendarDate } from "../projection/dates.ts";
-import { GROUND_TRUTH_CHANNELS } from "./channels.ts";
+import { DEFAULT_CHANNELS } from "./channels.ts";
 import type { ChannelDef } from "./channels.ts";
 
 /** The committed banners the spend pass resolves: every banner with a positive pity in
@@ -148,7 +148,7 @@ export function createCoordinator(options: CoordinatorOptions): Coordinator {
   const gacha = options.gacha ?? { caratsPerPull: 150, paidDailyPull: 50, sparkThreshold: 200 };
   const timeZone = options.timeZone ?? UTC_TIME_ZONE;
   const store = options.store ?? defaultStore();
-  const registry = options.channels ?? GROUND_TRUTH_CHANNELS;
+  const registry = options.channels ?? DEFAULT_CHANNELS;
 
   const loaded = load(store);
   // Sweep dead rush state (events now fully past) on load; persist only if it
@@ -175,9 +175,14 @@ export function createCoordinator(options: CoordinatorOptions): Coordinator {
     // The account's engagement assumptions, resolved from the persisted config —
     // the single precedence shared with the identity surface (resolvePlayStyle).
     const play = resolvePlayStyle(doc.config).settings;
+    // Reconstitute the rank-dependent CM rewards the bake omits (issue #19): stamp the
+    // player's CM rank payout onto every CM event so the ground-truth `events` channel
+    // folds it (on each CM's last day) and the below-lane card renders it — without the
+    // events channel learning about config/play. A bundle reshape, like `rushed`.
+    const folded = config ? applyChampionsMeetingRewards(bundle, config, play.championsMeeting) : bundle;
     const income = registry
       .filter((ch) => enabled.get(ch.name) !== false)
-      .map((ch) => ({ stream: ch.name, emissions: ch.emit({ bundle, after, timeZone, rushed, config, play }) }));
+      .map((ch) => ({ stream: ch.name, emissions: ch.emit({ bundle: folded, after, timeZone, rushed, config, play }) }));
     const incomeProjection = project({ resources: base }, income);
     const spends = spendStream(committedBanners(bundle, doc.commitments ?? {}, timeZone), incomeProjection.series.balanceAt, gacha, after);
     const projection = project({ resources: base }, [...income, { stream: "spends", emissions: spends.emissions }]);

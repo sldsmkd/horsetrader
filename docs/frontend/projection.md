@@ -189,7 +189,23 @@ There are **two kinds of stream**:
 - **Client-rehydrated procedural** — recurring sequences the client *generates*
   from a recurrence rule rather than the ETL emitting one event per occurrence
   (e.g. daily-login carats, daily pack, weekly-login). The client owns the
-  *cadence*; it generates the sequence locally.
+  *cadence*; it generates the sequence locally. The first one built is the
+  **`routine` channel** (`streams/routine.ts`, in `INCOME_CHANNELS`): it reads the
+  account's `play.weeklyPlay` level + the baked `reward_structures.dailies` /
+  `weekly-login`, and synthesises login-day income from the **server epoch** (earliest
+  bundle date) to the timeline's right edge. Login days are spread evenly across each
+  7-day block (`daysPerWeek`/7); the daily payload lands on every login; the login
+  bonus advances **one slot per login**, resetting every 7 logins (indexed by login
+  *count*, not weekday — log in 7× over 10 days and you collect the whole cycle). The
+  cadence advances across the snapshot so the cycle phase is snapshot-independent. The
+  second is the **`team-trials` channel** (`streams/teamtrials.ts`, also `INCOME_CHANNELS`):
+  it reads `reward_maps.team-trials` + `play.teamTrials` and emits the weekly Team Trials
+  carats on the **calendar Monday** at server reset. The carats are graded by the
+  *transition into* a class (the map is keyed `<class>:<state>`); the client owns the
+  per-Monday state cadence — a stable class walks a length-1 `:retention` cycle, a
+  "flapping" account alternates `6:promotion`/`5:demotion` (a real two-week cycle, not the
+  old `5.5` average). The flap phase anchors at the epoch and advances across the snapshot.
+  See [glue.md](glue.md).
 
 Either way the **values are never the client's to invent.** A procedural stream
 decomposes into three ownerships:

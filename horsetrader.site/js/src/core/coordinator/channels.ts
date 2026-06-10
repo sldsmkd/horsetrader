@@ -15,8 +15,12 @@ import {
   eventStream,
   generatorStream,
   generatorsFromBundle,
+  routineSpecFromBundle,
+  routineStream,
   sequenceStream,
   sequencesFromBundle,
+  teamTrialsSpecFromBundle,
+  teamTrialsStream,
 } from "../projection/index.ts";
 
 export interface ChannelContext {
@@ -53,3 +57,29 @@ export const GROUND_TRUTH_CHANNELS: ChannelDef[] = [
   { name: "generator", emit: ({ bundle, after, timeZone }) => generatorStream(generatorsFromBundle(bundle, timeZone), after) },
   { name: "sequence", emit: ({ bundle, after, timeZone }) => sequenceStream(sequencesFromBundle(bundle, timeZone), after) },
 ];
+
+/** The play-style income channels — they read `config` (baked reward tables) and
+ *  `play` (the account's engagement levels) to synthesise recurring income the
+ *  bundle does not enumerate. Inert without a config (channel-injecting tests omit
+ *  it); the app always supplies the real `bundle.config()`. See docs/frontend/glue.md. */
+export const INCOME_CHANNELS: ChannelDef[] = [
+  {
+    name: "routine",
+    emit: ({ bundle, config, play, after, timeZone }) => {
+      if (!config) return [];
+      const spec = routineSpecFromBundle(bundle, config, play.weeklyPlay, timeZone);
+      return spec ? routineStream(spec, after) : [];
+    },
+  },
+  {
+    name: "team-trials",
+    emit: ({ bundle, config, play, after, timeZone }) => {
+      if (!config) return [];
+      const spec = teamTrialsSpecFromBundle(bundle, config, play.teamTrials, timeZone);
+      return spec ? teamTrialsStream(spec, after) : [];
+    },
+  },
+];
+
+/** Every channel the coordinator folds by default — ground truth plus play-style income. */
+export const DEFAULT_CHANNELS: ChannelDef[] = [...GROUND_TRUTH_CHANNELS, ...INCOME_CHANNELS];
