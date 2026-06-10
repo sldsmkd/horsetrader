@@ -2,12 +2,12 @@ import type {
   ChampionsMeetingKey,
   LegendRaceKey,
   MissionKey,
+  PlayStyleKey,
   SpecialMissionKey,
   StoryEventKey,
   TeamTrialKey,
   WeeklyPlayKey,
-} from "./identity/playStyleSettings.ts";
-import type { PlayStyleKey } from "./views/playStylePreset.ts";
+} from "../core/playstyle/index.ts";
 
 export interface PlayStylePresetStrings {
   name: string;

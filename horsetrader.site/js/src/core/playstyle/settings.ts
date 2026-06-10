@@ -1,4 +1,12 @@
-import type { PlayStyleKey } from "../views/playStylePreset.ts";
+/**
+ * The per-stream play-style assumptions: the engagement level the player picks
+ * for each income stream (weekly play, Team Trials rank, …). These are *gating
+ * choices* the projection's income channels resolve against baked reward tables —
+ * never game-data values (docs/frontend/projection.md, docs/frontend/glue.md).
+ * A preset seeds a full set; Custom edits them freely.
+ */
+
+import type { PlayStyleKey } from "./keys.ts";
 
 export const WEEKLY_PLAY_KEYS = ["twoDays", "fourDays", "sixDays", "sevenDays"] as const;
 export const TEAM_TRIAL_KEYS = ["rank4", "rank5", "rank55", "rank6"] as const;

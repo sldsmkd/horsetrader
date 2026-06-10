@@ -41,14 +41,13 @@ import { bookmarkRows } from "./select/bookmarks.ts";
 import { buildTrainerCard, buildOshiSelectorOverlay, buildPlayStyleOverlay } from "./views/identityOverlay.ts";
 import { menubar } from "./views/menubar.ts";
 import type { RightSurface } from "./views/menubar.ts";
-import type { PlayStyleKey } from "./views/playStylePreset.ts";
 import { createIdentityController } from "./identity/controller.ts";
 import {
   PLAY_STYLE_MACHINE_INITIAL,
   reducePlayStyleMachine,
 } from "./identity/playStyleMachine.ts";
 import type { PlayStyleMachineEvent, PlayStyleMachineState } from "./identity/playStyleMachine.ts";
-import type { PlayStyleSettings } from "./identity/playStyleSettings.ts";
+import type { PlayStyleKey, PlayStyleSettings } from "../core/playstyle/index.ts";
 import type { UiStrings } from "./strings.ts";
 import { belowLaneCards } from "./select/belowLane.ts";
 import { aboveLaneGroups } from "./select/aboveLane.ts";

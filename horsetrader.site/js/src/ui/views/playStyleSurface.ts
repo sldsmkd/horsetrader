@@ -13,8 +13,8 @@ import {
   TEAM_TRIAL_KEYS,
   WEEKLY_PLAY_KEYS,
   samePlayStyleSettings,
-} from "../identity/playStyleSettings.ts";
-import type { PlayStyleSettings } from "../identity/playStyleSettings.ts";
+} from "../../core/playstyle/index.ts";
+import type { PlayStyleSettings } from "../../core/playstyle/index.ts";
 import type { PlayStyleStrings } from "../strings.ts";
 
 type SliderKey = keyof PlayStyleSettings;

@@ -5,7 +5,7 @@ import {
   normalizePlayStyleSettings,
   playStyleSettingsForPreset,
   samePlayStyleSettings,
-} from "./playStyleSettings.ts";
+} from "./settings.ts";
 
 test("preset settings define the persisted assumption defaults", () => {
   assert.deepEqual(playStyleSettingsForPreset("casual"), {

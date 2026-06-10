@@ -1,19 +1,32 @@
 import "./playStylePreset.css";
 
 import { h } from "../h.ts";
+import { DEFAULT_PLAY_STYLE, PLAY_STYLE_KEYS } from "../../core/playstyle/index.ts";
+import type { PlayStyleKey } from "../../core/playstyle/index.ts";
 import type { PlayStyleStrings } from "../strings.ts";
 
-export const PLAY_STYLES = [
-  { key: "sweetie", icon: "/icons/playstyle-01.png" },
-  { key: "casual", icon: "/icons/playstyle-02.png" },
-  { key: "focused", icon: "/icons/playstyle-03.png" },
-  { key: "dedicated", icon: "/icons/playstyle-04.png" },
-  { key: "unhinged", icon: "/icons/playstyle-05.png" },
-  { key: "custom", icon: "/icons/playstyle-06.png", locked: true },
-] as const;
+// The preset keys are account data (core/playstyle); this module is the DOM grid
+// that layers icons + the supporter lock on top, in the canonical key order.
+export { DEFAULT_PLAY_STYLE };
+export type { PlayStyleKey };
 
-export type PlayStyleKey = (typeof PLAY_STYLES)[number]["key"];
-export const DEFAULT_PLAY_STYLE: PlayStyleKey = "focused";
+const PLAY_STYLE_ICONS: Record<PlayStyleKey, string> = {
+  sweetie: "/icons/playstyle-01.png",
+  casual: "/icons/playstyle-02.png",
+  focused: "/icons/playstyle-03.png",
+  dedicated: "/icons/playstyle-04.png",
+  unhinged: "/icons/playstyle-05.png",
+  custom: "/icons/playstyle-06.png",
+};
+
+/** Custom is the supporter-gated preset, unlocked via `customUnlocked`. */
+const LOCKED_PLAY_STYLES: ReadonlySet<PlayStyleKey> = new Set<PlayStyleKey>(["custom"]);
+
+export const PLAY_STYLES = PLAY_STYLE_KEYS.map((key) =>
+  LOCKED_PLAY_STYLES.has(key)
+    ? { key, icon: PLAY_STYLE_ICONS[key], locked: true as const }
+    : { key, icon: PLAY_STYLE_ICONS[key] },
+);
 
 export interface PlayStylePresetGridOpts {
   selectedKey: PlayStyleKey;

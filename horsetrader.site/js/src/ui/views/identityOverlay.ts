@@ -4,11 +4,10 @@ import { identitySurface } from "./identitySurface.ts";
 import { oshiSelector } from "./oshiSelector.ts";
 import { playStyleSurface } from "./playStyleSurface.ts";
 import { previewedPlayStyle } from "../identity/playStyleMachine.ts";
-import { playStyleSettingsForPreset } from "../identity/playStyleSettings.ts";
+import { playStyleSettingsForPreset } from "../../core/playstyle/index.ts";
 import type { PlayStyleMachineState } from "../identity/playStyleMachine.ts";
 import type { IdentityController } from "../identity/controller.ts";
-import type { PlayStyleKey } from "./playStylePreset.ts";
-import type { PlayStyleSettings } from "../identity/playStyleSettings.ts";
+import type { PlayStyleKey, PlayStyleSettings } from "../../core/playstyle/index.ts";
 import type { UiStrings } from "../strings.ts";
 
 export function buildTrainerCard(

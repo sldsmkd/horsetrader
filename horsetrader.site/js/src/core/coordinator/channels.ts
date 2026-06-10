@@ -7,7 +7,9 @@
  * contributing. See docs/frontend/projection.md.
  */
 
+import type { ConfigBundle } from "../bundle/config.gen.ts";
 import type { EventsBundle } from "../bundle/events.gen.ts";
+import type { PlayStyleSettings } from "../playstyle/index.ts";
 import type { CalendarDate, StreamEmission } from "../projection/index.ts";
 import {
   eventStream,
@@ -27,6 +29,15 @@ export interface ChannelContext {
    *  `start`, not `end`. The events channel is the only one that honours it
    *  (compound rewards don't move); other channels ignore it. */
   rushed: ReadonlySet<string>;
+  /** The baked reward tables (`reward_structures`/`reward_maps`/`gacha`). The
+   *  ground-truth channels ignore it; the play-style income channels select their
+   *  rows/structs from here. Optional so channel-injecting tests need not bake one;
+   *  in the app it is always the real `bundle.config()`. See docs/frontend/glue.md. */
+  config?: ConfigBundle | undefined;
+  /** The account's resolved play-style assumptions (engagement levels). The
+   *  income channels pick a reward row/scale from these; ground-truth channels
+   *  ignore it. Always present (resolves to the default preset when unset). */
+  play: PlayStyleSettings;
 }
 
 export interface ChannelDef {

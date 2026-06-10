@@ -17,7 +17,9 @@
  * and swap it. Scrubbing reads the cached `series`, never recomputing.
  */
 
+import type { ConfigBundle } from "../bundle/config.gen.ts";
 import type { EventsBundle } from "../bundle/events.gen.ts";
+import { resolvePlayStyle } from "../playstyle/index.ts";
 import type { PlanDocument } from "../persistence/index.ts";
 import { load, save } from "../persistence/index.ts";
 import type { KeyValueStore } from "../persistence/storage.ts";
@@ -124,6 +126,10 @@ export interface Coordinator {
 
 export interface CoordinatorOptions {
   bundle: EventsBundle;
+  /** The baked reward tables fed to the play-style income channels via the channel
+   *  context. Optional — the app passes the real `bundle.config()`; channel-injecting
+   *  tests can omit it. */
+  config?: ConfigBundle;
   /** Gacha pull-math constants the spend pass debits committed pity with. Optional —
    *  defaults to the game-true constants; the app passes the baked `config.gacha`. */
   gacha?: SpendGacha;
@@ -138,7 +144,7 @@ export interface CoordinatorOptions {
 }
 
 export function createCoordinator(options: CoordinatorOptions): Coordinator {
-  const { bundle, now } = options;
+  const { bundle, now, config } = options;
   const gacha = options.gacha ?? { caratsPerPull: 150, paidDailyPull: 50, sparkThreshold: 200 };
   const timeZone = options.timeZone ?? UTC_TIME_ZONE;
   const store = options.store ?? defaultStore();
@@ -166,9 +172,12 @@ export function createCoordinator(options: CoordinatorOptions): Coordinator {
     const base = doc.snapshot?.resources ?? {};
     // The rushed plan (event keys → bring their discrete payout forward to `start`).
     const rushed = new Set(Object.keys(doc.rushed ?? {}));
+    // The account's engagement assumptions, resolved from the persisted config —
+    // the single precedence shared with the identity surface (resolvePlayStyle).
+    const play = resolvePlayStyle(doc.config).settings;
     const income = registry
       .filter((ch) => enabled.get(ch.name) !== false)
-      .map((ch) => ({ stream: ch.name, emissions: ch.emit({ bundle, after, timeZone, rushed }) }));
+      .map((ch) => ({ stream: ch.name, emissions: ch.emit({ bundle, after, timeZone, rushed, config, play }) }));
     const incomeProjection = project({ resources: base }, income);
     const spends = spendStream(committedBanners(bundle, doc.commitments ?? {}, timeZone), incomeProjection.series.balanceAt, gacha, after);
     const projection = project({ resources: base }, [...income, { stream: "spends", emissions: spends.emissions }]);

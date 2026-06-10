@@ -42,6 +42,7 @@ async function bootstrap(): Promise<void> {
 
   const coordinator = createCoordinator({
     bundle: events,
+    config,
     gacha: { caratsPerPull: config.gacha.carats_per_pull, paidDailyPull: config.gacha.paid_daily_pull, sparkThreshold: config.gacha.spark_threshold },
     now,
     timeZone,

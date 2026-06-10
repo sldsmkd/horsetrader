@@ -1,5 +1,4 @@
-import type { PlayStyleKey } from "../views/playStylePreset.ts";
-import type { PlayStyleSettings } from "./playStyleSettings.ts";
+import type { PlayStyleKey, PlayStyleSettings } from "../../core/playstyle/index.ts";
 
 export type IdentityOverlayState = "closed" | "identity" | "oshi" | "playstyle" | "playstyle-oshi";
 

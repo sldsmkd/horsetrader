@@ -1,8 +1,6 @@
 import { createOshiIndex, DEFAULT_OSHI_ID, selectedOshiOption } from "../query/index.ts";
-import { DEFAULT_PLAY_STYLE } from "../views/playStylePreset.ts";
-import type { PlayStyleKey } from "../views/playStylePreset.ts";
-import { normalizePlayStyleSettings, playStyleSettingsForPreset } from "./playStyleSettings.ts";
-import type { PlayStyleSettings } from "./playStyleSettings.ts";
+import { resolvePlayStyle } from "../../core/playstyle/index.ts";
+import type { PlayStyleKey, PlayStyleSettings } from "../../core/playstyle/index.ts";
 import { loadSupporters, verifySupporter } from "./supporters.ts";
 import type { SupporterRegistry } from "./supporters.ts";
 import type { OshiOption, OshiSearchIndex } from "../query/index.ts";
@@ -63,14 +61,11 @@ export function createIdentityController(coord: Coordinator, bundle: Bundle): Id
   }
 
   function playStyleKey(): PlayStyleKey {
-    const key = identityConfig()["playStyleKey"];
-    return key === "sweetie" || key === "casual" || key === "focused" || key === "dedicated" || key === "unhinged" || key === "custom"
-      ? key
-      : DEFAULT_PLAY_STYLE;
+    return resolvePlayStyle(coord.document().config).key;
   }
 
   function playStyleSettings(): PlayStyleSettings {
-    return normalizePlayStyleSettings(identityConfig()["playStyleSettings"], playStyleSettingsForPreset(playStyleKey()));
+    return resolvePlayStyle(coord.document().config).settings;
   }
 
   function commitPlayStyle(key: PlayStyleKey, settings: PlayStyleSettings): void {
