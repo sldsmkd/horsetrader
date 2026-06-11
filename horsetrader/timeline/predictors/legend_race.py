@@ -1,5 +1,5 @@
+import math
 from datetime import datetime, timedelta
-from statistics import mean
 
 from horsetrader.core import JST, UTC, Period
 from horsetrader.info import Logger
@@ -12,8 +12,6 @@ from .base import Predictor
 
 logger = Logger.get(__name__)
 
-_DEFAULT_EN_SPAN = timedelta(days=10)
-
 
 @matikanefukukitaru
 class LegendRacePredictor(Predictor):
@@ -24,9 +22,15 @@ class LegendRacePredictor(Predictor):
     cross-type slope pulled by every other event; a type-specific mapper —
     anchored on the Legend Race JP→EN pairs alone — tracks their own cadence
     instead. Maps each unplaced race's JP **start** day; the per-leg ~3-day
-    cadence is rebuilt from that start at bake time (`LegendRace._baked_legs`), so
-    only the start anchor matters here. The span is the mean confirmed EN window
-    (legs tile it), defaulting to ~10d until enough are confirmed.
+    cadence is rebuilt from that start at bake time (`LegendRace._baked_legs`).
+
+    The EN span is read from *that race's own* JP window (snapped up to whole
+    days), not a cross-race average: a race runs one ~3-day leg per trainee, so
+    its length is set by its leg count. JP cut from 3–4 legs to 2 from mid-2022
+    (`legendrace-013` on), but every EN-confirmed pair predates the break, so a
+    mean would freeze the old ~10d era onto the 2-leg (6d) races. The confirmed
+    pairs show EN span == ceil(JP span) exactly (8d16:59→9d, 11d16:59→12d), so a
+    2-leg 5d16:59 JP window yields the correct 6d EN window.
     """
 
     def predict(self, timeline: Timeline) -> int:
@@ -44,9 +48,6 @@ class LegendRacePredictor(Predictor):
         if len(confirmed) < 2:
             return 0
 
-        span = timedelta(
-            days=round(mean((en.end - en.start).days for _, en in confirmed))
-        )
         mapper = DateMapper(JST, UTC)
         for jp, en in confirmed:
             mapper.add(jp.start, en.start)
@@ -63,6 +64,9 @@ class LegendRacePredictor(Predictor):
             day = mapper.predict(jp.start, UTC)
             # EN events drop at 22:00 UTC, the canonical Global content instant.
             start = datetime(day.year, day.month, day.day, 22, tzinfo=UTC)
+            # Length follows this race's own leg count: its JP window snapped up
+            # to whole days (confirmed EN span == ceil(JP span)).
+            span = timedelta(days=math.ceil((jp.end - jp.start) / timedelta(days=1)))
             event.periods.append(Period(start=start, span=span, predicted=True))
             count += 1
         return count
