@@ -27,7 +27,7 @@ from .rewards import (
 )
 
 if TYPE_CHECKING:
-    from horsetrader.models.events import Banner, LegendRace, Story, WikiruEvent
+    from horsetrader.models.events import Banner, LegendRace, WikiruEvent
 
 
 logger = Logger.get(__name__)
@@ -74,24 +74,6 @@ def stamp_first_original_rewards(banners: "list[Banner]") -> None:
 
     for banner, count in debut_counts.values():
         banner.rewards = Rewards([FreeCarats(80 * count)])
-
-
-def stamp_story_off_table_extras(stories: "list[Story]") -> None:
-    """Every story event grants 660 carats + 3 gold shards on top of its
-    scraped Point Rewards table.
-
-    Gametora's table doesn't list the off-table extras: 450 carats from
-    the spin-the-wheel roulette + 210 carats from the post-event mission,
-    and 3 gold crystal shards that aren't itemised on the page. They're
-    consistent across every story event ingested so far, so they're
-    stamped uniformly. If a future event breaks the consistency, this is
-    where the rule splits.
-    """
-    for s in stories:
-        if s.rewards is None:
-            s.rewards = Rewards()
-        s.rewards.append(FreeCarats(660))
-        s.rewards.append(GoldCrystalShard(3))
 
 
 def stamp_skill_test_rewards(skill_tests: "Iterable[WikiruEvent]") -> None:

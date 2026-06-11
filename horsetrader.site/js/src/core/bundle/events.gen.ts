@@ -98,6 +98,7 @@ export interface StoryRecord {
   image: string | null;
   banner: string | null;
   art: string | null;
+  era: string | null;
   start: string;
   end: string;
   predicted: boolean;

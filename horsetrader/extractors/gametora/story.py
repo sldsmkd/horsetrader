@@ -45,13 +45,14 @@ _STORY_SUPPORT_LINKS_EXPR = './/a[contains(@href, "/umamusume/supports/")]'
 _JP_DATETIME_PATTERN = re.compile(r"(\d{4}年\d{1,2}月\d{1,2}日\s*\d{1,2}:\d{2})")
 _EN_TITLE_SUFFIX_PATTERN = re.compile(r"\s+Story\s+Event\s*$", re.IGNORECASE)
 
-# Point Rewards table. missions_row_img__ rows pair an item icon with its
-# amount text; missions_row_num__ holds the "xN" string.
-_STORY_REWARD_ROW_EXPR = './/div[contains(@class, "missions_row_img__")]'
-_STORY_REWARD_ITEM_IMG_EXPR = './/img[contains(@src, "/items/item_icon_")]'
-_STORY_REWARD_AMOUNT_EXPR = './/div[contains(@class, "missions_row_num__")]'
-_STORY_REWARD_ITEM_ID_PATTERN = re.compile(r"/items/item_icon_(\d+)\.png")
-_STORY_REWARD_AMOUNT_PATTERN = re.compile(r"x(\d+)")
+# Event Pt-reward ladder. Each `missions_row_g__` row pairs a graded reward with
+# its cumulative Pt threshold, held in a `missions_row_text_g__` div ("N Pt"). We
+# don't scrape the graded rewards themselves — stories carry NO rewards; the
+# client expands a play-style `reward-map-story-<era>`. All we need off the page
+# is the ladder *ceiling* (max threshold), which identifies the reward era
+# (1,000,000 = "1m" vs 1,500,000 = "1-5m"). See project docs / reward_structures.yaml.
+_STORY_PT_LADDER_TEXT_EXPR = './/div[contains(@class, "missions_row_text_g__")]'
+_STORY_PT_THRESHOLD_PATTERN = re.compile(r"([\d,]+)\s*Pt")
 
 
 def _absolute_url(path_or_url: str | None) -> str | None:
@@ -93,22 +94,16 @@ class GametoraStory(metaclass=SingletonMeta):
         return slugs
 
     @staticmethod
-    def _extract_reward_items(main) -> list[tuple[str, int]]:
-        rewards: list[tuple[str, int]] = []
-        for row in xpath_all(main, _STORY_REWARD_ROW_EXPR):
-            img_src = xpath_attr(row, _STORY_REWARD_ITEM_IMG_EXPR, "src") or ""
-            id_match = _STORY_REWARD_ITEM_ID_PATTERN.search(img_src)
-            if not id_match:
-                continue
-            amount_node = xpath_first(row, _STORY_REWARD_AMOUNT_EXPR)
-            if amount_node is None:
-                continue
-            amount_text = amount_node.text_content().strip()
-            amount_match = _STORY_REWARD_AMOUNT_PATTERN.match(amount_text)
-            if not amount_match:
-                continue
-            rewards.append((id_match.group(1), int(amount_match.group(1))))
-        return rewards
+    def _extract_pt_ceiling(main) -> int | None:
+        """The max Pt threshold on the event's Pt-reward ladder — the ceiling that
+        identifies the reward era. `None` if the ladder isn't present (the proto-era
+        layout differs; those events are historical and not modelled)."""
+        thresholds: list[int] = []
+        for node in xpath_all(main, _STORY_PT_LADDER_TEXT_EXPR):
+            match = _STORY_PT_THRESHOLD_PATTERN.search(node.text_content())
+            if match:
+                thresholds.append(int(match.group(1).replace(",", "")))
+        return max(thresholds) if thresholds else None
 
     @staticmethod
     def _parse_period(block_text: str) -> Period:
@@ -159,7 +154,7 @@ class GametoraStory(metaclass=SingletonMeta):
                 cleaned = _EN_TITLE_SUFFIX_PATTERN.sub("", raw).strip()
                 title_en = cleaned or None
 
-        reward_items = self._extract_reward_items(main_ja)
+        pt_ceiling = self._extract_pt_ceiling(main_ja)
 
         logger.info("Fetched story details for %s from Gametora", key)
         return {
@@ -168,7 +163,7 @@ class GametoraStory(metaclass=SingletonMeta):
             "icon_url": icon_url,
             "trainee_ids": trainee_ids,
             "support_ids": support_ids,
-            "reward_items": reward_items,
+            "pt_ceiling": pt_ceiling,
             "source_url_ja": source_url_ja,
             "source_url_en": source_url_en,
         }
@@ -259,7 +254,7 @@ class GametoraStories(metaclass=SingletonMeta):
                 "icon_url": detail["icon_url"],
                 "trainee_ids": detail["trainee_ids"],
                 "support_ids": detail["support_ids"],
-                "reward_items": detail["reward_items"],
+                "pt_ceiling": detail["pt_ceiling"],
                 "references": [STORY_INDEX_URL, source_url_ja, source_url_en],
             })
 

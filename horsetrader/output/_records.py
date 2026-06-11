@@ -155,6 +155,10 @@ class StoryRecord(EventRecord, tag="story"):
     image: str | None
     banner: str | None
     art: str | None
+    # Reward era — selects the play-style `reward-map-story-<era>` the client
+    # expands; `null` for proto-era stories (1–5, historical, not modelled).
+    # Stories carry no `rewards` of their own (the base envelope omits the key).
+    era: str | None
 
 
 @eishin

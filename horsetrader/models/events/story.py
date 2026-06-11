@@ -11,11 +11,6 @@ from horsetrader.info import Logger
 from horsetrader.models.core import References
 from horsetrader.models.entities import Support, Supports, Trainee, Trainees
 from horsetrader.models.media import CurrenChan, Image, ImageRequest
-from horsetrader.models.rewards import (
-    Rewards,
-    reward_for_gametora_icon,
-    stamp_story_off_table_extras,
-)
 from horsetrader.output._records import StoryRecord
 from horsetrader.semantics import daitaku
 
@@ -23,6 +18,33 @@ from .event import Event, Rushable
 from .events import Events
 
 logger = Logger.get(__name__)
+
+# Story events carry NO rewards of their own — the graded Pt-reward ladder, the
+# bingo, and the story-chapter carats are folded into the curated play-style
+# `reward-map-story-<era>` (config/yaml/reward_structures.yaml). All a Story
+# communicates is its *era*, selected by the Pt-ladder ceiling scraped off the
+# detail page. The client expands the matching map at the player's tier.
+_PT_CEILING_ERAS = {1_000_000: "1m", 1_500_000: "1-5m"}
+# Proto-era ceilings (stories 1–5): historical, deliberately not modelled — they
+# resolve to `None` silently rather than warning. (story-1 = 1.45M, 2–5 = 700k.)
+_PROTO_CEILINGS = {700_000, 1_450_000}
+
+
+def _era_for_ceiling(ceiling: int | None) -> str | None:
+    """Map a scraped Pt-ladder ceiling to its reward era. `None` when there's no
+    ladder, or for the historical proto-era ceilings (not modelled). An *unknown*
+    ceiling warns rather than raises — scraped input fails soft — signalling a new
+    era that needs a `reward-map-story-<era>` and an `_PT_CEILING_ERAS` entry."""
+    if ceiling is None:
+        return None
+    era = _PT_CEILING_ERAS.get(ceiling)
+    if era is None and ceiling not in _PROTO_CEILINGS:
+        logger.warning(
+            "Story Pt ceiling %s has no era mapping — new reward era? "
+            "Add a reward-map-story-<era> and extend _PT_CEILING_ERAS",
+            ceiling,
+        )
+    return era
 
 
 @daitaku
@@ -36,6 +58,7 @@ class Story(Rushable, Event):
     thumb: Image | None = field(default=None, kw_only=True)
     trainees: list[Trainee] = field(default_factory=list, kw_only=True)
     supports: list[Support] = field(default_factory=list, kw_only=True)
+    era: str | None = field(default=None, kw_only=True)
 
     def match(self, query: str) -> bool:
         return (
@@ -53,6 +76,7 @@ class Story(Rushable, Event):
             image=str(self.thumb.url) if self.thumb else None,
             banner=str(self.banner.url) if self.banner else None,
             art=str(self.art.url) if self.art else None,
+            era=self.era,
         )
 
 
@@ -142,8 +166,6 @@ class Stories(Events[Story], metaclass=SingletonMeta):
                 else:
                     logger.warning("No support for slug %s in %s", sup_slug, gametora_key)
 
-            rewards = self._resolve_rewards(record.get("reward_items", []), gametora_key)
-
             stories.append(
                 Story(
                     key=stable_key,
@@ -155,33 +177,12 @@ class Stories(Events[Story], metaclass=SingletonMeta):
                     supports=supports,
                     references=references,
                     correlations={Sources.GAMETORA.value: gametora_n},
-                    rewards=rewards,
+                    era=_era_for_ceiling(record.get("pt_ceiling")),
                 )
             )
 
         self._assign_banners(stories)
-        stamp_story_off_table_extras(stories)
         return stories
-
-    @staticmethod
-    def _resolve_rewards(
-        reward_items: list[tuple[str, int]], gametora_key: str
-    ) -> Rewards | None:
-        # One Reward instance per scraped row; the bake mapper sums same-keyed
-        # entries when emitting JSON, so we don't bucket here. Allowlist by
-        # design: scraped icons without a typed `Reward` subclass are dropped
-        # at debug — the Items collection still has them by item-id if a
-        # consumer wants the long tail.
-        rewards = Rewards()
-        for icon_id, amount in reward_items:
-            cls = reward_for_gametora_icon(icon_id)
-            if cls is None:
-                logger.debug(
-                    "Unmapped reward icon %s in %s (x%d)", icon_id, gametora_key, amount
-                )
-                continue
-            rewards.append(cls(amount=amount))
-        return rewards or None
 
     def _assign_banners(self, stories: list[Story]) -> None:
         banner_records = Static().story_banners()

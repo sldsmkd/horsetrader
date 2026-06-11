@@ -29,7 +29,6 @@ from .rules import (
     stamp_legend_race_rewards,
     stamp_racing_carnival_rewards,
     stamp_skill_test_rewards,
-    stamp_story_off_table_extras,
 )
 
 __all__ = [
@@ -60,5 +59,4 @@ __all__ = [
     "stamp_legend_race_rewards",
     "stamp_racing_carnival_rewards",
     "stamp_skill_test_rewards",
-    "stamp_story_off_table_extras",
 ]

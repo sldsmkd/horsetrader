@@ -437,6 +437,16 @@
             }
           ]
         },
+        "era": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "start": {
           "type": "string"
         },
@@ -499,6 +509,7 @@
         "image",
         "banner",
         "art",
+        "era",
         "start",
         "end",
         "predicted",
