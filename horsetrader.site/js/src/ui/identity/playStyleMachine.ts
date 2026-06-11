@@ -1,6 +1,13 @@
 import type { PlayStyleKey, PlayStyleSettings } from "../../core/playstyle/index.ts";
 
-export type IdentityOverlayState = "closed" | "identity" | "oshi" | "playstyle" | "playstyle-oshi";
+export type IdentityOverlayState =
+  | "closed"
+  | "identity"
+  | "oshi"
+  | "club"
+  | "playstyle"
+  | "playstyle-oshi"
+  | "playstyle-club";
 
 export interface PlayStyleMachineState {
   overlay: IdentityOverlayState;
@@ -12,6 +19,8 @@ export type PlayStyleMachineEvent =
   | { type: "toggle-identity" }
   | { type: "open-oshi" }
   | { type: "close-oshi" }
+  | { type: "open-club" }
+  | { type: "close-club" }
   | { type: "preview-playstyle"; key: PlayStyleKey }
   | { type: "stage-settings"; settings: PlayStyleSettings }
   | { type: "discard-playstyle" }
@@ -49,6 +58,18 @@ export function reducePlayStyleMachine(
     case "close-oshi":
       return {
         overlay: state.overlay === "playstyle-oshi" ? "playstyle" : "identity",
+        stagedPlayStyle: state.stagedPlayStyle,
+        stagedPlayStyleSettings: state.stagedPlayStyleSettings,
+      };
+    case "open-club":
+      return {
+        overlay: state.overlay === "playstyle" || state.overlay === "playstyle-club" ? "playstyle-club" : "club",
+        stagedPlayStyle: state.stagedPlayStyle,
+        stagedPlayStyleSettings: state.stagedPlayStyleSettings,
+      };
+    case "close-club":
+      return {
+        overlay: state.overlay === "playstyle-club" ? "playstyle" : "identity",
         stagedPlayStyle: state.stagedPlayStyle,
         stagedPlayStyleSettings: state.stagedPlayStyleSettings,
       };

@@ -1,0 +1,116 @@
+.club-selector {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.club-selector__field {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.club-selector__label {
+  color: color-mix(in srgb, currentColor 66%, transparent);
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.club-selector__name {
+  min-width: 0;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid color-mix(in srgb, currentColor 24%, transparent);
+  border-radius: 0.4rem;
+  background: color-mix(in srgb, Canvas 86%, transparent);
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+}
+
+.club-selector__name:focus {
+  outline: 2px solid color-mix(in srgb, #5fcf00 70%, currentColor 18%);
+  outline-offset: 0.15rem;
+}
+
+.club-selector__grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-content: start;
+  gap: 0.55rem;
+}
+
+.club-selector__option {
+  display: grid;
+  justify-items: center;
+  gap: 0.25rem;
+  min-width: 0;
+  padding: 0.55rem 0.35rem;
+  border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+  border-radius: 0.45rem;
+  background: color-mix(in srgb, Canvas 88%, transparent);
+  color: inherit;
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+}
+
+.club-selector__option:hover,
+.club-selector__option:focus-visible,
+.club-selector__option--selected {
+  border-color: color-mix(in srgb, #5fcf00 58%, currentColor 24%);
+  background: color-mix(in srgb, Canvas 68%, #5fcf00 13%);
+  outline: 0;
+}
+
+.club-selector__icon {
+  width: 3.4rem;
+  height: auto;
+  object-fit: contain;
+}
+
+.club-selector__rank {
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.club-selector__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.club-selector__leave {
+  margin-right: auto;
+  padding: 0.55rem 0.9rem;
+  border: 1px solid color-mix(in srgb, #ff5670 50%, currentColor 22%);
+  border-radius: 0.4rem;
+  background: color-mix(in srgb, Canvas 78%, #ff5670 10%);
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.club-selector__leave:hover,
+.club-selector__leave:focus-visible {
+  border-color: color-mix(in srgb, #ff5670 70%, currentColor 18%);
+  background: color-mix(in srgb, Canvas 68%, #ff5670 16%);
+  outline: 0;
+}
+
+.club-selector__ok {
+  min-width: 5.5rem;
+  padding: 0.55rem 0.9rem;
+  border: 1px solid color-mix(in srgb, #5fcf00 58%, currentColor 24%);
+  border-radius: 0.4rem;
+  background: color-mix(in srgb, Canvas 66%, #5fcf00 16%);
+  color: inherit;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+@media (max-width: 620px) {
+  .club-selector__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
