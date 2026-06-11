@@ -437,7 +437,15 @@ export function mountApp(
             placement: "center",
             body: resourcesEditor({
               snapshot: coord.document().snapshot,
-              onCommit: (snapshot) => coord.update({ snapshot }),
+              dailyPack: (coord.document().config?.["dailyPack"] as string | undefined) ?? null,
+              onCommit: ({ snapshot, dailyPack }) => {
+                // The pack date is a config setting (account-level), not part of the
+                // resource reading — merge it into config, omitting the key when unset.
+                const config = { ...coord.document().config };
+                if (dailyPack) config["dailyPack"] = dailyPack;
+                else delete config["dailyPack"];
+                coord.update({ snapshot, config });
+              },
               onClose: () => view.set({ resourcesEditing: false }),
             }),
             onClose: () => view.set({ resourcesEditing: false }),

@@ -25,7 +25,7 @@ import type { PlanDocument } from "../persistence/index.ts";
 import { load, save } from "../persistence/index.ts";
 import type { KeyValueStore } from "../persistence/storage.ts";
 import { defaultStore } from "../persistence/storage.ts";
-import { applyChampionsMeetingRewards, project, spendStream } from "../projection/index.ts";
+import { applyChampionsMeetingRewards, project, resolveDailyPack, spendStream } from "../projection/index.ts";
 import type { Projection, ResourceVector, SpendGacha, CommittedBanner, BannerKind } from "../projection/index.ts";
 import { UTC_TIME_ZONE, cal, dateStringInTimeZone } from "../projection/dates.ts";
 import type { CalendarDate } from "../projection/dates.ts";
@@ -180,6 +180,10 @@ export function createCoordinator(options: CoordinatorOptions): Coordinator {
     // config.identity block but through its own precedence. `null` when the trainer
     // isn't in a club, so the club-rank channel pays nothing. Feeds that channel.
     const clubRank = resolveClub(doc.config)?.rank ?? null;
+    // The Daily Carat Pack subscription's validity date (a 30-day cycle boundary), or
+    // null when not subscribed — the daily-pack income channel's only input. Resolved
+    // from the same persisted config block, its own precedence like club rank.
+    const dailyPack = resolveDailyPack(doc.config);
     // Reconstitute the rank-dependent CM rewards the bake omits (issue #19): stamp the
     // player's CM rank payout onto every CM event so the ground-truth `events` channel
     // folds it (on each CM's last day) and the below-lane card renders it — without the
@@ -187,7 +191,7 @@ export function createCoordinator(options: CoordinatorOptions): Coordinator {
     const folded = config ? applyChampionsMeetingRewards(bundle, config, play.championsMeeting) : bundle;
     const income = registry
       .filter((ch) => enabled.get(ch.name) !== false)
-      .map((ch) => ({ stream: ch.name, emissions: ch.emit({ bundle: folded, after, timeZone, rushed, config, play, clubRank }) }));
+      .map((ch) => ({ stream: ch.name, emissions: ch.emit({ bundle: folded, after, timeZone, rushed, config, play, clubRank, dailyPack }) }));
     const incomeProjection = project({ resources: base }, income);
     const spends = spendStream(committedBanners(bundle, doc.commitments ?? {}, timeZone), incomeProjection.series.balanceAt, gacha, after);
     const projection = project({ resources: base }, [...income, { stream: "spends", emissions: spends.emissions }]);

@@ -20,6 +20,30 @@
   cursor: pointer;
 }
 
+.resources-editor__pack-date-field {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  opacity: 0.8;
+  margin-top: -0.5rem;
+  margin-left: 1.4rem;
+}
+
+.resources-editor__pack-date-field[hidden] {
+  display: none;
+}
+
+.resources-editor__pack-date {
+  font: inherit;
+  font-size: 0.85rem;
+  color: inherit;
+  background: color-mix(in srgb, currentColor 8%, transparent);
+  border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
+  border-radius: 0.3rem;
+  padding: 0.2rem 0.4rem;
+}
+
 .resources-editor__actions {
   display: flex;
   justify-content: flex-end;
