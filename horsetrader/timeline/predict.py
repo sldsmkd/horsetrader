@@ -13,6 +13,7 @@ from .predictors import (
     LegendRacePredictor,
     ScenarioPredictor,
     StoryPredictor,
+    TrainingPassPredictor,
     shape_anniversary_mission_windows,
 )
 from .timeline import Timeline
@@ -90,6 +91,13 @@ class Predict:
         self._stats["anniversarymissionwindow"] = shape_anniversary_mission_windows(
             timeline
         )
+
+        # Dead last and unlike the rest: the Training Pass has no scrape, so Mati
+        # *mints* the series herself once everything else is scheduled and
+        # projected — rolling 30-day windows off the 3rd anniversary to the
+        # timeline's right edge. Must follow the chain so it reads the final
+        # horizon (and the EN anniversary date the predictors above placed).
+        self._stats["trainingpass"] = TrainingPassPredictor(timeline).predict(timeline)
 
         utc = Timeline(
             timezone.utc,

@@ -259,6 +259,17 @@ class AnniversaryMissionRecord(EventRecord, tag="anniversarymission"):
 
 
 @eishin
+class TrainingPassRecord(EventRecord, tag="trainingpass"):
+    # The Training Pass battle-pass window: a recurring below-line event carrying
+    # its FREE-track rewards via the shared envelope. The premium track is the
+    # toggle-gated boost and rides `reward_maps["training-pass"]["premium"]` in
+    # config.json, selected client-side — not a field here. `name` is the constant
+    # EN display label ("Training Pass"). Not rushable — points accrue across the
+    # window, there's no post-at-start choice.
+    name: str | None
+
+
+@eishin
 class AnchorRecord(EventRecord, tag="anchor"):
     # Calendar point: nothing past the shared envelope (+ any curated rewards).
     pass
@@ -291,6 +302,7 @@ EventRecordUnion = (
     | MissionRecord
     | AnniversaryRecord
     | AnniversaryMissionRecord
+    | TrainingPassRecord
     | AnchorRecord
     | AnchoredEventRecord
 )

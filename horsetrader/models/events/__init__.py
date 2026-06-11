@@ -18,6 +18,7 @@ from .showtime import Showtime, Showtimes
 from .skill_test import SkillTest, SkillTests
 from .story import Stories, Story
 from .strongest_team import StrongestTeam, StrongestTeams
+from .training_pass import TrainingPass
 from .wikiru_event import WikiruEvent, WikiruEvents
 
 __all__ = [
@@ -62,6 +63,7 @@ __all__ = [
     "StrongestTeams",
     "SupportBanner",
     "TraineeBanner",
+    "TrainingPass",
     "WikiruEvent",
     "WikiruEvents",
 ]

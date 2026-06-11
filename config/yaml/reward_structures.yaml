@@ -115,5 +115,17 @@ reward-map-masters: # Masters Challenge, graded by level (EX = L3 payout + intan
     "3":  { free_carats: 4500, gold_crystal_shards: 5, rainbow_crystal_shards: 5 }
     "EX": { free_carats: 4500, gold_crystal_shards: 5, rainbow_crystal_shards: 5 }
 
-# No monthly sub today. The future "training pass" battle-pass (two versions)
-# waits on the reward mappers before it lands here.
+# Training Pass battle-pass — the FREE track is baked onto each minted
+# `TrainingPass` event (Mati's TrainingPassPredictor stamps it; it's unconditional
+# income everyone gets). Only the PREMIUM track lives here: a single `premium`
+# tier the client adds on top of the free track when the paid toggle is on — the
+# same account-state selection a rank map drives, just binary. These are the
+# ADDITIONAL rewards the paid track unlocks, summed onto the free track.
+reward-map-training-pass:
+  tiers:
+    premium:
+      free_carats: 1000
+      paid_carats: 350
+      trainee_tickets: 2
+      support_tickets: 2
+      rainbow_crystal_shards: 1

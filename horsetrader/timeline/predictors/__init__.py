@@ -12,5 +12,6 @@ from .holiday import HolidayPredictor
 from .legend_race import LegendRacePredictor
 from .scenario import ScenarioPredictor
 from .story import StoryPredictor
+from .training_pass import TrainingPassPredictor
 
-__all__ = ["AnchorPredictor", "AnniversaryMissionPredictor", "AnniversaryPredictor", "BannerPredictor", "ChampionsMeetingPredictor", "FallthroughPredictor", "HolidayPredictor", "LegendRacePredictor", "Predictor", "ScenarioPredictor", "StoryPredictor", "nearest_weekday", "shape_anniversary_mission_windows"]
+__all__ = ["AnchorPredictor", "AnniversaryMissionPredictor", "AnniversaryPredictor", "BannerPredictor", "ChampionsMeetingPredictor", "FallthroughPredictor", "HolidayPredictor", "LegendRacePredictor", "Predictor", "ScenarioPredictor", "StoryPredictor", "TrainingPassPredictor", "nearest_weekday", "shape_anniversary_mission_windows"]
