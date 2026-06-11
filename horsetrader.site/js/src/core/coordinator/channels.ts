@@ -18,6 +18,8 @@ import {
   eventStream,
   generatorStream,
   generatorsFromBundle,
+  isMissionEvent,
+  missionStream,
   dailyPackSpecFromBundle,
   dailyPackStream,
   routineSpecFromBundle,
@@ -75,7 +77,10 @@ export interface ChannelDef {
  *  user input they read is `rushed` (the events channel pulls a rushed event's
  *  discrete payout forward to its start); amounts are never user-authored here. */
 export const GROUND_TRUTH_CHANNELS: ChannelDef[] = [
-  { name: "events", emit: ({ bundle, after, timeZone, rushed }) => eventStream(bundle, after, timeZone, rushed) },
+  // The events channel folds every below/above-lane event EXCEPT normal missions —
+  // those are split onto the play-gated `missions` income channel (see below), so
+  // this stays the universal, config/play-agnostic fold.
+  { name: "events", emit: ({ bundle, after, timeZone, rushed }) => eventStream(bundle, after, timeZone, rushed, (ev) => !isMissionEvent(ev)) },
   { name: "generator", emit: ({ bundle, after, timeZone }) => generatorStream(generatorsFromBundle(bundle, timeZone), after) },
   { name: "sequence", emit: ({ bundle, after, timeZone }) => sequenceStream(sequencesFromBundle(bundle, timeZone), after) },
 ];
@@ -85,6 +90,16 @@ export const GROUND_TRUTH_CHANNELS: ChannelDef[] = [
  *  bundle does not enumerate. Inert without a config (channel-injecting tests omit
  *  it); the app always supplies the real `bundle.config()`. See docs/frontend/glue.md. */
 export const INCOME_CHANNELS: ChannelDef[] = [
+  {
+    // The regular mission campaigns — a gating flag, not a scaled channel: the
+    // baked mission rewards are folded as their own stream when the player does
+    // missions (`play.missions === "yes"`) and dropped wholesale when they don't.
+    // No `config` needed — it reads the events' own baked rewards, not a table.
+    // (Anniversary missions are a separate type and stay universal, never gated.)
+    name: "missions",
+    emit: ({ bundle, after, timeZone, rushed, play }) =>
+      play.missions === "yes" ? missionStream(bundle, after, timeZone, rushed) : [],
+  },
   {
     name: "routine",
     emit: ({ bundle, config, play, after, timeZone }) => {

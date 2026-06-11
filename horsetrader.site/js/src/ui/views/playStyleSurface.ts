@@ -61,9 +61,24 @@ function sliderRow(key: SliderKey, opts: PlayStyleSurfaceOpts): HTMLElement {
   };
   const selected = keys.indexOf(String(opts.settings[key]));
   const locked = opts.playStyleKey !== "custom";
+  // Guard the keys↔strings contract. `SLIDER_KEYS[key]` (the playstyle enum) and
+  // `strings.settings[key].steps` are two hand-maintained lists that MUST stay in
+  // lockstep; whenever they drift — e.g. you change a `*_KEYS` set in
+  // core/playstyle/settings.ts but miss the matching block in ui/strings.ts — this
+  // map would otherwise emit `undefined` step objects and discreteSlider would throw
+  // reading `.value`, white-screening the entire trainee/play-style surface (looks
+  // like "the pipeline broke"). Coalesce to a visible placeholder + warn instead, so
+  // a mismatch degrades to an obvious bad label you can fix, not a crash. Future me:
+  // if you see "fix me: <key>" steps, the strings block is out of sync with the enum.
+  const steps = keys.map((stepKey) => {
+    const step = setting.steps[stepKey];
+    if (step) return step;
+    console.warn(`playStyleSurface: no strings for ${key}.${stepKey} — keys/strings drift`);
+    return { value: stepKey, description: `fix me: ${key}.${stepKey}` };
+  });
   return discreteSlider({
     title: setting.title,
-    steps: keys.map((stepKey) => setting.steps[stepKey]),
+    steps,
     selected,
     locked,
     onChange: (index) => {

@@ -13,30 +13,21 @@ import { createCoordinator } from "./core/coordinator/index.ts";
 import { defaultTimeZone, todayInTimeZone } from "./core/projection/dates.ts";
 import { createBundle } from "./ui/bundle/access.ts";
 import { mountApp } from "./ui/app.ts";
-import { FALLBACK_STRINGS } from "./ui/strings.ts";
+// UI copy is bundled, not fetched — it's app code, not baked data. (It used to be a
+// hand-authored skeleton/json/strings.json fetched here; that split silently drifted
+// from the playstyle key enums. See ui/strings.ts.)
+import { UI_STRINGS } from "./ui/strings.ts";
 import type { EventsBundle } from "./core/bundle/events.gen.ts";
 import type { Academy } from "./core/bundle/academy.gen.ts";
 import type { ConfigBundle } from "./core/bundle/config.gen.ts";
-import type { UiStrings } from "./ui/strings.ts";
-
-async function fetchStrings(): Promise<UiStrings> {
-  try {
-    const response = await fetch("/json/strings.json");
-    if (!response.ok) return FALLBACK_STRINGS;
-    return (await response.json()) as UiStrings;
-  } catch {
-    return FALLBACK_STRINGS;
-  }
-}
 
 async function bootstrap(): Promise<void> {
   // The baked bundles — upstream-validated, so a plain cast (trust the bake).
-  const [events, academy, config, strings] = (await Promise.all([
+  const [events, academy, config] = (await Promise.all([
     fetch("/json/events.json").then((r) => r.json()),
     fetch("/json/academy.json").then((r) => r.json()),
     fetch("/json/config.json").then((r) => r.json()),
-    fetchStrings(),
-  ])) as [EventsBundle, Academy, ConfigBundle, UiStrings];
+  ])) as [EventsBundle, Academy, ConfigBundle];
   const timeZone = defaultTimeZone();
   const now = todayInTimeZone(timeZone);
 
@@ -47,7 +38,7 @@ async function bootstrap(): Promise<void> {
     now,
     timeZone,
   });
-  mountApp(coordinator, createBundle(events, academy, config, timeZone), now, strings);
+  mountApp(coordinator, createBundle(events, academy, config, timeZone), now, UI_STRINGS);
 }
 
 bootstrap().catch((err) => {

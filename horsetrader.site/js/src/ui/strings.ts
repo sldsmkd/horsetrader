@@ -45,7 +45,15 @@ export interface UiStrings {
   playStyle: PlayStyleStrings;
 }
 
-export const FALLBACK_STRINGS: UiStrings = {
+// The app's UI copy — the single source, bundled into the JS (main.ts imports it
+// directly, no fetch). It used to be hand-authored as skeleton/json/strings.json
+// and fetched at runtime, with this as a "fallback"; that split let the JSON drift
+// from the `*_KEYS` enums silently (the cast `as UiStrings` type-checked nothing) —
+// a historical accident, since UI copy belongs in the bundle, not the seed shell.
+// Now it's typed against the playstyle key enums (`PlayStyleSettingStrings<Key>` →
+// `steps: Record<Key, …>`), so a missing step for a new enum value is a COMPILE
+// error here, not a white-screen in the browser. Keep this in sync by editing here.
+export const UI_STRINGS: UiStrings = {
   playStyle: {
     title: "Play Style",
     apply: "Apply",
@@ -104,10 +112,8 @@ export const FALLBACK_STRINGS: UiStrings = {
       missions: {
         title: "Missions",
         steps: {
-          none: { value: "0%", description: "I do not plan around the regular mission set." },
-          some: { value: "20%", description: "I pick up the easy mission rewards when they line up." },
-          most: { value: "70%", description: "I finish most missions without chasing every edge case." },
-          all: { value: "100%", description: "I clear the regular mission set." },
+          no: { value: "No", description: "I do not chase the regular mission set." },
+          yes: { value: "Yes", description: "I work through the regular missions." },
         },
       },
       specialMissions: {

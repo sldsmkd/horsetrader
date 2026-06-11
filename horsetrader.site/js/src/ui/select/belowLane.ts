@@ -94,17 +94,29 @@ function labelOf(ev: EventRecord): string {
   return ev.key;
 }
 
-export function belowLaneCards(projection: Projection, bundle: Bundle, axis: Axis, now: CalendarDate): BelowCard[] {
+export function belowLaneCards(
+  projection: Projection,
+  bundle: Bundle,
+  axis: Axis,
+  now: CalendarDate,
+  // Event kinds whose income stream the player has toggled off — their cards are
+  // hidden entirely, not shown with an empty reward. A card belongs to its stream:
+  // if you don't do missions, the mission cards leave the timeline with the income
+  // (the play-style "missions" gate, the only member today). Distinct from the ETL
+  // `visible: false` opt-out (a data fact); this is a live user-engagement choice.
+  hiddenKinds: ReadonlySet<string> = new Set(),
+): BelowCard[] {
   // Each below-lane event posts once (on its `end`), so a source maps to one
   // reward bag; accumulate per source across its single-resource ledger entries.
   // Many below-lane kinds post nothing — that's normal, not a missing card.
   const rewardBySource = new Map<string, ResourceVector>();
   for (const entry of projection.ledger) {
-    // The two event-attributed streams: `events` (flat discrete payout) and
-    // `sequence` (the baked per-day schedule, e.g. an anniversary mission's daily
-    // carats), both keyed by the event's key. The `generator` stream (daily login)
-    // is global income, not a card's own reward, so it stays off the cards.
-    if (entry.stream !== "events" && entry.stream !== "sequence") continue;
+    // The event-attributed streams, all keyed by the event's key: `events` (flat
+    // discrete payout), `sequence` (the baked per-day schedule, e.g. an anniversary
+    // mission's daily carats), and `missions` (the regular missions split onto their
+    // own play-gated stream — see streams/missions.ts). The `generator` stream
+    // (daily login) is global income, not a card's own reward, so it stays off.
+    if (entry.stream !== "events" && entry.stream !== "sequence" && entry.stream !== "missions") continue;
     let bag = rewardBySource.get(entry.source);
     if (!bag) rewardBySource.set(entry.source, (bag = {}));
     bag[entry.resource] = (bag[entry.resource] ?? 0) + entry.amount;
@@ -116,6 +128,7 @@ export function belowLaneCards(projection: Projection, bundle: Bundle, axis: Axi
   const cards: BelowCard[] = [];
   for (const ev of bundle.all()) {
     if (!BELOW_LANE.has(ev.type)) continue; // above-lane banner or unknown kind
+    if (hiddenKinds.has(ev.type)) continue; // income stream toggled off → no card
     if (!isVisible(ev)) continue; // opt-out flag: explicit `visible: false` hides
     cards.push({
       key: ev.key,

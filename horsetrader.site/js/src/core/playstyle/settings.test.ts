@@ -11,7 +11,7 @@ test("preset settings define the persisted assumption defaults", () => {
   assert.deepEqual(playStyleSettingsForPreset("casual"), {
     weeklyPlay: "fourDays",
     teamTrials: "rank5",
-    missions: "some",
+    missions: "no",
     specialMissions: "welfare",
     storyEvents: "welfare",
     championsMeeting: "groupBContender",
@@ -20,7 +20,7 @@ test("preset settings define the persisted assumption defaults", () => {
   assert.deepEqual(playStyleSettingsForPreset("focused"), {
     weeklyPlay: "sixDays",
     teamTrials: "rank55",
-    missions: "most",
+    missions: "no",
     specialMissions: "major",
     storyEvents: "major",
     championsMeeting: "groupBWinner",
@@ -34,7 +34,7 @@ test("normalizes stored settings against a fallback", () => {
     {
       weeklyPlay: "sevenDays",
       teamTrials: "rank6",
-      missions: "all",
+      missions: "yes",
       specialMissions: "all",
       storyEvents: "earlyAchievement",
       championsMeeting: "groupAChampion",
@@ -46,7 +46,7 @@ test("normalizes stored settings against a fallback", () => {
   assert.deepEqual(normalized, {
     weeklyPlay: "sevenDays",
     teamTrials: "rank6",
-    missions: "all",
+    missions: "yes",
     specialMissions: "all",
     storyEvents: "earlyAchievement",
     championsMeeting: "groupAChampion",
@@ -59,5 +59,5 @@ test("normalizes stored settings against a fallback", () => {
 test("compares persisted playstyle settings by value", () => {
   const focused = playStyleSettingsForPreset("focused");
   assert.equal(samePlayStyleSettings(focused, { ...focused }), true);
-  assert.equal(samePlayStyleSettings(focused, { ...focused, missions: "all" }), false);
+  assert.equal(samePlayStyleSettings(focused, { ...focused, missions: "yes" }), false);
 });

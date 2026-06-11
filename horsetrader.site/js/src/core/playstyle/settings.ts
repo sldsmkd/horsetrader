@@ -10,7 +10,13 @@ import type { PlayStyleKey } from "./keys.ts";
 
 export const WEEKLY_PLAY_KEYS = ["twoDays", "fourDays", "sixDays", "sevenDays"] as const;
 export const TEAM_TRIAL_KEYS = ["rank4", "rank5", "rank55", "rank6"] as const;
-export const MISSION_KEYS = ["none", "some", "most", "all"] as const;
+// Normal missions are a binary do-them-or-don't gate, not a completion gradation:
+// a percentage says nothing about *which* missions were done (each pays
+// differently), so the only honest control is a yes/no. The engaged archetypes
+// (dedicated/unhinged, and custom) do them; the lighter ones don't. See
+// docs/frontend/glue.md (the mission model). Income gating still waits on the bake
+// split (baseline-universal vs grindy) — this is the settled signal it will read.
+export const MISSION_KEYS = ["no", "yes"] as const;
 export const SPECIAL_MISSION_KEYS = ["some", "welfare", "major", "all"] as const;
 export const STORY_EVENT_KEYS = ["story", "welfare", "major", "achievement", "earlyAchievement"] as const;
 export const CHAMPIONS_MEETING_KEYS = ["skip", "groupBContender", "groupBWinner", "groupARunnerUp", "groupAChampion"] as const;
@@ -38,7 +44,7 @@ const PRESET_SETTINGS: Record<Exclude<PlayStyleKey, "custom">, PlayStyleSettings
   sweetie: {
     weeklyPlay: "twoDays",
     teamTrials: "rank4",
-    missions: "none",
+    missions: "no",
     specialMissions: "some",
     storyEvents: "story",
     championsMeeting: "skip",
@@ -47,7 +53,7 @@ const PRESET_SETTINGS: Record<Exclude<PlayStyleKey, "custom">, PlayStyleSettings
   casual: {
     weeklyPlay: "fourDays",
     teamTrials: "rank5",
-    missions: "some",
+    missions: "no",
     specialMissions: "welfare",
     storyEvents: "welfare",
     championsMeeting: "groupBContender",
@@ -56,7 +62,7 @@ const PRESET_SETTINGS: Record<Exclude<PlayStyleKey, "custom">, PlayStyleSettings
   focused: {
     weeklyPlay: "sixDays",
     teamTrials: "rank55",
-    missions: "most",
+    missions: "no",
     specialMissions: "major",
     storyEvents: "major",
     championsMeeting: "groupBWinner",
@@ -65,7 +71,7 @@ const PRESET_SETTINGS: Record<Exclude<PlayStyleKey, "custom">, PlayStyleSettings
   dedicated: {
     weeklyPlay: "sevenDays",
     teamTrials: "rank6",
-    missions: "all",
+    missions: "yes",
     specialMissions: "all",
     storyEvents: "achievement",
     championsMeeting: "groupARunnerUp",
@@ -74,7 +80,7 @@ const PRESET_SETTINGS: Record<Exclude<PlayStyleKey, "custom">, PlayStyleSettings
   unhinged: {
     weeklyPlay: "sevenDays",
     teamTrials: "rank6",
-    missions: "all",
+    missions: "yes",
     specialMissions: "all",
     storyEvents: "earlyAchievement",
     championsMeeting: "groupAChampion",
@@ -87,7 +93,11 @@ function isOneOf<T extends string>(value: unknown, keys: readonly T[]): value is
 }
 
 export function playStyleSettingsForPreset(key: PlayStyleKey): PlayStyleSettings {
-  return key === "custom" ? { ...PRESET_SETTINGS.focused } : { ...PRESET_SETTINGS[key] };
+  // Custom seeds from focused but does missions (it's the engaged trainer's own
+  // preset — the third "yes" group alongside dedicated/unhinged).
+  return key === "custom"
+    ? { ...PRESET_SETTINGS.focused, missions: "yes" }
+    : { ...PRESET_SETTINGS[key] };
 }
 
 export function normalizePlayStyleSettings(value: unknown, fallback: PlayStyleSettings): PlayStyleSettings {

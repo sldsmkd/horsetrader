@@ -26,7 +26,7 @@ test("a stored preset key seeds its defaults, then stored settings override", ()
 });
 
 test("a malformed preset key falls back to default but keeps valid settings", () => {
-  const resolved = resolvePlayStyle({ identity: { playStyleKey: "bogus", playStyleSettings: { missions: "all" } } });
+  const resolved = resolvePlayStyle({ identity: { playStyleKey: "bogus", playStyleSettings: { missions: "yes" } } });
   assert.equal(resolved.key, "focused");
-  assert.equal(resolved.settings.missions, "all");
+  assert.equal(resolved.settings.missions, "yes");
 });

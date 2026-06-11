@@ -15,9 +15,17 @@ export interface DiscreteSliderOpts {
   onChange?: (selected: number) => void;
 }
 
+// A safe placeholder so a missing/undefined step can never crash the component.
+// Callers should pass complete steps (see playStyleSurface's keys↔strings guard);
+// this is the last line of defence — a bad index degrades to a blank step, not a
+// `Cannot read properties of undefined (reading 'value')` that takes the surface down.
+const FALLBACK_STEP: DiscreteSliderStep = { value: "—", description: "" };
+
 export function discreteSlider(opts: DiscreteSliderOpts): HTMLElement {
+  // Clamp into range AND coalesce, in case the steps array itself has holes
+  // (a keys/strings drift upstream) — selected stays valid but the entry may be undefined.
   const selected = Math.max(0, Math.min(opts.selected, opts.steps.length - 1));
-  const step = opts.steps[selected];
+  const step = opts.steps[selected] ?? FALLBACK_STEP;
   const rangeAttr = opts.locked
     ? { type: "range", min: 0, max: opts.steps.length - 1, step: 1, value: selected, disabled: true }
     : { type: "range", min: 0, max: opts.steps.length - 1, step: 1, value: selected };

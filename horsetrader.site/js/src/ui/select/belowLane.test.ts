@@ -123,3 +123,35 @@ test("an anniversary mission's card combines its flat payout and its baked daily
   // free_carats: 500 (flat) + 150 + 150 (sequence); trainee_tickets: 3 (flat).
   assert.deepEqual(cards[0]!.reward, { trainee_tickets: 3, free_carats: 800 });
 });
+
+test("missions: the `missions` stream attributes to the card; `hiddenKinds` removes it entirely", () => {
+  // A normal mission carries a baked reward, folded on its own `missions` stream
+  // (the play-gated split) — so the card reads it from there, alongside a CM that
+  // stays put. When the player toggles missions off, the stream is absent AND the
+  // card kind is hidden: no income, no card.
+  const events: EventsBundle = {
+    events: [
+      { type: "mission", name: "G1 Mission", start: "2026-07-01", end: "2026-07-10", predicted: false, key: "mission-1", rewards: { free_carats: 150 } } as EventsBundle["events"][number],
+      { type: "cm", name: "Summer CM", start: "2026-07-05", end: "2026-07-08", predicted: false, key: "cm-1", rewards: { free_carats: 1000 } },
+    ],
+  };
+  const after = cal("2026-01-01");
+  const axis = createAxis({ origin: cal("2026-06-01"), pxPerDay: 10 });
+  const bundle = createBundle(events, EMPTY_ACADEMY, TEST_CONFIG);
+
+  // Missions ON: events folds the CM, `missions` folds the mission — both carded.
+  const onProjection = project({ resources: {} }, [
+    { stream: "events", emissions: eventStream(events, after, undefined, undefined, (ev) => ev.type !== "mission") },
+    { stream: "missions", emissions: eventStream(events, after, undefined, undefined, (ev) => ev.type === "mission") },
+  ]);
+  const on = belowLaneCards(onProjection, bundle, axis, NOW);
+  assert.deepEqual(on.map((c) => c.key), ["mission-1", "cm-1"]);
+  assert.deepEqual(on.find((c) => c.key === "mission-1")!.reward, { free_carats: 150 });
+
+  // Missions OFF: the `missions` stream is gone from the fold and the kind is hidden.
+  const offProjection = project({ resources: {} }, [
+    { stream: "events", emissions: eventStream(events, after, undefined, undefined, (ev) => ev.type !== "mission") },
+  ]);
+  const off = belowLaneCards(offProjection, bundle, axis, NOW, new Set(["mission"]));
+  assert.deepEqual(off.map((c) => c.key), ["cm-1"]); // mission card gone with its income
+});

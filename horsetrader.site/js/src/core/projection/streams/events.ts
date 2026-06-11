@@ -43,9 +43,17 @@ export function eventStream(
   after: CalendarDate,
   timeZone: string = UTC_TIME_ZONE,
   rushed: ReadonlySet<string> = new Set(),
+  // Restrict which events this stream folds. The default is everything; it exists
+  // so one event *kind* can be split onto its own toggleable channel without
+  // duplicating the fold logic — the `events` ground-truth channel folds the
+  // complement, a sibling channel folds the subset. Used to carve normal missions
+  // out of the unconditional fold so the play-style "do you do missions?" gate can
+  // include/exclude that whole stream (see streams/missions.ts, channels.ts).
+  where: (event: EventsBundle["events"][number]) => boolean = () => true,
 ): StreamEmission[] {
   const emissions: StreamEmission[] = [];
   for (const event of bundle.events) {
+    if (!where(event)) continue;
     if (!event.rewards) continue;
     // Rushed → the discrete payout is brought forward from `end` to `start`.
     const date = dateStringInTimeZone(rushed.has(event.key) ? event.start : event.end, timeZone);

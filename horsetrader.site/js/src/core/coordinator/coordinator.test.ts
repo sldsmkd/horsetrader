@@ -100,6 +100,7 @@ test("channels() reports every channel and its enabled state", () => {
     { name: "events", enabled: true },
     { name: "generator", enabled: true },
     { name: "sequence", enabled: true },
+    { name: "missions", enabled: true },
     { name: "routine", enabled: true },
     { name: "team-trials", enabled: true },
     { name: "club-rank", enabled: true },
@@ -114,7 +115,7 @@ test("channels() reports every channel and its enabled state", () => {
 test("toggling an unknown channel is a no-op", () => {
   const coord = createCoordinator({ bundle: bundle(), now: cal("2026-06-01"), store: memoryStore() });
   coord.setEnabled("nonsense", false);
-  assert.equal(coord.channels().length, 9);
+  assert.equal(coord.channels().length, 10);
   assert.deepEqual(coord.balanceAt(FAR), { free_carats: 270 });
 });
 
@@ -207,4 +208,27 @@ test("an unreadable stored plan surfaces recovered and still folds (clean base)"
     console.warn = warn;
     console.error = error;
   }
+});
+
+test("the missions play-style toggle gates the missions stream in/out of the fold", () => {
+  // A normal mission with a baked reward. Default play is `focused` → missions
+  // "no", so the mission income is excluded from the fold; flipping to "yes" folds it.
+  const withMission: EventsBundle = {
+    events: [
+      { type: "mission", name: "G1 Mission", start: "2026-06-10", end: "2026-06-10", predicted: false, key: "mission-1", rewards: { free_carats: 150 } } as EventsBundle["events"][number],
+    ],
+  };
+  const coord = createCoordinator({ bundle: withMission, now: cal("2026-06-01"), store: memoryStore() });
+  coord.update({ snapshot });
+
+  // Off by default (focused.missions === "no") — the mission reward is not in the balance.
+  assert.deepEqual(coord.balanceAt(FAR), { free_carats: 1000 });
+
+  // Turn missions on → the mission income lands.
+  coord.update({ config: { identity: { playStyleSettings: { missions: "yes" } } } });
+  assert.deepEqual(coord.balanceAt(FAR), { free_carats: 1000 + 150 });
+
+  // And back off → gone again.
+  coord.update({ config: { identity: { playStyleSettings: { missions: "no" } } } });
+  assert.deepEqual(coord.balanceAt(FAR), { free_carats: 1000 });
 });

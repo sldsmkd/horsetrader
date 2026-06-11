@@ -199,9 +199,35 @@ remaining work, roughly one epic:
   baseline reward from the grindy reward, so baseline folds as universal ground truth and the grindy
   portion is what the binary toggle gates. This is the exception in
   [[feedback_no_reshaping_baked_rewards]] (baked *wrong info* → a bake fix, never a frontend reshape).
-  `storyEvents` wants its own audit. Until the bake lands, the `missions`/`specialMissions`/`storyEvents`
-  sliders **stay on the Play Style surface as-is** — pending state, not unwired-by-design. (Backend
-  session's work; don't touch the bake from a frontend session.)
+
+  **The `missions` slider was finalised to its binary shape (2026-06-11, frontend).** `MISSION_KEYS`
+  is now `["no", "yes"]` (was `none/some/most/all`) — the do-them-or-don't gate the mission model
+  settled on, not a completion %. Preset defaults: `sweetie`/`casual`/`focused` → `no`;
+  `dedicated`/`unhinged` → `yes`; `custom` seeds `yes` (the engaged trainer's own preset). Strings
+  cut to two steps; the play-style surface renders a 2-step slider generically off the key set (no
+  surface code change).
+
+  **UPDATE — the toggle is now WIRED (income + cards), via a whole-stream gate (2026-06-11).**
+  Reframed (correctly) as a *gating flag* (bucket 3), not a baked-reward carve (bucket 2): we don't
+  reshape a reward value, we include/exclude a whole stream. So no bake split was needed; the flat
+  baked mission reward is accepted as the "yes" value, dropped wholesale at "no". `streams/missions.ts`
+  (`missionStream`/`isMissionEvent`) is `eventStream` restricted to `type:"mission"` (a `where`
+  predicate was added to `eventStream`); the `events` ground-truth channel folds the COMPLEMENT
+  (`!isMissionEvent`, no double-count) and the new `missions` INCOME channel folds the subset only when
+  `play.missions === "yes"`. Cards follow the stream: `belowLaneCards` gained `hiddenKinds` (app.ts
+  passes `{"mission"}` when off) so mission cards leave the timeline with their income — and `"missions"`
+  was added to belowLane's reward-attributing streams so a shown card reads its reward from the new
+  stream. Resolved from the committed config, so balance + cards move together on Apply. Anniversary
+  missions (`type:"anniversarymission"`) are separate — never gated, stay universal. The bake split
+  (special-out / baseline-vs-grindy) is **no longer required** for the toggle; it'd only matter to keep
+  some baseline mission income universal at "no" — a refinement, not owed.
+  `specialMissions`/`storyEvents` sliders are untouched — still pending state.
+
+  **Stories are NEXT (the graded-reward bake audit).** `storyEvents` still flat-stamps full rewards on
+  all 53 `story` events ([models/events/story.py], `stamp_story_off_table_extras`) — the same
+  wrong-info-on-a-graded-stream problem as missions, but with **no recorded verdict on how it grades**.
+  That audit + bake is the next backend job after this one. (Backend session's work; don't touch the
+  bake from a frontend session.)
   **What's still unbuilt is the rest of the income:** (a) ~~load config~~ done; (b) wire each
   engagement slider's commit to `config`; (c) the remaining *graded* sources by rank
   (`league-of-heroes`, `masters`, `strongest-team`) — the PvP ones are events → enrich like

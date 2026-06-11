@@ -47,7 +47,14 @@ import {
   reducePlayStyleMachine,
 } from "./identity/playStyleMachine.ts";
 import type { PlayStyleMachineEvent, PlayStyleMachineState } from "./identity/playStyleMachine.ts";
+import { resolvePlayStyle } from "../core/playstyle/index.ts";
 import type { PlayStyleKey, PlayStyleSettings } from "../core/playstyle/index.ts";
+
+// Below-lane card kinds hidden when their income stream is toggled off (see
+// belowLane's `hiddenKinds`). `missions` off → the regular mission cards leave the
+// timeline with their income; reused frozen sets so refresh() allocates nothing.
+const MISSIONS_HIDDEN: ReadonlySet<string> = new Set(["mission"]);
+const EMPTY_HIDDEN_KINDS: ReadonlySet<string> = new Set();
 import type { UiStrings } from "./strings.ts";
 import { belowLaneCards } from "./select/belowLane.ts";
 import { aboveLaneGroups } from "./select/aboveLane.ts";
@@ -261,7 +268,14 @@ export function mountApp(
     tl.layout(extent, now);
     const axis = tl.axis();
     if (!axis) return tl.setCards([]);
-    const below = belowLaneCards(projection, bundle, axis, now);
+    // Kinds whose income stream the player has toggled off — hide their cards with
+    // the income. Today just the play-style "missions" gate; resolved from the same
+    // committed config the fold's `missions` channel reads, so cards and balance
+    // move together on Apply.
+    const hiddenKinds = resolvePlayStyle(coord.document().config).settings.missions === "yes"
+      ? EMPTY_HIDDEN_KINDS
+      : MISSIONS_HIDDEN;
+    const below = belowLaneCards(projection, bundle, axis, now, hiddenKinds);
     const above = aboveLaneGroups(bundle, axis, now, {
       balanceAt: (date) => coord.balanceAt(date),
       bannerAvailable: (key) => coord.bannerAvailable(key),
