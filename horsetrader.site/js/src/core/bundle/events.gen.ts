@@ -25,6 +25,7 @@ export interface EventsBundle {
     | MissionRecord
     | AnniversaryRecord
     | AnniversaryMissionRecord
+    | TrainingPassRecord
     | AnchorRecord
     | AnchoredEventRecord
   )[];
@@ -315,6 +316,23 @@ export interface AnniversaryMissionRecord {
   name: string | null;
   anniversary: string;
   part: number;
+  start: string;
+  end: string;
+  predicted: boolean;
+  key: string;
+  rewards?: {
+    [k: string]:
+      | number
+      | {
+          [k: string]: number | string | (number | null)[];
+        };
+  };
+  visible?: boolean;
+  rushable?: boolean;
+}
+export interface TrainingPassRecord {
+  type: "trainingpass";
+  name: string | null;
   start: string;
   end: string;
   predicted: boolean;

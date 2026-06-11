@@ -438,12 +438,16 @@ export function mountApp(
             body: resourcesEditor({
               snapshot: coord.document().snapshot,
               dailyPack: (coord.document().config?.["dailyPack"] as string | undefined) ?? null,
-              onCommit: ({ snapshot, dailyPack }) => {
-                // The pack date is a config setting (account-level), not part of the
-                // resource reading — merge it into config, omitting the key when unset.
+              trainingPass: coord.document().config?.["trainingPass"] === true,
+              onCommit: ({ snapshot, dailyPack, trainingPass }) => {
+                // The pack date and premium toggle are config settings (account-level),
+                // not part of the resource reading — merge them into config, omitting
+                // each key when unset.
                 const config = { ...coord.document().config };
                 if (dailyPack) config["dailyPack"] = dailyPack;
                 else delete config["dailyPack"];
+                if (trainingPass) config["trainingPass"] = true;
+                else delete config["trainingPass"];
                 coord.update({ snapshot, config });
               },
               onClose: () => view.set({ resourcesEditing: false }),

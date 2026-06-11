@@ -219,6 +219,17 @@ There are **two kinds of stream**:
   (`monthlyStream`); all four synthesised channels share `streams/span.ts` (`bundleSpan`). See
   [glue.md](glue.md).
 
+  Two more are **gating-flag channels** — the *paid-money* "dolphin" family, flipped by a
+  boolean-ish config toggle in the resources-editor shield rather than a play-style slider
+  (see [glue.md](glue.md)'s gating-flag bucket). The **`daily-pack` channel**
+  (`streams/dailypack.ts`) models the Daily Carat Pack as an always-on subscription —
+  `config.dailyPack` (a validity date) phases a 30-day cycle of `reward_structures.daily-carats`
+  (50 free/day + 500 paid/cycle). The **`training-pass` channel** (`streams/trainingpass.ts`)
+  is the Training Pass **premium track**: a bare boolean `config.trainingPass` decides whether
+  the binary `reward_maps["training-pass"]["premium"]` boost folds onto each Training Pass
+  event's `end` — *on top of* the free track the `events` channel already pays from the baked
+  record. No row to select (premium is one fixed haul), so it isn't graded like team-trials.
+
 Either way the **values are never the client's to invent.** A procedural stream
 decomposes into three ownerships:
 

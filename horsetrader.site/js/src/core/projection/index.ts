@@ -22,6 +22,7 @@ export { shopTicketsStream, shopTicketsSpecFromBundle } from "./streams/shoptick
 export type { ShopTicketsSpec } from "./streams/shoptickets.ts";
 export { dailyPackStream, dailyPackSpecFromBundle, resolveDailyPack } from "./streams/dailypack.ts";
 export type { DailyPackSpec } from "./streams/dailypack.ts";
+export { trainingPassStream, resolveTrainingPass } from "./streams/trainingpass.ts";
 export { applyChampionsMeetingRewards, championsMeetingReward } from "./streams/championsmeeting.ts";
 export { spendStream } from "./streams/spends.ts";
 export type { CommittedBanner, SpendGacha, SpendStreamResult, BannerKind } from "./streams/spends.ts";

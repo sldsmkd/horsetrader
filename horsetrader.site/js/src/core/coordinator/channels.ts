@@ -28,6 +28,7 @@ import {
   shopTicketsStream,
   teamTrialsSpecFromBundle,
   teamTrialsStream,
+  trainingPassStream,
 } from "../projection/index.ts";
 
 export interface ChannelContext {
@@ -58,6 +59,11 @@ export interface ChannelContext {
    *  when not subscribed — the signal the daily-pack channel reads to pay nothing.
    *  Resolved from `config.dailyPack` by `resolveDailyPack`. */
   dailyPack: CalendarDate | null;
+  /** Whether the player owns the **Training Pass premium track** — the paid boost the
+   *  training-pass channel folds on top of each Training Pass event's baked free track.
+   *  A single binary toggle (no per-event input), resolved from `config.trainingPass`
+   *  by `resolveTrainingPass`; `false` ⇒ the channel pays nothing. */
+  trainingPass: boolean;
 }
 
 export interface ChannelDef {
@@ -123,6 +129,17 @@ export const INCOME_CHANNELS: ChannelDef[] = [
       if (!config) return [];
       const spec = dailyPackSpecFromBundle(bundle, config, dailyPack, timeZone);
       return spec ? dailyPackStream(spec, after) : [];
+    },
+  },
+  {
+    // The Training Pass premium track — a paid-money toggle in the same dolphin family.
+    // Reads the binary `reward_maps["training-pass"]["premium"]` boost and the resolved
+    // toggle (`trainingPass`), folding the boost onto each Training Pass event's end on
+    // top of its baked free track. Inert without a config or while the toggle is off.
+    name: "training-pass",
+    emit: ({ bundle, config, trainingPass, after, timeZone }) => {
+      if (!config) return [];
+      return trainingPassStream(bundle, config, trainingPass, after, timeZone);
     },
   },
 ];

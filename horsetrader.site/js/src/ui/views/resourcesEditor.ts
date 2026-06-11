@@ -16,17 +16,21 @@ import { RESOURCE_ROWS, cellHeading, resourceGrid, type Cell } from "./resourceL
 import type { ResourceVector } from "../../core/projection/index.ts";
 import type { Snapshot } from "../../core/persistence/document.ts";
 
-/** The transcription this shield commits: the resource reading plus the Daily Carat
- *  Pack subscription's validity date (`null` when not subscribed). */
+/** The transcription this shield commits: the resource reading, the Daily Carat Pack
+ *  subscription's validity date (`null` when not subscribed), and whether the player
+ *  owns the Training Pass premium track. */
 export interface ResourcesDraft {
   snapshot: Snapshot;
   dailyPack: string | null;
+  trainingPass: boolean;
 }
 
 export interface ResourcesEditorOpts {
   snapshot: Snapshot | undefined;
   /** The current subscription validity date (`config.dailyPack`), or `null` if unset. */
   dailyPack: string | null;
+  /** Whether the player owns the Training Pass premium track (`config.trainingPass`). */
+  trainingPass: boolean;
   onCommit: (draft: ResourcesDraft) => void;
   onClose: () => void;
 }
@@ -68,6 +72,14 @@ export function resourcesEditor(opts: ResourcesEditorOpts): HTMLElement {
   };
   syncPack();
 
+  // Training Pass premium track — the dolphin family's second paid toggle. Unlike the
+  // pack it needs no date: it's a binary "I own premium", and the boost it unlocks lands
+  // on each Training Pass event (baked dates) via the training-pass channel. Free-track
+  // rewards already count for everyone, so this transcribes only the premium ownership.
+  const passToggle = h("input", {
+    attr: opts.trainingPass ? { type: "checkbox", checked: "" } : { type: "checkbox" },
+  });
+
   // The reading is stamped at the moment of Save (the action-time pattern, like rushed
   // flags). We keep only the most recent snapshot — its full UTC instant is the
   // wall-clock truth; `date` is its day, the projection origin. The pack date is the
@@ -80,7 +92,7 @@ export function resourcesEditor(opts: ResourcesEditorOpts): HTMLElement {
     const recordedAt = new Date().toISOString();
     const snapshot: Snapshot = { date: recordedAt.slice(0, 10), recordedAt, resources };
     const dailyPack = packToggle.checked && packDate.value ? packDate.value : null;
-    return { snapshot, dailyPack };
+    return { snapshot, dailyPack, trainingPass: passToggle.checked };
   };
 
   return h(
@@ -94,6 +106,12 @@ export function resourcesEditor(opts: ResourcesEditorOpts): HTMLElement {
       "I spend money for the Daily Carats pack",
     ),
     packDateField,
+    h(
+      "label",
+      { class: "resources-editor__daily-pack" },
+      passToggle,
+      "I buy the Training Pass premium track",
+    ),
     h(
       "footer",
       { class: "resources-editor__actions" },

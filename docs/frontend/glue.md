@@ -266,7 +266,13 @@ of three buckets — do not assume every slider becomes a channel:
    [identity-presets.md](identity-presets.md)) with **no effect on the fold**.
 3. **Gating flag** — a boolean-ish choice that turns a whole channel on/off (e.g.
    "I buy the Daily Carats pack") rather than scaling one. Patches `config`, the
-   channel reads it.
+   channel reads it. This is the **"dolphin" family** — paid-money toggles
+   transcribed in the resources-editor shield, not play-style sliders. Two members:
+   `daily-pack` (`config.dailyPack` = a validity date, phasing a 30-day subscription)
+   and `training-pass` (`config.trainingPass` = a bare boolean; while owned, the
+   `training-pass` channel folds `reward_maps["training-pass"]["premium"]` onto every
+   Training Pass event's `end`, on top of the free track the `events` channel already
+   pays). Income-only — neither renders on a below-lane card.
 
 The rule: a slider earns a channel only when it maps to a concrete, baked reward
 selection. If it doesn't, that's a signal to cut it or keep it identity-only — not
