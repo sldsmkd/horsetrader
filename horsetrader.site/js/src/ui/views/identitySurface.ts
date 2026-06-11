@@ -2,7 +2,9 @@ import "./identitySurface.css";
 
 import { h } from "../h.ts";
 import { playStylePresetGrid } from "./playStylePreset.ts";
+import { clubRankIcon } from "./clubSelector.ts";
 import type { PlayStyleKey } from "./playStylePreset.ts";
+import type { ClubIdentity } from "../../core/identity/clubrank.ts";
 import type { PlayStyleStrings } from "../strings.ts";
 
 export interface IdentitySurfaceOpts {
@@ -10,6 +12,7 @@ export interface IdentitySurfaceOpts {
   trainerId: string;
   oshiName: string;
   oshiPortrait: string;
+  club: ClubIdentity | null;
   playStyleKey: PlayStyleKey;
   savedPlayStyleKey: PlayStyleKey;
   customUnlocked: boolean;
@@ -17,6 +20,7 @@ export interface IdentitySurfaceOpts {
   onTrainerNameChange: (name: string) => void;
   onTrainerIdChange: (id: string) => void;
   onOshiSelect: () => void;
+  onClubSelect: () => void;
   onPlayStylePreview: (key: PlayStyleKey) => void;
 }
 
@@ -47,6 +51,37 @@ function identityRow(label: string, value: string, detail?: string): HTMLElement
       { class: "identity-surface__value" },
       value,
       detail && h("span", { class: "identity-surface__detail" }, detail),
+    ),
+  );
+}
+
+// The club row is a single click target that opens the club shield (name + rank),
+// the same spawn pattern as the oshi portrait. In a club it shows the name with the
+// rank badge as a trailing chip; with no club it reads a muted "No club" and still
+// opens the shield (to join).
+function clubRow(opts: IdentitySurfaceOpts): HTMLElement {
+  const club = opts.club;
+  const body = club
+    ? [
+        h("span", { class: "identity-surface__club-name" }, club.name),
+        h("img", {
+          class: "identity-surface__club-rank",
+          attr: { src: clubRankIcon(club.rank), alt: club.rank, width: 28, height: 31 },
+        }),
+      ]
+    : [h("span", { class: "identity-surface__club-name identity-surface__club-empty" }, "No club")];
+  return h(
+    "div",
+    { class: "identity-surface__row" },
+    h("span", { class: "identity-surface__label" }, "Club"),
+    h(
+      "button",
+      {
+        class: "identity-surface__value identity-surface__club",
+        attr: { type: "button", "aria-label": club ? "Edit club" : "Join a club", title: club ? "Edit club" : "Join a club" },
+        on: { click: opts.onClubSelect },
+      },
+      ...body,
     ),
   );
 }
@@ -205,7 +240,7 @@ export function identitySurface(opts: IdentitySurfaceOpts): HTMLElement {
           "div",
           { class: "identity-surface__section" },
           editableTrainerId(opts),
-          identityRow("Club", "UmaDen", "B+"),
+          clubRow(opts),
           identityRow("Oshi", opts.oshiName),
         ),
       ),

@@ -19,7 +19,7 @@
 
 import type { ConfigBundle } from "../bundle/config.gen.ts";
 import type { EventsBundle } from "../bundle/events.gen.ts";
-import { resolveClubRank } from "../identity/clubrank.ts";
+import { resolveClub } from "../identity/clubrank.ts";
 import { resolvePlayStyle } from "../playstyle/index.ts";
 import type { PlanDocument } from "../persistence/index.ts";
 import { load, save } from "../persistence/index.ts";
@@ -177,8 +177,9 @@ export function createCoordinator(options: CoordinatorOptions): Coordinator {
     // the single precedence shared with the identity surface (resolvePlayStyle).
     const play = resolvePlayStyle(doc.config).settings;
     // The club rank — an identity selector (not play-style), resolved from the same
-    // config.identity block but through its own precedence. Feeds the club-rank channel.
-    const clubRank = resolveClubRank(doc.config);
+    // config.identity block but through its own precedence. `null` when the trainer
+    // isn't in a club, so the club-rank channel pays nothing. Feeds that channel.
+    const clubRank = resolveClub(doc.config)?.rank ?? null;
     // Reconstitute the rank-dependent CM rewards the bake omits (issue #19): stamp the
     // player's CM rank payout onto every CM event so the ground-truth `events` channel
     // folds it (on each CM's last day) and the below-lane card renders it — without the

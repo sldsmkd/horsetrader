@@ -48,9 +48,10 @@ export interface ChannelContext {
    *  ignore it. Always present (resolves to the default preset when unset). */
   play: PlayStyleSettings;
   /** The account's resolved club rank — an **identity** selector (not play-style),
-   *  the `reward_maps.club-rank` label the club-rank channel pays monthly. Always
-   *  present (resolves to the default tier when unset). See core/identity/clubrank. */
-  clubRank: ClubRankTier;
+   *  the `reward_maps.club-rank` label the club-rank channel pays monthly. `null`
+   *  when the trainer isn't in a club, so the channel pays nothing. See
+   *  core/identity/clubrank. */
+  clubRank: ClubRankTier | null;
 }
 
 export interface ChannelDef {
@@ -91,7 +92,7 @@ export const INCOME_CHANNELS: ChannelDef[] = [
   {
     name: "club-rank",
     emit: ({ bundle, config, clubRank, after, timeZone }) => {
-      if (!config) return [];
+      if (!config || clubRank === null) return [];
       const spec = clubRankSpecFromBundle(bundle, config, clubRank, timeZone);
       return spec ? clubRankStream(spec, after) : [];
     },
