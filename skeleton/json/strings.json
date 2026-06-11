@@ -169,6 +169,27 @@
             "description": "I aim to win Group A."
           }
         }
+      },
+      "shopTickets": {
+        "title": "Shop tickets",
+        "steps": {
+          "none": {
+            "value": "None",
+            "description": "I didn't know there were tickets in the shop?"
+          },
+          "cleats": {
+            "value": "4 / month",
+            "description": "I buy tickets with silver and gold cleats."
+          },
+          "friendPoints": {
+            "value": "6 / month",
+            "description": "I use gold & silver cleats and friend points."
+          },
+          "rainbow": {
+            "value": "7 / month",
+            "description": "I salvage junk welfare cards for rainbow cleats too."
+          }
+        }
       }
     }
   }
