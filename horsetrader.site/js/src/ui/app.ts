@@ -38,7 +38,7 @@ import type { CommitBinding } from "./views/bannerGroup.ts";
 import { tazunaSurface } from "./views/tazunaSurface.ts";
 import { bookmarks } from "./views/bookmarks.ts";
 import { bookmarkRows } from "./select/bookmarks.ts";
-import { buildTrainerCard, buildOshiSelectorOverlay, buildPlayStyleOverlay } from "./views/identityOverlay.ts";
+import { buildTrainerCard, buildOshiSelectorOverlay, buildClubSelectorOverlay, buildPlayStyleOverlay } from "./views/identityOverlay.ts";
 import { menubar } from "./views/menubar.ts";
 import type { RightSurface } from "./views/menubar.ts";
 import { createIdentityController } from "./identity/controller.ts";
@@ -296,6 +296,7 @@ export function mountApp(
   // it flows through `subscribe` and re-renders here (the render path).
   const overlayLayer = h("div", { class: "overlay-layer" });
   const closeOshiSelector = () => sendIdentityEvent({ type: "close-oshi" });
+  const closeClubSelector = () => sendIdentityEvent({ type: "close-club" });
   const previewPlayStyle = (key: PlayStyleKey): void => sendIdentityEvent({ type: "preview-playstyle", key });
   const discardPlayStylePreview = (): void => {
     sendIdentityEvent({ type: "discard-playstyle" });
@@ -320,7 +321,14 @@ export function mountApp(
   // to ALL spawnable windows (feedback_shield_vs_unfold).
   const shieldOpen = (): boolean => {
     const left = identityMachine.get().overlay;
-    return left === "oshi" || left === "playstyle-oshi" || view.get().resourcesEditing || view.get().committing !== null;
+    return (
+      left === "oshi" ||
+      left === "playstyle-oshi" ||
+      left === "club" ||
+      left === "playstyle-club" ||
+      view.get().resourcesEditing ||
+      view.get().committing !== null
+    );
   };
 
   // The commit shield's spawn seam, handed to every banner readout: a banner's
@@ -352,6 +360,9 @@ export function mountApp(
       onOshiSelect: () => {
         if (!shieldOpen()) sendIdentityEvent({ type: "open-oshi" });
       },
+      onClubSelect: () => {
+        if (!shieldOpen()) sendIdentityEvent({ type: "open-club" });
+      },
       onPlayStylePreview: previewPlayStyle,
       onClose: () => sendIdentityEvent({ type: "close-all" }),
     };
@@ -374,12 +385,22 @@ export function mountApp(
         buildTrainerCard(identity, strings, { suspended: true, customUnlocked: supporterUnlocked }, trainerCardOn),
         buildOshiSelectorOverlay(identity, { onClose: closeOshiSelector }),
       );
+    } else if (left === "club") {
+      children.push(
+        buildTrainerCard(identity, strings, { suspended: true, customUnlocked: supporterUnlocked }, trainerCardOn),
+        buildClubSelectorOverlay(identity, { onClose: closeClubSelector }),
+      );
     } else if (left === "playstyle") {
       children.push(buildPlayStyleOverlay(identity, strings, identityUi, { suspended: anyShield, customUnlocked: supporterUnlocked }, playStyleOn));
     } else if (left === "playstyle-oshi") {
       children.push(
         buildPlayStyleOverlay(identity, strings, identityUi, { suspended: true, customUnlocked: supporterUnlocked }, playStyleOn),
         buildOshiSelectorOverlay(identity, { onClose: closeOshiSelector }),
+      );
+    } else if (left === "playstyle-club") {
+      children.push(
+        buildPlayStyleOverlay(identity, strings, identityUi, { suspended: true, customUnlocked: supporterUnlocked }, playStyleOn),
+        buildClubSelectorOverlay(identity, { onClose: closeClubSelector }),
       );
     }
 
@@ -416,7 +437,15 @@ export function mountApp(
             placement: "center",
             body: resourcesEditor({
               snapshot: coord.document().snapshot,
-              onCommit: (snapshot) => coord.update({ snapshot }),
+              dailyPack: (coord.document().config?.["dailyPack"] as string | undefined) ?? null,
+              onCommit: ({ snapshot, dailyPack }) => {
+                // The pack date is a config setting (account-level), not part of the
+                // resource reading — merge it into config, omitting the key when unset.
+                const config = { ...coord.document().config };
+                if (dailyPack) config["dailyPack"] = dailyPack;
+                else delete config["dailyPack"];
+                coord.update({ snapshot, config });
+              },
               onClose: () => view.set({ resourcesEditing: false }),
             }),
             onClose: () => view.set({ resourcesEditing: false }),

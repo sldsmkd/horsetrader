@@ -20,6 +20,8 @@ export { clubRankStream, clubRankSpecFromBundle } from "./streams/clubrank.ts";
 export type { ClubRankSpec } from "./streams/clubrank.ts";
 export { shopTicketsStream, shopTicketsSpecFromBundle } from "./streams/shoptickets.ts";
 export type { ShopTicketsSpec } from "./streams/shoptickets.ts";
+export { dailyPackStream, dailyPackSpecFromBundle, resolveDailyPack } from "./streams/dailypack.ts";
+export type { DailyPackSpec } from "./streams/dailypack.ts";
 export { applyChampionsMeetingRewards, championsMeetingReward } from "./streams/championsmeeting.ts";
 export { spendStream } from "./streams/spends.ts";
 export type { CommittedBanner, SpendGacha, SpendStreamResult, BannerKind } from "./streams/spends.ts";

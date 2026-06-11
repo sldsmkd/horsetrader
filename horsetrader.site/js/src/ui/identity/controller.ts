@@ -1,4 +1,6 @@
 import { createOshiIndex, DEFAULT_OSHI_ID, selectedOshiOption } from "../query/index.ts";
+import { resolveClub } from "../../core/identity/clubrank.ts";
+import type { ClubIdentity, ClubRankTier } from "../../core/identity/clubrank.ts";
 import { resolvePlayStyle } from "../../core/playstyle/index.ts";
 import type { PlayStyleKey, PlayStyleSettings } from "../../core/playstyle/index.ts";
 import { loadSupporters, verifySupporter } from "./supporters.ts";
@@ -20,12 +22,18 @@ export interface IdentityController {
   isSupporter(): Promise<boolean>;
   currentOshi(): OshiOption;
   oshiSearch(): OshiSearchIndex;
+  /** The trainer's club, or `null` when they aren't in one. */
+  club(): ClubIdentity | null;
   savedPlayStyleKey(): PlayStyleKey;
   savedPlayStyleSettings(): PlayStyleSettings;
   commitPlayStyle(key: PlayStyleKey, settings: PlayStyleSettings): void;
   setTrainerName(name: string): void;
   setTrainerId(id: string): void;
   setOshiId(id: string): void;
+  /** Join or update the club (a non-empty name is membership). */
+  setClub(name: string, rank: ClubRankTier): void;
+  /** Leave the club — clears the name so the trainer is in no club. */
+  leaveClub(): void;
 }
 
 export function createIdentityController(coord: Coordinator, bundle: Bundle): IdentityController {
@@ -90,11 +98,14 @@ export function createIdentityController(coord: Coordinator, bundle: Bundle): Id
     },
     currentOshi,
     oshiSearch: () => _oshiSearch,
+    club: () => resolveClub(coord.document().config),
     savedPlayStyleKey: playStyleKey,
     savedPlayStyleSettings: playStyleSettings,
     commitPlayStyle,
     setTrainerName: (name) => updateIdentity({ trainerName: name }),
     setTrainerId: (id) => updateIdentity({ trainerId: id }),
     setOshiId: (id) => updateIdentity({ oshiId: id }),
+    setClub: (name, rank) => updateIdentity({ clubName: name, clubRank: rank }),
+    leaveClub: () => updateIdentity({ clubName: "" }),
   };
 }

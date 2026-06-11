@@ -18,6 +18,8 @@ import {
   eventStream,
   generatorStream,
   generatorsFromBundle,
+  dailyPackSpecFromBundle,
+  dailyPackStream,
   routineSpecFromBundle,
   routineStream,
   sequenceStream,
@@ -48,9 +50,14 @@ export interface ChannelContext {
    *  ignore it. Always present (resolves to the default preset when unset). */
   play: PlayStyleSettings;
   /** The account's resolved club rank — an **identity** selector (not play-style),
-   *  the `reward_maps.club-rank` label the club-rank channel pays monthly. Always
-   *  present (resolves to the default tier when unset). See core/identity/clubrank. */
-  clubRank: ClubRankTier;
+   *  the `reward_maps.club-rank` label the club-rank channel pays monthly. `null`
+   *  when the trainer isn't in a club, so the channel pays nothing. See
+   *  core/identity/clubrank. */
+  clubRank: ClubRankTier | null;
+  /** The Daily Carat Pack subscription's validity date (a cycle boundary), or `null`
+   *  when not subscribed — the signal the daily-pack channel reads to pay nothing.
+   *  Resolved from `config.dailyPack` by `resolveDailyPack`. */
+  dailyPack: CalendarDate | null;
 }
 
 export interface ChannelDef {
@@ -91,7 +98,7 @@ export const INCOME_CHANNELS: ChannelDef[] = [
   {
     name: "club-rank",
     emit: ({ bundle, config, clubRank, after, timeZone }) => {
-      if (!config) return [];
+      if (!config || clubRank === null) return [];
       const spec = clubRankSpecFromBundle(bundle, config, clubRank, timeZone);
       return spec ? clubRankStream(spec, after) : [];
     },
@@ -105,6 +112,17 @@ export const INCOME_CHANNELS: ChannelDef[] = [
       if (!config) return [];
       const spec = shopTicketsSpecFromBundle(bundle, play.shopTickets, timeZone);
       return spec ? shopTicketsStream(spec, after) : [];
+    },
+  },
+  {
+    // The Daily Carat Pack subscription. Reads the baked `reward_structures.daily-carats`
+    // (50/day generator + 500 paid) for its amounts and the resolved validity date
+    // (`dailyPack`) for its phase — inert without either, like its siblings.
+    name: "daily-pack",
+    emit: ({ bundle, config, dailyPack, after, timeZone }) => {
+      if (!config) return [];
+      const spec = dailyPackSpecFromBundle(bundle, config, dailyPack, timeZone);
+      return spec ? dailyPackStream(spec, after) : [];
     },
   },
 ];

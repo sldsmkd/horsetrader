@@ -129,3 +129,29 @@ test("oshi selector is modal over the current identity surface", () => {
     stagedPlayStyleSettings: null,
   });
 });
+
+test("club selector is modal over the current identity surface", () => {
+  const trainerClub = reducePlayStyleMachine(
+    { overlay: "identity", stagedPlayStyle: null, stagedPlayStyleSettings: null },
+    { type: "open-club" },
+    saved,
+  );
+  assert.deepEqual(trainerClub, { overlay: "club", stagedPlayStyle: null, stagedPlayStyleSettings: null });
+  assert.deepEqual(reducePlayStyleMachine(trainerClub, { type: "close-club" }, saved), {
+    overlay: "identity",
+    stagedPlayStyle: null,
+    stagedPlayStyleSettings: null,
+  });
+
+  const playStyleClub = reducePlayStyleMachine(
+    { overlay: "playstyle", stagedPlayStyle: "casual", stagedPlayStyleSettings: null },
+    { type: "open-club" },
+    saved,
+  );
+  assert.deepEqual(playStyleClub, { overlay: "playstyle-club", stagedPlayStyle: "casual", stagedPlayStyleSettings: null });
+  assert.deepEqual(reducePlayStyleMachine(playStyleClub, { type: "close-club" }, saved), {
+    overlay: "playstyle",
+    stagedPlayStyle: "casual",
+    stagedPlayStyleSettings: null,
+  });
+});

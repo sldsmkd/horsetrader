@@ -165,6 +165,43 @@
   font-weight: 600;
 }
 
+.identity-surface__club {
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.1rem 0.3rem;
+  border: 0;
+  border-radius: 0.3rem;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.identity-surface__club:hover,
+.identity-surface__club:focus-visible {
+  background: color-mix(in srgb, Canvas 68%, currentColor 12%);
+  outline: 0;
+}
+
+.identity-surface__club-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.identity-surface__club-empty {
+  color: color-mix(in srgb, currentColor 55%, transparent);
+  font-weight: 600;
+  font-style: italic;
+}
+
+.identity-surface__club-rank {
+  width: 1.6rem;
+  height: auto;
+  object-fit: contain;
+}
+
 .identity-surface__id {
   align-items: center;
   gap: 0.3rem;

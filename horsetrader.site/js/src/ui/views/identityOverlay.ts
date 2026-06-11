@@ -2,6 +2,7 @@ import { h } from "../h.ts";
 import { overlay, suspendOverlay } from "./overlay.ts";
 import { identitySurface } from "./identitySurface.ts";
 import { oshiSelector } from "./oshiSelector.ts";
+import { clubSelector } from "./clubSelector.ts";
 import { playStyleSurface } from "./playStyleSurface.ts";
 import { previewedPlayStyle } from "../identity/playStyleMachine.ts";
 import { playStyleSettingsForPreset } from "../../core/playstyle/index.ts";
@@ -16,6 +17,7 @@ export function buildTrainerCard(
   opts: { suspended?: boolean; previewPlayStyleKey?: PlayStyleKey; customUnlocked?: boolean },
   on: {
     onOshiSelect: () => void;
+    onClubSelect: () => void;
     onPlayStylePreview: (key: PlayStyleKey) => void;
     onClose: () => void;
   },
@@ -29,6 +31,7 @@ export function buildTrainerCard(
       trainerId: identity.trainerId(),
       oshiName: oshi.name,
       oshiPortrait: oshi.portrait,
+      club: identity.club(),
       playStyleKey: opts.previewPlayStyleKey ?? identity.savedPlayStyleKey(),
       savedPlayStyleKey: identity.savedPlayStyleKey(),
       customUnlocked: opts.customUnlocked ?? false,
@@ -36,6 +39,7 @@ export function buildTrainerCard(
       onTrainerNameChange: (name) => identity.setTrainerName(name),
       onTrainerIdChange: (id) => identity.setTrainerId(id),
       onOshiSelect: on.onOshiSelect,
+      onClubSelect: on.onClubSelect,
       onPlayStylePreview: on.onPlayStylePreview,
     }),
     onClose: on.onClose,
@@ -63,6 +67,23 @@ export function buildOshiSelectorOverlay(
   });
 }
 
+export function buildClubSelectorOverlay(
+  identity: IdentityController,
+  on: { onClose: () => void },
+): HTMLElement {
+  return overlay({
+    title: "Club",
+    placement: "center",
+    body: clubSelector({
+      club: identity.club(),
+      onCommit: (club) => identity.setClub(club.name, club.rank),
+      onLeave: () => identity.leaveClub(),
+      onClose: on.onClose,
+    }),
+    onClose: on.onClose,
+  });
+}
+
 export function buildPlayStyleOverlay(
   identity: IdentityController,
   strings: UiStrings,
@@ -70,6 +91,7 @@ export function buildPlayStyleOverlay(
   opts: { suspended?: boolean; customUnlocked?: boolean },
   on: {
     onOshiSelect: () => void;
+    onClubSelect: () => void;
     onPlayStylePreview: (key: PlayStyleKey) => void;
     onTrainerClose: () => void;
     onDiscard: () => void;
@@ -103,7 +125,7 @@ export function buildPlayStyleOverlay(
     identity,
     strings,
     { previewPlayStyleKey: playStyleKey, customUnlocked: opts.customUnlocked ?? false, ...(opts.suspended ? { suspended: true } : {}) },
-    { onOshiSelect: on.onOshiSelect, onPlayStylePreview: on.onPlayStylePreview, onClose: on.onTrainerClose },
+    { onOshiSelect: on.onOshiSelect, onClubSelect: on.onClubSelect, onPlayStylePreview: on.onPlayStylePreview, onClose: on.onTrainerClose },
   );
 
   requestAnimationFrame(() => {

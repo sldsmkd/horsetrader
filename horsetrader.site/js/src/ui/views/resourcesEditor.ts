@@ -16,9 +16,18 @@ import { RESOURCE_ROWS, cellHeading, resourceGrid, type Cell } from "./resourceL
 import type { ResourceVector } from "../../core/projection/index.ts";
 import type { Snapshot } from "../../core/persistence/document.ts";
 
+/** The transcription this shield commits: the resource reading plus the Daily Carat
+ *  Pack subscription's validity date (`null` when not subscribed). */
+export interface ResourcesDraft {
+  snapshot: Snapshot;
+  dailyPack: string | null;
+}
+
 export interface ResourcesEditorOpts {
   snapshot: Snapshot | undefined;
-  onCommit: (snapshot: Snapshot) => void;
+  /** The current subscription validity date (`config.dailyPack`), or `null` if unset. */
+  dailyPack: string | null;
+  onCommit: (draft: ResourcesDraft) => void;
   onClose: () => void;
 }
 
@@ -35,18 +44,43 @@ export function resourcesEditor(opts: ResourcesEditorOpts): HTMLElement {
     return h("div", { class: "resources-editor__cell" }, cellHeading(cell, "label", { for: `rs-${cell.key}` }), input);
   };
 
-  const dailyPack = h("input", { attr: { type: "checkbox" } });
+  // "Dolphin mode": the Daily Carat Pack as an always-on subscription. The checkbox
+  // enables it and reveals the one input it needs — the validity date straight off the
+  // game's UI ("additional purchase available from …"), a cycle boundary we phase the
+  // 30-day billing cadence off. Income (50 free/day + 500 paid/cycle) is synthesised by
+  // the daily-pack channel; here we only transcribe the subscription's existence + date.
+  const packToggle = h("input", {
+    attr: opts.dailyPack ? { type: "checkbox", checked: "" } : { type: "checkbox" },
+    on: { change: () => syncPack() },
+  });
+  const packDate = h("input", {
+    class: "resources-editor__pack-date",
+    attr: { type: "date", value: opts.dailyPack ?? "" },
+  });
+  const packDateField = h(
+    "label",
+    { class: "resources-editor__pack-date-field" },
+    "Next purchase date",
+    packDate,
+  );
+  const syncPack = (): void => {
+    packDateField.hidden = !packToggle.checked;
+  };
+  syncPack();
 
-  // No date input: the reading is stamped at the moment of Save (the action-time
-  // pattern, like rushed flags). We keep only the most recent snapshot — its full
-  // UTC instant is the wall-clock truth; `date` is its day, the projection origin.
-  const collect = (): Snapshot => {
+  // The reading is stamped at the moment of Save (the action-time pattern, like rushed
+  // flags). We keep only the most recent snapshot — its full UTC instant is the
+  // wall-clock truth; `date` is its day, the projection origin. The pack date is the
+  // one transcribed value (presence ⇒ subscribed), `null` when the toggle is off.
+  const collect = (): ResourcesDraft => {
     const resources: ResourceVector = {};
     for (const row of RESOURCE_ROWS) {
       for (const cell of row) resources[cell.key] = inputs.get(cell.key)!.valueAsNumber || 0;
     }
     const recordedAt = new Date().toISOString();
-    return { date: recordedAt.slice(0, 10), recordedAt, resources };
+    const snapshot: Snapshot = { date: recordedAt.slice(0, 10), recordedAt, resources };
+    const dailyPack = packToggle.checked && packDate.value ? packDate.value : null;
+    return { snapshot, dailyPack };
   };
 
   return h(
@@ -56,9 +90,10 @@ export function resourcesEditor(opts: ResourcesEditorOpts): HTMLElement {
     h(
       "label",
       { class: "resources-editor__daily-pack" },
-      dailyPack,
+      packToggle,
       "I spend money for the Daily Carats pack",
     ),
+    packDateField,
     h(
       "footer",
       { class: "resources-editor__actions" },
