@@ -3,7 +3,6 @@ import type {
   MissionKey,
   PlayStyleKey,
   ShopTicketKey,
-  SpecialMissionKey,
   StoryEventKey,
   TeamTrialKey,
   WeeklyPlayKey,
@@ -34,7 +33,6 @@ export interface PlayStyleStrings {
     weeklyPlay: PlayStyleSettingStrings<WeeklyPlayKey>;
     teamTrials: PlayStyleSettingStrings<TeamTrialKey>;
     missions: PlayStyleSettingStrings<MissionKey>;
-    specialMissions: PlayStyleSettingStrings<SpecialMissionKey>;
     storyEvents: PlayStyleSettingStrings<StoryEventKey>;
     championsMeeting: PlayStyleSettingStrings<ChampionsMeetingKey>;
     shopTickets: PlayStyleSettingStrings<ShopTicketKey>;
@@ -114,15 +112,6 @@ export const UI_STRINGS: UiStrings = {
         steps: {
           no: { value: "No", description: "I do not chase the regular mission set." },
           yes: { value: "Yes", description: "I work through the regular missions." },
-        },
-      },
-      specialMissions: {
-        title: "Special missions",
-        steps: {
-          some: { value: "60%", description: "I take the obvious event rewards and leave some stretch goals." },
-          welfare: { value: "80%", description: "I usually reach the key limited reward." },
-          major: { value: "90%", description: "I collect the major rewards." },
-          all: { value: "100%", description: "I clear the special mission set." },
         },
       },
       storyEvents: {

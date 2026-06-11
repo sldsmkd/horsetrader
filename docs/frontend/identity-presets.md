@@ -126,7 +126,6 @@ Campaign and event income:
 
 | Stream | Sweetie | Casual | Focused | Dedicated | Unhinged |
 | --- | --- | --- | --- | --- | --- |
-| Special missions | 60% | 80% | 90% | 100% | 100% |
 | Story events | Story | Welfare card | Major rewards | Achievement / stretch | Achievement / stretch, early |
 
 Competitive PvP:
@@ -204,22 +203,15 @@ running, and full completion often turns into chore routing.
 - Focused usually completes them, but misses annoying sets or busy weeks.
 - Dedicated and Unhinged complete all mission rewards.
 
-### Special missions
+### Special missions (deprecated, removed 2026-06-11)
 
-Special missions are large campaign mission sets tied to anniversaries, releases,
-and major event clusters. They are highly marketed, highly rewarded, and usually
-run for weeks rather than `7` days.
-
-- This is separate from regular missions because the psychology is different.
-- Missions ask: **will you tolerate chore-routing?**
-- Special missions ask: **will you show up for the big festival?**
-- Cygames uses these as retention and reactivation beats.
-- Rewards include high-value items like gems, tickets, selectors, and other
-  items generous enough to pull casual or lapsed trainers back in.
-- More engaged players are likely to push hard early and frontload these rewards.
-- The curve is flatter and higher than rotating missions.
-- This is why Casual income should not be projected as a tiny Dedicated curve:
-  Casual skips boring discipline but often returns hard for big campaigns.
+There is no longer a special-missions slider. The large campaign mission sets it
+described are the anniversary mission sets — now their own `anniversarymission`
+event type, folded as **always-on ground-truth income** (you don't toggle whether
+the anniversary missions happen). The only other event-mission format (Gold Ship
+Week 1 & 2) was retired by Cygames and lives only in the past, so there is no live
+source for a separate gradable slider. The slider never earned its place and was
+deleted; see glue.md (the mission model, Axis 1).
 
 ### Story events
 

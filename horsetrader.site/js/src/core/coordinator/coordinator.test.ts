@@ -107,6 +107,7 @@ test("channels() reports every channel and its enabled state", () => {
     { name: "shop-tickets", enabled: true },
     { name: "daily-pack", enabled: true },
     { name: "training-pass", enabled: true },
+    { name: "story", enabled: true },
   ]);
   coord.setEnabled("events", false);
   assert.equal(coord.channels().find((c) => c.name === "events")?.enabled, false);
@@ -115,7 +116,7 @@ test("channels() reports every channel and its enabled state", () => {
 test("toggling an unknown channel is a no-op", () => {
   const coord = createCoordinator({ bundle: bundle(), now: cal("2026-06-01"), store: memoryStore() });
   coord.setEnabled("nonsense", false);
-  assert.equal(coord.channels().length, 10);
+  assert.equal(coord.channels().length, 11);
   assert.deepEqual(coord.balanceAt(FAR), { free_carats: 270 });
 });
 

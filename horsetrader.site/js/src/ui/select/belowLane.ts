@@ -113,10 +113,18 @@ export function belowLaneCards(
   for (const entry of projection.ledger) {
     // The event-attributed streams, all keyed by the event's key: `events` (flat
     // discrete payout), `sequence` (the baked per-day schedule, e.g. an anniversary
-    // mission's daily carats), and `missions` (the regular missions split onto their
-    // own play-gated stream — see streams/missions.ts). The `generator` stream
-    // (daily login) is global income, not a card's own reward, so it stays off.
-    if (entry.stream !== "events" && entry.stream !== "sequence" && entry.stream !== "missions") continue;
+    // mission's daily carats), `missions` (the regular missions split onto their own
+    // play-gated stream — see streams/missions.ts), and `story` (a story event's
+    // play-style-graded reward bundle, selected from the baked reward map — see
+    // streams/story.ts). The `generator` stream (daily login) is global income, not a
+    // card's own reward, so it stays off.
+    if (
+      entry.stream !== "events" &&
+      entry.stream !== "sequence" &&
+      entry.stream !== "missions" &&
+      entry.stream !== "story"
+    )
+      continue;
     let bag = rewardBySource.get(entry.source);
     if (!bag) rewardBySource.set(entry.source, (bag = {}));
     bag[entry.resource] = (bag[entry.resource] ?? 0) + entry.amount;

@@ -31,6 +31,7 @@ import {
   teamTrialsSpecFromBundle,
   teamTrialsStream,
   trainingPassStream,
+  storyStream,
 } from "../projection/index.ts";
 
 export interface ChannelContext {
@@ -155,6 +156,18 @@ export const INCOME_CHANNELS: ChannelDef[] = [
     emit: ({ bundle, config, trainingPass, after, timeZone }) => {
       if (!config) return [];
       return trainingPassStream(bundle, config, trainingPass, after, timeZone);
+    },
+  },
+  {
+    // Story events' graded reward bundle. Stories carry no rewards of their own now —
+    // this channel selects the curated `reward_maps["story-<era>"]` row at the player's
+    // story tier (`play.storyEvents`) and pays it on each story's end (or start when
+    // rushed; stories are rush-eligible). Inert without a config; pays nothing for
+    // proto-era stories. Not a gate — every tier (even sweetie) earns a story bundle.
+    name: "story",
+    emit: ({ bundle, config, play, after, timeZone, rushed }) => {
+      if (!config) return [];
+      return storyStream(bundle, config, play.storyEvents, after, timeZone, rushed);
     },
   },
 ];

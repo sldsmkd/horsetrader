@@ -7,15 +7,17 @@ import { TEST_CONFIG } from "../bundle/fixtures.ts";
 import { createAxis } from "../axis.ts";
 import { eventStream } from "../../core/projection/streams/events.ts";
 import { sequenceStream, sequencesFromBundle } from "../../core/projection/streams/sequence.ts";
+import { storyStream } from "../../core/projection/streams/story.ts";
 import { project } from "../../core/projection/index.ts";
 import type { EventsBundle } from "../../core/bundle/events.gen.ts";
+import type { ConfigBundle } from "../../core/bundle/config.gen.ts";
 import type { Academy } from "../../core/bundle/academy.gen.ts";
 import { cal } from "../../core/projection/dates.ts";
 
 const EVENTS: EventsBundle = {
   events: [
     { type: "trainee", rushable: true, contents: [], image: "/i.webp", start: "2026-06-10", end: "2026-06-15", predicted: false, key: "banner-1", rewards: { free_carats: 720 } },
-    { type: "story", rushable: true, title: "A Story", contents: [], image: null, banner: null, art: null, start: "2026-06-14", end: "2026-06-20", predicted: true, key: "story-1", rewards: { free_carats: 200 } },
+    { type: "story", rushable: true, title: "A Story", contents: [], image: null, banner: null, art: null, era: "1m", start: "2026-06-14", end: "2026-06-20", predicted: true, key: "story-1" },
     { type: "anchor", start: "2026-06-25", end: "2026-06-25", predicted: false, key: "anchor-1", rewards: { free_carats: 50 } },
     { type: "cm", name: "Summer CM", start: "2026-06-27", end: "2026-07-01", predicted: false, key: "cm-1", rewards: { free_carats: 1000 } },
     { type: "scenario", title: null, image: null, art: null, start: "2026-07-20", end: "2026-08-01", predicted: false, key: "sce-1", rewards: { free_carats: 300 } },
@@ -154,4 +156,24 @@ test("missions: the `missions` stream attributes to the card; `hiddenKinds` remo
   ]);
   const off = belowLaneCards(offProjection, bundle, axis, NOW, new Set(["mission"]));
   assert.deepEqual(off.map((c) => c.key), ["cm-1"]); // mission card gone with its income
+});
+
+test("story: the play-style-graded `story` stream attributes its bundle to the card", () => {
+  // Stories carry no rewards of their own — the bundle comes from the `story`
+  // stream, which selects the baked reward map at the player's tier. The card must
+  // read that stream just like `events`/`missions`/`sequence`.
+  const events: EventsBundle = {
+    events: [{ type: "story", title: "A Story", contents: [], image: null, banner: null, art: null, era: "1m", start: "2026-07-01", end: "2026-07-10", predicted: false, key: "story-1", rushable: true }],
+  };
+  const after = cal("2026-01-01");
+  const config: ConfigBundle = {
+    reward_structures: {},
+    reward_maps: { "story-1m": { sweetie: { free_carats: 690, gold_crystal_shards: 1 } } },
+    gacha: { spark_threshold: 200, carats_per_pull: 150, paid_daily_pull: 50, rarity_rates: {}, featured_rates: {} },
+  };
+  const projection = project({ resources: {} }, [
+    { stream: "story", emissions: storyStream(events, config, "story", after) },
+  ]);
+  const cards = belowLaneCards(projection, createBundle(events, EMPTY_ACADEMY, TEST_CONFIG), createAxis({ origin: cal("2026-06-01"), pxPerDay: 10 }), NOW);
+  assert.deepEqual(cards.find((c) => c.key === "story-1")!.reward, { free_carats: 690, gold_crystal_shards: 1 });
 });

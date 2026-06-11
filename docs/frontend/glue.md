@@ -178,14 +178,16 @@ remaining work, roughly one epic:
   **The mission model (2026-06-10, settled). The `none/some/most/all` = 0/20/70/100% slider shape is
   *wrong* — completion is not a linear percentage.** Two axes, in order:
 
-  **Axis 1 — the PRIMARY bake job: split `special` missions OUT of normal `mission` entirely.** They
-  are conflated today (the 194 flat `mission` records; there is no `specialmission` event type, yet a
-  `specialMissions` slider already exists with no backing data). They are a different beast: normal
-  missions cap at **≈150 carats total (~one pull, `carats_per_pull`)** — low-grade chore-routing —
-  while **special missions** are the big anniversary/release campaign sets (gems, tickets, **selectors**,
-  weeks long) worth real planning. Once carved out, `specialMissions` likely **genuinely earns its
-  slider** (real variance — frontload hard vs skip a campaign — and the reward is big enough to matter);
-  it is *not* "same shape as `missions`."
+  **Axis 1 — RESOLVED (2026-06-11): the `specialMissions` slider is deprecated and REMOVED.** The
+  "special missions" the slider gestured at were the big anniversary/release campaign sets — and that
+  carve-out already happened: they are their own `anniversarymission` event type
+  ([[project_anniversary_rework]]), folded as **always-on ground truth**, never gated (you don't toggle
+  whether the anniversary missions exist). Unlike the normal `mission` set, they aren't a do-them-or-not
+  choice. The only other event-mission format (Gold Ship Week 1 & 2) is in the past — Cygames retired
+  that format — so there is no remaining live source for a *separate* gradable special-missions slider.
+  The slider therefore never earned its place; it was deleted (`SPECIAL_MISSION_KEYS`/`SpecialMissionKey`/
+  the `specialMissions` field + strings + surface row, all gone). Persisted plans carrying an old
+  `specialMissions` value drop it silently on load (`normalizePlayStyleSettings` rebuilds explicitly).
 
   **Axis 2 — within NORMAL missions, two populations:** (1) **incidental/baseline** you complete just
   by playing — for our engaged audience effectively *universal* (legends decision-value logic from the
@@ -221,13 +223,15 @@ remaining work, roughly one epic:
   missions (`type:"anniversarymission"`) are separate — never gated, stay universal. The bake split
   (special-out / baseline-vs-grindy) is **no longer required** for the toggle; it'd only matter to keep
   some baseline mission income universal at "no" — a refinement, not owed.
-  `specialMissions`/`storyEvents` sliders are untouched — still pending state.
 
-  **Stories are NEXT (the graded-reward bake audit).** `storyEvents` still flat-stamps full rewards on
-  all 53 `story` events ([models/events/story.py], `stamp_story_off_table_extras`) — the same
-  wrong-info-on-a-graded-stream problem as missions, but with **no recorded verdict on how it grades**.
-  That audit + bake is the next backend job after this one. (Backend session's work; don't touch the
-  bake from a frontend session.)
+  **Stories — RESOLVED (2026-06-11), the case-3 bake fix shipped end-to-end.** The ETL stopped
+  flat-stamping: each `story` carries only an `era` (`1m`/`1-5m`, or `null` for the proto era), and the
+  graded haul (Pt-ladder + bingo + story-chapter carats) is baked once per era into
+  `reward_maps["story-<era>"]` keyed by engagement tier (sweetie/casual/focused/dedicated). The frontend
+  `story` INCOME channel (`streams/story.ts`) selects the row at the player's `play.storyEvents` tier
+  (a 5→4 mapping — both "achievement" archetypes fold onto `dedicated`), pays it on each story's end
+  (or start when rushed), and `belowLaneCards` reads it (added to the reward-attributing streams). Same
+  synthesise-by-engagement pattern as team-trials/club-rank — select a baked row, never author a value.
   **What's still unbuilt is the rest of the income:** (a) ~~load config~~ done; (b) wire each
   engagement slider's commit to `config`; (c) the remaining *graded* sources by rank
   (`league-of-heroes`, `masters`, `strongest-team`) — the PvP ones are events → enrich like

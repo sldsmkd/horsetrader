@@ -17,7 +17,6 @@ export const TEAM_TRIAL_KEYS = ["rank4", "rank5", "rank55", "rank6"] as const;
 // docs/frontend/glue.md (the mission model). Income gating still waits on the bake
 // split (baseline-universal vs grindy) — this is the settled signal it will read.
 export const MISSION_KEYS = ["no", "yes"] as const;
-export const SPECIAL_MISSION_KEYS = ["some", "welfare", "major", "all"] as const;
 export const STORY_EVENT_KEYS = ["story", "welfare", "major", "achievement", "earlyAchievement"] as const;
 export const CHAMPIONS_MEETING_KEYS = ["skip", "groupBContender", "groupBWinner", "groupARunnerUp", "groupAChampion"] as const;
 export const SHOP_TICKET_KEYS = ["none", "cleats", "friendPoints", "rainbow"] as const;
@@ -25,7 +24,6 @@ export const SHOP_TICKET_KEYS = ["none", "cleats", "friendPoints", "rainbow"] as
 export type WeeklyPlayKey = (typeof WEEKLY_PLAY_KEYS)[number];
 export type TeamTrialKey = (typeof TEAM_TRIAL_KEYS)[number];
 export type MissionKey = (typeof MISSION_KEYS)[number];
-export type SpecialMissionKey = (typeof SPECIAL_MISSION_KEYS)[number];
 export type StoryEventKey = (typeof STORY_EVENT_KEYS)[number];
 export type ChampionsMeetingKey = (typeof CHAMPIONS_MEETING_KEYS)[number];
 export type ShopTicketKey = (typeof SHOP_TICKET_KEYS)[number];
@@ -34,7 +32,6 @@ export interface PlayStyleSettings {
   weeklyPlay: WeeklyPlayKey;
   teamTrials: TeamTrialKey;
   missions: MissionKey;
-  specialMissions: SpecialMissionKey;
   storyEvents: StoryEventKey;
   championsMeeting: ChampionsMeetingKey;
   shopTickets: ShopTicketKey;
@@ -45,7 +42,6 @@ const PRESET_SETTINGS: Record<Exclude<PlayStyleKey, "custom">, PlayStyleSettings
     weeklyPlay: "twoDays",
     teamTrials: "rank4",
     missions: "no",
-    specialMissions: "some",
     storyEvents: "story",
     championsMeeting: "skip",
     shopTickets: "none",
@@ -54,7 +50,6 @@ const PRESET_SETTINGS: Record<Exclude<PlayStyleKey, "custom">, PlayStyleSettings
     weeklyPlay: "fourDays",
     teamTrials: "rank5",
     missions: "no",
-    specialMissions: "welfare",
     storyEvents: "welfare",
     championsMeeting: "groupBContender",
     shopTickets: "none",
@@ -63,7 +58,6 @@ const PRESET_SETTINGS: Record<Exclude<PlayStyleKey, "custom">, PlayStyleSettings
     weeklyPlay: "sixDays",
     teamTrials: "rank55",
     missions: "no",
-    specialMissions: "major",
     storyEvents: "major",
     championsMeeting: "groupBWinner",
     shopTickets: "cleats",
@@ -72,7 +66,6 @@ const PRESET_SETTINGS: Record<Exclude<PlayStyleKey, "custom">, PlayStyleSettings
     weeklyPlay: "sevenDays",
     teamTrials: "rank6",
     missions: "yes",
-    specialMissions: "all",
     storyEvents: "achievement",
     championsMeeting: "groupARunnerUp",
     shopTickets: "friendPoints",
@@ -81,7 +74,6 @@ const PRESET_SETTINGS: Record<Exclude<PlayStyleKey, "custom">, PlayStyleSettings
     weeklyPlay: "sevenDays",
     teamTrials: "rank6",
     missions: "yes",
-    specialMissions: "all",
     storyEvents: "earlyAchievement",
     championsMeeting: "groupAChampion",
     shopTickets: "rainbow",
@@ -107,9 +99,6 @@ export function normalizePlayStyleSettings(value: unknown, fallback: PlayStyleSe
     weeklyPlay: isOneOf(raw["weeklyPlay"], WEEKLY_PLAY_KEYS) ? raw["weeklyPlay"] : fallback.weeklyPlay,
     teamTrials: isOneOf(raw["teamTrials"], TEAM_TRIAL_KEYS) ? raw["teamTrials"] : fallback.teamTrials,
     missions: isOneOf(raw["missions"], MISSION_KEYS) ? raw["missions"] : fallback.missions,
-    specialMissions: isOneOf(raw["specialMissions"], SPECIAL_MISSION_KEYS)
-      ? raw["specialMissions"]
-      : fallback.specialMissions,
     storyEvents: isOneOf(raw["storyEvents"], STORY_EVENT_KEYS) ? raw["storyEvents"] : fallback.storyEvents,
     championsMeeting: isOneOf(raw["championsMeeting"], CHAMPIONS_MEETING_KEYS)
       ? raw["championsMeeting"]
@@ -123,7 +112,6 @@ export function samePlayStyleSettings(a: PlayStyleSettings, b: PlayStyleSettings
     a.weeklyPlay === b.weeklyPlay &&
     a.teamTrials === b.teamTrials &&
     a.missions === b.missions &&
-    a.specialMissions === b.specialMissions &&
     a.storyEvents === b.storyEvents &&
     a.championsMeeting === b.championsMeeting &&
     a.shopTickets === b.shopTickets
