@@ -1,9 +1,10 @@
 /**
- * The above-lane selector (view-model): `(bundle, axis) → banner groups`. Above
- * the line is the P&L *sinks* axis (ui.md principle 3): the scout banners you plan
- * *for*. A banner's card is not a ledger fact — its presence is its **appearance**
- * (its `start`, the marketing beat) — so this reads the bundle directly and
- * resolves each banner's `contents` to its academy atoms (the pills).
+ * The above-lane selector (view-model): `(settled world, bundle, axis) → banner
+ * groups`. Above the line is the P&L *sinks* axis (ui.md principle 3): the scout
+ * banners you plan *for*. A banner's card is not a ledger fact — its presence is
+ * its **appearance** (its `start`, the marketing beat) — so this reads the
+ * settled world's banner events and resolves each banner's `contents` to its
+ * academy atoms (the pills) through the bundle.
  *
  * Banners that share a start date are **grouped into one container** (trainee +
  * support gacha launching together): the group sits at the shared date, and the
@@ -13,23 +14,24 @@
 
 import type { Axis } from "../axis.ts";
 import type { Bundle } from "../bundle/access.ts";
+import type { SettledEvent } from "../../core/engine/index.ts";
 import type { ResourceVector, Commitments } from "../../core/persistence/document.ts";
 import { pullCapacity, bannerDays } from "../../core/projection/pulls.ts";
 import type { CalendarDate } from "../../core/projection/dates.ts";
 
-/** The live reads the above-lane readout folds in: balance-at-date, the per-banner
+/** The live reads the above-lane readout folds in: balance-at-date, the per-event
  *  self-excluded available (for committed banners), and commitments. */
 export interface AboveLaneInputs {
   /** The income fold surfaced at a spend point — `balanceAt(bannerDate)` (ui.md). */
   balanceAt: (date: CalendarDate) => ResourceVector;
-  /** A committed banner's resources *before its own spend* (self-excluded — see
-   *  project_spend_model); `undefined` for an uncommitted banner, which reads the series. */
-  bannerAvailable: (bannerKey: string) => ResourceVector | undefined;
-  /** Per-banner committed pities, keyed by banner key (the persisted plan). */
+  /** A committed event's resources *before its own claim* (self-excluded — see
+   *  project_spend_model); `undefined` when uncommitted, which reads the series. */
+  availableFor: (eventKey: string) => ResourceVector | undefined;
+  /** Per-banner committed pities, keyed by event key (the persisted plan). */
   commitments: Commitments;
 }
 
-const NO_INPUTS: AboveLaneInputs = { balanceAt: () => ({}), bannerAvailable: () => undefined, commitments: {} };
+const NO_INPUTS: AboveLaneInputs = { balanceAt: () => ({}), availableFor: () => undefined, commitments: {} };
 
 export type BannerKind = "trainee" | "support";
 
@@ -100,32 +102,40 @@ export function atomOf(bundle: Bundle, kind: BannerKind, id: string): BannerAtom
   };
 }
 
-export function aboveLaneGroups(bundle: Bundle, axis: Axis, now: CalendarDate, inputs: AboveLaneInputs = NO_INPUTS): BannerGroup[] {
+export function aboveLaneGroups(
+  events: readonly SettledEvent[],
+  bundle: Bundle,
+  axis: Axis,
+  now: CalendarDate,
+  inputs: AboveLaneInputs = NO_INPUTS,
+): BannerGroup[] {
   // Every known banner, past and future — the timeline spans all known time, not
   // just the projection horizon (you scroll back into history too).
   const byDate = new Map<string, BannerGroup>();
   const { carats_per_pull: caratsPerPull, paid_daily_pull: paidDailyPull } = bundle.config().gacha;
-  for (const ev of bundle.all()) {
-    if (ev.type !== "trainee" && ev.type !== "support") continue;
+  for (const ev of events) {
+    if (!ev.visible) continue; // ledger-only cadence, or the bake's opt-out
+    const record = ev.record;
+    if (!record || (record.type !== "trainee" && record.type !== "support")) continue;
     let group = byDate.get(ev.start);
     if (!group) byDate.set(ev.start, (group = { key: ev.start, date: ev.start, x: axis.xForDate(ev.start), predicted: false, banners: [] }));
-    group.predicted = group.predicted || ev.predicted;
+    group.predicted = group.predicted || record.predicted;
     // Ammo is measured at the banner's **end** (project_spend_model). A committed banner
-    // reads its self-excluded available (income minus *earlier* spends, not its own); an
-    // uncommitted one reads the series at its end (which already nets out earlier spends).
-    const balance = inputs.bannerAvailable(ev.key) ?? inputs.balanceAt(ev.end);
-    const atoms = ev.contents.map((id) => atomOf(bundle, ev.type, id)).filter((a): a is BannerAtom => a !== null);
+    // reads its self-excluded available (income minus *earlier* claims, not its own); an
+    // uncommitted one reads the series at its end (which already nets out earlier claims).
+    const balance = inputs.availableFor(ev.key) ?? inputs.balanceAt(ev.end);
+    const atoms = record.contents.map((id) => atomOf(bundle, record.type, id)).filter((a): a is BannerAtom => a !== null);
     const open = ev.end >= now;
-    // This banner's own free-pull grant. On banners `pulls` is always a plain
-    // number, but the reward map is permissively typed — guard it.
-    const freePulls = typeof ev.rewards?.pulls === "number" ? ev.rewards.pulls : 0;
+    // This banner's own free-pull grant — banner-scoped, never banked, so it lives
+    // on the baked record, not the settled face (rules/settle.ts strips `pulls`).
+    const freePulls = typeof record.rewards?.pulls === "number" ? record.rewards.pulls : 0;
     // The effective pulls under the spend model: free pulls + kind-appropriate tickets
     // + duration-capped daily paid pulls + full-price free carats (shared with the
     // commit shield's reservation so card and shield never disagree).
     const capacity = pullCapacity(
       {
         freePulls,
-        tickets: (ev.type === "support" ? balance.support_tickets : balance.trainee_tickets) ?? 0,
+        tickets: (record.type === "support" ? balance.support_tickets : balance.trainee_tickets) ?? 0,
         freeCarats: balance.free_carats ?? 0,
         paidCarats: balance.paid_carats ?? 0,
       },
@@ -133,8 +143,8 @@ export function aboveLaneGroups(bundle: Bundle, axis: Axis, now: CalendarDate, i
     );
     group.banners.push({
       key: ev.key,
-      kind: ev.type,
-      image: ev.image,
+      kind: record.type,
+      image: record.image,
       atoms,
       open,
       pullsAvailable: capacity.total,

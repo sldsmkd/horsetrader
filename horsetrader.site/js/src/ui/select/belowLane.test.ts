@@ -2,16 +2,10 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import { belowLaneCards } from "./belowLane.ts";
-import { createBundle } from "../bundle/access.ts";
-import { TEST_CONFIG } from "../bundle/fixtures.ts";
 import { createAxis } from "../axis.ts";
-import { eventStream } from "../../core/projection/streams/events.ts";
-import { sequenceStream, sequencesFromBundle } from "../../core/projection/streams/sequence.ts";
-import { storyStream } from "../../core/projection/streams/story.ts";
-import { project } from "../../core/projection/index.ts";
+import { settle } from "../../core/engine/index.ts";
+import type { SettledEvent, StreamCtx } from "../../core/engine/index.ts";
 import type { EventsBundle } from "../../core/bundle/events.gen.ts";
-import type { ConfigBundle } from "../../core/bundle/config.gen.ts";
-import type { Academy } from "../../core/bundle/academy.gen.ts";
 import { cal } from "../../core/projection/dates.ts";
 
 const EVENTS: EventsBundle = {
@@ -27,27 +21,27 @@ const EVENTS: EventsBundle = {
   ],
 };
 
-const EMPTY_ACADEMY: Academy = { characters: {}, supports: {}, trainees: {} };
 const NOW = cal("2026-06-08");
+const AXIS = createAxis({ origin: cal("2026-06-01"), pxPerDay: 10 });
 
-/** The real path: extract the events stream, add a login generator, fold. */
-function projectFixture() {
-  return project({ resources: {} }, [
-    { stream: "events", emissions: eventStream(EVENTS, cal("2026-01-01")) },
-    { stream: "generators", emissions: [{ date: cal("2026-06-12"), source: "daily-login", deltas: { free_carats: 50 } }] },
-  ]);
+/** Settle baked records through the real settlement rule — the same faces and
+ *  minted cadence children the engine's settled world carries. The selector only
+ *  reads `timeZone`/`after` through `settle`, so a minimal ctx suffices. */
+function settled(events: EventsBundle, after = cal("2026-01-01")): SettledEvent[] {
+  const ctx = { timeZone: "UTC", after } as StreamCtx;
+  return events.events.flatMap((record) => settle(record, ctx));
 }
 
 test("below-lane cards: below-lane events only, resolved + positioned, sorted by date", () => {
-  const cards = belowLaneCards(projectFixture(), createBundle(EVENTS, EMPTY_ACADEMY, TEST_CONFIG), createAxis({ origin: cal("2026-06-01"), pxPerDay: 10 }), NOW);
+  const cards = belowLaneCards(settled(EVENTS), AXIS, NOW);
 
-  // The trainee banner (above-lane) and the daily-login (generators stream) are excluded.
+  // The trainee banner (above-lane) is excluded; everything else gets a card.
   assert.deepEqual(cards.map((c) => c.key), ["story-1", "holiday-1", "cm-1", "sce-1", "cm-2"]);
   assert.deepEqual(cards.map((c) => c.kind), ["story", "holiday", "cm", "scenario", "cm"]);
 });
 
 test("a reward-less below-lane event still gets a card, with an empty reward", () => {
-  const cards = belowLaneCards(projectFixture(), createBundle(EVENTS, EMPTY_ACADEMY, TEST_CONFIG), createAxis({ origin: cal("2026-06-01"), pxPerDay: 10 }), NOW);
+  const cards = belowLaneCards(settled(EVENTS), AXIS, NOW);
   const card = cards.find((c) => c.key === "cm-2");
 
   assert.ok(card, "the reward-less CM is on the lane — existence is the appearance, not a payout");
@@ -63,14 +57,13 @@ test("visibility is opt-out: an explicit `visible: false` hides the card, absenc
       { type: "cm", name: "Shown CM", start: "2026-09-10", end: "2026-09-15", predicted: false, key: "cm-shown" },
     ],
   };
-  const projection = project({ resources: {} }, [{ stream: "events", emissions: eventStream(events, cal("2026-01-01")) }]);
-  const cards = belowLaneCards(projection, createBundle(events, EMPTY_ACADEMY, TEST_CONFIG), createAxis({ origin: cal("2026-06-01"), pxPerDay: 10 }), NOW);
+  const cards = belowLaneCards(settled(events), AXIS, NOW);
 
   assert.deepEqual(cards.map((c) => c.key), ["cm-shown"]); // only the visible one
 });
 
 test("each card resolves its label (name/title, falling back to key) and predicted flag", () => {
-  const cards = belowLaneCards(projectFixture(), createBundle(EVENTS, EMPTY_ACADEMY, TEST_CONFIG), createAxis({ origin: cal("2026-06-01"), pxPerDay: 10 }), NOW);
+  const cards = belowLaneCards(settled(EVENTS), AXIS, NOW);
   const byKey = new Map(cards.map((c) => [c.key, c]));
 
   assert.equal(byKey.get("cm-1")!.label, "Summer CM");
@@ -81,8 +74,8 @@ test("each card resolves its label (name/title, falling back to key) and predict
   assert.equal(byKey.get("cm-1")!.predicted, false);
 });
 
-test("x is true-to-date off the axis (arrival date = start) and reward is the event's own delta", () => {
-  const cards = belowLaneCards(projectFixture(), createBundle(EVENTS, EMPTY_ACADEMY, TEST_CONFIG), createAxis({ origin: cal("2026-06-01"), pxPerDay: 10 }), NOW);
+test("x is true-to-date off the axis (arrival date = start) and reward is the resolved face", () => {
+  const cards = belowLaneCards(settled(EVENTS), AXIS, NOW);
   const byKey = new Map(cards.map((c) => [c.key, c]));
 
   assert.equal(byKey.get("story-1")!.date, "2026-06-14"); // start, not end
@@ -90,15 +83,15 @@ test("x is true-to-date off the axis (arrival date = start) and reward is the ev
   assert.equal(byKey.get("cm-1")!.x, 260); // 2026-06-27 → 26 days
   assert.equal(byKey.get("sce-1")!.x, 490); // 2026-07-20 → 49 days
 
-  // The card carries its own reward, not the day's subtotal.
+  // The card carries its own face, not the day's subtotal.
   assert.deepEqual(byKey.get("cm-1")!.reward, { free_carats: 1000 });
   assert.deepEqual(byKey.get("holiday-1")!.reward, { free_carats: 50 });
 });
 
-test("an anniversary mission's card combines its flat payout and its baked daily sequence", () => {
-  // The flat reward posts on `end` via the events stream; the per-day sequence
-  // (anchored at `start`) posts via the sequence stream. Both key off the event,
-  // so the card shows their sum.
+test("an anniversary mission's card combines its flat face and its minted daily sequence", () => {
+  // The flat reward is the parent's face; the per-day sequence becomes minted
+  // `visible:false` children under the parent key (rules/settle.ts). The card
+  // folds the children back so the whole grant reads as one signal.
   const events: EventsBundle = {
     events: [
       {
@@ -114,66 +107,41 @@ test("an anniversary mission's card combines its flat payout and its baked daily
       } as EventsBundle["events"][number],
     ],
   };
-  const after = cal("2026-01-01");
-  const projection = project({ resources: {} }, [
-    { stream: "events", emissions: eventStream(events, after) },
-    { stream: "sequence", emissions: sequenceStream(sequencesFromBundle(events), after) },
-  ]);
-  const cards = belowLaneCards(projection, createBundle(events, EMPTY_ACADEMY, TEST_CONFIG), createAxis({ origin: cal("2026-06-01"), pxPerDay: 10 }), NOW);
+  const cards = belowLaneCards(settled(events), AXIS, NOW);
 
   assert.deepEqual(cards.map((c) => c.kind), ["anniversarymission"]);
   // free_carats: 500 (flat) + 150 + 150 (sequence); trainee_tickets: 3 (flat).
   assert.deepEqual(cards[0]!.reward, { trainee_tickets: 3, free_carats: 800 });
 });
 
-test("missions: the `missions` stream attributes to the card; `hiddenKinds` removes it entirely", () => {
-  // A normal mission carries a baked reward, folded on its own `missions` stream
-  // (the play-gated split) — so the card reads it from there, alongside a CM that
-  // stays put. When the player toggles missions off, the stream is absent AND the
-  // card kind is hidden: no income, no card.
+test("presence is the stream's call: a gated-off mission is absent from the input, so no card", () => {
+  // Under the engine, the play.missions stream gates PRESENCE — toggled off, its
+  // events never reach the settled world, so the cards leave with the income.
+  // (The old `hiddenKinds` re-derivation in the shell is gone.)
   const events: EventsBundle = {
     events: [
       { type: "mission", name: "G1 Mission", start: "2026-07-01", end: "2026-07-10", predicted: false, key: "mission-1", rewards: { free_carats: 150 } } as EventsBundle["events"][number],
       { type: "cm", name: "Summer CM", start: "2026-07-05", end: "2026-07-08", predicted: false, key: "cm-1", rewards: { free_carats: 1000 } },
     ],
   };
-  const after = cal("2026-01-01");
-  const axis = createAxis({ origin: cal("2026-06-01"), pxPerDay: 10 });
-  const bundle = createBundle(events, EMPTY_ACADEMY, TEST_CONFIG);
 
-  // Missions ON: events folds the CM, `missions` folds the mission — both carded.
-  const onProjection = project({ resources: {} }, [
-    { stream: "events", emissions: eventStream(events, after, undefined, undefined, (ev) => ev.type !== "mission") },
-    { stream: "missions", emissions: eventStream(events, after, undefined, undefined, (ev) => ev.type === "mission") },
-  ]);
-  const on = belowLaneCards(onProjection, bundle, axis, NOW);
+  // Missions ON: both events are in the settled world — both carded.
+  const on = belowLaneCards(settled(events), AXIS, NOW);
   assert.deepEqual(on.map((c) => c.key), ["mission-1", "cm-1"]);
   assert.deepEqual(on.find((c) => c.key === "mission-1")!.reward, { free_carats: 150 });
 
-  // Missions OFF: the `missions` stream is gone from the fold and the kind is hidden.
-  const offProjection = project({ resources: {} }, [
-    { stream: "events", emissions: eventStream(events, after, undefined, undefined, (ev) => ev.type !== "mission") },
-  ]);
-  const off = belowLaneCards(offProjection, bundle, axis, NOW, new Set(["mission"]));
-  assert.deepEqual(off.map((c) => c.key), ["cm-1"]); // mission card gone with its income
+  // Missions OFF: the stream contributed nothing — the mission card is gone.
+  const off = belowLaneCards(settled(events).filter((ev) => ev.type !== "mission"), AXIS, NOW);
+  assert.deepEqual(off.map((c) => c.key), ["cm-1"]);
 });
 
-test("story: the play-style-graded `story` stream attributes its bundle to the card", () => {
-  // Stories carry no rewards of their own — the bundle comes from the `story`
-  // stream, which selects the baked reward map at the player's tier. The card must
-  // read that stream just like `events`/`missions`/`sequence`.
-  const events: EventsBundle = {
-    events: [{ type: "story", title: "A Story", contents: [], image: null, banner: null, art: null, era: "1m", start: "2026-07-01", end: "2026-07-10", predicted: false, key: "story-1", rushable: true }],
-  };
-  const after = cal("2026-01-01");
-  const config: ConfigBundle = {
-    reward_structures: {},
-    reward_maps: { "story-1m": { sweetie: { free_carats: 690, gold_crystal_shards: 1 } } },
-    gacha: { spark_threshold: 200, carats_per_pull: 150, paid_daily_pull: 50, rarity_rates: {}, featured_rates: {} },
-  };
-  const projection = project({ resources: {} }, [
-    { stream: "story", emissions: storyStream(events, config, "story", after) },
-  ]);
-  const cards = belowLaneCards(projection, createBundle(events, EMPTY_ACADEMY, TEST_CONFIG), createAxis({ origin: cal("2026-06-01"), pxPerDay: 10 }), NOW);
+test("a graded face (story) reads straight off the settled event — no second lookup", () => {
+  // Stories carry no baked rewards of their own; the owning stream stamps the
+  // play-graded reward-map row onto the face at settle time. The card just reads it.
+  const record = { type: "story", title: "A Story", contents: [], image: null, banner: null, art: null, era: "1m", start: "2026-07-01", end: "2026-07-10", predicted: false, key: "story-1", rushable: true } as EventsBundle["events"][number];
+  const ctx = { timeZone: "UTC", after: cal("2026-01-01") } as StreamCtx;
+  const world = settle(record, ctx, { free_carats: 690, gold_crystal_shards: 1 });
+
+  const cards = belowLaneCards(world, AXIS, NOW);
   assert.deepEqual(cards.find((c) => c.key === "story-1")!.reward, { free_carats: 690, gold_crystal_shards: 1 });
 });

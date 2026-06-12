@@ -47,14 +47,8 @@ import {
   reducePlayStyleMachine,
 } from "./identity/playStyleMachine.ts";
 import type { PlayStyleMachineEvent, PlayStyleMachineState } from "./identity/playStyleMachine.ts";
-import { resolvePlayStyle } from "../core/playstyle/index.ts";
 import type { PlayStyleKey, PlayStyleSettings } from "../core/playstyle/index.ts";
 
-// Below-lane card kinds hidden when their income stream is toggled off (see
-// belowLane's `hiddenKinds`). `missions` off → the regular mission cards leave the
-// timeline with their income; reused frozen sets so refresh() allocates nothing.
-const MISSIONS_HIDDEN: ReadonlySet<string> = new Set(["mission"]);
-const EMPTY_HIDDEN_KINDS: ReadonlySet<string> = new Set();
 import type { UiStrings } from "./strings.ts";
 import { belowLaneCards } from "./select/belowLane.ts";
 import { aboveLaneGroups } from "./select/aboveLane.ts";
@@ -64,7 +58,7 @@ import type { BelowCard } from "./select/belowLane.ts";
 import type { BannerGroup } from "./select/aboveLane.ts";
 import { createViewStore } from "./state/viewState.ts";
 import { createMachine } from "./state/machine.ts";
-import type { Coordinator } from "../core/coordinator/index.ts";
+import type { Coordinator, SettledEvent } from "../core/engine/index.ts";
 import type { CalendarDate } from "../core/projection/dates.ts";
 import type { Bundle } from "./bundle/access.ts";
 
@@ -128,16 +122,18 @@ function packAboveLane(groups: readonly BannerGroup[], els: readonly HTMLElement
 }
 
 /**
- * The displayed-card date range: earliest to latest arrival across *all* known
- * events, or null when none. The timeline spans all known time — start of history
- * to the last scheduled event — not the balance-series/projection horizon (you
- * scroll back into the past too). Cards anchor at `start`, so both ends measure
- * `start`: the latest *end* would trail dead time past the final card.
+ * The displayed-card date range: earliest to latest arrival across the settled
+ * world's lane events, or null when none. The timeline spans all known time —
+ * start of history to the last scheduled event — not the balance-series/
+ * projection horizon (you scroll back into the past too). Cards anchor at
+ * `start`, so both ends measure `start`: the latest *end* would trail dead time
+ * past the final card.
  */
-function displayExtent(bundle: Bundle): readonly [CalendarDate, CalendarDate] | null {
+function displayExtent(world: readonly SettledEvent[]): readonly [CalendarDate, CalendarDate] | null {
   let lo: CalendarDate | null = null;
   let hi: CalendarDate | null = null;
-  for (const ev of bundle.all()) {
+  for (const ev of world) {
+    if (!ev.visible) continue; // ledger-only cadence never widens the canvas
     if (lo === null || ev.start < lo) lo = ev.start;
     if (hi === null || ev.start > hi) hi = ev.start;
   }
@@ -228,35 +224,25 @@ export function mountApp(
   // mount, once heights can be measured, and resolve overlaps without moving any
   // stem off-tick: below stacks vertically, above nudges groups horizontally.
   // Rushed state is persisted user input (the `rushed` map: event key → the UTC
-  // instant it was rushed). The binding reads/writes the live document so it never
-  // goes stale; setting writes the timestamp, unsetting deletes the key. `update`
-  // recomputes + notifies → `refresh` rebuilds the cards with the new pressed
-  // state. Storing raw UTC: it's an action-timestamp, not a timeline date. (Fully
-  // clearing leaves a `{}` rather than omitting the key — `update`'s spread merge
-  // can't delete a section; reads `?? {}` so it's behaviourally identical.)
+  // instant it was rushed). The binding reads the live document so it never goes
+  // stale and writes through the typed mutator, which recomputes + notifies →
+  // `refresh` rebuilds the cards with the new pressed state.
   const rush: RushBinding = {
     isRushed: (key) => key in (coord.document().rushed ?? {}),
-    setRushed: (key, on) => {
-      const next = { ...(coord.document().rushed ?? {}) };
-      if (on) next[key] = new Date().toISOString();
-      else delete next[key];
-      coord.update({ rushed: next });
-    },
+    setRushed: (key, on) => coord.setRushed(key, on),
   };
 
   const fav: FavouriteBinding = {
     isFavourited: (id) => id in (coord.document().favourites ?? {}),
-    setFavourited: (id, on) => {
-      const next = { ...(coord.document().favourites ?? {}) };
-      if (on) next[id] = {};
-      else delete next[id];
-      coord.update({ favourites: next });
-    },
+    setFavourited: (id, on) => coord.setFavourite(id, on),
   };
 
   function refresh(): void {
+    // The settled world — the render source. One value feeds the fold AND the
+    // lane; faces arrive resolved, so the cards never join back to the bundle.
+    const world = coord.settledEvents();
     const projection = coord.projection();
-    const extent = displayExtent(bundle);
+    const extent = displayExtent(world);
     // The minimap is another view over the same projection. Repaint it *before*
     // the timeline lays out: `tl.layout` emits the initial view-centre date
     // through `onView → mini.setView`, which needs the minimap's axis already
@@ -268,17 +254,13 @@ export function mountApp(
     tl.layout(extent, now);
     const axis = tl.axis();
     if (!axis) return tl.setCards([]);
-    // Kinds whose income stream the player has toggled off — hide their cards with
-    // the income. Today just the play-style "missions" gate; resolved from the same
-    // committed config the fold's `missions` channel reads, so cards and balance
-    // move together on Apply.
-    const hiddenKinds = resolvePlayStyle(coord.document().config).settings.missions === "yes"
-      ? EMPTY_HIDDEN_KINDS
-      : MISSIONS_HIDDEN;
-    const below = belowLaneCards(projection, bundle, axis, now, hiddenKinds);
-    const above = aboveLaneGroups(bundle, axis, now, {
+    // Presence gating happens in the engine: a stream the player has toggled off
+    // (e.g. missions) contributes no settled events, so its cards leave the
+    // timeline with the income — no kind-hiding re-derivation here.
+    const below = belowLaneCards(world, axis, now);
+    const above = aboveLaneGroups(world, bundle, axis, now, {
       balanceAt: (date) => coord.balanceAt(date),
-      bannerAvailable: (key) => coord.bannerAvailable(key),
+      availableFor: (key) => coord.availableFor(key),
       commitments: coord.document().commitments ?? {},
     });
     const belowEls = below.map((card) => belowCard(card, rush));
@@ -454,15 +436,10 @@ export function mountApp(
               dailyPack: (coord.document().config?.["dailyPack"] as string | undefined) ?? null,
               trainingPass: coord.document().config?.["trainingPass"] === true,
               onCommit: ({ snapshot, dailyPack, trainingPass }) => {
-                // The pack date and premium toggle are config settings (account-level),
-                // not part of the resource reading — merge them into config, omitting
-                // each key when unset.
-                const config = { ...coord.document().config };
-                if (dailyPack) config["dailyPack"] = dailyPack;
-                else delete config["dailyPack"];
-                if (trainingPass) config["trainingPass"] = true;
-                else delete config["trainingPass"];
-                coord.update({ snapshot, config });
+                // The pack date and premium toggle are subscriptions (account-level
+                // config), not part of the resource reading — two typed writes.
+                coord.saveSnapshot(snapshot);
+                coord.setSubscriptions({ dailyPack, trainingPass });
               },
               onClose: () => view.set({ resourcesEditing: false }),
             }),
@@ -489,9 +466,9 @@ export function mountApp(
     if (committing !== null) {
       const ctx = commitContext(bundle, committing, {
         // The shield reads this banner's *self-excluded* available (income minus earlier
-        // banners' spends, not its own) so editing a committed pity never double-debits;
-        // an uncommitted banner has no own-spend yet, so the series at its end is right.
-        balanceAt: (date) => coord.bannerAvailable(committing) ?? coord.balanceAt(date),
+        // claims, not its own) so editing a committed pity never double-debits; an
+        // uncommitted banner has no own-spend yet, so the series at its end is right.
+        balanceAt: (date) => coord.availableFor(committing) ?? coord.balanceAt(date),
         commitments: coord.document().commitments ?? {},
       });
       children.push(
@@ -501,13 +478,8 @@ export function mountApp(
           body: commitShield({
             context: ctx,
             // Persist the pity as the unit of account; the carat cost stays derived
-            // (principle 10). A null clears the commitment (no row, like unsetting).
-            onCommit: (pity) => {
-              const next = { ...(coord.document().commitments ?? {}) };
-              if (pity === null) delete next[committing];
-              else next[committing] = pity;
-              coord.update({ commitments: next });
-            },
+            // (principle 10). A null clears the commitment (0 through `commit`).
+            onCommit: (pity) => coord.commit(committing, pity ?? 0),
             onClose: () => view.set({ committing: null }),
           }),
           onClose: () => view.set({ committing: null }),

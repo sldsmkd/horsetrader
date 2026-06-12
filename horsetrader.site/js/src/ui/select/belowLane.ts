@@ -1,33 +1,31 @@
 /**
- * The first selector (view-model): `(projection, bundle, axis) → below-lane card
+ * The first selector (view-model): `(settled world, axis) → below-lane card
  * props`. This is the "bridging logic" layer of the cake (docs/frontend/
  * interaction.md) — pure, DOM-free, and therefore where view-layer correctness
  * is proven with core-grade tests, ahead of any card rendering in 4d.
  *
  * Below the line is the P&L *sources* axis (ui.md principle 3): CMs, stories,
  * scenarios, holidays — "what I'm doing / what generates income". Each is
- * a single atom on its own true date (principle 4). The selector:
- *   - iterates the bundle for the below-lane kinds — a card's existence is the
- *     event's *appearance* (its `start`), mirroring the above-lane selector, not
- *     whether it posted a reward. Most below-lane kinds (CMs, PvP, scenarios)
- *     grant nothing and still get a card. Visibility is **opt-out**:
- *     only an explicit `visible: false` hides a card; absence means visible;
- *   - attaches each event's own attributed reward from the ledger's `events`-
- *     and `sequence`-stream facts — the card's height/breakdown signal, not the
- *     whole day's subtotal, and `{}` for the (many) kinds that grant nothing.
- *     The flat discrete payout (`events`, on `end`) and the baked per-day
- *     sequence (`sequence`, anchored at `start`) share the event's key as their
- *     source, so both fold onto the one card; the `generator` stream (the global
- *     daily login) is *not* event-attributed and stays off the cards;
+ * a single atom on its own true date (principle 4). The selector reads the
+ * engine's settled world (`coordinator.settledEvents()`), never the raw bundle:
+ *   - a card's existence is a settled event's *presence* — the owning stream
+ *     already applied both gates (the bake's `visible: false` opt-out and the
+ *     play-style presence gate, e.g. missions off → no mission events at all),
+ *     so the lane filter is just `visible` + below-lane kind;
+ *   - the card's reward is the event's **resolved face** (`rewards`), stamped
+ *     by the owning stream — no ledger join, no second lookup. Minted cadence
+ *     children (`<parent-key>-<date>`, `visible: false`) fold back onto their
+ *     parent's card so a sequence/generator facet still shows as the card's
+ *     height/breakdown signal;
  *   - computes the true-date x off the axis at the event's `start` — when it
  *     *arrives* on the timeline. (The reward still posts on `end` in the ledger;
  *     the card shows up when the event lands, "the line lags the dots".)
  */
 
-import type { Projection, ResourceVector, CalendarDate } from "../../core/projection/index.ts";
-import { isVisible, isRushable } from "../../core/bundle/flags.ts";
+import type { SettledEvent } from "../../core/engine/index.ts";
+import type { ResourceVector, CalendarDate } from "../../core/projection/index.ts";
+import { isRushable } from "../../core/bundle/flags.ts";
 import type { Axis } from "../axis.ts";
-import type { Bundle, EventRecord } from "../bundle/access.ts";
 
 /** The below-lane (income / "doing") event kinds — everything that isn't a
  *  banner (trainee/support, the two above-lane kinds). */
@@ -83,72 +81,62 @@ export interface BelowCard {
   predicted: boolean;
   /** True when the event is rush-eligible and not yet ended. */
   rushable: boolean;
-  /** This event's own attributed reward delta (its height/breakdown signal). */
+  /** This event's resolved reward face (its height/breakdown signal). */
   reward: ResourceVector;
 }
 
 /** The display name for an event; the `name`/`title` it carries, else its key. */
-function labelOf(ev: EventRecord): string {
-  if ("name" in ev && ev.name) return ev.name;
-  if ("title" in ev && ev.title) return ev.title;
-  return ev.key;
+function labelOf(record: NonNullable<SettledEvent["record"]>): string {
+  if ("name" in record && record.name) return record.name;
+  if ("title" in record && record.title) return record.title;
+  return record.key;
 }
 
-export function belowLaneCards(
-  projection: Projection,
-  bundle: Bundle,
-  axis: Axis,
-  now: CalendarDate,
-  // Event kinds whose income stream the player has toggled off — their cards are
-  // hidden entirely, not shown with an empty reward. A card belongs to its stream:
-  // if you don't do missions, the mission cards leave the timeline with the income
-  // (the play-style "missions" gate, the only member today). Distinct from the ETL
-  // `visible: false` opt-out (a data fact); this is a live user-engagement choice.
-  hiddenKinds: ReadonlySet<string> = new Set(),
-): BelowCard[] {
-  // Each below-lane event posts once (on its `end`), so a source maps to one
-  // reward bag; accumulate per source across its single-resource ledger entries.
-  // Many below-lane kinds post nothing — that's normal, not a missing card.
-  const rewardBySource = new Map<string, ResourceVector>();
-  for (const entry of projection.ledger) {
-    // The event-attributed streams, all keyed by the event's key: `events` (flat
-    // discrete payout), `sequence` (the baked per-day schedule, e.g. an anniversary
-    // mission's daily carats), `missions` (the regular missions split onto their own
-    // play-gated stream — see streams/missions.ts), and `story` (a story event's
-    // play-style-graded reward bundle, selected from the baked reward map — see
-    // streams/story.ts). The `generator` stream (daily login) is global income, not a
-    // card's own reward, so it stays off.
-    if (
-      entry.stream !== "events" &&
-      entry.stream !== "sequence" &&
-      entry.stream !== "missions" &&
-      entry.stream !== "story"
-    )
-      continue;
-    let bag = rewardBySource.get(entry.source);
-    if (!bag) rewardBySource.set(entry.source, (bag = {}));
-    bag[entry.resource] = (bag[entry.resource] ?? 0) + entry.amount;
-  }
+/** A minted cadence child's parent key — strip the `-<date>` mint suffix
+ *  (rules/settle.ts keys children `<parent-key>-YYYY-MM-DD`); null otherwise. */
+function cadenceParent(key: string): string | null {
+  const m = /^(.+)-\d{4}-\d{2}-\d{2}$/.exec(key);
+  return m ? m[1] : null;
+}
 
-  // The card's *existence* is the event's appearance, not a reward fact (the same
-  // stance as the above-lane selector): scan the bundle, keep the below-lane kinds,
-  // and attach the posted reward — `{}` where the event grants nothing.
+export function belowLaneCards(events: readonly SettledEvent[], axis: Axis, now: CalendarDate): BelowCard[] {
+  // First pass: the visible below-lane events become cards, faces read straight
+  // off the settled event. Presence is the stream's call (a play gate already
+  // removed what the player doesn't do); the lane only filters lane-visibility.
   const cards: BelowCard[] = [];
-  for (const ev of bundle.all()) {
+  const byKey = new Map<string, BelowCard>();
+  for (const ev of events) {
+    if (!ev.visible) continue; // ledger-only cadence, or the bake's opt-out
     if (!BELOW_LANE.has(ev.type)) continue; // above-lane banner or unknown kind
-    if (hiddenKinds.has(ev.type)) continue; // income stream toggled off → no card
-    if (!isVisible(ev)) continue; // opt-out flag: explicit `visible: false` hides
-    cards.push({
+    const record = ev.record;
+    if (!record) continue; // minted events are never lane cards
+    const card: BelowCard = {
       key: ev.key,
       kind: ev.type as BelowKind,
-      label: labelOf(ev),
+      label: labelOf(record),
       date: ev.start,
       x: axis.xForDate(ev.start),
-      predicted: ev.predicted,
-      rushable: isRushable(ev) && ev.end >= now,
-      reward: rewardBySource.get(ev.key) ?? {},
-    });
+      predicted: record.predicted,
+      rushable: isRushable(record) && ev.end >= now,
+      reward: { ...ev.rewards },
+    };
+    cards.push(card);
+    byKey.set(card.key, card);
   }
+
+  // Second pass: fold each minted cadence child's face onto its parent's card —
+  // a sequence/generator facet is still *this event's* income. Children whose
+  // parent isn't a card (a synthesiser's mint, a hidden parent) carry no card.
+  for (const ev of events) {
+    if (ev.record !== null) continue; // claimed events were handled above
+    const parent = cadenceParent(ev.key);
+    const card = parent === null ? undefined : byKey.get(parent);
+    if (!card) continue;
+    for (const [resource, amount] of Object.entries(ev.rewards)) {
+      card.reward[resource] = (card.reward[resource] ?? 0) + amount;
+    }
+  }
+
   cards.sort((a, b) => a.x - b.x); // left-to-right, i.e. by date
   return cards;
 }

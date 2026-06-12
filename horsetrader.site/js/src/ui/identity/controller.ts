@@ -6,7 +6,7 @@ import type { PlayStyleKey, PlayStyleSettings } from "../../core/playstyle/index
 import { loadSupporters, verifySupporter } from "./supporters.ts";
 import type { SupporterRegistry } from "./supporters.ts";
 import type { OshiOption, OshiSearchIndex } from "../query/index.ts";
-import type { Coordinator } from "../../core/coordinator/index.ts";
+import type { Coordinator } from "../../core/engine/index.ts";
 import type { Bundle } from "../bundle/access.ts";
 
 export interface MenuIdentity {
@@ -48,10 +48,6 @@ export function createIdentityController(coord: Coordinator, bundle: Bundle): Id
       : {};
   }
 
-  function updateIdentity(patch: Record<string, unknown>): void {
-    const config = coord.document().config ?? {};
-    coord.update({ config: { ...config, identity: { ...identityConfig(), ...patch } } });
-  }
 
   function trainerName(): string {
     const name = identityConfig()["trainerName"];
@@ -77,7 +73,7 @@ export function createIdentityController(coord: Coordinator, bundle: Bundle): Id
   }
 
   function commitPlayStyle(key: PlayStyleKey, settings: PlayStyleSettings): void {
-    updateIdentity({ playStyleKey: key, playStyleSettings: settings });
+    coord.setPlay(key, settings);
   }
 
   function currentOshi(): OshiOption {
@@ -102,10 +98,10 @@ export function createIdentityController(coord: Coordinator, bundle: Bundle): Id
     savedPlayStyleKey: playStyleKey,
     savedPlayStyleSettings: playStyleSettings,
     commitPlayStyle,
-    setTrainerName: (name) => updateIdentity({ trainerName: name }),
-    setTrainerId: (id) => updateIdentity({ trainerId: id }),
-    setOshiId: (id) => updateIdentity({ oshiId: id }),
-    setClub: (name, rank) => updateIdentity({ clubName: name, clubRank: rank }),
-    leaveClub: () => updateIdentity({ clubName: "" }),
+    setTrainerName: (name) => coord.patchIdentity({ trainerName: name }),
+    setTrainerId: (id) => coord.patchIdentity({ trainerId: id }),
+    setOshiId: (id) => coord.patchIdentity({ oshiId: id }),
+    setClub: (name, rank) => coord.setClub(name, rank),
+    leaveClub: () => coord.setClub("", null),
   };
 }
