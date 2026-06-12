@@ -58,12 +58,15 @@ sections, separated by lifecycle: a dated **snapshot** of resources, slow-moving
 **configuration**, per-banner **commitments**, and **favourites**. Detail in
 [persistence.md](persistence.md).
 
-### Pillar 2 — Projection: derive everything else
+### Pillar 2 — Projection / Engine: derive everything else
 
-Projection is a pure fold: `(snapshot, config, commitments, favourites, bundle)
-→ ledger`. The ledger is a list of **attributed, dated, signed resource deltas**.
-Per-day subtotals and the cumulative running balance are folds over it. Detail in
-[projection.md](projection.md).
+The engine is a pure fold: streams produce events from the bake + account state;
+the coordinator folds them into a ledger, then runs a reconciliation pass for
+commitments. The ledger is a list of **attributed, dated, signed resource deltas**.
+Per-day subtotals and the cumulative running balance are folds over it. Lives at
+`core/engine/`. Detail in [projection.md](projection.md) (fold invariants, ledger
+model, performance) and [engine.md](engine.md) (stream model, coordinator API,
+registry roster).
 
 ### The rule that joins them: persist inputs, derive the rest
 
@@ -78,7 +81,7 @@ always consistent.
    inputs  (persistence  ⇄  in-memory state)
               │  on input change (the only expensive step)
               ▼
-        project()  ── O(n) fold ──▶  ledger + cached balance series
+      coordinator.fold()  ── O(n) ──▶  ledger + cached balance series
                                           │  on scrub / hover (cheap, O(1))
                                           ▼
                                    views: timeline · tooltip · cursor balance · scrubber
@@ -144,7 +147,8 @@ rates/parameters too; see the stream decomposition in
 ## See also
 
 - [persistence.md](persistence.md) — pillar 1 in detail.
-- [projection.md](projection.md) — pillar 2 in detail.
+- [projection.md](projection.md) — pillar 2: fold invariants, ledger model, performance.
+- [engine.md](engine.md) — pillar 2: stream model, coordinator API, registry roster.
 - [catalog.md](catalog.md) — the entity query broker (a seam over the bundle, not a pillar).
 - [conventions.md](conventions.md) — language, layering, DOM patterns.
 - [trust-and-failure.md](trust-and-failure.md) — trust boundaries and failure model.

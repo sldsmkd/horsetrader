@@ -12,19 +12,22 @@ the ETL is in [`../etl/`](../etl/) and the shared interface in
 [`../contract.md`](../contract.md). Editing ETL *code* from a site session is
 still a boundary crossing — but the docs are shared.
 
-## Status: `core/` built, `ui/` is captured intent next to code
+## Status: engine + view layer built (`core/engine/` + `ui/`)
 
-As of **2026-06-02** the keystone is laid — both `core/` pillars exist under
-`horsetrader.site/js/src/core/` and are headless-tested (`npm test`):
+As of **2026-06-12** both pillars and the view layer are complete and
+headless-tested (`npm test`):
 
 - **Persistence** (pillar 1) — the four-section document, storage module, and
   validation/recovery. See [persistence.md](persistence.md).
-- **Projection** (pillar 2) — the pure fold, the rich ledger + its folds, the
-  dense balance-series scrub cache, and three ground-truth channels (events,
-  generator, sequence). See [projection.md](projection.md).
-- **The coordinator** — the headless seam joining the two: it loads the plan,
-  builds channels from the bundle, folds the enabled ones, and recomputes on any
-  change. The UI will be a pure consumer of this seam.
+- **Projection / Engine** (pillar 2) — the stream model, the fold, the
+  reconciliation pass, and the dense balance-series scrub cache. Lives at
+  `core/engine/`. See [projection.md](projection.md) and [engine.md](engine.md).
+- **The coordinator** — the headless seam joining the two: it holds the settled
+  world, both projections (P_income, P_final), and the full public write/read API.
+  See [engine.md](engine.md).
+- **The view layer** — `ui/` is written. The intent-first design captured in
+  [ui.md](ui.md), [ui-timeline.md](ui-timeline.md), and
+  [ui-surfaces.md](ui-surfaces.md) is now code.
 
 A small supporting seam is **planned** (not a pillar):
 
@@ -34,26 +37,11 @@ A small supporting seam is **planned** (not a pillar):
   already live in `ui/search` and `ui/oshi`. See [catalog.md](catalog.md);
   tracked as **#35**.
 
-Two slices of projection are **still to come** (now unblocked — see below):
-the **spends/commitments** channel (the one stream that consumes the fold's own
-output for affordability) and the **expected-copies distribution**.
-**Rushed-event posting** is now **built** (the `events` channel posts a rushed
-event's discrete rewards at `start`). [projection.md](projection.md) has the
-ordered next-steps.
-
-The **view layer** is fully captured intent-first, surface by surface, in
-[ui.md](ui.md) — **every surface is documented** as of 2026-06-02, but `ui/`
-*code* is not yet written. That doc is the settled design the view layer will
-follow.
-
 ### ETL cross-side blockers: resolved / tracked
 
-The sequence value type that projection's daily-login channel needs **shipped**
-from the ETL (`SequenceReward`), so the spends/commitments work is now a pure
-frontend task. The remaining cross-side asks — **procedural stream rates** and
-**baked drop rates** — are tracked on the live tracker (GitHub issues / board on
-`sldsmkd/horsetrader`); the
-contract is settled in [`../contract.md`](../contract.md).
+The remaining cross-side asks — **free pulls** and **baked drop rates** — are
+tracked on the live tracker (GitHub issues / board on `sldsmkd/horsetrader`);
+the contract is settled in [`../contract.md`](../contract.md).
 
 ## Start here
 
@@ -62,12 +50,14 @@ contract is settled in [`../contract.md`](../contract.md).
 | Understand the whole design in one pass | [architecture.md](architecture.md) |
 | Know what we store and why so little | [persistence.md](persistence.md) |
 | Understand the engine that derives everything | [projection.md](projection.md) |
+| Understand the engine's stream model, coordinator API, and registry | [engine.md](engine.md) |
 | Understand the entity query broker (search/label seam over the bundle) | [catalog.md](catalog.md) |
-| Understand how the site presents itself (the view layer) | [ui.md](ui.md) |
-| Understand the menubar, Identity, Resources, and Tazuna | [menu.md](menu.md) |
+| Understand the ten UI principles | [ui.md](ui.md) |
+| Understand the timeline substrate, lanes, minimap, and rushable events | [ui-timeline.md](ui-timeline.md) |
+| Understand the banner card, bookmarks, menubar, plan, and other surfaces | [ui-surfaces.md](ui-surfaces.md) |
+| Understand the menubar, Identity, Resources, and Tazuna in detail | [menu.md](menu.md) |
 | Track Identity Play Style preset UX and semantics | [identity-presets.md](identity-presets.md) |
 | Know how the interactive `ui/` layer is wired (implementation) | [interaction.md](interaction.md) |
-| Wire a customisation flow into the live projection (the "final glue" epic) | [glue.md](glue.md) |
 | Know the language, layering, and DOM patterns | [conventions.md](conventions.md) |
 | Know what we trust, validate, and how we fail | [trust-and-failure.md](trust-and-failure.md) |
 

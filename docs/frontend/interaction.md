@@ -6,50 +6,36 @@ system **from the user's perspective** (what each surface is *for*), this doc is
 the **implementation detail in service to it**: the layers, the seams, and the
 data-flow that the surfaces are rendered through.
 
-It sits on top of `core/` (persistence + projection) and is a pure consumer of
-the **coordinator seam** ([coordinator.ts](../../horsetrader.site/js/src/core/coordinator/coordinator.ts)).
+It sits on top of `core/` (persistence + engine) and is a pure consumer of
+the **coordinator seam** (`core/engine/coordinator.ts`).
 Pair with [conventions.md](conventions.md) (the `h()`/no-framework/unidirectional
-rules this doc makes concrete) and [projection.md](projection.md) (the perf split
-the two-tier change model below is the UI expression of).
+rules this doc makes concrete), [engine.md](engine.md) (the coordinator API), and
+[projection.md](projection.md) (the perf split the two-tier change model below is
+the UI expression of).
 
-## Status: loop proven, substrate + cards on the canvas; packer next
+## Status: complete (2026-06-12)
 
-As of **2026-06-04** `core/` is built and tested, [ui.md](ui.md) has captured
-every surface intent-first, and the view layer is well underway: **build-order
-steps 1–3 and 4a–4e are done**, plus a **timeline-affordances** pass (see below).
-The axis primitive (4a), the grabbable full-canvas substrate with inertial pan
-(4b + affordances), the bundle data-access + below/above-lane selectors (4c, 4d),
-the card views for both lanes (4d), and **the packer (4e) — the real algorithmic
-work — with both lane strategies (below-lane vertical collision-stacking, above-lane
-group-and-nudge) and elastic-wall pan with vertical peek** all render from the real
-baked bundle. **Remaining: the minimap (4f).** The **timeline-affordances** pass was pulled ahead of the packer
-once there was real data on the canvas to feel them against: the timeline now
-**fills the viewport** (chrome floats over it, principle 1) and pan carries
-**inertial momentum**. The original foundation, for the record: The **`h()` helper + `qs()`** and the **formatter**
-(`format.ts`) — step 1; the coordinator **notify seam** (`subscribe`) and the
-**discrete view-state store** (`state/viewState.ts`) — step 2; and the first
-**DOM views through the whole one-way loop** — the cursor balance readout
-(`views/cursorBalance.ts`) and a floating menu-overlay scaffold
-(`views/overlay.ts`) toggled from a menubar, all wired by the **app shell**
-(`app.ts`). Proven end to
-end against the real baked bundle, exercising **both broadcast stores**: the
-coordinator (snapshot edit → recompute → `subscribe` → render; scrub → direct
-`balanceAt` write, no broadcast) *and* the view-state store (menubar → `set` →
-`subscribe` → mount/unmount the overlay), the canvas staying live behind the
-overlay (principle 1, via a `pointer-events: none` layer). The two stores compose
-independently — editing carats in the overlay refreshes the canvas behind it while
-the overlay stays open. (Step 4 was decomposed into 4a–4f below; the packer (4e)
-landed 2026-06-04, so the minimap (4f) is the one piece of it still to come.)
+All build-order steps 1–3 and 4a–4f are done. The full view layer is built:
 
-The product design for that scaffold is now split into Identity, Resources, and
-Tazuna; see [menu.md](menu.md). The step-3 **standalone scrub** (`<input
-type=range>` in `app.ts`) has served its
-purpose — proving both tiers of the change model end to end — and **retires in 4b**:
-the timeline substrate becomes the real owner of cursor/scrub (the cheap path), with
-the cursor a position on the axis rather than a slider index. The `cursorBalance`
-readout survives as a genuine surface (it is the one view both tiers feed); only the
-slider scaffolding goes. From here the project moves to a **branch-per-feature** git
-model (4a–4f are branches) now that an end-to-end path exists.
+- **`h()` + formatter** (`format.ts`) — step 1.
+- **The notify seam** (`subscribe` on the coordinator) and the **discrete
+  view-state store** (`state/viewState.ts`) — step 2.
+- **The whole one-way loop proven** end to end — the cursor balance readout
+  (`views/cursorBalance.ts`) and a floating menu-overlay scaffold (`views/overlay.ts`)
+  wired by the **app shell** (`app.ts`). Both broadcast stores exercised — step 3.
+- **4a** — `xForDate`, the axis primitive.
+- **4b** — the full-canvas substrate with inertial pan, fills the viewport
+  (principle 1); the standalone step-3 scrub retired; cursor becomes a date on
+  the axis.
+- **4c / 4d** — bundle data-access + selectors; card views for both lanes.
+- **4e** — the packer, with both lane strategies (below-lane vertical
+  collision-stacking; above-lane group-and-nudge) and elastic-wall pan with
+  vertical peek. Fully covered `pack.test.ts`.
+- **4f** — the minimap (merged main 2026-06-04): fret-lined balance instrument,
+  favourite pips, centred window.
+
+The **Eclipse** rearchitecture (merged main 2026-06-12) replaced the old
+coordinator and stream files with `core/engine/`. See [engine.md](engine.md).
 
 ## The layer cake
 
@@ -94,15 +80,16 @@ app shell      wires it together; owns the render loop & the subscriptions
 
 **What you do NOT build:** a domain adapter. The coordinator already *is* the
 headless domain seam — it owns the plan, runs the one recompute, and exposes
-`projection()`, `balanceAt()`, `document()`, `channels()`. You build on it, you
-don't wrap it.
+`settledEvents()`, `projection()`, `balanceAt()`, `availableFor()`, `document()`,
+`streams()`, and the typed write mutators (`commit`, `setPlay`, `setIdentity`, …).
+See [engine.md](engine.md) for the full API. You build on it, you don't wrap it.
 
-## The two seams to add around the coordinator
+## The coordinator seam and view-state
 
-The coordinator is complete as a *domain* surface but the interactive layer needs
-two small pieces it doesn't yet have.
+The coordinator is the domain surface. The interactive layer adds two pieces
+around it:
 
-### 1. A notify seam (subscribe, never fan-out)
+### 1. The notify seam (`subscribe`)
 
 Principle 7 in [ui.md](ui.md) is explicit about the prototype's actual mud: a
 manual `refresh()` fan-out — one mutation hand-calling
@@ -111,45 +98,18 @@ navbar.refresh → minimap.refreshBalance`, where adding a view meant editing th
 chain forever. The cure is **subscription**: views register interest once and are
 notified after each recompute; **no view ever touches another view**.
 
-The coordinator's `update()`/`setEnabled()` already recompute, but notify nobody.
-Add the observer:
+The coordinator exposes `subscribe(listener: () => void): () => void`. Any
+write mutator (the typed mutators + `setEnabled`) invokes listeners once after
+swapping in the fresh projection. A bare callback is DOM-agnostic, staying inside
+the headless coordinator without breaching the layering rule.
 
-```ts
-subscribe(listener: () => void): () => void   // returns an unsubscribe
-```
+**The contract: reads never notify.** The cheap-query path — `balanceAt()`,
+`projection()`, `document()` — notifies nobody; write mutators do, exactly once
+per call. This is tested with a counting spy in `engine.test.ts`.
 
-`update()` and `setEnabled()` invoke the listeners after they swap in the fresh
-projection. A bare callback is DOM-agnostic, so this stays inside the headless
-coordinator without breaching the layering rule.
-
-**The contract to pin, and its negative.** The seam has a behavioural invariant
-worth a `core/`-grade test (it's headless, so it gets one): subscribers fire on a
-**mutation** and stay **silent on a read**. The cheap-query path — `balanceAt()`,
-`projection()`, `document()` — must notify *nobody*; only `update()`/`setEnabled()`
-do, and **exactly once** per call. Assert both directions with a counting spy:
-reads leave the count at `0` (the negative — this is what proves the scrub path is
-broadcast-free), a mutation bumps it to exactly `1` (the positive — guards the
-accidental double-notify that silently doubles render work).
-
-```ts
-coord.subscribe(() => notals++);
-coord.balanceAt(d); coord.projection(); coord.document();  assert.equal(notals, 0);
-coord.update({ snapshot });                                 assert.equal(notals, 1);
-```
-
-> This "reads never notify" is the **current** rule, and the test guards it
-> deliberately so any future change is a conscious one. A read that *does* need to
-> notify (e.g. a lazily-derived surface) is conceivable later — but that's a
-> decision to make on purpose, with the test updated to match, not a thing to leave
-> ambiguous now.
-
-**The other half of the split needs no test — it needs an absent API.** The
-"transient interaction-state has no broadcast" guarantee (§2 below) is *structural*,
-not behavioural: you cannot assert the absence of a `subscribe` at runtime, and a
-test that tried would be a tautology — or worse, would imply a path exists to
-guard. Enforce it by simply **not putting `subscribe` on the transient store's
-type**; the compiler is the proof. Prove the negative where it's testable (reads
-don't notify); enforce it where it isn't (no API to misuse).
+The "transient interaction-state has no broadcast" guarantee (§2 below) is
+*structural*: enforce it by **not putting `subscribe` on the transient store's
+type**; the compiler is the proof.
 
 ### 2. View-state, split by frequency (ephemeral, never persisted)
 
@@ -193,7 +153,7 @@ the fold, make the query cheap"). Not all changes are equal:
 
 | | Trigger | Path | Frequency |
 | --- | --- | --- | --- |
-| **Domain mutation** | commit a pity, edit the snapshot, toggle a channel | `coordinator.update()` → recompute → notify → **re-render dependent views** | rare |
+| **Domain mutation** | commit a pity, edit the snapshot, toggle a channel | typed mutator (e.g. `commit`, `saveSnapshot`) → recompute → notify → **re-render dependent views** | rare |
 | **Discrete view change** | open an overlay, run a search, change selection | discrete view-state store → notify → **re-render dependent views** | rare |
 | **Continuous interaction** | pan the timeline, drag the scrub cursor, hover | transient interaction-state → **direct targeted cheap DOM write** (no broadcast) | many/second |
 
@@ -296,9 +256,9 @@ it:
      in `pack/pack.ts`, impure measure-and-apply bookends in `app.ts`; the timeline gained
      elastic-wall pan (rubber-band + spring-back) and a vertical peek bounded by each
      lane's measured depth. Fully covered `pack.test.ts`.
-   - **4f — the minimap.** The consolidated balance instrument (fret-lined, favourite
-     pips, centred window) — another view over the *same* ledger + a minimap-scale
-     axis. Separable and lower-risk, so it lands after the main canvas reads right.
+   - **4f — the minimap. DONE (2026-06-04).** The consolidated balance instrument
+     (fret-lined, favourite pips, centred window) — another view over the *same*
+     ledger + a minimap-scale axis.
 
 This is the "add complexity only when warranted" rule ([conventions.md](conventions.md))
 applied to bring-up: a thin vertical slice through every layer first, breadth
@@ -306,7 +266,10 @@ after.
 
 ## See also
 
-- [ui.md](ui.md) — the surfaces this layer renders, from the user's perspective.
+- [ui.md](ui.md) — the ten principles this layer renders.
+- [ui-timeline.md](ui-timeline.md) — timeline surfaces (built).
+- [ui-surfaces.md](ui-surfaces.md) — the rest of the surfaces (built).
+- [engine.md](engine.md) — the full coordinator API this layer consumes.
 - [menu.md](menu.md) — the menubar-specific Identity, Resources, and Tazuna design.
 - [projection.md](projection.md) — the ledger/fold every view reads, and the
   cache/query split the two-tier change model mirrors.
