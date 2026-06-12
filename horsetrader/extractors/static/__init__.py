@@ -2,11 +2,11 @@ from horsetrader.core import Period, SingletonMeta
 from horsetrader.semantics import transcend
 
 from . import aliases as _aliases
-from . import anchored as _anchored
 from . import anniversaries as _anniversaries
 from . import banners as _banners
 from . import champions_meetings as _champions_meetings
-from . import holidays as _holidays
+from . import golden_week as _golden_week
+from . import new_year as _new_year
 from . import legend_races as _legend_races
 from . import reward_maps as _reward_maps
 from . import reward_structures as _reward_structures
@@ -36,17 +36,6 @@ class Static(metaclass=SingletonMeta):
         """Records from the consolidated anniversaries.yaml (JP + EN)."""
         return _anniversaries.load()
 
-    def anchored_events(self) -> list[dict]:
-        """Curated lead-ins / extensions, inlined across the consolidated files
-        and gathered from the merged store by key prefix.
-
-        Each record has key, relation ('before'|'after'), anchor (stable key),
-        name, duration (timedelta), a 'rewards' key (baked-shape mapping | None),
-        and source. The anchor is resolved against other event collections at
-        model-build time, so no period is computed here.
-        """
-        return _anchored.load()
-
     def scenarios(self) -> list[dict]:
         """Records from the consolidated scenarios.yaml (JP + EN).
 
@@ -55,14 +44,25 @@ class Static(metaclass=SingletonMeta):
         """
         return _scenarios.load()
 
-    def holidays(self) -> list[dict]:
-        """Records from holidays.yaml (consolidated JP + EN).
+    def golden_weeks(self) -> list[dict]:
+        """Golden Week launches (`holiday-golden-week-*`), consolidated JP + EN.
 
-        Each record has key, name, period (JP), source, a 'rewards' key
-        (the curated baked-shape mapping | None), and an 'en' key
-        (dict | None) with the EN period and source when present.
+        Each record has key, name (themed title), period (JP, with an optional
+        `duration` span), source, a 'rewards' key (baked-shape mapping | None),
+        and an 'en' key (dict | None) with the EN period + source when shipped.
         """
-        return _holidays.load()
+        return _golden_week.load()
+
+    def new_years(self) -> list[dict]:
+        """New Year launches (`holiday-new-year-*`), consolidated JP + EN.
+
+        Each year yields two records — the MAIN celebration and its COUNTDOWN
+        lead-in (`<key>-countdown`). Each has key, name, period (JP window),
+        a 'login' per-day sequence (the model builds the SequenceReward), an 'en'
+        key (dict | None; countdown is always None — derived from the main), and
+        source.
+        """
+        return _new_year.load()
 
     def story_banners(self) -> list[dict]:
         """Banner image records from static/img/stories/, sorted by ordinal.

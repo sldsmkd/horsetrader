@@ -59,13 +59,13 @@
                 "$ref": "#/$defs/AnniversaryMissionRecord"
               },
               {
+                "$ref": "#/$defs/ScenarioMissionRecord"
+              },
+              {
                 "$ref": "#/$defs/TrainingPassRecord"
               },
               {
-                "$ref": "#/$defs/AnchorRecord"
-              },
-              {
-                "$ref": "#/$defs/AnchoredEventRecord"
+                "$ref": "#/$defs/HolidayRecord"
               }
             ],
             "discriminator": {
@@ -87,9 +87,9 @@
                 "mission": "#/$defs/MissionRecord",
                 "anniversary": "#/$defs/AnniversaryRecord",
                 "anniversarymission": "#/$defs/AnniversaryMissionRecord",
+                "scenariomission": "#/$defs/ScenarioMissionRecord",
                 "trainingpass": "#/$defs/TrainingPassRecord",
-                "anchor": "#/$defs/AnchorRecord",
-                "anchoredevent": "#/$defs/AnchoredEventRecord"
+                "holiday": "#/$defs/HolidayRecord"
               }
             }
           }
@@ -1548,6 +1548,93 @@
         "key"
       ]
     },
+    "ScenarioMissionRecord": {
+      "title": "ScenarioMissionRecord",
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "scenariomission"
+          ]
+        },
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "scenario": {
+          "type": "string"
+        },
+        "start": {
+          "type": "string"
+        },
+        "end": {
+          "type": "string"
+        },
+        "predicted": {
+          "type": "boolean"
+        },
+        "key": {
+          "type": "string"
+        },
+        "rewards": {
+          "type": "object",
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "object",
+                "additionalProperties": {
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "type": "integer"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        "visible": {
+          "type": "boolean"
+        },
+        "rushable": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "type",
+        "name",
+        "scenario",
+        "start",
+        "end",
+        "predicted",
+        "key"
+      ]
+    },
     "TrainingPassRecord": {
       "title": "TrainingPassRecord",
       "type": "object",
@@ -1631,92 +1718,14 @@
         "key"
       ]
     },
-    "AnchorRecord": {
-      "title": "AnchorRecord",
+    "HolidayRecord": {
+      "title": "HolidayRecord",
       "type": "object",
       "properties": {
         "type": {
           "enum": [
-            "anchor"
+            "holiday"
           ]
-        },
-        "start": {
-          "type": "string"
-        },
-        "end": {
-          "type": "string"
-        },
-        "predicted": {
-          "type": "boolean"
-        },
-        "key": {
-          "type": "string"
-        },
-        "rewards": {
-          "type": "object",
-          "additionalProperties": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "object",
-                "additionalProperties": {
-                  "anyOf": [
-                    {
-                      "type": "integer"
-                    },
-                    {
-                      "type": "string"
-                    },
-                    {
-                      "type": "array",
-                      "items": {
-                        "anyOf": [
-                          {
-                            "type": "integer"
-                          },
-                          {
-                            "type": "null"
-                          }
-                        ]
-                      }
-                    }
-                  ]
-                }
-              }
-            ]
-          }
-        },
-        "visible": {
-          "type": "boolean"
-        },
-        "rushable": {
-          "type": "boolean"
-        }
-      },
-      "required": [
-        "type",
-        "start",
-        "end",
-        "predicted",
-        "key"
-      ]
-    },
-    "AnchoredEventRecord": {
-      "title": "AnchoredEventRecord",
-      "type": "object",
-      "properties": {
-        "type": {
-          "enum": [
-            "anchoredevent"
-          ]
-        },
-        "relation": {
-          "type": "string"
-        },
-        "anchor": {
-          "type": "string"
         },
         "name": {
           "type": "string"
@@ -1778,8 +1787,7 @@
       },
       "required": [
         "type",
-        "relation",
-        "anchor",
+        "name",
         "start",
         "end",
         "predicted",

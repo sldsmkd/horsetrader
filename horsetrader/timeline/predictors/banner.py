@@ -4,7 +4,7 @@ from datetime import date, datetime, timedelta
 from horsetrader.core import JST, UTC, Period
 from horsetrader.info import Logger
 from horsetrader.models.entities import Support, Trainee
-from horsetrader.models.events import Anchor, Banner, Scenario, Story
+from horsetrader.models.events import Banner, Holiday, Scenario, Story
 from horsetrader.semantics import matikanefukukitaru
 
 from ..timeline import Timeline
@@ -12,7 +12,7 @@ from .base import Predictor, nearest_weekday
 
 logger = Logger.get(__name__)
 
-_ANCHOR_TYPES = (Anchor, Scenario)
+_ANCHOR_TYPES = (Holiday, Scenario)
 _STORY_WINDOW = timedelta(days=7)
 
 

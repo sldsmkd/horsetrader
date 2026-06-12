@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { dailyPackStream, dailyPackSpecFromBundle, resolveDailyPack } from "./dailypack.ts";
 import type { DailyPackSpec } from "./dailypack.ts";
 import { cal } from "../dates.ts";
-import type { EventsBundle, AnchorRecord } from "../../bundle/events.gen.ts";
+import type { EventsBundle, HolidayRecord } from "../../bundle/events.gen.ts";
 import type { ConfigBundle } from "../../bundle/config.gen.ts";
 
 function spec(over: Partial<DailyPackSpec> = {}): DailyPackSpec {
@@ -68,16 +68,16 @@ test("a paid boundary on the snapshot day is already baked in (strictly-after)",
   assert.deepEqual(paid, ["2026-02-10", "2026-03-12"]);
 });
 
-function bundle(events: AnchorRecord[]): EventsBundle {
+function bundle(events: HolidayRecord[]): EventsBundle {
   return { events };
 }
 
-function anchorRec(key: string, start: string, end: string): AnchorRecord {
-  return { type: "anchor", start, end, predicted: false, key };
+function holidayRec(key: string, start: string, end: string): HolidayRecord {
+  return { type: "holiday", name: key, start, end, predicted: false, key };
 }
 
 test("dailyPackSpecFromBundle reads the baked amounts, the span, and the validity date", () => {
-  const b = bundle([anchorRec("x", "2026-01-15", "2026-06-30")]);
+  const b = bundle([holidayRec("x", "2026-01-15", "2026-06-30")]);
   assert.deepEqual(dailyPackSpecFromBundle(b, config(), cal("2026-02-10")), {
     epoch: "2026-01-15",
     horizon: "2026-06-30",
@@ -89,7 +89,7 @@ test("dailyPackSpecFromBundle reads the baked amounts, the span, and the validit
 });
 
 test("dailyPackSpecFromBundle returns null when unsubscribed, empty, or the structure is missing", () => {
-  const b = bundle([anchorRec("x", "2026-01-15", "2026-06-30")]);
+  const b = bundle([holidayRec("x", "2026-01-15", "2026-06-30")]);
   assert.equal(dailyPackSpecFromBundle(b, config(), null), null);
   assert.equal(dailyPackSpecFromBundle(bundle([]), config(), cal("2026-02-10")), null);
   const noStruct = { reward_structures: {}, reward_maps: {}, gacha: config().gacha } as ConfigBundle;

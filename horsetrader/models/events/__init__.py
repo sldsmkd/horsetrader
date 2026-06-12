@@ -1,19 +1,19 @@
 from .event import Event, Invisible, Rushable
 from .events import Events
 
-from .anchor import Anchor, Anchors
-from .anchored import AnchoredEvent, AnchoredEvents
 from .anniversary import Anniversaries, Anniversary
 from .anniversary_mission import AnniversaryMission, AnniversaryMissions
 from .banner import Banner, Banners, SupportBanner, TraineeBanner
 from .champions_meeting import ChampionsMeeting, ChampionsMeetings
 from .factor_studies import FactorStudies, FactorStudiesEvents
+from .holiday import Holiday, Holidays
 from .league_of_heroes import LeagueOfHeroes, LeaguesOfHeroes
 from .legend_race import LegendLeg, LegendRace, LegendRaces
 from .masters_challenge import MastersChallenge, MastersChallenges
 from .mission import Mission, Missions
 from .racing_carnival import RacingCarnival, RacingCarnivals
 from .scenario import Scenario, Scenarios
+from .scenario_mission import ScenarioMission, ScenarioMissions
 from .showtime import Showtime, Showtimes
 from .skill_test import SkillTest, SkillTests
 from .story import Stories, Story
@@ -22,10 +22,6 @@ from .training_pass import TrainingPass
 from .wikiru_event import WikiruEvent, WikiruEvents
 
 __all__ = [
-    "Anchor",
-    "Anchors",
-    "AnchoredEvent",
-    "AnchoredEvents",
     "Anniversaries",
     "Anniversary",
     "AnniversaryMission",
@@ -38,6 +34,8 @@ __all__ = [
     "Events",
     "FactorStudies",
     "FactorStudiesEvents",
+    "Holiday",
+    "Holidays",
     "LeagueOfHeroes",
     "LeaguesOfHeroes",
     "LegendLeg",
@@ -53,6 +51,8 @@ __all__ = [
     "Rushable",
     "Scenario",
     "Scenarios",
+    "ScenarioMission",
+    "ScenarioMissions",
     "Showtime",
     "Showtimes",
     "SkillTest",

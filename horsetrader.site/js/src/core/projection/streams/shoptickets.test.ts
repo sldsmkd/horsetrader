@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { shopTicketsStream, shopTicketsSpecFromBundle } from "./shoptickets.ts";
 import type { ShopTicketsSpec } from "./shoptickets.ts";
 import { cal } from "../dates.ts";
-import type { EventsBundle, AnchorRecord } from "../../bundle/events.gen.ts";
+import type { EventsBundle, HolidayRecord } from "../../bundle/events.gen.ts";
 
 function spec(over: Partial<ShopTicketsSpec> = {}): ShopTicketsSpec {
   return {
@@ -37,16 +37,16 @@ test("only month-starts strictly after `after` emit", () => {
   assert.deepEqual(out.map((e) => e.date), ["2026-03-01", "2026-04-01"]);
 });
 
-function bundle(events: AnchorRecord[]): EventsBundle {
+function bundle(events: HolidayRecord[]): EventsBundle {
   return { events };
 }
 
-function anchor(key: string, start: string, end: string): AnchorRecord {
-  return { type: "anchor", start, end, predicted: false, key };
+function holiday(key: string, start: string, end: string): HolidayRecord {
+  return { type: "holiday", name: key, start, end, predicted: false, key };
 }
 
 test("shopTicketsSpecFromBundle maps each bracket to N of each ticket type, monthly", () => {
-  const b = bundle([anchor("x", "2026-01-15", "2026-06-30")]);
+  const b = bundle([holiday("x", "2026-01-15", "2026-06-30")]);
   assert.deepEqual(shopTicketsSpecFromBundle(b, "cleats"), {
     epoch: "2026-01-15",
     horizon: "2026-06-30",
@@ -57,12 +57,12 @@ test("shopTicketsSpecFromBundle maps each bracket to N of each ticket type, mont
 });
 
 test("the `none` bracket resolves to an empty payload (no phantom tickets)", () => {
-  const b = bundle([anchor("x", "2026-01-15", "2026-06-30")]);
+  const b = bundle([holiday("x", "2026-01-15", "2026-06-30")]);
   assert.deepEqual(shopTicketsSpecFromBundle(b, "none")?.monthly, {});
 });
 
 test("shopTicketsSpecFromBundle buckets the bundle instants into the view timezone", () => {
-  const b = bundle([anchor("x", "2026-01-15T22:00:00+00:00", "2026-06-30T22:00:00+00:00")]);
+  const b = bundle([holiday("x", "2026-01-15T22:00:00+00:00", "2026-06-30T22:00:00+00:00")]);
   const out = shopTicketsSpecFromBundle(b, "cleats", "Australia/Sydney");
   assert.equal(out?.epoch, "2026-01-16");
   assert.equal(out?.horizon, "2026-07-01");
@@ -70,5 +70,5 @@ test("shopTicketsSpecFromBundle buckets the bundle instants into the view timezo
 
 test("shopTicketsSpecFromBundle returns null on an unknown level or an empty bundle", () => {
   assert.equal(shopTicketsSpecFromBundle(bundle([]), "cleats"), null);
-  assert.equal(shopTicketsSpecFromBundle(bundle([anchor("x", "2026-01-01", "2026-01-02")]), "platinum"), null);
+  assert.equal(shopTicketsSpecFromBundle(bundle([holiday("x", "2026-01-01", "2026-01-02")]), "platinum"), null);
 });

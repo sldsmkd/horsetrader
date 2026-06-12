@@ -5,12 +5,12 @@
  * is proven with core-grade tests, ahead of any card rendering in 4d.
  *
  * Below the line is the P&L *sources* axis (ui.md principle 3): CMs, stories,
- * scenarios, anchored events — "what I'm doing / what generates income". Each is
+ * scenarios, holidays — "what I'm doing / what generates income". Each is
  * a single atom on its own true date (principle 4). The selector:
  *   - iterates the bundle for the below-lane kinds — a card's existence is the
  *     event's *appearance* (its `start`), mirroring the above-lane selector, not
- *     whether it posted a reward. Most below-lane kinds (CMs, PvP, scenarios,
- *     anchors) grant nothing and still get a card. Visibility is **opt-out**:
+ *     whether it posted a reward. Most below-lane kinds (CMs, PvP, scenarios)
+ *     grant nothing and still get a card. Visibility is **opt-out**:
  *     only an explicit `visible: false` hides a card; absence means visible;
  *   - attaches each event's own attributed reward from the ledger's `events`-
  *     and `sequence`-stream facts — the card's height/breakdown signal, not the
@@ -35,11 +35,11 @@ export type BelowKind =
   | "cm"
   | "story"
   | "scenario"
-  | "anchor"
-  | "anchoredevent"
+  | "holiday"
   | "mission"
   | "anniversary"
   | "anniversarymission"
+  | "scenariomission"
   | "legendrace"
   | "factorstudies"
   | "skilltest"
@@ -52,11 +52,11 @@ const BELOW_LANE = new Set<string>([
   "cm",
   "story",
   "scenario",
-  "anchor",
-  "anchoredevent",
+  "holiday",
   "mission",
   "anniversary",
   "anniversarymission",
+  "scenariomission",
   "legendrace",
   "factorstudies",
   "skilltest",
