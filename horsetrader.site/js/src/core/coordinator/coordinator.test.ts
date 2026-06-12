@@ -17,8 +17,8 @@ function bundle(): EventsBundle {
   return {
     events: [
       { type: "trainee", contents: [], image: "", start: "2026-06-10", end: "2026-06-10", predicted: false, rushable: false, key: "banner-1", rewards: { free_carats: 100 } },
-      { type: "anchor", start: "2026-06-09", end: "2026-06-09", predicted: false, key: "anchor-1", rewards: { generator: { free_carats: 50, repeat: 3 } } },
-      { type: "anchoredevent", relation: "after", anchor: "x", start: "2026-06-09", end: "2026-06-09", predicted: false, key: "seq-1", rewards: { sequence: { type: "free_carats", sequence: [10, 10] } } },
+      { type: "holiday", name: "Golden Week", start: "2026-06-09", end: "2026-06-09", predicted: false, key: "holiday-1", rewards: { generator: { free_carats: 50, repeat: 3 } } },
+      { type: "holiday", name: "New Year", start: "2026-06-09", end: "2026-06-09", predicted: false, key: "seq-1", rewards: { sequence: { type: "free_carats", sequence: [10, 10] } } },
     ],
   };
 }
@@ -151,7 +151,7 @@ test("on load, rushed entries for ended/unknown events are pruned and persisted"
       version: 1,
       rushed: {
         "banner-1": "2026-06-05T00:00:00.000Z", // ends 2026-06-10 — still rushable at now
-        "anchor-1": "2026-06-05T00:00:00.000Z", // ended 2026-06-09 — past, drop
+        "holiday-1": "2026-06-05T00:00:00.000Z", // ended 2026-06-09 — past, drop
         ghost: "2026-06-05T00:00:00.000Z", //       not in the bundle — drop
       },
     }),
@@ -165,7 +165,7 @@ test("on load, rushed entries for ended/unknown events are pruned and persisted"
 
 test("a rushed map that is all-past prunes to omitted, not an empty object", () => {
   const store = memoryStore();
-  store.write(DOCUMENT_KEY, JSON.stringify({ version: 1, rushed: { "anchor-1": "2026-06-05T00:00:00.000Z" } }));
+  store.write(DOCUMENT_KEY, JSON.stringify({ version: 1, rushed: { "holiday-1": "2026-06-05T00:00:00.000Z" } }));
   const coord = createCoordinator({ bundle: bundle(), now: cal("2026-06-10"), store });
   assert.equal(coord.document().rushed, undefined);
 });

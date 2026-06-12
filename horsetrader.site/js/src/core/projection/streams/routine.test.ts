@@ -5,7 +5,7 @@ import { routineStream, routineSpecFromBundle } from "./routine.ts";
 import type { RoutineSpec } from "./routine.ts";
 import { cal } from "../dates.ts";
 import type { ConfigBundle } from "../../bundle/config.gen.ts";
-import type { EventsBundle, AnchorRecord } from "../../bundle/events.gen.ts";
+import type { EventsBundle, HolidayRecord } from "../../bundle/events.gen.ts";
 
 const CYCLE = { resource: "free_carats", amounts: [25, null, 25, null, 25, null, 75] };
 
@@ -79,19 +79,19 @@ function config(over: Partial<ConfigBundle["reward_structures"]> = {}): ConfigBu
   };
 }
 
-function bundle(events: AnchorRecord[]): EventsBundle {
+function bundle(events: HolidayRecord[]): EventsBundle {
   return { events };
 }
 
-function anchor(key: string, start: string, end: string): AnchorRecord {
-  return { type: "anchor", start, end, predicted: false, key };
+function holiday(key: string, start: string, end: string): HolidayRecord {
+  return { type: "holiday", name: key, start, end, predicted: false, key };
 }
 
 test("routineSpecFromBundle draws epoch/horizon from the bundle span and frequency from the play level", () => {
   const b = bundle([
-    anchor("late", "2026-03-01", "2026-03-10"),
-    anchor("early", "2026-01-15", "2026-01-20"),
-    anchor("end", "2026-06-01", "2026-06-30"),
+    holiday("late", "2026-03-01", "2026-03-10"),
+    holiday("early", "2026-01-15", "2026-01-20"),
+    holiday("end", "2026-06-01", "2026-06-30"),
   ]);
   const out = routineSpecFromBundle(b, config(), "fourDays");
   assert.deepEqual(out, {
@@ -104,7 +104,7 @@ test("routineSpecFromBundle draws epoch/horizon from the bundle span and frequen
 });
 
 test("routineSpecFromBundle buckets the bundle instants into the view timezone", () => {
-  const b = bundle([anchor("x", "2026-01-15T22:00:00+00:00", "2026-06-30T22:00:00+00:00")]);
+  const b = bundle([holiday("x", "2026-01-15T22:00:00+00:00", "2026-06-30T22:00:00+00:00")]);
   const out = routineSpecFromBundle(b, config(), "sevenDays", "Australia/Sydney");
   assert.equal(out?.epoch, "2026-01-16");
   assert.equal(out?.horizon, "2026-07-01");
@@ -112,9 +112,9 @@ test("routineSpecFromBundle buckets the bundle instants into the view timezone",
 
 test("routineSpecFromBundle returns null when it cannot run (no events, unknown level, missing structures)", () => {
   assert.equal(routineSpecFromBundle(bundle([]), config(), "sevenDays"), null);
-  assert.equal(routineSpecFromBundle(bundle([anchor("x", "2026-01-01", "2026-01-02")]), config(), "weekendsOnly"), null);
+  assert.equal(routineSpecFromBundle(bundle([holiday("x", "2026-01-01", "2026-01-02")]), config(), "weekendsOnly"), null);
   assert.equal(
-    routineSpecFromBundle(bundle([anchor("x", "2026-01-01", "2026-01-02")]), config({ dailies: {} }), "sevenDays"),
+    routineSpecFromBundle(bundle([holiday("x", "2026-01-01", "2026-01-02")]), config({ dailies: {} }), "sevenDays"),
     null,
   );
 });

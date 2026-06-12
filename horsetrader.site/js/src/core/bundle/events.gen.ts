@@ -25,9 +25,9 @@ export interface EventsBundle {
     | MissionRecord
     | AnniversaryRecord
     | AnniversaryMissionRecord
+    | ScenarioMissionRecord
     | TrainingPassRecord
-    | AnchorRecord
-    | AnchoredEventRecord
+    | HolidayRecord
   )[];
 }
 export interface SupportBannerRecord {
@@ -331,6 +331,24 @@ export interface AnniversaryMissionRecord {
   visible?: boolean;
   rushable?: boolean;
 }
+export interface ScenarioMissionRecord {
+  type: "scenariomission";
+  name: string | null;
+  scenario: string;
+  start: string;
+  end: string;
+  predicted: boolean;
+  key: string;
+  rewards?: {
+    [k: string]:
+      | number
+      | {
+          [k: string]: number | string | (number | null)[];
+        };
+  };
+  visible?: boolean;
+  rushable?: boolean;
+}
 export interface TrainingPassRecord {
   type: "trainingpass";
   name: string | null;
@@ -348,27 +366,9 @@ export interface TrainingPassRecord {
   visible?: boolean;
   rushable?: boolean;
 }
-export interface AnchorRecord {
-  type: "anchor";
-  start: string;
-  end: string;
-  predicted: boolean;
-  key: string;
-  rewards?: {
-    [k: string]:
-      | number
-      | {
-          [k: string]: number | string | (number | null)[];
-        };
-  };
-  visible?: boolean;
-  rushable?: boolean;
-}
-export interface AnchoredEventRecord {
-  type: "anchoredevent";
-  relation: string;
-  anchor: string;
-  name?: string;
+export interface HolidayRecord {
+  type: "holiday";
+  name: string;
   start: string;
   end: string;
   predicted: boolean;

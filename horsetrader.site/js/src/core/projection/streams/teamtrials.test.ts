@@ -5,7 +5,7 @@ import { teamTrialsStream, teamTrialsSpecFromBundle } from "./teamtrials.ts";
 import type { TeamTrialsSpec } from "./teamtrials.ts";
 import { cal } from "../dates.ts";
 import type { ConfigBundle } from "../../bundle/config.gen.ts";
-import type { EventsBundle, AnchorRecord } from "../../bundle/events.gen.ts";
+import type { EventsBundle, HolidayRecord } from "../../bundle/events.gen.ts";
 
 // 2026-06-01 is a Monday; the Mondays that follow are 06-08, 06-15, 06-22, 06-29.
 function spec(over: Partial<TeamTrialsSpec> = {}): TeamTrialsSpec {
@@ -81,19 +81,19 @@ function config(over: Partial<ConfigBundle["reward_maps"]["team-trials"]> = {}):
   };
 }
 
-function bundle(events: AnchorRecord[]): EventsBundle {
+function bundle(events: HolidayRecord[]): EventsBundle {
   return { events };
 }
 
-function anchor(key: string, start: string, end: string): AnchorRecord {
-  return { type: "anchor", start, end, predicted: false, key };
+function holiday(key: string, start: string, end: string): HolidayRecord {
+  return { type: "holiday", name: key, start, end, predicted: false, key };
 }
 
 test("teamTrialsSpecFromBundle draws epoch/horizon from the bundle span and the cadence from the play level", () => {
   const b = bundle([
-    anchor("late", "2026-03-01", "2026-03-10"),
-    anchor("early", "2026-01-15", "2026-01-20"),
-    anchor("end", "2026-06-01", "2026-06-30"),
+    holiday("late", "2026-03-01", "2026-03-10"),
+    holiday("early", "2026-01-15", "2026-01-20"),
+    holiday("end", "2026-06-01", "2026-06-30"),
   ]);
   assert.deepEqual(teamTrialsSpecFromBundle(b, config(), "rank6"), {
     epoch: "2026-01-15",
@@ -103,7 +103,7 @@ test("teamTrialsSpecFromBundle draws epoch/horizon from the bundle span and the 
 });
 
 test("a flapping level resolves to the two-row promotion/demotion cycle", () => {
-  const b = bundle([anchor("x", "2026-01-15", "2026-06-30")]);
+  const b = bundle([holiday("x", "2026-01-15", "2026-06-30")]);
   assert.deepEqual(teamTrialsSpecFromBundle(b, config(), "rank55")?.cycle, [
     { free_carats: 300 },
     { free_carats: 225 },
@@ -111,7 +111,7 @@ test("a flapping level resolves to the two-row promotion/demotion cycle", () => 
 });
 
 test("teamTrialsSpecFromBundle buckets the bundle instants into the view timezone", () => {
-  const b = bundle([anchor("x", "2026-01-15T22:00:00+00:00", "2026-06-30T22:00:00+00:00")]);
+  const b = bundle([holiday("x", "2026-01-15T22:00:00+00:00", "2026-06-30T22:00:00+00:00")]);
   const out = teamTrialsSpecFromBundle(b, config(), "rank4", "Australia/Sydney");
   assert.equal(out?.epoch, "2026-01-16");
   assert.equal(out?.horizon, "2026-07-01");
@@ -119,9 +119,9 @@ test("teamTrialsSpecFromBundle buckets the bundle instants into the view timezon
 
 test("teamTrialsSpecFromBundle returns null when it cannot run (no events, unknown level, missing row)", () => {
   assert.equal(teamTrialsSpecFromBundle(bundle([]), config(), "rank6"), null);
-  assert.equal(teamTrialsSpecFromBundle(bundle([anchor("x", "2026-01-01", "2026-01-02")]), config(), "rank99"), null);
+  assert.equal(teamTrialsSpecFromBundle(bundle([holiday("x", "2026-01-01", "2026-01-02")]), config(), "rank99"), null);
   // rank55 needs 6:promotion; a map without it can't resolve the cadence.
-  const b = bundle([anchor("x", "2026-01-01", "2026-06-30")]);
+  const b = bundle([holiday("x", "2026-01-01", "2026-06-30")]);
   const without6Promo = config();
   delete without6Promo.reward_maps["team-trials"]["6:promotion"];
   assert.equal(teamTrialsSpecFromBundle(b, without6Promo, "rank55"), null);

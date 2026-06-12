@@ -4,14 +4,14 @@ import assert from "node:assert/strict";
 import { sequenceStream, sequencesFromBundle } from "./sequence.ts";
 import { cal } from "../dates.ts";
 import type { SequenceSpec } from "./sequence.ts";
-import type { EventsBundle, AnchoredEventRecord } from "../../bundle/events.gen.ts";
+import type { EventsBundle, HolidayRecord } from "../../bundle/events.gen.ts";
 
 function spec(source: string, start: string, resource: string, amounts: (number | null)[]): SequenceSpec {
   return { source, start: cal(start), resource, amounts };
 }
 
-function anchored(key: string, start: string, rewards: NonNullable<AnchoredEventRecord["rewards"]>): AnchoredEventRecord {
-  return { type: "anchoredevent", relation: "after", anchor: "anni-1_5", start, end: start, predicted: false, key, rewards };
+function holiday(key: string, start: string, rewards: NonNullable<HolidayRecord["rewards"]>): HolidayRecord {
+  return { type: "holiday", name: key, start, end: start, predicted: false, key, rewards };
 }
 
 test("a sequence emits per consecutive day from start, skipping null (unpaid) days", () => {
@@ -34,7 +34,7 @@ test("a sequence straddling the snapshot keeps its later days — cadence is com
 
 test("sequencesFromBundle extracts the inline sequence, normalising the type to a resource", () => {
   const bundle: EventsBundle = {
-    events: [anchored("after-anni-1_5", "2026-07-20", { free_carats: 3000, sequence: { type: "free_carats", sequence: [150, 150, null, 150] } })],
+    events: [holiday("after-anni-1_5", "2026-07-20", { free_carats: 3000, sequence: { type: "free_carats", sequence: [150, 150, null, 150] } })],
   };
   assert.deepEqual(sequencesFromBundle(bundle), [
     { source: "after-anni-1_5", start: "2026-07-20", resource: "free_carats", amounts: [150, 150, null, 150] },
@@ -43,7 +43,7 @@ test("sequencesFromBundle extracts the inline sequence, normalising the type to 
 
 test("sequencesFromBundle anchors timestamped sequences in the selected timezone", () => {
   const bundle: EventsBundle = {
-    events: [anchored("after-anni-1_5", "2026-07-20T22:00:00+00:00", { sequence: { type: "free_carats", sequence: [150] } })],
+    events: [holiday("after-anni-1_5", "2026-07-20T22:00:00+00:00", { sequence: { type: "free_carats", sequence: [150] } })],
   };
   assert.deepEqual(sequencesFromBundle(bundle, "Australia/Sydney"), [
     { source: "after-anni-1_5", start: "2026-07-21", resource: "free_carats", amounts: [150] },
@@ -53,8 +53,8 @@ test("sequencesFromBundle anchors timestamped sequences in the selected timezone
 test("a malformed sequence (no string type, or non-array sequence) is skipped", () => {
   const bundle: EventsBundle = {
     events: [
-      anchored("bad-type", "2026-07-20", { sequence: { sequence: [150] } }),
-      anchored("flat-only", "2026-07-21", { free_carats: 100 }),
+      holiday("bad-type", "2026-07-20", { sequence: { sequence: [150] } }),
+      holiday("flat-only", "2026-07-21", { free_carats: 100 }),
     ],
   };
   assert.deepEqual(sequencesFromBundle(bundle), []);
@@ -62,7 +62,7 @@ test("a malformed sequence (no string type, or non-array sequence) is skipped", 
 
 test("the bundle sequence round-trips through extraction into a daily emission run", () => {
   const bundle: EventsBundle = {
-    events: [anchored("after-anni-1_5", "2026-06-09", { sequence: { type: "free_carats", sequence: [150, 150, null, 150, 150, 150, 150, 150, null, 150, 150, 150] } })],
+    events: [holiday("after-anni-1_5", "2026-06-09", { sequence: { type: "free_carats", sequence: [150, 150, null, 150, 150, 150, 150, 150, null, 150, 150, 150] } })],
   };
   const out = sequenceStream(sequencesFromBundle(bundle), cal("2026-06-01"));
   assert.equal(out.length, 10); // 12 days, 2 unpaid

@@ -68,7 +68,7 @@ test("events without rewards emit nothing", () => {
 
 test("the events channel ignores generators (own channel) — its nested value is skipped", () => {
   const b = bundle(
-    banner("anchor", "2026-06-10", { generator: { free_carats: 564, repeat: 10 } }),
+    banner("gen-only", "2026-06-10", { generator: { free_carats: 564, repeat: 10 } }),
   );
   assert.deepEqual(eventStream(b, cal("2026-06-01")), []);
 });

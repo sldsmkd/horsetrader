@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { generatorStream, generatorsFromBundle } from "./generator.ts";
 import { cal } from "../dates.ts";
 import type { GeneratorSpec } from "./generator.ts";
-import type { EventsBundle, AnchorRecord } from "../../bundle/events.gen.ts";
+import type { EventsBundle, HolidayRecord } from "../../bundle/events.gen.ts";
 
 function spec(source: string, start: string, repeat: number, payload: Record<string, number>): GeneratorSpec {
   return { source, start: cal(start), repeat, payload };
@@ -33,13 +33,14 @@ test("generatorsFromBundle extracts inline generators, splitting off repeat", ()
   const bundle: EventsBundle = {
     events: [
       {
-        type: "anchor",
+        type: "holiday",
+        name: "Golden Week",
         start: "2025-08-07",
         end: "2025-08-07",
         predicted: false,
         key: "anchor-golden-week-2021",
         rewards: { generator: { free_carats: 564, repeat: 10 } },
-      } satisfies AnchorRecord,
+      } satisfies HolidayRecord,
     ],
   };
   assert.deepEqual(generatorsFromBundle(bundle), [
@@ -51,13 +52,14 @@ test("generatorsFromBundle anchors timestamped generators in the selected timezo
   const bundle: EventsBundle = {
     events: [
       {
-        type: "anchor",
+        type: "holiday",
+        name: "Golden Week",
         start: "2025-08-07T22:00:00+00:00",
         end: "2025-08-07T22:00:00+00:00",
         predicted: false,
         key: "anchor-golden-week-2021",
         rewards: { generator: { free_carats: 564, repeat: 10 } },
-      } satisfies AnchorRecord,
+      } satisfies HolidayRecord,
     ],
   };
   assert.deepEqual(generatorsFromBundle(bundle, "Australia/Sydney"), [
@@ -68,8 +70,8 @@ test("generatorsFromBundle anchors timestamped generators in the selected timezo
 test("a malformed generator (no payload, or non-numeric repeat) is skipped", () => {
   const bundle: EventsBundle = {
     events: [
-      { type: "anchor", start: "2025-08-07", end: "2025-08-07", predicted: false, key: "no-payload", rewards: { generator: { repeat: 10 } } } satisfies AnchorRecord,
-      { type: "anchor", start: "2025-08-08", end: "2025-08-08", predicted: false, key: "flat-only", rewards: { free_carats: 100 } } satisfies AnchorRecord,
+      { type: "holiday", name: "no-payload", start: "2025-08-07", end: "2025-08-07", predicted: false, key: "no-payload", rewards: { generator: { repeat: 10 } } } satisfies HolidayRecord,
+      { type: "holiday", name: "flat-only", start: "2025-08-08", end: "2025-08-08", predicted: false, key: "flat-only", rewards: { free_carats: 100 } } satisfies HolidayRecord,
     ],
   };
   assert.deepEqual(generatorsFromBundle(bundle), []);
@@ -78,7 +80,7 @@ test("a malformed generator (no payload, or non-numeric repeat) is skipped", () 
 test("the bundle generator round-trips through extraction into a daily emission run", () => {
   const bundle: EventsBundle = {
     events: [
-      { type: "anchor", start: "2026-06-09", end: "2026-06-09", predicted: false, key: "anchor-x", rewards: { generator: { free_carats: 564, repeat: 10 } } } satisfies AnchorRecord,
+      { type: "holiday", name: "anchor-x", start: "2026-06-09", end: "2026-06-09", predicted: false, key: "anchor-x", rewards: { generator: { free_carats: 564, repeat: 10 } } } satisfies HolidayRecord,
     ],
   };
   const out = generatorStream(generatorsFromBundle(bundle), cal("2026-06-01"));

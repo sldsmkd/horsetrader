@@ -5,7 +5,7 @@ import { clubRankStream, clubRankSpecFromBundle } from "./clubrank.ts";
 import type { ClubRankSpec } from "./clubrank.ts";
 import { cal } from "../dates.ts";
 import type { ConfigBundle } from "../../bundle/config.gen.ts";
-import type { EventsBundle, AnchorRecord } from "../../bundle/events.gen.ts";
+import type { EventsBundle, HolidayRecord } from "../../bundle/events.gen.ts";
 
 function spec(over: Partial<ClubRankSpec> = {}): ClubRankSpec {
   return {
@@ -76,19 +76,19 @@ function config(over: Partial<ConfigBundle["reward_maps"]["club-rank"]> = {}): C
   };
 }
 
-function bundle(events: AnchorRecord[]): EventsBundle {
+function bundle(events: HolidayRecord[]): EventsBundle {
   return { events };
 }
 
-function anchor(key: string, start: string, end: string): AnchorRecord {
-  return { type: "anchor", start, end, predicted: false, key };
+function holiday(key: string, start: string, end: string): HolidayRecord {
+  return { type: "holiday", name: key, start, end, predicted: false, key };
 }
 
 test("clubRankSpecFromBundle draws epoch/horizon from the bundle span and the row from the rank", () => {
   const b = bundle([
-    anchor("late", "2026-03-01", "2026-03-10"),
-    anchor("early", "2026-01-15", "2026-01-20"),
-    anchor("end", "2026-06-01", "2026-06-30"),
+    holiday("late", "2026-03-01", "2026-03-10"),
+    holiday("early", "2026-01-15", "2026-01-20"),
+    holiday("end", "2026-06-01", "2026-06-30"),
   ]);
   assert.deepEqual(clubRankSpecFromBundle(b, config(), "B+"), {
     epoch: "2026-01-15",
@@ -98,7 +98,7 @@ test("clubRankSpecFromBundle draws epoch/horizon from the bundle span and the ro
 });
 
 test("clubRankSpecFromBundle buckets the bundle instants into the view timezone", () => {
-  const b = bundle([anchor("x", "2026-01-15T22:00:00+00:00", "2026-06-30T22:00:00+00:00")]);
+  const b = bundle([holiday("x", "2026-01-15T22:00:00+00:00", "2026-06-30T22:00:00+00:00")]);
   const out = clubRankSpecFromBundle(b, config(), "B+", "Australia/Sydney");
   assert.equal(out?.epoch, "2026-01-16");
   assert.equal(out?.horizon, "2026-07-01");
@@ -106,7 +106,7 @@ test("clubRankSpecFromBundle buckets the bundle instants into the view timezone"
 
 test("clubRankSpecFromBundle returns null when it cannot run (no events, unknown rank, missing map)", () => {
   assert.equal(clubRankSpecFromBundle(bundle([]), config(), "B+"), null);
-  assert.equal(clubRankSpecFromBundle(bundle([anchor("x", "2026-01-01", "2026-01-02")]), config(), "Z+"), null);
+  assert.equal(clubRankSpecFromBundle(bundle([holiday("x", "2026-01-01", "2026-01-02")]), config(), "Z+"), null);
   const noMap: ConfigBundle = { reward_structures: {}, reward_maps: {}, gacha: config().gacha };
-  assert.equal(clubRankSpecFromBundle(bundle([anchor("x", "2026-01-01", "2026-06-30")]), noMap, "B+"), null);
+  assert.equal(clubRankSpecFromBundle(bundle([holiday("x", "2026-01-01", "2026-06-30")]), noMap, "B+"), null);
 });
