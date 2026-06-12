@@ -2,13 +2,13 @@ import bisect
 from datetime import date, datetime, timedelta
 
 from horsetrader.core import JST, UTC, Period
-from horsetrader.models.events import Anchor, Anniversary, Scenario, Story
+from horsetrader.models.events import Anniversary, Holiday, Scenario, Story
 from horsetrader.semantics import matikanefukukitaru
 
 from ..timeline import Timeline
 from .base import Predictor, nearest_weekday
 
-_ANCHOR_TYPES = (Anchor, Scenario)
+_ANCHOR_TYPES = (Holiday, Scenario)
 
 
 @matikanefukukitaru

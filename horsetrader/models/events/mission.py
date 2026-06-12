@@ -1,7 +1,8 @@
 import functools
 from dataclasses import dataclass
+from datetime import datetime
 
-from horsetrader.core import Japlish, Period, Periods, SingletonMeta, StableKey
+from horsetrader.core import JST, Japlish, Period, Periods, SingletonMeta, StableKey
 from horsetrader.extractors.gametora import Gametora
 from horsetrader.extractors.static import Static, store
 from horsetrader.info import Logger
@@ -13,8 +14,16 @@ from horsetrader.semantics import daitaku
 from .anniversary import classify_anniversary_mission
 from .event import Event
 from .events import Events
+from .scenario import classify_scenario_mission
 
 logger = Logger.get(__name__)
+
+
+def jp_start(record: dict) -> datetime:
+    """The JST launch instant of a scraped-mission record — the substrate period
+    every scrape carries (the EN overlay is added later). Used by the partition
+    to date-match scenario-launch celebration missions."""
+    return next(p for p in record["periods"] if p.tzinfo == JST).start
 
 
 def _resolve_rewards(reward_items: list[tuple[str, int]], key: str) -> Rewards | None:
@@ -115,12 +124,15 @@ class Missions(Events[Mission], metaclass=SingletonMeta):
             logger.warning("Mission %s has no period", item.key)
 
     def _fetch_primary(self) -> list[Mission]:
-        # The chore-mission catalogue: every scraped mission whose title is NOT
-        # an anniversary celebration mission (those are AnniversaryMissions' —
-        # the partition is the shared `classify_anniversary_mission`).
+        # The chore-mission catalogue: every scraped mission that is neither an
+        # anniversary celebration mission nor a scenario-launch celebration
+        # mission. Both are split out to their own collections off the shared
+        # substrate; this side is the complement.
         missions: list[Mission] = []
         for r in scraped_missions():
             if classify_anniversary_mission(r["title"].jp) is not None:
+                continue
+            if classify_scenario_mission(r["title"].jp, jp_start(r)) is not None:
                 continue
             mission = Mission(
                 key=r["key"],

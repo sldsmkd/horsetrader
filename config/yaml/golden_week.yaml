@@ -1,0 +1,49 @@
+## Golden Week
+holiday-golden-week-2021:
+  name: Golshi Week
+  rewards:
+    generator:
+      free_carats: 564
+      repeat: 10
+  jp:
+    start: 2021-04-30T04:00:00+09:00
+    duration: P14D
+  en:
+    start: 2025-08-07T15:00:00+00:00
+
+holiday-golden-week-2022:
+  name: Golshi Week
+  rewards:
+    generator:
+      free_carats: 564
+      repeat: 10
+  jp:
+    start: 2022-04-28T04:00:00+09:00
+    duration: P14D
+  en:
+    start: 2026-04-26T15:00:00+00:00
+
+# Only the first two Golden Weeks had login bonuses, it shifted to free pulls
+holiday-golden-week-2023:
+  name: Gyaru Week
+  jp:
+    start: 2023-04-28T04:00:00+09:00
+    duration: P14D
+
+holiday-golden-week-2024:
+  name: GOCHI Week
+  jp:
+    start: 2024-04-30T04:00:00+09:00
+    duration: P14D
+
+holiday-golden-week-2025:
+  name: Gray Week
+  jp:
+    start: 2025-04-30T04:00:00+09:00
+    duration: P14D
+
+holiday-golden-week-2026:
+  name: GOLD WEEK
+  jp:
+    start: 2026-04-30T04:00:00+09:00
+    duration: P14D

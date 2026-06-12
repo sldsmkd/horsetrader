@@ -3,7 +3,6 @@ from datetime import timezone
 from horsetrader.semantics import matikanefukukitaru
 
 from .predictors import (
-    AnchorPredictor,
     AnniversaryMissionPredictor,
     AnniversaryPredictor,
     BannerPredictor,
@@ -11,6 +10,7 @@ from .predictors import (
     FallthroughPredictor,
     HolidayPredictor,
     LegendRacePredictor,
+    ScenarioMissionPredictor,
     ScenarioPredictor,
     StoryPredictor,
     TrainingPassPredictor,
@@ -47,6 +47,9 @@ class Predict:
             AnniversaryMissionPredictor(timeline),
             HolidayPredictor(timeline),
             ScenarioPredictor(timeline),
+            # Scenario-launch celebration missions pin to their scenario's EN
+            # date — must follow ScenarioPredictor, same as the anniversary pair.
+            ScenarioMissionPredictor(timeline),
             StoryPredictor(timeline),
             BannerPredictor(timeline),
         ):
@@ -63,16 +66,9 @@ class Predict:
         self._stats["championsmeeting"] = meetings.placed["ChampionsMeeting"]
         self._stats["leagueofheroes"] = meetings.placed["LeagueOfHeroes"]
 
-        for predictor in (
-            # Steady ~monthly cadence with curated EN anchors — a type-specific
-            # mapper tracks it better than the cross-type fallthrough.
-            LegendRacePredictor(timeline),
-            # Anchored campaigns derive their UTC from the anchor dates the
-            # predictors above have just stamped (and chain off one another).
-            AnchorPredictor(timeline),
-        ):
-            key = type(predictor).__name__.lower().removesuffix("predictor")
-            self._stats[key] = predictor.predict(timeline)
+        # Steady ~monthly cadence with curated EN anchors — a type-specific
+        # mapper tracks it better than the cross-type fallthrough.
+        self._stats["legendrace"] = LegendRacePredictor(timeline).predict(timeline)
 
         # Dead last: the generic catch-all, mapping anything still missing a UTC
         # period through a DateMapper built from everything scheduled above. Its

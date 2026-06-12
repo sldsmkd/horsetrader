@@ -1,0 +1,69 @@
+## New Year
+# Each `holiday-new-year-<year>` is the MAIN celebration, anchored at the Jan-1
+# 05:00 JST login open (the early-release temple-visit drop). The pre-roll
+# countdown is a nested `countdown:` block — a real lead-in window that ends at
+# the parent's start (replacing the old synthetic `before-new-year` anchor).
+# Rewards are per-day `login:` sequences (FreeCarats), same as anniversaries:
+#   countdown login  = 150/day × N days (one regular pull/day, late Dec → Dec 31)
+#   main login       = 300/day × 10, with the to-target extra frontloaded onto
+#                      day-0 (Jan 1) — base [1500, 300×9] = 4,200. The one-shot
+#                      STREAM PRESENT folds into day-0 too (gift frontloaded), one
+#                      sequence per event. Claim window ~30 days; sequence is 10.
+# `year` = the January year (the 2021–22 winter cycle is `holiday-new-year-2022`).
+
+holiday-new-year-2022:
+  name: New Year 2022
+  jp:
+    start: 2022-01-01T05:00:00+09:00
+    duration: P27D
+  en:
+    start: 2026-01-27T22:00:00+00:00
+  login: [1500, 300, 300, 300, 300, 300, 300, 300, 300, 300]   # 300/day, extra frontloaded; 4,200
+  countdown:
+    jp:
+      start: 2021-12-27T12:00:00+09:00
+    login: [150, 150, 150, 150, 150]
+
+holiday-new-year-2023:
+  name: New Year 2023
+  jp:
+    start: 2023-01-01T05:00:00+09:00
+    duration: P30D
+  login: [1500, 300, 300, 300, 300, 300, 300, 300, 300, 300]   # 4,200
+  countdown:
+    jp:
+      start: 2022-12-29T12:00:00+09:00
+    login: [150, 150, 150]
+
+holiday-new-year-2024:
+  name: New Year 2024
+  jp:
+    start: 2024-01-01T05:00:00+09:00
+    duration: P30D
+  login: [1650, 300, 300, 300, 300, 300, 300, 300, 300, 300]   # day-0 = 1500 + 150 present; 4,350
+  countdown:
+    jp:
+      start: 2023-12-28T12:00:00+09:00
+    login: [150, 150, 150, 150]
+
+holiday-new-year-2025:
+  name: New Year 2025
+  jp:
+    start: 2025-01-01T05:00:00+09:00
+    duration: P30D
+  login: [1500, 300, 300, 300, 300, 300, 300, 300, 300, 300]   # 4,200
+  countdown:
+    jp:
+      start: 2024-12-27T12:00:00+09:00
+    login: [150, 150, 150, 150, 150]
+
+holiday-new-year-2026:
+  name: New Year 2026
+  jp:
+    start: 2026-01-01T05:00:00+09:00
+    duration: P29D
+  login: [2000, 300, 300, 300, 300, 300, 300, 300, 300, 300]   # day-0 = 1500 + 500 present; 4,700
+  countdown:
+    jp:
+      start: 2025-12-26T12:00:00+09:00
+    login: [150, 150, 150, 150, 150, 150]

@@ -1,4 +1,3 @@
-from .anchored import AnchorPredictor
 from .anniversary import AnniversaryPredictor
 from .anniversary_mission import (
     AnniversaryMissionPredictor,
@@ -11,7 +10,8 @@ from .fallthrough import FallthroughPredictor
 from .holiday import HolidayPredictor
 from .legend_race import LegendRacePredictor
 from .scenario import ScenarioPredictor
+from .scenario_mission import ScenarioMissionPredictor
 from .story import StoryPredictor
 from .training_pass import TrainingPassPredictor
 
-__all__ = ["AnchorPredictor", "AnniversaryMissionPredictor", "AnniversaryPredictor", "BannerPredictor", "ChampionsMeetingPredictor", "FallthroughPredictor", "HolidayPredictor", "LegendRacePredictor", "Predictor", "ScenarioPredictor", "StoryPredictor", "TrainingPassPredictor", "nearest_weekday", "shape_anniversary_mission_windows"]
+__all__ = ["AnniversaryMissionPredictor", "AnniversaryPredictor", "BannerPredictor", "ChampionsMeetingPredictor", "FallthroughPredictor", "HolidayPredictor", "LegendRacePredictor", "Predictor", "ScenarioMissionPredictor", "ScenarioPredictor", "StoryPredictor", "TrainingPassPredictor", "nearest_weekday", "shape_anniversary_mission_windows"]

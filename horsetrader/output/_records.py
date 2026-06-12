@@ -263,6 +263,15 @@ class AnniversaryMissionRecord(EventRecord, tag="anniversarymission"):
 
 
 @eishin
+class ScenarioMissionRecord(EventRecord, tag="scenariomission"):
+    # A scenario-launch celebration mission: a `Mission` that references its
+    # scenario (`scenario-NN`). One-shot launch income, not the grind catalogue —
+    # split out of `Mission` the same way anniversary missions are.
+    name: str | None
+    scenario: str
+
+
+@eishin
 class TrainingPassRecord(EventRecord, tag="trainingpass"):
     # The Training Pass battle-pass window: a recurring below-line event carrying
     # its FREE-track rewards via the shared envelope. The premium track is the
@@ -274,16 +283,11 @@ class TrainingPassRecord(EventRecord, tag="trainingpass"):
 
 
 @eishin
-class AnchorRecord(EventRecord, tag="anchor"):
-    # Calendar point: nothing past the shared envelope (+ any curated rewards).
-    pass
-
-
-@eishin
-class AnchoredEventRecord(EventRecord, tag="anchoredevent"):
-    relation: str
-    anchor: str
-    name: str | UnsetType = UNSET  # curated display name; omitted when absent
+class HolidayRecord(EventRecord, tag="holiday"):
+    # A seasonal holiday launch (Golden Week; New Year later): the shared
+    # envelope (a real start/end window, not the old span-0 point) plus the
+    # themed display `name`. Replaces the synthetic Golden Week anchors.
+    name: str
 
 
 # Concrete event records, discriminated on ``type``. ``EventsBundle.events`` is
@@ -306,9 +310,9 @@ EventRecordUnion = (
     | MissionRecord
     | AnniversaryRecord
     | AnniversaryMissionRecord
+    | ScenarioMissionRecord
     | TrainingPassRecord
-    | AnchorRecord
-    | AnchoredEventRecord
+    | HolidayRecord
 )
 
 

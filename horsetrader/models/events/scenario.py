@@ -1,8 +1,10 @@
+import functools
 from dataclasses import dataclass, field
+from datetime import date, datetime
 
 from ethicrawl import ResourceList, Url
 
-from horsetrader.core import Config, Japlish, Period, Periods, SingletonMeta, StableKey
+from horsetrader.core import JST, Config, Japlish, Period, Periods, SingletonMeta, StableKey
 from horsetrader.extractors.static import Static
 from horsetrader.info import Logger
 from horsetrader.models.core import References
@@ -14,6 +16,36 @@ from .event import Event
 from .events import Events
 
 logger = Logger.get(__name__)
+
+
+@functools.cache
+def _scenario_launch_dates() -> dict[date, StableKey]:
+    """JP launch date → scenario key, from the curated scenarios.
+
+    A scenario's release-celebration missions land on this exact day — the only
+    reliable link, since (unlike the anniversary token) those missions don't name
+    their scenario (two are the generic "新育成シナリオ公開記念ミッション")."""
+    return {
+        record["period"].start.date(): StableKey(record["key"])
+        for record in Static().scenarios()
+    }
+
+
+def classify_scenario_mission(title_jp: str, jp_start: datetime) -> StableKey | None:
+    """Classify a mission as a scenario-launch celebration mission.
+
+    Returns the `scenario-NN` key when the mission lands on a scenario's JP
+    launch date and is NOT a regular weekly G1 chore, else `None`. The `のG1`
+    guard is the discriminator: those weekly missions recur, so a coincidental
+    launch-day overlap must not reclassify one — only a non-G1 mission on the
+    launch date is the celebration. The partition runs *after*
+    `classify_anniversary_mission` (anniversary wins in the early era when a
+    scenario shared a launch with an anniversary), keeping the three mutually
+    exclusive.
+    """
+    if "のG1" in title_jp:
+        return None
+    return _scenario_launch_dates().get(jp_start.date())
 
 
 @daitaku

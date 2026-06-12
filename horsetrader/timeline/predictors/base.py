@@ -6,8 +6,9 @@ from horsetrader.models.events import Event
 from ..timeline import Timeline
 
 # Either a concrete Event subclass (matched by isinstance) or a predicate over
-# events. Anchors collapsed New Year / Golden Week / anniversary into one class,
-# so those are selected by a `kind` predicate rather than the runtime type.
+# events. Some types carry several flavours on one class (e.g. `Holiday` holds
+# both New Year and Golden Week, told apart by `kind`), so those are selected by
+# a predicate rather than the runtime type.
 Selector = type[Event] | Callable[[Event], bool]
 
 
