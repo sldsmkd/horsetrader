@@ -7,7 +7,7 @@
     "test": "node --test \"js/src/**/*.test.ts\"",
     "dev": "cp index.html ../static/ && esbuild js/src/main.ts --bundle --sourcemap --outfile=../static/js/app.js --serve=localhost:3000 --servedir=../static",
     "build": "cp index.html ../static/ && esbuild js/src/main.ts --bundle --minify --outfile=../static/js/app.js",
-    "deploy": "wrangler pages deploy ../static"
+    "deploy": "wrangler pages deploy ../static --project-name ${CLOUDFLARE_PAGES_PROJECT_NAME:-horsetrader-site}"
   },
   "devDependencies": {
     "@types/node": "^25.9.1",
