@@ -87,8 +87,8 @@ test("committed banners show pull capacity remaining after their own reservation
   });
   const banner = groups.find((g) => g.date === "2026-06-10")!.banners.find((b) => b.key === "banner-t")!;
 
-  // 1 pity consumes 10 tickets + 300 paid carats + 184 full-price pulls, leaving
-  // 16 free-carat pulls and 6 paid daily pulls from the remaining paid carats.
+  // The committed banner reads a self-excluded balance (earlier claims only), then
+  // its own commitment consumes the card gutter's available-source read.
   assert.equal(banner.pullsAvailable, 22);
   assert.equal(banner.ticketPulls, 0);
   assert.equal(banner.paidCaratPulls, 6);

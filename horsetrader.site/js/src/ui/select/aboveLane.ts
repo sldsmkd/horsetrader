@@ -162,9 +162,8 @@ export function aboveLaneGroups(
     };
     const committedPity = inputs.commitments[ev.key] ?? null;
     const remainingSources = committedPity === null ? null : remainingAfterSpend(pullSources, pullCaps, sparkThreshold, committedPity);
-    // Uncommitted banners show what you can spend; committed banners show the
-    // pull capacity left after their own reservation, using the same spend helper
-    // family as the shield.
+    // The card gutter shows what remains available on this banner after its own
+    // commitment, but each source floors at zero: you cannot use negative tickets.
     const capacity = committedPity === null ? pullCapacity(pullSources, pullCaps) : remainingCapacityAfterSpend(pullSources, pullCaps, sparkThreshold, committedPity);
     group.banners.push({
       key: ev.key,

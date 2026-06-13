@@ -50,15 +50,17 @@ export interface PullCapacity {
 }
 
 export function pullCapacity(s: PullSources, c: PullCaps): PullCapacity {
+  const freePulls = Math.max(0, s.freePulls);
+  const tickets = Math.max(0, s.tickets);
   // Daily paid pulls: one per day, each 50 paid carats — whichever runs out first.
-  const dailyPaid = Math.min(c.bannerDays, Math.floor(s.paidCarats / c.paidDailyPull));
-  const freeCaratPulls = Math.floor(s.freeCarats / c.caratsPerPull);
+  const dailyPaid = Math.max(0, Math.min(c.bannerDays, Math.floor(s.paidCarats / c.paidDailyPull)));
+  const freeCaratPulls = Math.max(0, Math.floor(s.freeCarats / c.caratsPerPull));
   return {
-    freePulls: s.freePulls,
-    tickets: s.tickets,
+    freePulls,
+    tickets,
     dailyPaid,
     freeCaratPulls,
-    total: s.freePulls + s.tickets + dailyPaid + freeCaratPulls,
+    total: freePulls + tickets + dailyPaid + freeCaratPulls,
   };
 }
 
@@ -108,8 +110,8 @@ export function remainingAfterSpend(s: PullSources, c: PullCaps, sparkThreshold:
 }
 
 /** Pull capacity left on the same banner after reserving a pity commitment.
- *  Paid daily pulls are banner-limited by the remaining paid-carats pool and the
- *  banner's duration cap; there is no separate window ledger to consume. */
+ *  This is the card-gutter read: the commitment consumes its own gift pulls and
+ *  account sources, then `pullCapacity` floors each remaining source at zero. */
 export function remainingCapacityAfterSpend(s: PullSources, c: PullCaps, sparkThreshold: number, pity: number): PullCapacity {
   return pullCapacity(remainingAfterSpend(s, c, sparkThreshold, pity), c);
 }

@@ -52,6 +52,11 @@ test("total is the sum across all four sources", () => {
   assert.equal(cap.total, 21);
 });
 
+test("pullCapacity: negative account-state balances are not available pulls", () => {
+  const cap = pullCapacity({ freePulls: 2, tickets: -4, freeCarats: -150, paidCarats: -50 }, CAPS);
+  assert.deepEqual(cap, { freePulls: 2, tickets: 0, dailyPaid: 0, freeCaratPulls: 0, total: 2 });
+});
+
 test("bannerDays is the whole-day span, at least 1", () => {
   assert.equal(bannerDays("2026-06-10", "2026-06-16"), 6);
   assert.equal(bannerDays("2026-07-20T22:00:00+00:00", "2026-08-08T22:00:00+00:00"), 19);
@@ -85,13 +90,12 @@ test("remainingAfterSpend: reports resource balances after the reservation", () 
   assert.deepEqual(after, { freePulls: 0, tickets: 0, freeCarats: 47800, paidCarats: 0 });
 });
 
-test("remainingCapacityAfterSpend: paid daily pulls are limited by remaining paid carats and banner duration", () => {
-  const sources = { freePulls: 0, tickets: 10, freeCarats: 30000, paidCarats: 600 };
-  const caps = { caratsPerPull: 150, paidDailyPull: 50, bannerDays: 6 };
+test("remainingCapacityAfterSpend: own commitment consumes sources but available pulls floor at zero", () => {
+  const sources = { freePulls: 60, tickets: 8, freeCarats: 0, paidCarats: 950 };
+  const caps = { caratsPerPull: 150, paidDailyPull: 50, bannerDays: 19 };
 
-  // 1 pity consumes 10 tickets + 6 daily-paid windows + 184 full-price pulls,
-  // leaving 2,400 free carats and 300 paid carats. Paid daily pulls are then
-  // recalculated from that remaining paid-carats pool, still capped by the banner.
-  assert.deepEqual(remainingAfterSpend(sources, caps, 200, 1), { freePulls: 0, tickets: 0, freeCarats: 2400, paidCarats: 300 });
-  assert.deepEqual(remainingCapacityAfterSpend(sources, caps, 200, 1), { freePulls: 0, tickets: 0, dailyPaid: 6, freeCaratPulls: 16, total: 22 });
+  // 1 pity consumes 60 gifts + 8 tickets + 19 paid pulls, then overcommits free
+  // carats. The resource balance can go negative; the card's available-pull read cannot.
+  assert.deepEqual(remainingAfterSpend(sources, caps, 200, 1), { freePulls: 0, tickets: 0, freeCarats: -16950, paidCarats: 0 });
+  assert.deepEqual(remainingCapacityAfterSpend(sources, caps, 200, 1), { freePulls: 0, tickets: 0, dailyPaid: 0, freeCaratPulls: 0, total: 0 });
 });
