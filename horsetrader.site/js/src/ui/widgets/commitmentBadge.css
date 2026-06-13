@@ -1,0 +1,26 @@
+.commitment-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  background: color-mix(in srgb, rebeccapurple 78%, Canvas);
+  color: white;
+  font: inherit;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.commitment-badge:hover,
+.commitment-badge:focus-visible {
+  filter: brightness(1.12);
+  outline: 0;
+}
+.commitment-badge--unfundable {
+  background: color-mix(in srgb, crimson 78%, Canvas);
+}
+.commitment-badge--empty {
+  background: color-mix(in srgb, currentColor 12%, Canvas);
+  color: color-mix(in srgb, currentColor 72%, Canvas);
+}

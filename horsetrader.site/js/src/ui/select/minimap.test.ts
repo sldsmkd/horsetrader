@@ -13,6 +13,8 @@ const EVENTS: EventsBundle = {
   events: [
     // A past favourited banner — must be excluded from the dots (future-only).
     { type: "trainee", rushable: true, contents: ["t-spe"], image: "/i/p.webp", start: "2026-01-01", end: "2026-01-07", predicted: false, key: "banner-past" },
+    // An open favourited banner — included until its end date.
+    { type: "support", rushable: false, contents: ["s-spe"], image: "/i/open.webp", start: "2026-05-28", end: "2026-06-04", predicted: false, key: "banner-open" },
     // A future trainee banner, favourited → a green dot.
     { type: "trainee", rushable: true, contents: ["t-spe"], image: "/i/t.webp", start: "2026-06-10", end: "2026-06-16", predicted: false, key: "banner-fav-t" },
     // A future support banner, committed but NOT favourited → a filled square.
@@ -83,6 +85,7 @@ test("dotMarks: future bookmarked and committed banners, kind and state preserve
   const commitments = { "banner-past": 1, "banner-commit-only": 1, "banner-fav-s": 2, "cm-fav": 1 };
   const marks = dotMarks(bundle(), favourites, commitments, cal("2026-06-01"));
   assert.deepEqual(marks, [
+    { date: cal("2026-05-28"), kind: "support", state: "bookmark" },
     { date: cal("2026-06-10"), kind: "trainee", state: "bookmark" },
     { date: cal("2026-06-12"), kind: "support", state: "commit" },
     { date: cal("2026-06-20"), kind: "support", state: "commit" },

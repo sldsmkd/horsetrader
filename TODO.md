@@ -2,20 +2,45 @@
 
 ---
 
-## Deferred / no action yet
+## ✅ Favourites bar — atom cards + cyclic navigation
 
-- Show a counter: how many times the character still appears ahead in the timeline
+~~- Show a counter: how many times the character still appears ahead in the timeline
 - When count reaches zero: grey out the entry + show a remove (×) button
 - Click jumps to the nearest upcoming occurrence ahead of the current timeline position
-- If no occurrences remain ahead, wrap back to the first (earliest) one
+- If no occurrences remain ahead, wrap back to the first (earliest) one~~
 
-## Bookmarks bar — planner flip
+Done: the bar is now the Favourites surface. It renders one widget per favourited
+atom (image, name, rarity/subtext, next target date, appearance count), keeps
+open banners until their end date, and taps cycle to the next appearance after
+the current view centre, wrapping to the first available appearance. The minimap
+and Favourites surface share the same future/open favourite-appearance selector.
 
-The bar has two faces (flip toggle, like a standing mirror reversed):
+The explicit "expired favourite with remove button" state is deferred for now:
+fully elapsed favourites simply leave the navigation list, and the empty surface
+stays expandable with discovery copy.
 
-- **Bookmarks face** — starred characters (as above)
+## ✅ Favourites bar — planner flip
+
+~~The bar has two faces (flip toggle, like a standing mirror reversed):
+
+- **Favourites face** — starred characters/cards (as above)
 - **Planner face** — banners you've committed to, each showing the pity count on that commitment
-- Flipping is a single UI toggle; both faces share the same bar slot/position in the layout
+- Flipping is a single UI toggle; both faces share the same bar slot/position in the layout~~
+
+Done: the bar now flips between Favourites and Planner. The Planner face lists
+open/future committed banners, shows banner art and pickup atoms, warps to the
+banner on tap, makes the committed pity count the bottom-right badge, and reuses
+the real banner atom chips so favourited pickups and support stats are visible
+in the plan list too.
+
+## Favourites / Plan surface polish
+
+Functionally solid; sleep on these rather than forcing them now:
+
+- Tighten spacing and density on the Plan face now that it uses full atom chips
+- Revisit drawer colour/contrast after using it in a real planning session
+- Decide whether the expanded Favourites/Plan surface needs stronger visual identity
+- Add an explicit expired-favourite state with a remove control if silent culling feels too hidden
 
 ## ✅ Minimap bookmark/commit dots
 
@@ -145,8 +170,8 @@ Both are a mess. Sliders need a clean-up pass (layout, labels, value display). T
 
 ## LocalStorage key audit + versioning
 
-- Inspect the live prototype site: enumerate what keys are actually stored, identify any stale/random ones from early development
-- Ship a one-time cleanup that clears unknown keys for existing users
+- ✅ Inspect the live prototype site: old prototype keys are `ht_*`, while the current app owns `horsetrader.plan`, so there is no beta-blocking collision
+- Optional post-beta: ship a one-time cleanup or migration that clears/remaps old `ht_*` prototype keys for existing testers
 - Lock in a config schema version field; any field change requires a version bump so stale stored configs are invalidated cleanly rather than silently misread
 
 ## Actually play the game (the whole point)

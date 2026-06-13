@@ -37,7 +37,8 @@ import { commitContext } from "./select/commit.ts";
 import type { CommitBinding } from "./views/bannerGroup.ts";
 import { tazunaSurface } from "./views/tazunaSurface.ts";
 import { bookmarks } from "./views/bookmarks.ts";
-import { bookmarkRows } from "./select/bookmarks.ts";
+import { bookmarkRows, nextBookmarkDate } from "./select/bookmarks.ts";
+import { plannerRows } from "./select/planner.ts";
 import { buildTrainerCard, buildOshiSelectorOverlay, buildClubSelectorOverlay, buildPlayStyleOverlay } from "./views/identityOverlay.ts";
 import { menubar } from "./views/menubar.ts";
 import type { RightSurface } from "./views/menubar.ts";
@@ -189,16 +190,29 @@ export function mountApp(
       menu.setDate(date);
       menu.setResources(balance);
       mini.setView(date);
+      book.setView(date);
       liveResources?.update({ viewDate: date, projected: balance });
     },
   });
+
+  const fav: FavouriteBinding = {
+    isFavourited: (id) => id in (coord.document().favourites ?? {}),
+    setFavourited: (id, on) => coord.setFavourite(id, on),
+  };
 
   // The bookmarks drawer: layer-2 chrome, twin of the minimap dots over the same
   // favourites map. Its open/collapsed state is independent view-state (it coexists
   // with overlays, not modal); each row warps the timeline like Home/search do.
   const book = bookmarks({
     onToggle: () => view.set({ bookmarks: !view.get().bookmarks }),
-    onWarp: (date) => tl.warpTo(date),
+    onWarp: (row) => {
+      const date = nextBookmarkDate(row, viewDate);
+      if (date) tl.warpTo(date);
+    },
+    onPlannerWarp: (date) => tl.warpTo(date),
+    onPlannerCommit: (bannerKey) => view.set({ committing: bannerKey }),
+    onFace: (bookmarksFace) => view.set({ bookmarksFace }),
+    fav,
   });
 
   const menu = menubar({
@@ -230,11 +244,6 @@ export function mountApp(
   const rush: RushBinding = {
     isRushed: (key) => key in (coord.document().rushed ?? {}),
     setRushed: (key, on) => coord.setRushed(key, on),
-  };
-
-  const fav: FavouriteBinding = {
-    isFavourited: (id) => id in (coord.document().favourites ?? {}),
-    setFavourited: (id, on) => coord.setFavourite(id, on),
   };
 
   function refresh(): void {
@@ -505,7 +514,12 @@ export function mountApp(
   function renderBookmarks(): void {
     book.refresh({
       rows: bookmarkRows(bundle, coord.document().favourites ?? {}, now),
+      plannerRows: plannerRows(bundle, coord.document().commitments ?? {}, now, {
+        balanceAt: (date) => coord.balanceAt(date),
+        availableFor: (key) => coord.availableFor(key),
+      }),
       open: view.get().bookmarks,
+      face: view.get().bookmarksFace,
     });
   }
   view.subscribe(renderBookmarks);

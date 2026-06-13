@@ -18,6 +18,7 @@ import { formatDate, formatBalance } from "../format.ts";
 import type { Banner, BannerGroup, BannerKind } from "../select/aboveLane.ts";
 import { atomChip } from "../widgets/atomChip.ts";
 import type { FavouriteBinding } from "../widgets/atomChip.ts";
+import { commitmentBadge } from "../widgets/commitmentBadge.ts";
 
 /** The commit seam handed to the banner readout: spawn the commit shield for a
  *  banner (the write transaction lives there, not on the card). Keyed by banner
@@ -110,32 +111,12 @@ function pullChin(banner: Banner, commit: CommitBinding): HTMLElement {
       separator(),
       pullStat("paid-carats", "/icons/carat.png", "paid carat pulls", banner.paidCaratPulls),
     ),
-    commitmentBadge(banner, commit),
+    h("span", { class: "banner__commit-badge" }, commitmentBadge({ pity: banner.committedPity ?? 0, unfundable: banner.commitmentUnfundable, onOpen: () => commit.open(banner.key) })),
   );
 }
 
 function separator(): HTMLElement {
   return h("span", { class: "banner__pull-separator", attr: { "aria-hidden": "true" } }, "|");
-}
-
-function commitmentBadge(banner: Banner, commit: CommitBinding): HTMLElement {
-  const pity = banner.committedPity ?? 0;
-  return h(
-    "button",
-    {
-      class: `banner__commit-badge${banner.commitmentUnfundable ? " banner__commit-badge--unfundable" : ""}${pity === 0 ? " banner__commit-badge--empty" : ""}`,
-      attr: { type: "button", "aria-label": pity > 0 ? `Edit ${formatBalance(pity)} pity commitment` : "Plan a pull" },
-      on: {
-        pointerdown: (ev) => ev.stopPropagation(),
-        dblclick: (ev) => ev.stopPropagation(),
-        click: (ev) => {
-          ev.stopPropagation();
-          commit.open(banner.key);
-        },
-      },
-    },
-    formatBalance(pity),
-  );
 }
 
 function pullStat(kind: string, icon: string, label: string, value: number): HTMLElement {

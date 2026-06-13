@@ -10,20 +10,39 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 0.35rem;
-  width: 16rem;
+  width: 24rem;
   max-width: calc(100vw - 1.5rem);
   max-height: calc(100vh - 5.25rem - var(--minimap-h));
 }
 
+.bookmarks__header {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+}
+.bookmarks--open .bookmarks__header {
+  width: 100%;
+  gap: 0;
+  border: 1px solid color-mix(in srgb, currentColor 24%, transparent);
+  border-bottom: 0;
+  border-radius: 0.45rem 0.45rem 0 0;
+  background: Canvas;
+  box-shadow: 0 0.35rem 1.4rem #0000002e;
+}
+
 .bookmarks__tab {
   display: inline-flex;
+  flex-direction: column;
   align-items: center;
-  gap: 0.4rem;
-  min-height: 2.35rem;
-  padding: 0 0.75rem;
+  justify-content: center;
+  gap: 0.25rem;
+  width: 2.6rem;
+  min-height: 7.2rem;
+  padding: 0.65rem 0;
   border: 1px solid color-mix(in srgb, currentColor 24%, transparent);
   border-radius: 0.45rem;
-  background: color-mix(in srgb, Canvas 78%, transparent);
+  background: Canvas;
   box-shadow: 0 0.35rem 1.4rem #0000002e;
   color: inherit;
   font: inherit;
@@ -33,15 +52,80 @@
   background: color-mix(in srgb, Canvas 62%, currentColor 10%);
 }
 
-/* Empty is a quiet inactive state — the universal disabled-control grey on the
- * tab (not on data), distinct from grey-as-trust (ui.md principle 5/6). */
-.bookmarks--empty .bookmarks__tab {
-  opacity: 0.45;
-  cursor: default;
-  box-shadow: none;
+.bookmarks--open .bookmarks__tab {
+  display: none;
 }
-.bookmarks--empty .bookmarks__tab:hover {
-  background: color-mix(in srgb, Canvas 78%, transparent);
+
+.bookmarks__panel-header {
+  display: none;
+}
+.bookmarks--open .bookmarks__panel-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 3rem;
+  padding: 0 0.9rem 0 1rem;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+}
+
+.bookmarks__close {
+  flex: none;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  font-size: 1.35rem;
+  font-weight: 800;
+  line-height: 1;
+  opacity: 0.9;
+}
+.bookmarks__close:hover,
+.bookmarks__close:focus-visible {
+  opacity: 1;
+  outline: 0;
+}
+
+.bookmarks__face-tabs {
+  display: none;
+  flex: 1 1 auto;
+  align-items: center;
+  overflow: hidden;
+  min-height: 2rem;
+  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  border-radius: 0.35rem;
+}
+.bookmarks--open .bookmarks__face-tabs {
+  display: inline-flex;
+}
+
+.bookmarks__face-tab {
+  flex: 1 1 50%;
+  min-height: 2rem;
+  padding: 0 0.7rem;
+  border: 0;
+  border-right: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.bookmarks__face-tab:last-child {
+  border-right: 0;
+}
+.bookmarks__face-tab:hover,
+.bookmarks__face-tab:focus-visible {
+  background: color-mix(in srgb, Canvas 62%, currentColor 10%);
+  outline: 0;
+}
+.bookmarks__face-tab[aria-selected="false"] {
+  color: color-mix(in srgb, currentColor 56%, transparent);
+}
+.bookmarks__face-tab[aria-selected="true"] {
+  background: color-mix(in srgb, Canvas 84%, currentColor 10%);
 }
 
 .bookmarks__chevron {
@@ -54,18 +138,23 @@
   transform: rotate(90deg);
 }
 
-.bookmarks__tab-label {
-  font-weight: 600;
+.bookmarks__tab-icon {
+  line-height: 1;
+}
+
+.bookmarks__tab-icon--plan {
+  font-size: 0.92rem;
 }
 
 .bookmarks__panel {
   display: none;
   width: 100%;
-  min-height: 0;
+  min-height: 16rem;
   overflow: auto;
   border: 1px solid color-mix(in srgb, currentColor 24%, transparent);
-  border-radius: 0.45rem;
-  background: color-mix(in srgb, Canvas 88%, transparent);
+  border-top: 0;
+  border-radius: 0 0 0.45rem 0.45rem;
+  background: Canvas;
   box-shadow: 0 0.5rem 2rem #00000059;
 }
 .bookmarks--open .bookmarks__panel {
@@ -81,65 +170,14 @@
   gap: 0.3rem;
 }
 
-.bookmark-row {
-  display: grid;
-  gap: 0.3rem;
-  padding: 0.5rem 0.6rem;
-  border-radius: 0.4rem;
-  border: 1px solid color-mix(in srgb, currentColor 14%, transparent);
-  background: color-mix(in srgb, Canvas 70%, transparent);
-  cursor: pointer;
-}
-.bookmark-row:hover,
-.bookmark-row:focus-visible {
-  border-color: color-mix(in srgb, currentColor 32%, transparent);
-  background: color-mix(in srgb, Canvas 55%, currentColor 8%);
-  outline: 0;
-}
-/* Predicted dates carry the grey trust-language (ui.md principle 5). */
-.bookmark-row--predicted {
-  opacity: 0.55;
-}
-
-.bookmark-row__date {
-  font-size: 0.72rem;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  color: color-mix(in srgb, currentColor 70%, transparent);
-}
-
-.bookmark-row__atoms {
+.bookmarks__empty {
   margin: 0;
-  padding: 0;
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
+  padding: 0.85rem;
+  color: color-mix(in srgb, currentColor 68%, transparent);
+  font-size: 0.84rem;
+  line-height: 1.35;
 }
 
-.bookmark-atom {
-  position: relative;
-  padding-left: 0.6rem;
-  font-size: 0.78rem;
-  line-height: 1.25;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-/* The dot mirrors the minimap dot colours — trainee green, support blue. */
-.bookmark-atom::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0.5em;
-  width: 0.35rem;
-  height: 0.35rem;
-  margin-top: -0.175rem;
-  border-radius: 50%;
-}
-.bookmark-atom--trainee::before {
-  background: var(--ht-colour-trainee);
-}
-.bookmark-atom--support::before {
-  background: var(--ht-colour-support);
+.bookmark-row {
+  display: block;
 }

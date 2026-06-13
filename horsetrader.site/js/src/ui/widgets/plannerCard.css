@@ -1,0 +1,80 @@
+.planner-card {
+  --planner-card-colour: currentColor;
+  display: grid;
+  grid-template-columns: 8.75rem minmax(0, 1fr) 3rem;
+  grid-template-rows: auto auto;
+  align-items: center;
+  gap: 0.45rem;
+  width: 100%;
+  padding: 0.45rem 0.55rem 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--planner-card-colour) 58%, transparent);
+  border-left-width: 4px;
+  border-radius: 0.4rem;
+  background: Canvas;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+.planner-card:hover,
+.planner-card:focus-visible {
+  border-color: color-mix(in srgb, var(--planner-card-colour) 78%, transparent);
+  background: color-mix(in srgb, Canvas 92%, currentColor 8%);
+  outline: 0;
+}
+
+.planner-card__image {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  align-self: start;
+  display: block;
+  width: 100%;
+  aspect-ratio: 2.4 / 1;
+  object-fit: cover;
+  border-radius: 0.25rem;
+}
+
+.planner-card__atoms {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: center;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.planner-card__date {
+  color: color-mix(in srgb, currentColor 72%, transparent);
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.planner-card__meta {
+  grid-column: 3;
+  grid-row: 1 / span 2;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: 0.28rem;
+}
+
+.planner-card__pity .commitment-badge {
+  width: 100%;
+  min-height: 2rem;
+  border-radius: 0.25rem;
+  font-size: 1.18rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.planner-card--trainee {
+  --planner-card-colour: var(--ht-colour-trainee);
+}
+.planner-card--support {
+  --planner-card-colour: var(--ht-colour-support);
+}

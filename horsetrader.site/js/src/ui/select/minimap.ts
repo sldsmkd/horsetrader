@@ -14,6 +14,7 @@ import type { CalendarDate } from "../../core/projection/dates.ts";
 import type { Bundle } from "../bundle/access.ts";
 import type { BannerKind } from "./aboveLane.ts";
 import type { Commitments, Favourites } from "../../core/persistence/document.ts";
+import { favouriteBannerAppearances } from "./favourites.ts";
 
 /** One pity in carats — the fret spacing and the unit the line is *read* in. */
 export const PITY = 30_000;
@@ -79,12 +80,13 @@ export function fretLevels(): number[] {
  */
 export function dotMarks(bundle: Bundle, favourites: Favourites, commitments: Commitments, now: CalendarDate): DotMark[] {
   const marks: DotMark[] = [];
+  const bookmarked = new Set(favouriteBannerAppearances(bundle, favourites, now).map((appearance) => appearance.eventKey));
   for (const ev of bundle.all()) {
     if (ev.type !== "trainee" && ev.type !== "support") continue;
-    if (ev.start < now) continue; // future-only, mirroring the bookmarks
+    if (ev.end < now) continue; // open-or-future, mirroring the favourites surface
     if (ev.key in commitments) {
       marks.push({ date: ev.start, kind: ev.type, state: "commit" });
-    } else if (ev.contents.some((id) => id in favourites)) {
+    } else if (bookmarked.has(ev.key)) {
       marks.push({ date: ev.start, kind: ev.type, state: "bookmark" });
     }
   }

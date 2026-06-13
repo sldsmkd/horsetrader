@@ -12,7 +12,7 @@ const EVENTS: EventsBundle = {
 
 const ACADEMY: Academy = {
   characters: { "char-1": { name: "Special Week", quote: null, icon: null, portrait: null } },
-  supports: {},
+  supports: { "support-1": { character: "char-1", display: "Special Week", type: "speed", rarity: "ssr", title: null, release: "2021", thumbnail: null, art: null, aliases: [] } },
   trainees: {},
 };
 
@@ -26,6 +26,7 @@ test("a miss throws — the ETL guarantees referential integrity, so it's a bug,
   const bundle = createBundle(EVENTS, ACADEMY, TEST_CONFIG);
   assert.throws(() => bundle.event("nope"), /no event for "nope"/);
   assert.throws(() => bundle.character("nope"), /no character for "nope"/);
+  assert.throws(() => bundle.support("nope"), /no support for "nope"/);
   assert.throws(() => bundle.trainee("nope"), /no trainee for "nope"/);
 });
 
@@ -38,6 +39,7 @@ test("academy scans expose id-keyed entries for pure indexes", () => {
   const bundle = createBundle(EVENTS, ACADEMY, TEST_CONFIG);
 
   assert.deepEqual(bundle.characters().map(({ id, record }) => [id, record.name]), [["char-1", "Special Week"]]);
+  assert.deepEqual(bundle.supports().map(({ id, record }) => [id, record.display]), [["support-1", "Special Week"]]);
   assert.deepEqual(bundle.trainees(), []);
 });
 

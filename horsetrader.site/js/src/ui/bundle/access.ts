@@ -46,6 +46,7 @@ export interface Bundle {
   event(key: string): EventRecord;
   /** Academy collection scans for pure indexes that need entity-wide search. */
   characters(): readonly AcademyEntry<CharacterRecord>[];
+  supports(): readonly AcademyEntry<SupportRecord>[];
   trainees(): readonly AcademyEntry<TraineeRecord>[];
   /** Academy lookups — the entities a banner's `contents` resolve to. Throw if absent. */
   character(id: string): CharacterRecord;
@@ -80,11 +81,13 @@ export function createBundle(events: EventsBundle, academy: Academy, config: Con
     .map((event) => calendarEvent(event, timeZone));
   const byKey = new Map<string, EventRecord>(calendarEvents.map((e) => [e.key, e]));
   const characters = Object.entries(academy.characters).map(([id, record]) => ({ id, record }));
+  const supports = Object.entries(academy.supports).map(([id, record]) => ({ id, record }));
   const trainees = Object.entries(academy.trainees).map(([id, record]) => ({ id, record }));
   return {
     all: () => calendarEvents,
     event: (key) => must(byKey.get(key), "event", key),
     characters: () => characters,
+    supports: () => supports,
     trainees: () => trainees,
     character: (id) => must(academy.characters[id], "character", id),
     support: (id) => must(academy.supports[id], "support", id),

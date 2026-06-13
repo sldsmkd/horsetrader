@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { bookmarkRows } from "./bookmarks.ts";
+import { bookmarkRows, nextBookmarkDate } from "./bookmarks.ts";
 import { createBundle } from "../bundle/access.ts";
 import { TEST_CONFIG } from "../bundle/fixtures.ts";
 import type { EventsBundle } from "../../core/bundle/events.gen.ts";
@@ -26,37 +26,55 @@ const EVENTS: EventsBundle = {
 };
 
 const ACADEMY: Academy = {
-  characters: { "char-spe": { name: "Special Week", quote: null, icon: null, portrait: null } },
-  supports: { "s-spe": { character: "char-spe", display: "Special Week SSR", type: "guts", rarity: "ssr", title: null, release: "2021", thumbnail: null, art: null, aliases: [] } },
-  trainees: { "t-spe": { character: "char-spe", variant: null, rarity: 3, release: "2021", thumbnail: null, portrait: null, aliases: [] } },
+  characters: { "char-spe": { name: "Special Week", quote: null, icon: "/img/spe-icon.webp", portrait: "/img/spe-portrait.webp" } },
+  supports: { "s-spe": { character: "char-spe", display: "Special Week", type: "guts", rarity: "ssr", title: "The Setting Sun And Rising Stars", release: "2021", thumbnail: "/img/s-spe.webp", art: null, aliases: [] } },
+  trainees: { "t-spe": { character: "char-spe", variant: "Special Dreamer", rarity: 3, release: "2021", thumbnail: "/img/t-spe.webp", portrait: null, aliases: [] } },
 };
 
 const bundle = () => createBundle(EVENTS, ACADEMY, TEST_CONFIG);
 
-test("bookmarkRows: future banners holding a favourited atom, sorted nearest-first; past/unfav/non-banner excluded", () => {
+test("bookmarkRows: favourited atoms lead rows, sorted by nearest future appearance; past/unfav/non-banner excluded", () => {
   // Favourites are keyed by atom (content) id, not banner key — the real model.
   const favourites = { "t-spe": {}, "s-spe": {}, "cm-fav": {} };
   const rows = bookmarkRows(bundle(), favourites, cal("2026-06-01"));
 
   assert.deepEqual(
-    rows.map((r) => ({ date: r.date, predicted: r.predicted })),
+    rows.map((r) => ({ id: r.id, name: r.name, subtext: r.subtext, image: r.image, dates: r.appearances.map((a) => a.date) })),
     [
-      { date: "2026-06-10", predicted: false },
-      { date: "2026-06-25", predicted: true }, // co-occurring beat; one banner predicted ⇒ row predicted
+      { id: "t-spe", name: "Special Week", subtext: "3★ · Special Dreamer", image: "/img/t-spe.webp", dates: ["2026-06-10", "2026-06-25"] },
+      { id: "s-spe", name: "Special Week", subtext: "SSR · Guts · The Setting Sun And Rising Stars", image: "/img/s-spe.webp", dates: ["2026-06-25"] },
     ],
   );
 });
 
-test("bookmarkRows: co-occurring favourites combine into one row, kinds preserved", () => {
+test("bookmarkRows: appearance metadata preserves kind and prediction without collapsing co-occurring atoms", () => {
   const favourites = { "t-spe": {}, "s-spe": {} };
   const rows = bookmarkRows(bundle(), favourites, cal("2026-06-01"));
 
-  const co = rows.find((r) => r.date === "2026-06-25");
-  assert.ok(co, "expected a combined row on the shared beat");
-  assert.deepEqual(co.atoms.map((a) => a.kind), ["trainee", "support"]);
-  assert.deepEqual(co.atoms.map((a) => a.atom.name), ["Special Week", "Special Week SSR"]);
+  const trainee = rows.find((r) => r.kind === "trainee");
+  assert.ok(trainee, "expected the favourited trainee row");
+  assert.equal(trainee.rarityTier, "crystal");
+  assert.deepEqual(trainee.appearances.map((a) => [a.date, a.predicted]), [
+    ["2026-06-10", false],
+    ["2026-06-25", true],
+  ]);
+
+  const support = rows.find((r) => r.kind === "support");
+  assert.ok(support, "expected the favourited support row");
+  assert.equal(support.attribute, "guts");
+  assert.equal(support.rarityTier, "crystal");
+  assert.deepEqual(support.appearances.map((a) => [a.date, a.predicted]), [["2026-06-25", false]]);
 });
 
 test("bookmarkRows: no favourites ⇒ no rows (the drawer's empty state)", () => {
   assert.deepEqual(bookmarkRows(bundle(), {}, cal("2026-06-01")), []);
+});
+
+test("nextBookmarkDate: advances after the centred appearance and wraps to the first", () => {
+  const [row] = bookmarkRows(bundle(), { "t-spe": {} }, cal("2026-06-01"));
+  assert.ok(row, "expected favourite row");
+
+  assert.equal(nextBookmarkDate(row, cal("2026-06-01")), "2026-06-10");
+  assert.equal(nextBookmarkDate(row, cal("2026-06-10")), "2026-06-25");
+  assert.equal(nextBookmarkDate(row, cal("2026-06-26")), "2026-06-10");
 });

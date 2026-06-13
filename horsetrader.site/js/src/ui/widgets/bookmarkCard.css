@@ -1,0 +1,103 @@
+/* A favourited atom as a compact bookmark/navigation card. */
+.bookmark-card {
+  --bookmark-card-colour: currentColor;
+  display: grid;
+  grid-template-columns: 2.75rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid color-mix(in srgb, var(--bookmark-card-colour) 58%, transparent);
+  border-left-width: 4px;
+  border-radius: 0.4rem;
+  background: Canvas;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+.bookmark-card:hover,
+.bookmark-card:focus-visible {
+  border-color: color-mix(in srgb, var(--bookmark-card-colour) 78%, transparent);
+  background: color-mix(in srgb, Canvas 92%, currentColor 8%);
+  outline: 0;
+}
+
+.bookmark-card__image {
+  box-sizing: border-box;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.35rem;
+  object-fit: cover;
+  background: color-mix(in srgb, Canvas 55%, currentColor 9%);
+}
+.bookmark-card__image--placeholder {
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, currentColor 16%, transparent);
+  color: color-mix(in srgb, currentColor 66%, transparent);
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.bookmark-card--trainee .bookmark-card__image {
+  padding: 2px;
+  border: 2px solid currentColor;
+}
+.bookmark-card--trainee .bookmark-card__image--crystal {
+  border-color: transparent;
+  background:
+    linear-gradient(Canvas, Canvas) padding-box,
+    linear-gradient(135deg, rgb(168, 85, 247), rgb(59, 130, 246), rgb(34, 197, 94)) border-box;
+}
+.bookmark-card--trainee .bookmark-card__image--gold {
+  color: var(--ht-colour-rarity-gold);
+}
+.bookmark-card--trainee .bookmark-card__image--silver {
+  color: var(--ht-colour-rarity-silver);
+}
+
+.bookmark-card__copy,
+.bookmark-card__meta {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+}
+
+.bookmark-card__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.86rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.bookmark-card__subtext,
+.bookmark-card__count {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.72rem;
+  line-height: 1.2;
+  color: color-mix(in srgb, currentColor 62%, transparent);
+}
+
+.bookmark-card__meta {
+  align-items: flex-end;
+}
+
+.bookmark-card__date {
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: color-mix(in srgb, currentColor 70%, transparent);
+}
+
+.bookmark-card--trainee {
+  --bookmark-card-colour: var(--ht-colour-trainee);
+}
+.bookmark-card--support {
+  --bookmark-card-colour: var(--ht-colour-support);
+}
