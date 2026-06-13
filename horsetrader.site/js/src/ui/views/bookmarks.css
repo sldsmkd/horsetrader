@@ -138,8 +138,8 @@
   border-radius: 50%;
 }
 .bookmark-atom--trainee::before {
-  background: #27ae60;
+  background: var(--ht-colour-trainee);
 }
 .bookmark-atom--support::before {
-  background: #2980b9;
+  background: var(--ht-colour-support);
 }

@@ -23,9 +23,17 @@
 
 /* One banner within the group: art identity on top, content atoms as pills below. */
 .banner {
+  box-sizing: border-box;
   border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+  border-left-width: 4px;
   border-radius: 0.3rem;
   overflow: hidden;
+}
+.banner--trainee {
+  border-left-color: var(--ht-colour-trainee);
+}
+.banner--support {
+  border-left-color: var(--ht-colour-support);
 }
 .banner__image {
   display: block;

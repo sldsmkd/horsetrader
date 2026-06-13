@@ -83,10 +83,10 @@
   border-radius: 50%;
 }
 .minimap__dot--trainee {
-  background: #27ae60;
+  background: var(--ht-colour-trainee);
 }
 .minimap__dot--support {
-  background: #2980b9;
+  background: var(--ht-colour-support);
 }
 
 /* The window — a grab handle sized for the hand, centred on the view (not a

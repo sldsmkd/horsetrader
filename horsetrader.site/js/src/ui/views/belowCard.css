@@ -19,15 +19,15 @@
 .card--below .card__body {
   display: flex;
   flex-direction: column;
-  border-left: 3px solid gray;
+  border-left: 3px solid var(--ht-colour-card-accent-default);
 }
-.card--cm .card__body { border-left-color: #c0392b; }
-.card--story .card__body { border-left-color: #2980b9; }
-.card--scenario .card__body { border-left-color: #27ae60; }
-.card--anchor .card__body { border-left-color: #8e44ad; }
-.card--anchoredevent .card__body { border-left-color: #d35400; }
-.card--anniversary .card__body { border-left-color: #d4af37; }
-.card--anniversarymission .card__body { border-left-color: #c9a227; }
+.card--cm .card__body { border-left-color: var(--ht-colour-card-accent-cm); }
+.card--story .card__body { border-left-color: var(--ht-colour-card-accent-story); }
+.card--scenario .card__body { border-left-color: var(--ht-colour-card-accent-scenario); }
+.card--anchor .card__body { border-left-color: var(--ht-colour-card-accent-anchor); }
+.card--anchoredevent .card__body { border-left-color: var(--ht-colour-card-accent-anchoredevent); }
+.card--anniversary .card__body { border-left-color: var(--ht-colour-card-accent-anniversary); }
+.card--anniversarymission .card__body { border-left-color: var(--ht-colour-card-accent-anniversarymission); }
 
 .card__label {
   padding: 0.4rem 0.5rem 0.35rem;

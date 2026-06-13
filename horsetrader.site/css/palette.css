@@ -1,0 +1,19 @@
+/* Shared colour tokens. Components should reference the semantic token, not the
+   pigment, so one place owns the palette when the visual language evolves. */
+:root {
+  /* Academy entity colours — reused anywhere trainee/support identity is the
+     message, not just on cards. */
+  --ht-colour-trainee: #27ae60;
+  --ht-colour-support: #2980b9;
+
+  /* Timeline card accents. These are intentionally semantic even where two
+     meanings share the same pigment today. */
+  --ht-colour-card-accent-default: gray;
+  --ht-colour-card-accent-cm: #c0392b;
+  --ht-colour-card-accent-story: #b6b929;
+  --ht-colour-card-accent-scenario: #27ae60;
+  --ht-colour-card-accent-anchor: #8e44ad;
+  --ht-colour-card-accent-anchoredevent: #d35400;
+  --ht-colour-card-accent-anniversary: #d4af37;
+  --ht-colour-card-accent-anniversarymission: #c9a227;
+}
