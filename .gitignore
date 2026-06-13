@@ -6,6 +6,9 @@
 .codex.local/*
 .codex.local.md
 
+# Wrangler
+.wrangler/
+
 # Python
 venv/
 __pycache__/

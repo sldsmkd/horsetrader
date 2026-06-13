@@ -19,6 +19,7 @@
 
 SITE   := horsetrader.site
 STATIC := static
+PYTHON ?= venv/bin/python
 
 .PHONY: all seed bake types build dev serve deploy clean
 
@@ -37,7 +38,7 @@ seed:
 
 # Stage 1 — ETL bake: JSON + images into static/, schema into config/schema/.
 bake:
-	python main.py
+	$(PYTHON) main.py
 
 # Between 1 and 2 — derive the site's bundle types from the published schema.
 types:
@@ -55,13 +56,8 @@ dev serve:
 	npm --prefix $(SITE) run dev
 
 # Publish the assembled static/ root to Cloudflare Pages.
-# STUBBED: a working prototype is live and must not be clobbered. `all` still
-# runs so static/ is fully assembled and deploy-ready; uncomment the wrangler
-# line (and drop the guard) when we're ready to ship over the prototype.
 deploy: all
-	@echo "make deploy is stubbed — not publishing (a live prototype is online)."
-	@echo "static/ is assembled and deploy-ready; uncomment wrangler in the Makefile to ship."
-#	npm --prefix $(SITE) run deploy
+	npm --prefix $(SITE) run deploy
 
 # Wipe the regenerated deploy root (skeleton seed + bake + build output).
 clean:
