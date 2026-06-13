@@ -2,16 +2,23 @@
    next to its view (ui/views/*.css); this file is only the page shell and the
    tokens more than one component reads. */
 :root {
-  color-scheme: light dark;
+  color-scheme: dark;
   font-family: system-ui, sans-serif;
   --minimap-h: 64px; /* shared: the minimap strip height; the readout lifts clear of it */
   --timeline-card-w: 17.5rem; /* 280px at the default font size; shared by timeline cards */
+}
+
+html {
+  background: #111;
+  color: #eee;
 }
 
 body {
   margin: 0;
   padding: 0;
   height: 100vh;
+  background: #111;
+  color: #eee;
   overflow: hidden; /* the canvas owns scrolling (pan) — the page never scrolls */
   line-height: 1.5;
 }
