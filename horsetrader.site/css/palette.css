@@ -16,4 +16,11 @@
   --ht-colour-card-accent-anchoredevent: #d35400;
   --ht-colour-card-accent-anniversary: #d4af37;
   --ht-colour-card-accent-anniversarymission: #c9a227;
+
+  /* Minimap state colours. These carry plan semantics and are likely candidates
+     for future accessibility themes. */
+  --ht-colour-minimap-positive: #2d7dd2;
+  --ht-colour-minimap-negative: #e74c3c;
+  --ht-colour-minimap-line: #fff;
+  --ht-colour-minimap-today: #fff;
 }

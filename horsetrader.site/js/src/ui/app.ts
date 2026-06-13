@@ -247,7 +247,14 @@ export function mountApp(
     // the timeline lays out: `tl.layout` emits the initial view-centre date
     // through `onView → mini.setView`, which needs the minimap's axis already
     // built (otherwise the first window placement is dropped).
-    mini.refresh({ series: projection.series, bundle, favourites: coord.document().favourites ?? {}, extent, now });
+    mini.refresh({
+      series: projection.series,
+      bundle,
+      favourites: coord.document().favourites ?? {},
+      commitments: coord.document().commitments ?? {},
+      extent,
+      now,
+    });
     // The extent is the displayed card range — all known time, first arrival to
     // last — so every card fits the canvas. `layout` pads PAD_DAYS either side
     // (the prototype's fixed buffer) and centres on today on first load.

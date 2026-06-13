@@ -17,20 +17,24 @@ The bar has two faces (flip toggle, like a standing mirror reversed):
 - **Planner face** — banners you've committed to, each showing the pity count on that commitment
 - Flipping is a single UI toggle; both faces share the same bar slot/position in the layout
 
-## Minimap bookmark/commit dots
+## ✅ Minimap bookmark/commit dots
 
-Replace the current dot marks with two distinct glyphs keyed on the banner's state:
+~~Replace the current dot marks with two distinct glyphs keyed on the banner's state:
 
 - **□ empty square** — banner contains a favourited character or card (bookmarked via content)
 - **■ filled square** — banner has a commitment on it
 
-Both can coexist if a committed banner also contains other favourites.
+Both can coexist if a committed banner also contains other favourites.~~
 
-## Minimap above-the-line colour
+Done: minimap markers now show empty bookmark squares and filled commit squares on fixed trainee/support rows; commitment wins when both states apply.
 
-- Blue only when the projection at that point is **positive** (above threshold)
+## ✅ Minimap above-the-line colour
+
+~~- Blue only when the projection at that point is **positive** (above threshold)
 - Explore a configurable threshold cutover: 0 pity, 1 pity, etc. — below threshold flips to red even if still above the lane
-- Below-the-lane area is always red regardless
+- Below-the-lane area is always red regardless~~
+
+Done: minimap bands are binary around the origin fret — blue above origin when positive, red below origin when negative; semantic colours live in the shared palette.
 
 ## Card styling — fixed width pass
 

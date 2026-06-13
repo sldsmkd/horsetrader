@@ -24,7 +24,7 @@ import type { CalendarDate } from "../../core/projection/dates.ts";
 import { balancePoints, caratToY, fretLevels, dotMarks } from "../select/minimap.ts";
 import type { BalanceSeries } from "../../core/projection/ledger.ts";
 import type { Bundle } from "../bundle/access.ts";
-import type { Favourites } from "../../core/persistence/document.ts";
+import type { Commitments, Favourites } from "../../core/persistence/document.ts";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
@@ -37,6 +37,7 @@ export interface MinimapRefresh {
   series: BalanceSeries;
   bundle: Bundle;
   favourites: Favourites;
+  commitments: Commitments;
   extent: readonly [CalendarDate, CalendarDate] | null;
   now: CalendarDate;
 }
@@ -59,6 +60,28 @@ function svg<K extends keyof SVGElementTagNameMap>(tag: K, attrs: Record<string,
   const el = document.createElementNS(SVG_NS, tag);
   for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, String(v));
   return el;
+}
+
+interface MinimapPoint {
+  x: number;
+  y: number;
+  carats: number;
+}
+
+function splitAtThreshold(a: MinimapPoint, b: MinimapPoint, threshold: number): MinimapPoint[] {
+  const da = a.carats - threshold;
+  const db = b.carats - threshold;
+  if (da === 0 || db === 0 || Math.sign(da) === Math.sign(db)) return [a, b];
+  const t = (threshold - a.carats) / (b.carats - a.carats);
+  return [
+    a,
+    {
+      x: a.x + (b.x - a.x) * t,
+      y: a.y + (b.y - a.y) * t,
+      carats: threshold,
+    },
+    b,
+  ];
 }
 
 export function minimap({ onSeek }: MinimapHandlers): Minimap {
@@ -116,7 +139,7 @@ export function minimap({ onSeek }: MinimapHandlers): Minimap {
 
   return {
     el,
-    refresh({ series, bundle, favourites, extent: nextExtent, now }) {
+    refresh({ series, bundle, favourites, commitments, extent: nextExtent, now }) {
       extent = nextExtent;
       dots.replaceChildren();
       if (!extent) {
@@ -147,25 +170,36 @@ export function minimap({ onSeek }: MinimapHandlers): Minimap {
         }),
       );
 
-      // The balance line stays white; the *background* carries the sign. Walk the
-      // change-point segments: the white needle is one path, and each segment lays
-      // a full-height tint rect coloured by its sign (blue ≥ 0, red < 0 — danger
-      // information, principle 6). Adjacent same-sign rects simply abut.
-      const pts = balancePoints(series, extent).map((p) => ({ x: axis!.xForDate(p.date), y: caratToY(p.carats, height), neg: p.carats < 0 }));
-      const rects: SVGRectElement[] = [];
+      // The balance line stays white; the *background* carries pressure from
+      // the origin fret. Blue fills the above-origin lane when the plan is
+      // positive; red fills the below-origin lane when the plan is negative.
+      const pts = balancePoints(series, extent).map((p) => ({ x: axis!.xForDate(p.date), y: caratToY(p.carats, height), carats: p.carats }));
+      const originY = caratToY(0, height);
+      const bandShapes: SVGRectElement[] = [];
       let d = "";
       for (let i = 0; i < pts.length - 1; i++) {
+        const segments = splitAtThreshold(pts[i]!, pts[i + 1]!, 0);
+        for (let j = 0; j < segments.length - 1; j++) {
+          const a = segments[j]!;
+          const b = segments[j + 1]!;
+          const midpoint = (a.carats + b.carats) / 2;
+          if (midpoint > 0) {
+            bandShapes.push(svg("rect", {
+              class: "minimap__band minimap__band--positive",
+              x: a.x, y: 0, width: Math.max(0, b.x - a.x), height: originY,
+            }));
+          } else if (midpoint < 0) {
+            bandShapes.push(svg("rect", {
+              class: "minimap__band minimap__band--negative",
+              x: a.x, y: originY, width: Math.max(0, b.x - a.x), height: height - originY,
+            }));
+          }
+        }
         const a = pts[i]!;
         const b = pts[i + 1]!;
         d += `${i === 0 ? "M" : "L"} ${a.x} ${a.y} L ${b.x} ${b.y} `;
-        rects.push(
-          svg("rect", {
-            class: a.neg ? "minimap__band minimap__band--negative" : "minimap__band minimap__band--positive",
-            x: a.x, y: 0, width: Math.max(0, b.x - a.x), height,
-          }),
-        );
       }
-      bands.replaceChildren(...rects);
+      bands.replaceChildren(...bandShapes);
       line.setAttribute("d", d.trim());
 
       // The white "now" line — a fixed orientation marker (the minimap doesn't
@@ -175,8 +209,8 @@ export function minimap({ onSeek }: MinimapHandlers): Minimap {
 
       // Dots — favourited future banner appearances; the bookmarks' list-twin.
       dots.replaceChildren(
-        ...dotMarks(bundle, favourites, now).map((m) =>
-          h("div", { class: `minimap__dot minimap__dot--${m.kind}`, attr: { style: `left:${axis!.xForDate(m.date)}px` } }),
+        ...dotMarks(bundle, favourites, commitments, now).map((m) =>
+          h("div", { class: `minimap__dot minimap__dot--${m.kind} minimap__dot--${m.state}`, attr: { style: `left:${axis!.xForDate(m.date)}px` } }),
         ),
       );
     },

@@ -15,9 +15,9 @@ const EVENTS: EventsBundle = {
     { type: "trainee", rushable: true, contents: ["t-spe"], image: "/i/p.webp", start: "2026-01-01", end: "2026-01-07", predicted: false, key: "banner-past" },
     // A future trainee banner, favourited → a green dot.
     { type: "trainee", rushable: true, contents: ["t-spe"], image: "/i/t.webp", start: "2026-06-10", end: "2026-06-16", predicted: false, key: "banner-fav-t" },
-    // A future support banner, NOT favourited → no dot.
-    { type: "support", rushable: false, contents: ["s-spe"], image: "/i/s.webp", start: "2026-06-12", end: "2026-06-18", predicted: false, key: "banner-nofav" },
-    // A future support banner, favourited → a blue dot.
+    // A future support banner, committed but NOT favourited → a filled square.
+    { type: "support", rushable: false, contents: ["s-unfav"], image: "/i/s.webp", start: "2026-06-12", end: "2026-06-18", predicted: false, key: "banner-commit-only" },
+    // A future support banner, favourited and committed → commit wins.
     { type: "support", rushable: false, contents: ["s-spe"], image: "/i/s2.webp", start: "2026-06-20", end: "2026-06-26", predicted: false, key: "banner-fav-s" },
     // A non-banner future event, favourited → still excluded (banners only).
     { type: "cm", name: "CM", start: "2026-06-22", end: "2026-06-26", predicted: false, key: "cm-fav" },
@@ -26,7 +26,10 @@ const EVENTS: EventsBundle = {
 
 const ACADEMY: Academy = {
   characters: { "char-spe": { name: "Special Week", quote: null, icon: null, portrait: null } },
-  supports: { "s-spe": { character: "char-spe", display: "Special Week", type: "guts", rarity: "ssr", title: null, release: "2021", thumbnail: null, art: null, aliases: [] } },
+  supports: {
+    "s-spe": { character: "char-spe", display: "Special Week", type: "guts", rarity: "ssr", title: null, release: "2021", thumbnail: null, art: null, aliases: [] },
+    "s-unfav": { character: "char-spe", display: "Unfavourited Support", type: "speed", rarity: "ssr", title: null, release: "2021", thumbnail: null, art: null, aliases: [] },
+  },
   trainees: { "t-spe": { character: "char-spe", variant: null, rarity: 3, release: "2021", thumbnail: null, portrait: null, aliases: [] } },
 };
 
@@ -75,11 +78,13 @@ test("fretLevels: every pity boundary across ±3, top to bottom", () => {
   assert.deepEqual(fretLevels(), [90_000, 60_000, 30_000, 0, -30_000, -60_000, -90_000]);
 });
 
-test("dotMarks: favourited future banners only, kind preserved; past/unfav/non-banner excluded", () => {
-  const favourites = { "banner-past": {}, "banner-fav-t": {}, "banner-fav-s": {}, "cm-fav": {} };
-  const marks = dotMarks(bundle(), favourites, cal("2026-06-01"));
+test("dotMarks: future bookmarked and committed banners, kind and state preserved", () => {
+  const favourites = { "t-spe": {}, "s-spe": {}, "cm-fav": {} };
+  const commitments = { "banner-past": 1, "banner-commit-only": 1, "banner-fav-s": 2, "cm-fav": 1 };
+  const marks = dotMarks(bundle(), favourites, commitments, cal("2026-06-01"));
   assert.deepEqual(marks, [
-    { date: cal("2026-06-10"), kind: "trainee" },
-    { date: cal("2026-06-20"), kind: "support" },
+    { date: cal("2026-06-10"), kind: "trainee", state: "bookmark" },
+    { date: cal("2026-06-12"), kind: "support", state: "commit" },
+    { date: cal("2026-06-20"), kind: "support", state: "commit" },
   ]);
 });
