@@ -15,7 +15,7 @@ import "./bannerGroup.css";
 
 import { h } from "../h.ts";
 import { formatDate, formatBalance } from "../format.ts";
-import type { Banner, BannerGroup } from "../select/aboveLane.ts";
+import type { Banner, BannerGroup, BannerKind } from "../select/aboveLane.ts";
 import { atomChip } from "../widgets/atomChip.ts";
 import type { FavouriteBinding } from "../widgets/atomChip.ts";
 
@@ -33,14 +33,11 @@ export function bannerGroup(group: BannerGroup, fav: FavouriteBinding, commit: C
     h(
       "div",
       { class: "banner-group" },
-      ...group.banners.map((banner) =>
-        h(
-          "div",
-          { class: `banner banner--${banner.kind}` },
-          h("img", { class: "banner__image", attr: { src: banner.image, alt: "", loading: "lazy" } }),
-          h("ul", { class: "banner__atoms" }, ...banner.atoms.map((atom) => atomChip(atom, fav))),
-          banner.open ? readout(banner, commit) : null,
-        ),
+      h(
+        "div",
+        { class: "banner-group__lanes" },
+        lane("trainee", group.banners, fav, commit),
+        lane("support", group.banners, fav, commit),
       ),
       h("span", { class: "banner-group__date" }, formatDate(group.date)),
     ),
@@ -48,6 +45,25 @@ export function bannerGroup(group: BannerGroup, fav: FavouriteBinding, commit: C
   );
   el.style.left = `${group.x}px`;
   return el;
+}
+
+/** Internal group lanes keep a stable scanline: trainees above, supports below.
+ *  Each lane flows horizontally, so busy launch beats grow sideways instead of
+ *  into a tall stack that disappears off the top of the viewport. */
+function lane(kind: BannerKind, banners: readonly Banner[], fav: FavouriteBinding, commit: CommitBinding): HTMLElement | null {
+  const matches = banners.filter((banner) => banner.kind === kind);
+  if (matches.length === 0) return null;
+  return h("div", { class: `banner-group__lane banner-group__lane--${kind}` }, ...matches.map((banner) => bannerCard(banner, fav, commit)));
+}
+
+function bannerCard(banner: Banner, fav: FavouriteBinding, commit: CommitBinding): HTMLElement {
+  return h(
+    "div",
+    { class: `banner banner--${banner.kind}` },
+    h("img", { class: "banner__image", attr: { src: banner.image, alt: "", loading: "lazy" } }),
+    h("ul", { class: "banner__atoms" }, ...banner.atoms.map((atom) => atomChip(atom, fav))),
+    banner.open ? readout(banner, commit) : null,
+  );
 }
 
 /**

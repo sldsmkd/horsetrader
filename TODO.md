@@ -4,14 +4,6 @@
 
 ## Deferred / no action yet
 
-<<<<<<< Updated upstream
-- `rate_overrides` and `rushable` fields are in the schema but have no frontend
-  consumer. Leave them alone until the gacha-rate surface is scoped.
-- `strings.ts` `FALLBACK_STRINGS` duplicates `strings.json` — accepted trade-off
-  for fetch-fail resilience; no action needed.
-- `docs/ideas/menu.md` (513 lines) is exploration notes, not a spec. Review when
-  the menubar epic (**#22**) surfaces that need to match it.
-=======
 - Show a counter: how many times the character still appears ahead in the timeline
 - When count reaches zero: grey out the entry + show a remove (×) button
 - Click jumps to the nearest upcoming occurrence ahead of the current timeline position
@@ -44,13 +36,17 @@ Both can coexist if a committed banner also contains other favourites.
 
 Establish a consistent fixed width across all card types as the first styling pass. No card should be sized by its content.
 
-## Card colour flashes
+## ✅ Card colour flashes
 
-Restore the left-edge colour flashes that distinguish card types (supports vs trainees). These were present before and help at a glance without reading.
+~~Restore the left-edge colour flashes that distinguish card types (supports vs trainees). These were present before and help at a glance without reading.~~
 
-## Grouped banner layout — max 2 rows
+Done: restored support/trainee banner flashes and introduced shared CSS palette tokens so card/favourite colours have one source of truth.
 
-When a concurrent group contains more than 2 banners, widen the group column into a grid rather than stacking deeper. Maximum depth is 2 rows; overflow goes into additional columns.
+## ✅ Grouped banner layout — max 2 rows
+
+~~When a concurrent group contains more than 2 banners, widen the group column into a grid rather than stacking deeper. Maximum depth is 2 rows; overflow goes into additional columns.~~
+
+Done: banner groups now use internal trainee/support lanes, keeping trainees on the top sightline and supports below while overflowing horizontally into additional columns.
 
 ## Banner card — rate-up scroll area
 
@@ -147,4 +143,3 @@ When an event has no English name (JP-only), emit a warning attributed to Eishin
 ## Trainer card menu button
 
 Show the trainer's name alongside the trainer card icon in the menu — makes the entry point obvious rather than relying on icon recognition alone.
->>>>>>> Stashed changes

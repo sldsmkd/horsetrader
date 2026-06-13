@@ -11,8 +11,9 @@
   position: relative; /* anchors the date label */
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
-  width: 10rem;
+  gap: 0.35rem;
+  width: max-content;
+  min-width: 10rem;
   padding: 0.4rem;
   padding-bottom: 1.1rem; /* room for the date label */
   border: 1px solid color-mix(in srgb, currentColor 35%, transparent);
@@ -21,9 +22,22 @@
   will-change: transform;
 }
 
+.banner-group__lanes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.banner-group__lane {
+  display: flex;
+  gap: 0.35rem;
+  align-items: stretch;
+}
+
 /* One banner within the group: art identity on top, content atoms as pills below. */
 .banner {
   box-sizing: border-box;
+  flex: 0 0 10rem;
   border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
   border-left-width: 4px;
   border-radius: 0.3rem;
