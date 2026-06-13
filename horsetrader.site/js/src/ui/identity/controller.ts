@@ -51,7 +51,7 @@ export function createIdentityController(coord: Coordinator, bundle: Bundle): Id
 
   function trainerName(): string {
     const name = identityConfig()["trainerName"];
-    return typeof name === "string" && name.trim() ? name : "Kris";
+    return typeof name === "string" && name.trim() ? name : "Unknown";
   }
 
   function trainerId(): string {
