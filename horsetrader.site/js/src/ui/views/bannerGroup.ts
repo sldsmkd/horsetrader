@@ -29,15 +29,15 @@ export interface CommitBinding {
 export function bannerGroup(group: BannerGroup, fav: FavouriteBinding, commit: CommitBinding): HTMLElement {
   const el = h(
     "div",
-    { class: `card card--above${group.predicted ? " card--predicted" : ""}` },
+    { class: `card card--above${group.past ? " card--past" : ""}` },
     h(
       "div",
       { class: "banner-group" },
       h(
         "div",
         { class: "banner-group__lanes" },
-        lane("trainee", group.banners, fav, commit),
-        lane("support", group.banners, fav, commit),
+        lane("trainee", group.banners, fav, commit, group.past),
+        lane("support", group.banners, fav, commit, group.past),
       ),
       h("span", { class: "banner-group__date" }, formatDate(group.date)),
     ),
@@ -50,16 +50,16 @@ export function bannerGroup(group: BannerGroup, fav: FavouriteBinding, commit: C
 /** Internal group lanes keep a stable scanline: trainees above, supports below.
  *  Each lane flows horizontally, so busy launch beats grow sideways instead of
  *  into a tall stack that disappears off the top of the viewport. */
-function lane(kind: BannerKind, banners: readonly Banner[], fav: FavouriteBinding, commit: CommitBinding): HTMLElement | null {
+function lane(kind: BannerKind, banners: readonly Banner[], fav: FavouriteBinding, commit: CommitBinding, groupPast = false): HTMLElement | null {
   const matches = banners.filter((banner) => banner.kind === kind);
   if (matches.length === 0) return null;
-  return h("div", { class: `banner-group__lane banner-group__lane--${kind}` }, ...matches.map((banner) => bannerCard(banner, fav, commit)));
+  return h("div", { class: `banner-group__lane banner-group__lane--${kind}` }, ...matches.map((banner) => bannerCard(banner, fav, commit, groupPast)));
 }
 
-function bannerCard(banner: Banner, fav: FavouriteBinding, commit: CommitBinding): HTMLElement {
+function bannerCard(banner: Banner, fav: FavouriteBinding, commit: CommitBinding, groupPast: boolean): HTMLElement {
   return h(
     "div",
-    { class: `banner banner--${banner.kind}` },
+    { class: `banner banner--${banner.kind}${banner.past && !groupPast ? " banner--past" : ""}` },
     h("img", { class: "banner__image", attr: { src: banner.image, alt: "", loading: "lazy" } }),
     h("ul", { class: "banner__atoms" }, ...banner.atoms.map((atom) => atomChip(atom, fav))),
     banner.open ? readout(banner, commit) : null,

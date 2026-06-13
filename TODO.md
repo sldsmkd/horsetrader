@@ -36,9 +36,11 @@ Done: minimap markers now show empty bookmark squares and filled commit squares 
 
 Done: minimap bands are binary around the origin fret — blue above origin when positive, red below origin when negative; semantic colours live in the shared palette.
 
-## Card styling — fixed width pass
+## ✅ Card styling — fixed width pass
 
-Establish a consistent fixed width across all card types as the first styling pass. No card should be sized by its content.
+~~Establish a consistent fixed width across all card types as the first styling pass. No card should be sized by its content.~~
+
+Done: timeline cards now share a fixed 280px width token, and below-card bodies stretch to that width so small events carry equal visual weight.
 
 ## ✅ Card colour flashes
 
@@ -68,9 +70,11 @@ Design and wire in a custom star fruit icon to replace the emoji ⭐ used for fa
 
 Show start and end dates on banner cards.
 
-## Grey-out inversion
+## ✅ Grey-out inversion
 
-Currently future items are dimmed; invert this — grey out **past** items instead. The planning-relevant content is ahead, not behind; dimming the future makes it read as unimportant.
+~~Currently future items are dimmed; invert this — grey out **past** items instead. The planning-relevant content is ahead, not behind; dimming the future makes it read as unimportant.~~
+
+Done: cards now dim only after their end date / closed banner state, so future and predicted planning targets stay visually active.
 
 ## Shield close affordance
 

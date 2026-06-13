@@ -27,7 +27,8 @@
   background: color-mix(in srgb, currentColor 50%, transparent);
 }
 
-/* Grey = trust this less: predicted dates (principle 5). */
-.card--predicted {
+/* Grey = already gone: past cards recede so the planning-relevant future stays prominent. */
+.card--past,
+.banner--past {
   opacity: 0.55;
 }

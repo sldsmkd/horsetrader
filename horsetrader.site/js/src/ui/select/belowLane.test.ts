@@ -72,6 +72,17 @@ test("each card resolves its label (name/title, falling back to key) and predict
   assert.equal(byKey.get("sce-1")!.label, "sce-1"); // title null → the key
   assert.equal(byKey.get("story-1")!.predicted, true);
   assert.equal(byKey.get("cm-1")!.predicted, false);
+  assert.equal(byKey.get("story-1")!.past, false);
+  assert.equal(byKey.get("cm-1")!.past, false);
+});
+
+test("past cards are marked after their end date", () => {
+  const cards = belowLaneCards(settled(EVENTS), AXIS, cal("2026-07-02"));
+  const byKey = new Map(cards.map((c) => [c.key, c]));
+
+  assert.equal(byKey.get("story-1")!.past, true);
+  assert.equal(byKey.get("cm-1")!.past, true);
+  assert.equal(byKey.get("sce-1")!.past, false);
 });
 
 test("x is true-to-date off the axis (arrival date = start) and reward is the resolved face", () => {

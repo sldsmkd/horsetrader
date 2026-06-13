@@ -79,6 +79,8 @@ export interface BelowCard {
   x: number;
   /** Predicted dates trust less — the grey grammar (principle 5). */
   predicted: boolean;
+  /** Past cards recede; planning-relevant content is ahead. */
+  past: boolean;
   /** True when the event is rush-eligible and not yet ended. */
   rushable: boolean;
   /** This event's resolved reward face (its height/breakdown signal). */
@@ -117,6 +119,7 @@ export function belowLaneCards(events: readonly SettledEvent[], axis: Axis, now:
       date: ev.start,
       x: axis.xForDate(ev.start),
       predicted: record.predicted,
+      past: ev.end < now,
       rushable: isRushable(record) && ev.end >= now,
       reward: { ...ev.rewards },
     };

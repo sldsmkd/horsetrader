@@ -19,7 +19,7 @@ import { rushedToggleFor } from "../widgets/rushedToggle.ts";
 import type { RushBinding } from "../widgets/rushedToggle.ts";
 
 export function belowCard(card: BelowCard, rush: RushBinding): HTMLElement {
-  const cls = `card card--below card--${card.kind}${card.predicted ? " card--predicted" : ""}`;
+  const cls = `card card--below card--${card.kind}${card.past ? " card--past" : ""}`;
   const el = h(
     "div",
     { class: cls },

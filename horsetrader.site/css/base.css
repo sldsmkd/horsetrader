@@ -5,6 +5,7 @@
   color-scheme: light dark;
   font-family: system-ui, sans-serif;
   --minimap-h: 64px; /* shared: the minimap strip height; the readout lifts clear of it */
+  --timeline-card-w: 17.5rem; /* 280px at the default font size; shared by timeline cards */
 }
 
 body {

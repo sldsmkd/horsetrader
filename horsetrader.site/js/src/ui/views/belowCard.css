@@ -2,7 +2,7 @@
    the shared `.card` skeleton (card.css). */
 .card--below {
   top: 50%; /* anchor at the line, grow down: stem then body */
-  width: 13.5rem;
+  width: var(--timeline-card-w);
 }
 
 .card__body {
@@ -19,6 +19,8 @@
 .card--below .card__body {
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
+  width: 100%;
   border-left: 3px solid var(--ht-colour-card-accent-default);
 }
 .card--cm .card__body { border-left-color: var(--ht-colour-card-accent-cm); }

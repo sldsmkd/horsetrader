@@ -61,6 +61,8 @@ export interface Banner {
   atoms: BannerAtom[];
   /** Still open to pull — `end >= now`. A closed banner is gone: no readout at all. */
   open: boolean;
+  /** Closed banners recede; planning-relevant content is ahead. */
+  past: boolean;
   /** Pulls available from any source by the banner's appearance date (the ammo count). */
   pullsAvailable: number;
   /** Free pulls *this banner* grants — the banner's own `rewards.pulls`, the value signal (→ glow later). */
@@ -79,6 +81,8 @@ export interface BannerGroup {
   x: number;
   /** Any banner in the group predicted → the group reads as predicted. */
   predicted: boolean;
+  /** All banners in the group are closed. */
+  past: boolean;
   banners: Banner[];
 }
 
@@ -118,7 +122,7 @@ export function aboveLaneGroups(
     const record = ev.record;
     if (!record || (record.type !== "trainee" && record.type !== "support")) continue;
     let group = byDate.get(ev.start);
-    if (!group) byDate.set(ev.start, (group = { key: ev.start, date: ev.start, x: axis.xForDate(ev.start), predicted: false, banners: [] }));
+    if (!group) byDate.set(ev.start, (group = { key: ev.start, date: ev.start, x: axis.xForDate(ev.start), predicted: false, past: false, banners: [] }));
     group.predicted = group.predicted || record.predicted;
     // Ammo is measured at the banner's **end** (project_spend_model). A committed banner
     // reads its self-excluded available (income minus *earlier* claims, not its own); an
@@ -147,6 +151,7 @@ export function aboveLaneGroups(
       image: record.image,
       atoms,
       open,
+      past: !open,
       pullsAvailable: capacity.total,
       // The value signal — *this banner's own* free-pull count (ui.md), shown
       // separately even though it's also part of the total above.
@@ -156,7 +161,10 @@ export function aboveLaneGroups(
   }
 
   const groups = [...byDate.values()];
-  for (const group of groups) group.banners.sort((a, b) => KIND_ORDER[a.kind] - KIND_ORDER[b.kind]);
+  for (const group of groups) {
+    group.banners.sort((a, b) => KIND_ORDER[a.kind] - KIND_ORDER[b.kind]);
+    group.past = group.banners.length > 0 && group.banners.every((banner) => banner.past);
+  }
   groups.sort((a, b) => a.x - b.x); // left-to-right, i.e. by appearance date
   return groups;
 }
