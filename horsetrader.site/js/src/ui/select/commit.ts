@@ -16,12 +16,12 @@
 import type { Bundle } from "../bundle/access.ts";
 import type { ResourceVector, Commitments } from "../../core/persistence/document.ts";
 import { atomOf, type BannerAtom, type BannerKind, type RarityTier } from "./aboveLane.ts";
-import { spend, bannerDays } from "../../core/projection/pulls.ts";
+import { remainingAfterSpend, bannerDays, type PullSources } from "../../core/projection/pulls.ts";
 import type { CalendarDate } from "../../core/projection/dates.ts";
 
-/** Featured-card sort: hero rarity bands first (crystal → gold), then alpha within
+/** Featured-card sort: hero rarity bands first (crystal → gold → silver), then alpha within
  *  a band — so the highest-rarity pickups lead from the left. */
-const RARITY_RANK: Record<RarityTier, number> = { crystal: 0, gold: 1 };
+const RARITY_RANK: Record<RarityTier, number> = { crystal: 0, gold: 1, silver: 2 };
 
 /** A featured-card atom for the dossier grid — a `BannerAtom` plus its card art. */
 export interface CommitAtom extends BannerAtom {
@@ -142,24 +142,13 @@ export function commitContext(bundle: Bundle, bannerKey: string, inputs: CommitI
  * absorb the whole leftover and go negative** — an overcommitment reads as a negative
  * carat balance (the view reds it). NB the *debit forward* (Part 2) isn't wired yet.
  */
-export interface ReservedBalance {
-  freeCarats: number;
-  paidCarats: number;
-  tickets: number;
-}
+export type ReservedBalance = PullSources;
 
 export function reserve(ctx: CommitContext, pity: number): ReservedBalance {
-  const debit = spend(
+  return remainingAfterSpend(
     { freePulls: ctx.freePulls, tickets: ctx.tickets, freeCarats: ctx.freeCarats, paidCarats: ctx.paidCarats },
     { caratsPerPull: ctx.caratsPerPull, paidDailyPull: ctx.paidDailyPull, bannerDays: ctx.bannerDays },
     ctx.sparkThreshold,
     pity,
   );
-  return {
-    // The shield's "after" is just the predicted balance minus what the commitment spends
-    // (free carats can go negative — the overcommit shortfall the view reds).
-    freeCarats: ctx.freeCarats - debit.freeCarats,
-    paidCarats: ctx.paidCarats - debit.paidCarats,
-    tickets: ctx.tickets - debit.tickets,
-  };
 }

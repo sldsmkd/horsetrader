@@ -92,6 +92,28 @@ export function spend(s: PullSources, c: PullCaps, sparkThreshold: number, pity:
   };
 }
 
+/** What remains available on the banner after a pity commitment reserves its
+ *  cheapest-first spend. This is the read model for surfaces that want "free
+ *  after plan" rather than "available before plan"; projection still emits only
+ *  banked resource debits, while UI can also show banner-local free pulls. */
+export function remainingAfterSpend(s: PullSources, c: PullCaps, sparkThreshold: number, pity: number): PullSources {
+  const pullsNeeded = Math.max(0, pity) * sparkThreshold;
+  const debit = spend(s, c, sparkThreshold, pity);
+  return {
+    freePulls: Math.max(0, s.freePulls - pullsNeeded),
+    tickets: s.tickets - debit.tickets,
+    freeCarats: s.freeCarats - debit.freeCarats,
+    paidCarats: s.paidCarats - debit.paidCarats,
+  };
+}
+
+/** Pull capacity left on the same banner after reserving a pity commitment.
+ *  Paid daily pulls are banner-limited by the remaining paid-carats pool and the
+ *  banner's duration cap; there is no separate window ledger to consume. */
+export function remainingCapacityAfterSpend(s: PullSources, c: PullCaps, sparkThreshold: number, pity: number): PullCapacity {
+  return pullCapacity(remainingAfterSpend(s, c, sparkThreshold, pity), c);
+}
+
 /** Banner duration in whole days (`end − start`), the daily-pull cap. At least 1 — a
  *  same-day banner still gives one daily window. Format-agnostic (date or full instant). */
 export function bannerDays(start: string, end: string): number {

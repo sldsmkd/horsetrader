@@ -16,7 +16,7 @@ import type { Axis } from "../axis.ts";
 import type { Bundle } from "../bundle/access.ts";
 import type { SettledEvent } from "../../core/engine/index.ts";
 import type { ResourceVector, Commitments } from "../../core/persistence/document.ts";
-import { pullCapacity, bannerDays } from "../../core/projection/pulls.ts";
+import { pullCapacity, remainingAfterSpend, remainingCapacityAfterSpend, bannerDays } from "../../core/projection/pulls.ts";
 import type { CalendarDate } from "../../core/projection/dates.ts";
 
 /** The live reads the above-lane readout folds in: balance-at-date, the per-event
@@ -37,9 +37,11 @@ export type BannerKind = "trainee" | "support";
 
 /** Within a group, trainee gacha read before support gacha (the prototype order). */
 const KIND_ORDER: Record<BannerKind, number> = { trainee: 0, support: 1 };
+const NAME_ORDER = new Intl.Collator("en", { numeric: true, sensitivity: "base" });
 
-/** Normalised rarity tier for the pill border grammar (principle 5). R is culled — never silver. */
-export type RarityTier = "crystal" | "gold";
+/** Normalised rarity tier for the pill border grammar (principle 5). R is culled today, but silver remains part of the grammar. */
+export type RarityTier = "crystal" | "gold" | "silver";
+const RARITY_ORDER: Record<RarityTier, number> = { crystal: 0, gold: 1, silver: 2 };
 
 /** One resolved banner-content pill — the borrowed rarity/attribute grammar (principle 5). */
 export interface BannerAtom {
@@ -65,10 +67,18 @@ export interface Banner {
   past: boolean;
   /** Pulls available from any source by the banner's appearance date (the ammo count). */
   pullsAvailable: number;
+  /** Full-price pulls available from free carats. */
+  freeCaratPulls: number;
+  /** Discounted paid-carats pulls available during this banner's daily window. */
+  paidCaratPulls: number;
+  /** Kind-appropriate scout tickets available for this banner. */
+  ticketPulls: number;
   /** Free pulls *this banner* grants — the banner's own `rewards.pulls`, the value signal (→ glow later). */
   freePulls: number;
   /** Committed spend in pities; null = no commitment (then no line renders). */
   committedPity: number | null;
+  /** The commitment pushes the free-carat floor below zero. */
+  commitmentUnfundable: boolean;
 }
 
 /** Banners sharing an appearance date, the unit the above-lane packer places. */
@@ -106,6 +116,10 @@ export function atomOf(bundle: Bundle, kind: BannerKind, id: string): BannerAtom
   };
 }
 
+function compareAtoms(a: BannerAtom, b: BannerAtom): number {
+  return RARITY_ORDER[a.rarityTier] - RARITY_ORDER[b.rarityTier] || NAME_ORDER.compare(a.name, b.name);
+}
+
 export function aboveLaneGroups(
   events: readonly SettledEvent[],
   bundle: Bundle,
@@ -116,7 +130,7 @@ export function aboveLaneGroups(
   // Every known banner, past and future — the timeline spans all known time, not
   // just the projection horizon (you scroll back into history too).
   const byDate = new Map<string, BannerGroup>();
-  const { carats_per_pull: caratsPerPull, paid_daily_pull: paidDailyPull } = bundle.config().gacha;
+  const { carats_per_pull: caratsPerPull, paid_daily_pull: paidDailyPull, spark_threshold: sparkThreshold } = bundle.config().gacha;
   for (const ev of events) {
     if (!ev.visible) continue; // ledger-only cadence, or the bake's opt-out
     const record = ev.record;
@@ -128,7 +142,10 @@ export function aboveLaneGroups(
     // reads its self-excluded available (income minus *earlier* claims, not its own); an
     // uncommitted one reads the series at its end (which already nets out earlier claims).
     const balance = inputs.availableFor(ev.key) ?? inputs.balanceAt(ev.end);
-    const atoms = record.contents.map((id) => atomOf(bundle, record.type, id)).filter((a): a is BannerAtom => a !== null);
+    const atoms = record.contents
+      .map((id) => atomOf(bundle, record.type, id))
+      .filter((a): a is BannerAtom => a !== null)
+      .sort(compareAtoms);
     const open = ev.end >= now;
     // This banner's own free-pull grant — banner-scoped, never banked, so it lives
     // on the baked record, not the settled face (rules/settle.ts strips `pulls`).
@@ -136,15 +153,19 @@ export function aboveLaneGroups(
     // The effective pulls under the spend model: free pulls + kind-appropriate tickets
     // + duration-capped daily paid pulls + full-price free carats (shared with the
     // commit shield's reservation so card and shield never disagree).
-    const capacity = pullCapacity(
-      {
-        freePulls,
-        tickets: (record.type === "support" ? balance.support_tickets : balance.trainee_tickets) ?? 0,
-        freeCarats: balance.free_carats ?? 0,
-        paidCarats: balance.paid_carats ?? 0,
-      },
-      { caratsPerPull, paidDailyPull, bannerDays: bannerDays(ev.start, ev.end) },
-    );
+    const pullCaps = { caratsPerPull, paidDailyPull, bannerDays: bannerDays(ev.start, ev.end) };
+    const pullSources = {
+      freePulls,
+      tickets: (record.type === "support" ? balance.support_tickets : balance.trainee_tickets) ?? 0,
+      freeCarats: balance.free_carats ?? 0,
+      paidCarats: balance.paid_carats ?? 0,
+    };
+    const committedPity = inputs.commitments[ev.key] ?? null;
+    const remainingSources = committedPity === null ? null : remainingAfterSpend(pullSources, pullCaps, sparkThreshold, committedPity);
+    // Uncommitted banners show what you can spend; committed banners show the
+    // pull capacity left after their own reservation, using the same spend helper
+    // family as the shield.
+    const capacity = committedPity === null ? pullCapacity(pullSources, pullCaps) : remainingCapacityAfterSpend(pullSources, pullCaps, sparkThreshold, committedPity);
     group.banners.push({
       key: ev.key,
       kind: record.type,
@@ -153,10 +174,14 @@ export function aboveLaneGroups(
       open,
       past: !open,
       pullsAvailable: capacity.total,
+      freeCaratPulls: capacity.freeCaratPulls,
+      paidCaratPulls: capacity.dailyPaid,
+      ticketPulls: capacity.tickets,
       // The value signal — *this banner's own* free-pull count (ui.md), shown
       // separately even though it's also part of the total above.
       freePulls,
-      committedPity: inputs.commitments[ev.key] ?? null,
+      committedPity,
+      commitmentUnfundable: (remainingSources?.freeCarats ?? 0) < 0,
     });
   }
 

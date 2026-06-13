@@ -57,60 +57,99 @@ function lane(kind: BannerKind, banners: readonly Banner[], fav: FavouriteBindin
 }
 
 function bannerCard(banner: Banner, fav: FavouriteBinding, commit: CommitBinding, groupPast: boolean): HTMLElement {
+  const atoms = atomList(banner, fav);
   return h(
     "div",
     { class: `banner banner--${banner.kind}${banner.past && !groupPast ? " banner--past" : ""}` },
-    h("img", { class: "banner__image", attr: { src: banner.image, alt: "", loading: "lazy" } }),
-    h("ul", { class: "banner__atoms" }, ...banner.atoms.map((atom) => atomChip(atom, fav))),
-    banner.open ? readout(banner, commit) : null,
+    h(
+      "div",
+      { class: "banner__image-frame" },
+      h("img", { class: "banner__image", attr: { src: banner.image, alt: "", loading: "lazy" } }),
+    ),
+    atoms,
+    banner.open ? pullChin(banner, commit) : null,
   );
 }
 
-/**
- * The per-banner readout — three icon+number lines (ui.md "what to present"):
- *   1. pulls I have, any source collapsed (the ammo count);
- *   2. free pulls the game grants — a number for now, the value signal later;
- *   3. what I committed, in pities — conditional: no commitment, no line.
- * Wireframe fidelity: plain glyph + value, structure only (skin/layout deferred).
- * Editing the commitment is *not* done here — the commit control spawns a shield
- * (the surface/shield split); the pity line is the read-back of what it wrote.
- */
-function readout(banner: Banner, commit: CommitBinding): HTMLElement {
+function atomList(banner: Banner, fav: FavouriteBinding): HTMLUListElement {
+  const el = h(
+    "ul",
+    {
+      class: "banner__atoms",
+      on: {
+        pointerdown: (ev) => {
+          if (el.classList.contains("banner__atoms--scrollable")) ev.stopPropagation();
+        },
+        wheel: (ev) => {
+          if (el.classList.contains("banner__atoms--scrollable")) ev.stopPropagation();
+        },
+      },
+    },
+    ...banner.atoms.map((atom) => atomChip(atom, fav)),
+  );
+  // The timeline card layer is pointer-transparent so panning works over cards.
+  // Only genuinely overflowing chip lists opt back into pointer handling; otherwise
+  // ordinary banners would steal drag starts from the timeline for no benefit.
+  requestAnimationFrame(() => {
+    el.classList.toggle("banner__atoms--scrollable", el.scrollHeight > el.clientHeight + 1);
+  });
+  return el;
+}
+
+function pullChin(banner: Banner, commit: CommitBinding): HTMLElement {
   return h(
-    "div",
-    { class: "banner__readout" },
-    stat("pulls", "🎲", formatBalance(banner.pullsAvailable)),
-    stat("free", "🎁", formatBalance(banner.freePulls)),
-    commitButton(banner, commit),
+    "footer",
+    { class: "banner__pull-chin", attr: { "aria-label": "Available pulls" } },
+    h("div", { class: "banner__pull-total" }, pullStat("total", "🎲", "total pulls", banner.pullsAvailable)),
+    h(
+      "div",
+      { class: "banner__pull-breakdown", attr: { "aria-label": "Gift pulls, ticket pulls, paid carat pulls" } },
+      pullStat("free", "🎁", "gift pulls", banner.freePulls),
+      separator(),
+      pullStat("tickets", `/icons/${banner.kind}_ticket.png`, `${banner.kind} ticket pulls`, banner.ticketPulls),
+      separator(),
+      pullStat("paid-carats", "/icons/carat.png", "paid carat pulls", banner.paidCaratPulls),
+    ),
+    commitmentBadge(banner, commit),
   );
 }
 
-/** The seam back to the commit shield (ui.md: commitment is entered *at source*,
- *  on the banner). Reads as the pity line when committed, a quiet prompt otherwise.
- *  An in-timeline control, so it stops `pointerdown` from the pan capture (the same
- *  guard the favourite star carries). */
-function commitButton(banner: Banner, commit: CommitBinding): HTMLElement {
-  const committed = banner.committedPity !== null;
+function separator(): HTMLElement {
+  return h("span", { class: "banner__pull-separator", attr: { "aria-hidden": "true" } }, "|");
+}
+
+function commitmentBadge(banner: Banner, commit: CommitBinding): HTMLElement {
+  const pity = banner.committedPity ?? 0;
   return h(
     "button",
     {
-      class: `banner__stat banner__stat--pity banner__commit${committed ? " banner__commit--set" : ""}`,
-      attr: { type: "button", "aria-label": committed ? "Edit commitment" : "Plan a pull" },
+      class: `banner__commit-badge${banner.commitmentUnfundable ? " banner__commit-badge--unfundable" : ""}${pity === 0 ? " banner__commit-badge--empty" : ""}`,
+      attr: { type: "button", "aria-label": pity > 0 ? `Edit ${formatBalance(pity)} pity commitment` : "Plan a pull" },
       on: {
         pointerdown: (ev) => ev.stopPropagation(),
-        click: () => commit.open(banner.key),
+        dblclick: (ev) => ev.stopPropagation(),
+        click: (ev) => {
+          ev.stopPropagation();
+          commit.open(banner.key);
+        },
       },
     },
-    h("span", { class: "banner__stat-icon" }, "🎯"),
-    h("span", { class: "banner__stat-value" }, committed ? `${formatBalance(banner.committedPity!)} pity` : "Commit"),
+    formatBalance(pity),
   );
 }
 
-function stat(kind: string, icon: string, value: string): HTMLElement {
+function pullStat(kind: string, icon: string, label: string, value: number): HTMLElement {
+  return stat(kind, icon, formatBalance(value), label);
+}
+
+function stat(kind: string, icon: string, value: string, label?: string): HTMLElement {
+  const iconEl = icon.startsWith("/")
+    ? h("img", { class: "banner__stat-img", attr: { src: icon, alt: "", width: 16, height: 16, loading: "lazy", decoding: "async" } })
+    : h("span", { class: "banner__stat-icon" }, icon);
   return h(
     "div",
-    { class: `banner__stat banner__stat--${kind}` },
-    h("span", { class: "banner__stat-icon" }, icon),
+    { class: `banner__stat banner__stat--${kind}`, ...(label ? { attr: { title: label, "aria-label": `${label}: ${value}` } } : {}) },
+    iconEl,
     h("span", { class: "banner__stat-value" }, value),
   );
 }

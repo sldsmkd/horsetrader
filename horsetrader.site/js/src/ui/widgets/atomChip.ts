@@ -29,7 +29,9 @@ export function atomChip(atom: BannerAtom, fav: FavouriteBinding): HTMLElement {
       attr: { type: "button", "aria-label": "Favourite", "aria-pressed": String(on) },
       on: {
         pointerdown: (ev) => ev.stopPropagation(),
+        dblclick: (ev) => ev.stopPropagation(),
         click: (ev) => {
+          ev.stopPropagation();
           const btn = ev.currentTarget as HTMLButtonElement;
           const next = btn.getAttribute("aria-pressed") !== "true";
           btn.setAttribute("aria-pressed", String(next));

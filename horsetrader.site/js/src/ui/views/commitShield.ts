@@ -75,10 +75,13 @@ function setAfter(el: HTMLElement, value: number): void {
 
 /** One Resource Impact line — icon, before → after (after re-rendered on commit). */
 function impactLine(icon: string, label: string, value: HTMLElement): HTMLElement {
+  const iconEl = icon.startsWith("/")
+    ? h("img", { class: "commit-shield__impact-icon", attr: { src: icon, alt: "", width: 26, height: 26 } })
+    : h("span", { class: "commit-shield__impact-icon commit-shield__impact-icon--glyph", attr: { "aria-hidden": "true" } }, icon);
   return h(
     "div",
     { class: "commit-shield__impact-line" },
-    h("img", { class: "commit-shield__impact-icon", attr: { src: icon, alt: "", width: 26, height: 26 } }),
+    iconEl,
     value,
     h("span", { class: "commit-shield__impact-label" }, label),
   );
@@ -97,6 +100,7 @@ export function commitShield(opts: CommitShieldOpts): HTMLElement {
   const afterFree = h("span", { class: "commit-shield__impact-value" });
   const afterPaid = h("span", { class: "commit-shield__impact-value" });
   const afterTickets = h("span", { class: "commit-shield__impact-value" });
+  const afterGiftPulls = h("span", { class: "commit-shield__impact-value" });
 
   // FORECAST — the target-copy distribution, redrawn as pity changes.
   const forecast = forecastWidget({ pullsPerPity: ctx.sparkThreshold, featuredRate: ctx.featuredRate, maxCopies: ctx.maxCopies }, ctx.kind);
@@ -109,6 +113,7 @@ export function commitShield(opts: CommitShieldOpts): HTMLElement {
     setAfter(afterFree, after.freeCarats);
     setAfter(afterPaid, after.paidCarats);
     setAfter(afterTickets, after.tickets);
+    setAfter(afterGiftPulls, after.freePulls);
     forecast.update(pity);
   };
 
@@ -175,6 +180,7 @@ export function commitShield(opts: CommitShieldOpts): HTMLElement {
           "div",
           { class: "commit-shield__impact-col" },
           h("span", { class: "commit-shield__impact-heading" }, "Predicted Available"),
+          impactLine("🎁", "Gift Pulls", h("span", { class: "commit-shield__impact-value" }, formatBalance(ctx.freePulls))),
           impactLine("/icons/carat.png", "Carats", h("span", { class: "commit-shield__impact-value" }, formatBalance(ctx.freeCarats))),
           impactLine(`/icons/${ctx.kind}_ticket.png`, TICKET_LABEL[ctx.kind], h("span", { class: "commit-shield__impact-value" }, formatBalance(ctx.tickets))),
           impactLine("/icons/carat.png", "Paid Carats", h("span", { class: "commit-shield__impact-value" }, formatBalance(ctx.paidCarats))),
@@ -184,6 +190,7 @@ export function commitShield(opts: CommitShieldOpts): HTMLElement {
           "div",
           { class: "commit-shield__impact-col" },
           h("span", { class: "commit-shield__impact-heading" }, "After Commitment"),
+          impactLine("🎁", "Gift Pulls", afterGiftPulls),
           impactLine("/icons/carat.png", "Carats", afterFree),
           impactLine(`/icons/${ctx.kind}_ticket.png`, TICKET_LABEL[ctx.kind], afterTickets),
           impactLine("/icons/carat.png", "Paid Carats", afterPaid),

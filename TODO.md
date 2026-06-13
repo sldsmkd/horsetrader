@@ -54,13 +54,17 @@ Done: restored support/trainee banner flashes and introduced shared CSS palette 
 
 Done: banner groups now use internal trainee/support lanes, keeping trainees on the top sightline and supports below while overflowing horizontally into additional columns.
 
-## Banner card — rate-up scroll area
+## ✅ Banner card — rate-up scroll area
 
-When the rate-up character list overflows the card height, show a scroll area rather than clipping or expanding the card.
+~~When the rate-up character list overflows the card height, show a scroll area rather than clipping or expanding the card.~~
 
-## Banner rate-up sort order
+Done: banner chip lists now wrap naturally and become internal scroll areas only when they overflow; only overflowing lists opt back into pointer handling so timeline panning stays intact.
 
-Sort rate-up characters consistently: crystal (high priority / featured) first, gold below, alpha-sorted within each tier group.
+## ✅ Banner rate-up sort order
+
+~~Sort rate-up characters consistently: crystal (high priority / featured) first, gold below, alpha-sorted within each tier group.~~
+
+Done: banner atoms are sorted crystal → gold → silver, then alphanumeric by display name within each rarity bucket.
 
 ## Favourites icon — star fruit
 
@@ -92,9 +96,11 @@ Audit and unify all editing affordances. Pencil icons are doing the job but are 
 
 Kale juice is the wrong icon for rushed. Replace with sprinting shoes (or similar speed/urgency metaphor). Add an orange flash tab on the card as a secondary signifier so rushed events are scannable at a glance.
 
-## Commit trigger — remove dartboard
+## ✅ Commit trigger — remove dartboard
 
-Remove the 🎯 commit button. Trigger the commit flow via a gesture directly on the banner card (double-click or long-press — decide at implementation time). Must be touch-friendly.
+~~Remove the 🎯 commit button. Trigger the commit flow via a gesture directly on the banner card (double-click or long-press — decide at implementation time). Must be touch-friendly.~~
+
+Done: removed the dartboard slug and made the persistent pity gutter the commit trigger, visible even at 0 pities. A whole-card double-click/long-press was trialled and dropped because it fought timeline panning.
 
 ## Wire missing income channels
 
@@ -113,11 +119,16 @@ Fix the carats display in the menubar. Replace the text label with Tazuna's face
 
 Drop the Plan entry from the navigation menu.
 
-## Banner card icons
+## ✅ Banner card icons
 
-- Dice rolls icon is a placeholder — find a proper replacement
+- ~~Dice rolls icon is a placeholder — find a proper replacement
 - Presents — find an appropriate icon
 - Explore showing available ticket count on the card
+
+Total Pulls (Dice placeholder) | Free Carat Pulls | Paid Carat Pulls | Appropriate Ticket Pulls | Gift Pulls (present icon)~~
+
+Done: banner cards now show a chin-style pull summary with total pulls plus gift/ticket/paid breakdown, backed by the same pull math as the commit shield. Final custom icon artwork is deferred for a later Aseprite pass.
+
 
 ## Pity shield — resource completeness + copy
 

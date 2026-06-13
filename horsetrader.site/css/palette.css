@@ -6,6 +6,12 @@
   --ht-colour-trainee: #27ae60;
   --ht-colour-support: #2980b9;
 
+  /* Banner chip rarity colours. Silver is kept for the grammar even though low
+     tier junk is normally filtered before it reaches the UI. */
+  --ht-colour-rarity-crystal: #00c2a8;
+  --ht-colour-rarity-gold: #d1a900;
+  --ht-colour-rarity-silver: #9aa3ad;
+
   /* Timeline card accents. These are intentionally semantic even where two
      meanings share the same pigment today. */
   --ht-colour-card-accent-default: gray;

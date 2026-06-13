@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { pullCapacity, spend, bannerDays, type PullSources, type PullCaps } from "./pulls.ts";
+import { pullCapacity, spend, remainingAfterSpend, remainingCapacityAfterSpend, bannerDays, type PullSources, type PullCaps } from "./pulls.ts";
 
 const CAPS: PullCaps = { caratsPerPull: 150, paidDailyPull: 50, bannerDays: 12 };
 const EMPTY: PullSources = { freePulls: 0, tickets: 0, freeCarats: 0, paidCarats: 0 };
@@ -78,4 +78,20 @@ test("spend: paid carats only leave through the daily window — the rest banks"
   // 5000 paid on a 6-day banner → 6 daily pulls (300 paid); the other 4,700 never spends.
   const d = spend({ freePulls: 0, tickets: 0, freeCarats: 0, paidCarats: 5000 }, { caratsPerPull: 150, paidDailyPull: 50, bannerDays: 6 }, 200, 1);
   assert.equal(d.paidCarats, 300);
+});
+
+test("remainingAfterSpend: reports resource balances after the reservation", () => {
+  const after = remainingAfterSpend({ freePulls: 10, tickets: 30, freeCarats: 100000, paidCarats: 600 }, CAPS, 200, 2);
+  assert.deepEqual(after, { freePulls: 0, tickets: 0, freeCarats: 47800, paidCarats: 0 });
+});
+
+test("remainingCapacityAfterSpend: paid daily pulls are limited by remaining paid carats and banner duration", () => {
+  const sources = { freePulls: 0, tickets: 10, freeCarats: 30000, paidCarats: 600 };
+  const caps = { caratsPerPull: 150, paidDailyPull: 50, bannerDays: 6 };
+
+  // 1 pity consumes 10 tickets + 6 daily-paid windows + 184 full-price pulls,
+  // leaving 2,400 free carats and 300 paid carats. Paid daily pulls are then
+  // recalculated from that remaining paid-carats pool, still capped by the banner.
+  assert.deepEqual(remainingAfterSpend(sources, caps, 200, 1), { freePulls: 0, tickets: 0, freeCarats: 2400, paidCarats: 300 });
+  assert.deepEqual(remainingCapacityAfterSpend(sources, caps, 200, 1), { freePulls: 0, tickets: 0, dailyPaid: 6, freeCaratPulls: 16, total: 22 });
 });

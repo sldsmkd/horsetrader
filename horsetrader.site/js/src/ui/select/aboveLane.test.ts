@@ -72,11 +72,56 @@ test("contents resolve to atoms in the kind's grammar — trainee stars, support
 
   const trainee = shared.banners.find((b) => b.key === "banner-t")!;
   assert.deepEqual(trainee.atoms, [
-    { id: "t-spe", name: "Special Week", rarity: "3★", rarityTier: "crystal" },
     { id: "t-suzuka", name: "Silence Suzuka", rarity: "3★", rarityTier: "crystal" },
+    { id: "t-spe", name: "Special Week", rarity: "3★", rarityTier: "crystal" },
   ]);
   const support = shared.banners.find((b) => b.key === "banner-s2")!;
   assert.deepEqual(support.atoms, [{ id: "s-spe", name: "Special Week", rarity: "SSR", rarityTier: "crystal", attribute: "guts" }]);
+});
+
+test("committed banners show pull capacity remaining after their own reservation", () => {
+  const groups = aboveLaneGroups(settled(EVENTS), bundle(), axis(), NOW, {
+    balanceAt: () => ({ free_carats: 30000, paid_carats: 600, trainee_tickets: 10 }),
+    availableFor: () => ({ free_carats: 30000, paid_carats: 600, trainee_tickets: 10 }),
+    commitments: { "banner-t": 1 },
+  });
+  const banner = groups.find((g) => g.date === "2026-06-10")!.banners.find((b) => b.key === "banner-t")!;
+
+  // 1 pity consumes 10 tickets + 300 paid carats + 184 full-price pulls, leaving
+  // 16 free-carat pulls and 6 paid daily pulls from the remaining paid carats.
+  assert.equal(banner.pullsAvailable, 22);
+  assert.equal(banner.ticketPulls, 0);
+  assert.equal(banner.paidCaratPulls, 6);
+  assert.equal(banner.freeCaratPulls, 16);
+  assert.equal(banner.committedPity, 1);
+  assert.equal(banner.commitmentUnfundable, false);
+});
+
+test("committed banners flag unfundable when the reservation drives free carats negative", () => {
+  const groups = aboveLaneGroups(settled(EVENTS), bundle(), axis(), NOW, {
+    balanceAt: () => ({ free_carats: 0, paid_carats: 0, trainee_tickets: 0 }),
+    availableFor: () => ({ free_carats: 0, paid_carats: 0, trainee_tickets: 0 }),
+    commitments: { "banner-t": 1 },
+  });
+  const banner = groups.find((g) => g.date === "2026-06-10")!.banners.find((b) => b.key === "banner-t")!;
+
+  assert.equal(banner.committedPity, 1);
+  assert.equal(banner.commitmentUnfundable, true);
+});
+
+test("uncommitted banners show pull capacity available before any own reservation", () => {
+  const groups = aboveLaneGroups(settled(EVENTS), bundle(), axis(), NOW, {
+    balanceAt: () => ({ free_carats: 30000, paid_carats: 600, trainee_tickets: 10 }),
+    availableFor: () => undefined,
+    commitments: {},
+  });
+  const banner = groups.find((g) => g.date === "2026-06-10")!.banners.find((b) => b.key === "banner-t")!;
+
+  assert.equal(banner.pullsAvailable, 216); // 10 tickets + 6 daily paid + 200 free-carat pulls
+  assert.equal(banner.ticketPulls, 10);
+  assert.equal(banner.paidCaratPulls, 6);
+  assert.equal(banner.freeCaratPulls, 200);
+  assert.equal(banner.commitmentUnfundable, false);
 });
 
 test("timestamped banners group and position by the selected viewer calendar", () => {
