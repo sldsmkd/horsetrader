@@ -1,6 +1,6 @@
 .playstyle-surface {
   display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
   gap: 0.85rem;
   height: 100%;
   min-height: 0;
@@ -63,24 +63,74 @@
   font-size: 0.9rem;
 }
 
+.playstyle-surface__lock-note {
+  margin: 0;
+  color: color-mix(in srgb, currentColor 62%, transparent);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
 .playstyle-surface__drawers {
   display: grid;
   align-content: start;
   gap: 0.55rem;
   min-height: 0;
+  overflow: auto;
+  padding-right: 0.15rem;
 }
 
 .playstyle-surface__drawer {
-  display: flex;
+  width: 100%;
+  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  border-radius: 0.45rem;
+  background: color-mix(in srgb, Canvas 82%, currentColor 4%);
+  overflow: hidden;
+}
+
+.playstyle-surface__drawer-toggle {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
-  justify-content: space-between;
   gap: 1rem;
   width: 100%;
   min-height: 3rem;
   padding: 0.65rem 0.85rem;
-  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
-  border-radius: 0.45rem;
-  background: color-mix(in srgb, Canvas 82%, currentColor 4%);
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.playstyle-surface__drawer-toggle:hover,
+.playstyle-surface__drawer-toggle:focus-visible,
+.playstyle-surface__drawer-toggle--open {
+  background: color-mix(in srgb, #5fcf00 9%, Canvas 84%);
+}
+
+.playstyle-surface__drawer-toggle:focus-visible {
+  outline: 2px solid color-mix(in srgb, #5fcf00 70%, currentColor 18%);
+  outline-offset: -0.2rem;
+}
+
+.playstyle-surface__drawer-toggle::after {
+  content: "";
+  width: 0.45rem;
+  aspect-ratio: 1;
+  border-right: 2px solid color-mix(in srgb, currentColor 64%, transparent);
+  border-bottom: 2px solid color-mix(in srgb, currentColor 64%, transparent);
+  transform: rotate(-90deg);
+}
+
+.playstyle-surface__drawer-toggle--open::after {
+  transform: rotate(45deg);
+}
+
+.playstyle-surface__drawer-heading {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
 }
 
 .playstyle-surface__drawer-title {
@@ -89,10 +139,28 @@
   letter-spacing: 0.08em;
 }
 
+.playstyle-surface__drawer-description {
+  color: color-mix(in srgb, currentColor 58%, transparent);
+  font-size: 0.75rem;
+  line-height: 1.25;
+}
+
 .playstyle-surface__drawer-note {
   color: color-mix(in srgb, currentColor 56%, transparent);
   font-size: 0.78rem;
   font-weight: 650;
+  white-space: nowrap;
+}
+
+.playstyle-surface__drawer-body {
+  display: none;
+  gap: 1px;
+  border-top: 1px solid color-mix(in srgb, currentColor 16%, transparent);
+  background: color-mix(in srgb, currentColor 12%, transparent);
+}
+
+.playstyle-surface__drawer-toggle[aria-expanded="true"] + .playstyle-surface__drawer-body {
+  display: grid;
 }
 
 .playstyle-surface__actions {
@@ -134,4 +202,15 @@
 .playstyle-surface__apply--disabled:focus-visible {
   background: color-mix(in srgb, Canvas 78%, currentColor 8%);
   outline: 0;
+}
+
+@media (max-width: 620px) {
+  .playstyle-surface__drawer-toggle {
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
+  }
+
+  .playstyle-surface__drawer-note {
+    white-space: normal;
+  }
 }
