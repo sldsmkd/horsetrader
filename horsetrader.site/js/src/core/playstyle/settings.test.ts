@@ -113,6 +113,7 @@ test("preset settings define the persisted assumption defaults", () => {
     skillTests: "on",
     masters: "EX",
   });
+  assert.deepEqual(playStyleSettingsForPreset("custom"), playStyleSettingsForPreset("unhinged"));
 });
 
 test("normalizes stored settings against a fallback", () => {

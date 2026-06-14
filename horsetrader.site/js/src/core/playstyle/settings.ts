@@ -173,11 +173,8 @@ function isOneOf<T extends string>(value: unknown, keys: readonly T[]): value is
 }
 
 export function playStyleSettingsForPreset(key: PlayStyleKey): PlayStyleSettings {
-  // Custom seeds from focused but opts into missions (it's the engaged trainer's
-  // own preset — the third missions-on group alongside dedicated/unhinged).
-  return key === "custom"
-    ? { ...PRESET_SETTINGS.focused, missions: "on" }
-    : { ...PRESET_SETTINGS[key] };
+  // Interim: Custom has no tuning surface, so it mirrors the ceiling preset.
+  return key === "custom" ? { ...PRESET_SETTINGS.unhinged } : { ...PRESET_SETTINGS[key] };
 }
 
 function normalizeToggle(value: unknown, fallback: PlayToggleKey): PlayToggleKey {

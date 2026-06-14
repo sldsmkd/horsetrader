@@ -63,21 +63,36 @@
   font-size: 0.9rem;
 }
 
-.playstyle-surface__sliders {
+.playstyle-surface__drawers {
+  display: grid;
+  align-content: start;
+  gap: 0.55rem;
   min-height: 0;
-  overflow: hidden;
+}
+
+.playstyle-surface__drawer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  min-height: 3rem;
+  padding: 0.65rem 0.85rem;
   border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
   border-radius: 0.45rem;
+  background: color-mix(in srgb, Canvas 82%, currentColor 4%);
 }
 
-.playstyle-surface__assumptions {
-  display: grid;
-  max-height: 100%;
-  overflow: auto;
+.playstyle-surface__drawer-title {
+  font-size: 0.78rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
 }
 
-.discrete-slider + .discrete-slider {
-  border-top: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+.playstyle-surface__drawer-note {
+  color: color-mix(in srgb, currentColor 56%, transparent);
+  font-size: 0.78rem;
+  font-weight: 650;
 }
 
 .playstyle-surface__actions {

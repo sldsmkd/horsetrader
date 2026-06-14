@@ -102,9 +102,7 @@ export function buildPlayStyleOverlay(
   const savedPlayStyleKey = identity.savedPlayStyleKey();
   const savedPlayStyleSettings = identity.savedPlayStyleSettings();
   const playStyleKey = previewedPlayStyle(state, savedPlayStyleKey);
-  const playStyleSettings =
-    state.stagedPlayStyleSettings ??
-    (playStyleKey === savedPlayStyleKey ? savedPlayStyleSettings : playStyleSettingsForPreset(playStyleKey));
+  const playStyleSettings = state.stagedPlayStyleSettings ?? playStyleSettingsForPreset(playStyleKey);
 
   const playStyleCard = overlay({
     title: strings.playStyle.title,
