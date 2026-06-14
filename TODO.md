@@ -37,7 +37,12 @@ in the plan list too.
 
 Functionally solid; sleep on these rather than forcing them now:
 
-- Tighten spacing and density on the Plan face now that it uses full atom chips
+- ~~Tighten spacing and density on the Plan face now that it uses full atom chips~~ →
+  Done: Plan rows reworked to favourites-row height; the full atom chips were
+  dropped entirely in favour of full-strength banner art (the art is the
+  recognisable signal — what people are pulling for). Fixed date column +
+  `box-sizing: border-box` killed a horizontal overflow (card was rendering
+  ~1.4rem wider than the panel under the project's default content-box).
 - Revisit drawer colour/contrast after using it in a real planning session
 - Decide whether the expanded Favourites/Plan surface needs stronger visual identity
 - Add an explicit expired-favourite state with a remove control if silent culling feels too hidden
@@ -147,6 +152,13 @@ other income recipes rather than in TS.
 
 Fix the carats display in the menubar. Replace the text label with Tazuna's face as the icon/avatar.
 
+Progress: carats display fixed — the balance button now shows carats only and is
+single-height again (dropped the trainee/support ticket sub-line, which read a
+confusing negative). Still TODO: the Tazuna-face avatar swap. Related: the
+Resources surface now floors non-free-carat resources at 0, so a committed
+shortfall stops reading as negative stock (free carats stay signed — the
+overflow release valve).
+
 ## Remove Plan from menu
 
 Drop the Plan entry from the navigation menu.
@@ -172,7 +184,7 @@ Done: banner cards now show a chin-style pull summary with total pulls plus gift
 Audit and unify buttons across all surfaces — consistent shape, size, weight, and interaction states everywhere.
 
 ## Sliders + actual balance — rework
-
+s
 Both are a mess. Sliders need a clean-up pass (layout, labels, value display). The actual balance surface needs the same — review together since they're visually adjacent.
 
 ## LocalStorage key audit + versioning
@@ -191,6 +203,8 @@ Both are a mess. Sliders need a clean-up pass (layout, labels, value display). T
 
 When an event has no English name (JP-only), emit a warning attributed to Eishin rather than silently baking JP text. Most of these can be machine-translated; the warning is the first step to surfacing the gap.
 
-## Trainer card menu button
+## ✅ Trainer card menu button
 
-Show the trainer's name alongside the trainer card icon in the menu — makes the entry point obvious rather than relying on icon recognition alone.
+~~Show the trainer's name alongside the trainer card icon in the menu — makes the entry point obvious rather than relying on icon recognition alone.~~
+
+Done: the identity button is now a pill — oshi portrait + trainer name + a dropdown chevron (the corner "sweep" moved to the right end). `menuIdentity` feeds the trainer name (was the oshi name); it truncates with ellipsis and collapses back to the bare avatar under 860px. Trainer-name entry is also now sanitised at the keystroke (letters/numbers/spaces/emoji, capped at 24 grapheme clusters).
