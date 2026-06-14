@@ -42,7 +42,11 @@ export interface ResourcesSurfaceHandle {
 }
 
 function val(values: ResourceVector, key: string): number {
-  return values[key] ?? 0;
+  const v = values[key] ?? 0;
+  // Non-free-carat resources report a floor of 0: the readout shows spendable stock,
+  // not a committed shortfall. Only free carats — the overflow release valve — may
+  // read negative (project_spend_model). Mirrors the banner chin's per-source floor.
+  return key === "free_carats" ? v : Math.max(0, v);
 }
 
 function updatedLabel(snapshotDate: string | undefined, now: string): string {

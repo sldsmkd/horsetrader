@@ -66,31 +66,40 @@
 }
 
 .menubar__identity {
-  position: relative;
-  width: 2.35rem;
-  padding: 0;
-  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  max-width: 12rem;
+  padding: 0.2rem 0.55rem 0.2rem 0.2rem;
+  border-radius: 1.3rem;
 }
 
 .menubar__identity::after {
   content: "";
-  position: absolute;
-  right: -0.05rem;
-  bottom: 0.05rem;
+  flex: none;
   width: 0.45rem;
   height: 0.45rem;
+  margin-left: -0.1rem;
   border-right: 0.1rem solid currentColor;
   border-bottom: 0.1rem solid currentColor;
-  transform: rotate(45deg);
+  transform: translateY(-0.12rem) rotate(45deg);
   opacity: 0.72;
 }
 
 .menubar__identity-icon {
   display: block;
+  flex: none;
   width: 1.9rem;
   height: 1.9rem;
   border-radius: 50%;
   object-fit: cover;
+}
+
+.menubar__identity-name {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .menubar__date {
@@ -126,19 +135,14 @@
   color: color-mix(in srgb, currentColor 72%, transparent);
 }
 
-.menubar__balance-tickets {
-  font-size: 0.72rem;
-  font-variant-numeric: tabular-nums;
-  color: color-mix(in srgb, currentColor 60%, transparent);
-}
-
 @media (max-width: 860px) {
   .menubar {
     grid-template-columns: auto minmax(7rem, 1fr) auto;
   }
 
   .menubar__date,
-  .menubar__balance-unit {
+  .menubar__balance-unit,
+  .menubar__identity-name {
     display: none;
   }
 

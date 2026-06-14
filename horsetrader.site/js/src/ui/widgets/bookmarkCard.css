@@ -1,6 +1,7 @@
 /* A favourited atom as a compact bookmark/navigation card. */
 .bookmark-card {
   --bookmark-card-colour: currentColor;
+  box-sizing: border-box;
   display: grid;
   grid-template-columns: 2.75rem minmax(0, 1fr) auto;
   align-items: center;

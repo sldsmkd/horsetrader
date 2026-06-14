@@ -82,8 +82,8 @@ export function createIdentityController(coord: Coordinator, bundle: Bundle): Id
 
   return {
     menuIdentity() {
-      const oshi = currentOshi();
-      return { label: oshi.name, icon: oshi.icon };
+      // The pill reads as *you* — trainer name beside the oshi portrait.
+      return { label: trainerName(), icon: currentOshi().icon };
     },
 
     trainerName,

@@ -40,6 +40,27 @@ function formatTrainerId(digits: string): string {
   return groups.join("-");
 }
 
+// Trainer name entry is clamped at the keystroke: at most 24 *grapheme clusters*
+// (so a ZWJ emoji counts as one and never gets sliced mid-sequence), drawn from a
+// safe set — letters, numbers, spaces, and emoji (pictographs + their modifiers,
+// regional-indicator flag pairs, and the ZWJ/variation-selector joiners that
+// compose them). Everything else — control chars, combining marks (zalgo), RTL
+// overrides — is dropped, so a pasted name can't smuggle layout-breaking junk in.
+const NAME_MAX_GRAPHEMES = 24;
+const NAME_ALLOWED =
+  /[\p{L}\p{N} \p{Extended_Pictographic}\p{Emoji_Modifier}\p{Regional_Indicator}\u200D\uFE0F]/gu;
+const graphemeSegmenter =
+  typeof Intl !== "undefined" && "Segmenter" in Intl ? new Intl.Segmenter(undefined, { granularity: "grapheme" }) : null;
+
+function graphemes(s: string): string[] {
+  return graphemeSegmenter ? [...graphemeSegmenter.segment(s)].map((seg) => seg.segment) : [...s];
+}
+
+function sanitizeTrainerName(raw: string): string {
+  const kept = (raw.normalize("NFC").match(NAME_ALLOWED) ?? []).join("");
+  return graphemes(kept).slice(0, NAME_MAX_GRAPHEMES).join("");
+}
+
 function identityRow(label: string, value: string, detail?: string): HTMLElement {
   return h(
     "div",
@@ -88,10 +109,19 @@ function clubRow(opts: IdentitySurfaceOpts): HTMLElement {
 function editableTrainerName(opts: IdentitySurfaceOpts): HTMLElement {
   const input = h("input", {
     class: "identity-surface__name-input",
-    attr: { type: "text", value: opts.trainerName, "aria-label": "Trainer name", maxlength: 24 },
+    attr: { type: "text", value: opts.trainerName, "aria-label": "Trainer name" },
+  });
+  // Clamp every keystroke (and paste) to the safe set + 16-grapheme cap. `maxlength`
+  // can't do this — it counts UTF-16 units, so it would slice emoji mid-sequence.
+  input.addEventListener("input", () => {
+    const clean = sanitizeTrainerName(input.value);
+    if (clean !== input.value) {
+      input.value = clean;
+      input.setSelectionRange(clean.length, clean.length);
+    }
   });
   const commit = (): void => {
-    const name = input.value.trim() || "Trainer";
+    const name = sanitizeTrainerName(input.value).trim() || "Trainer";
     input.value = name;
     if (name !== opts.trainerName) opts.onTrainerNameChange(name);
   };

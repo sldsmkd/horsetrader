@@ -64,17 +64,9 @@ function menuButton(label: string, onClick: () => void): HTMLButtonElement {
   );
 }
 
-function ticketsLabel(trainee: number, support: number): string {
-  return `${formatBalance(trainee)}t · ${formatBalance(support)}s`;
-}
-
 export function menubar(opts: MenubarOpts): Menubar {
   const date = h("span", { class: "menubar__item menubar__date" }, formatDate(opts.initialDate));
   const balanceValue = h("span", { class: "menubar__balance-value" }, formatBalance(opts.initialResources.free_carats ?? 0));
-  const balanceTickets = h("span", { class: "menubar__balance-tickets" }, ticketsLabel(
-    opts.initialResources.trainee_tickets ?? 0,
-    opts.initialResources.support_tickets ?? 0,
-  ));
   const balance = h(
     "button",
     {
@@ -86,13 +78,13 @@ export function menubar(opts: MenubarOpts): Menubar {
       balanceValue,
       h("span", { class: "menubar__balance-unit" }, "carats"),
     ),
-    balanceTickets,
   );
   const search = searchBox({ search: opts.search, onSearch: opts.onSearch });
   const identityIcon = h("img", {
     class: "menubar__identity-icon",
     attr: { src: opts.identity.icon, alt: "", width: 32, height: 32 },
   });
+  const identityName = h("span", { class: "menubar__identity-name" }, opts.identity.label);
 
   const identity = h(
     "button",
@@ -106,6 +98,7 @@ export function menubar(opts: MenubarOpts): Menubar {
       on: { click: opts.onIdentity },
     },
     identityIcon,
+    identityName,
   );
   const plan = menuButton("Plan", opts.onPlan);
   const tazuna = menuButton("Tazuna", opts.onTazuna);
@@ -172,11 +165,11 @@ export function menubar(opts: MenubarOpts): Menubar {
     },
     setResources: (resources) => {
       balanceValue.textContent = formatBalance(resources.free_carats ?? 0);
-      balanceTickets.textContent = ticketsLabel(resources.trainee_tickets ?? 0, resources.support_tickets ?? 0);
     },
     setIdentity: (next) => {
       identity.setAttribute("aria-label", `Identity: ${next.label}`);
       identityIcon.src = next.icon;
+      identityName.textContent = next.label;
     },
     setLeftActive,
     setRightActive: (member) => setRightPressed(member),

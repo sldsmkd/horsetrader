@@ -21,6 +21,7 @@
   align-items: flex-start;
   gap: 0.35rem;
 }
+
 .bookmarks--open .bookmarks__header {
   width: 100%;
   gap: 0;
@@ -48,6 +49,7 @@
   font: inherit;
   cursor: pointer;
 }
+
 .bookmarks__tab:hover {
   background: color-mix(in srgb, Canvas 62%, currentColor 10%);
 }
@@ -59,6 +61,7 @@
 .bookmarks__panel-header {
   display: none;
 }
+
 .bookmarks--open .bookmarks__panel-header {
   display: flex;
   align-items: center;
@@ -82,6 +85,7 @@
   line-height: 1;
   opacity: 0.9;
 }
+
 .bookmarks__close:hover,
 .bookmarks__close:focus-visible {
   opacity: 1;
@@ -97,6 +101,7 @@
   border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
   border-radius: 0.35rem;
 }
+
 .bookmarks--open .bookmarks__face-tabs {
   display: inline-flex;
 }
@@ -113,17 +118,21 @@
   font-weight: 700;
   cursor: pointer;
 }
+
 .bookmarks__face-tab:last-child {
   border-right: 0;
 }
+
 .bookmarks__face-tab:hover,
 .bookmarks__face-tab:focus-visible {
   background: color-mix(in srgb, Canvas 62%, currentColor 10%);
   outline: 0;
 }
+
 .bookmarks__face-tab[aria-selected="false"] {
   color: color-mix(in srgb, currentColor 56%, transparent);
 }
+
 .bookmarks__face-tab[aria-selected="true"] {
   background: color-mix(in srgb, Canvas 84%, currentColor 10%);
 }
@@ -134,6 +143,7 @@
   line-height: 1;
   transition: transform 0.12s ease;
 }
+
 .bookmarks--open .bookmarks__chevron {
   transform: rotate(90deg);
 }
@@ -150,13 +160,16 @@
   display: none;
   width: 100%;
   min-height: 16rem;
-  overflow: auto;
+  /* Vertical scroll only — rows are width-bounded, so a horizontal scrollbar here
+     only ever means a row mis-measured; never let it chase the panel wider. */
+  overflow: hidden auto;
   border: 1px solid color-mix(in srgb, currentColor 24%, transparent);
   border-top: 0;
   border-radius: 0 0 0.45rem 0.45rem;
   background: Canvas;
   box-shadow: 0 0.5rem 2rem #00000059;
 }
+
 .bookmarks--open .bookmarks__panel {
   display: block;
 }

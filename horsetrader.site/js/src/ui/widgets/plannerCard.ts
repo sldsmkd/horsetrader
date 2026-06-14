@@ -18,6 +18,11 @@ export interface PlannerCardOpts {
 export function plannerCard({ row, fav, onWarp, onCommit }: PlannerCardOpts): HTMLElement {
   const warp = (): void => onWarp(row.date);
 
+  // In the planner the pills are a reminder of *what you committed for*, so we show
+  // only the starred ones. None starred → no pills: the card still warps to the
+  // banner, where the full line-up answers "why am I pulling?" on demand.
+  const shownAtoms = row.atoms.filter((atom) => fav.isFavourited(atom.id));
+
   return h(
     "div",
     {
@@ -36,7 +41,7 @@ export function plannerCard({ row, fav, onWarp, onCommit }: PlannerCardOpts): HT
     h(
       "ul",
       { class: "planner-card__atoms" },
-      ...row.atoms.map((atom) => atomChip(atom, fav)),
+      ...shownAtoms.map((atom) => atomChip(atom, fav)),
     ),
     h(
       "span",
