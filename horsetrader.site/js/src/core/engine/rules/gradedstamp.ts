@@ -3,7 +3,7 @@
  * claimed events priced by a play-selected `reward_maps` row. `row(ctx, event)`
  * is the sole varying part — CM's map key is fixed, stories' reads the event's
  * era, training-pass's is a binary subscription row. A null row means nothing
- * to stamp (CM at `skip`, a proto-era story, an unsubscribed pass): the event
+ * to stamp (CM at `off`, a proto-era story, an unsubscribed pass): the event
  * passes through with its baked face, never leaves the lane — grading is the
  * FACE lever, presence is `enabled` (eclipse/4.REGISTRY.md).
  *

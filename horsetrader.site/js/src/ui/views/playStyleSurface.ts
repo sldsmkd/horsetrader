@@ -6,11 +6,13 @@ import { PLAY_STYLES } from "./playStylePreset.ts";
 import type { PlayStyleKey } from "./playStylePreset.ts";
 import {
   CHAMPIONS_MEETING_KEYS,
+  LEAGUE_OF_HEROES_KEYS,
+  MASTERS_KEYS,
   MISSION_KEYS,
+  PLAY_TOGGLE_KEYS,
   SHOP_TICKET_KEYS,
-  STORY_EVENT_KEYS,
+  STRONGEST_TEAM_KEYS,
   TEAM_TRIAL_KEYS,
-  WEEKLY_PLAY_KEYS,
   samePlayStyleSettings,
 } from "../../core/playstyle/index.ts";
 import type { PlayStyleSettings } from "../../core/playstyle/index.ts";
@@ -19,20 +21,46 @@ import type { PlayStyleStrings } from "../strings.ts";
 type SliderKey = keyof PlayStyleSettings;
 
 const SLIDER_ROWS: readonly SliderKey[] = [
-  "weeklyPlay",
+  "dailies",
+  "weeklyLogin",
   "teamTrials",
+  "anniversaryMissions",
+  "holidays",
+  "scenarioMissions",
+  "traineeDebuts",
+  "factorStudies",
+  "racingCarnival",
+  "showtime",
   "missions",
   "storyEvents",
   "championsMeeting",
+  "leagueOfHeroes",
+  "strongestTeam",
+  "legendRaces",
+  "skillTests",
+  "masters",
   "shopTickets",
 ];
 
 const SLIDER_KEYS = {
-  weeklyPlay: WEEKLY_PLAY_KEYS,
+  dailies: PLAY_TOGGLE_KEYS,
+  weeklyLogin: PLAY_TOGGLE_KEYS,
   teamTrials: TEAM_TRIAL_KEYS,
+  anniversaryMissions: PLAY_TOGGLE_KEYS,
+  holidays: PLAY_TOGGLE_KEYS,
+  scenarioMissions: PLAY_TOGGLE_KEYS,
+  traineeDebuts: PLAY_TOGGLE_KEYS,
+  factorStudies: PLAY_TOGGLE_KEYS,
+  racingCarnival: PLAY_TOGGLE_KEYS,
+  showtime: PLAY_TOGGLE_KEYS,
   missions: MISSION_KEYS,
-  storyEvents: STORY_EVENT_KEYS,
+  storyEvents: PLAY_TOGGLE_KEYS,
   championsMeeting: CHAMPIONS_MEETING_KEYS,
+  leagueOfHeroes: LEAGUE_OF_HEROES_KEYS,
+  strongestTeam: STRONGEST_TEAM_KEYS,
+  legendRaces: PLAY_TOGGLE_KEYS,
+  skillTests: PLAY_TOGGLE_KEYS,
+  masters: MASTERS_KEYS,
   shopTickets: SHOP_TICKET_KEYS,
 } as const;
 

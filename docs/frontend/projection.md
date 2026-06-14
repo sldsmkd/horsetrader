@@ -113,7 +113,7 @@ full model):
 
 - **Claimers** — price the baked events they own (pass through, stamp a
   play-graded row, or filter).
-- **Synthesisers** — mint events the bake doesn't carry (`routine-dailies-<date>`,
+- **Synthesisers** — mint events the bake doesn't carry (`dailies-<date>`,
   `visible: false`), reading baked rate tables for their values. Synthesisers'
   cadence logic is separated from their values: **the cadence is client logic; the
   values come from the bake.** A game-data literal in client code is a smell —

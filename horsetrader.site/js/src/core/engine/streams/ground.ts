@@ -1,11 +1,11 @@
 /**
  * `ground.events` — the universal ground truth: the complement claimer. Every
- * baked event type no other stream claims routes here (banners, scenarios,
- * holidays, anniversaries, anniversary/scenario missions, legend races, the
- * un-graded PvP types, …). Config/play-agnostic by construction: it settles
- * each record as baked — discrete face plus compound-facet children — and
- * nothing else. The only user input that ever touches its money is `rushed`,
- * and that lives in the FOLD (payment timing is unwritable in streams).
+ * baked event type no other stream claims routes here. The bankable passive
+ * event types have dedicated streams; this remains the catch-all for anchor and
+ * non-bankable records. Config/play-agnostic by construction: it settles each
+ * record as baked — discrete face plus compound-facet children — and nothing
+ * else. The only user input that ever touches its money is `rushed`, and that
+ * lives in the FOLD (payment timing is unwritable in streams).
  */
 
 import type { Stream } from "../stream.ts";

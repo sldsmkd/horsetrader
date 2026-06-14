@@ -126,7 +126,7 @@ test("an anniversary mission's card combines its flat face and its minted daily 
 });
 
 test("presence is the stream's call: a gated-off mission is absent from the input, so no card", () => {
-  // Under the engine, the play.missions stream gates PRESENCE — toggled off, its
+  // Under the engine, the event.missions stream gates PRESENCE — toggled off, its
   // events never reach the settled world, so the cards leave with the income.
   // (The old `hiddenKinds` re-derivation in the shell is gone.)
   const events: EventsBundle = {

@@ -6,16 +6,39 @@
  * never a literal (docs/frontend/conventions.md).
  */
 
-import type { ChampionsMeetingKey, StoryEventKey } from "../../playstyle/index.ts";
+import type { ChampionsMeetingKey, LeagueOfHeroesKey, MastersKey } from "../../playstyle/index.ts";
+import type { ResourceVector } from "../../projection/ledger.ts";
 import { flatPayload } from "../../projection/streams/rewardmap.ts";
 import { gradedStamp } from "../rules/gradedstamp.ts";
 
+const LEAGUE_OF_HEROES_LABELS: Record<LeagueOfHeroesKey, string | null> = {
+  off: null,
+  silver4: "Silver 4",
+  gold1: "Gold 1",
+  gold2: "Gold 2",
+  gold3: "Gold 3",
+  gold4: "Gold 4",
+  platinum1: "Platinum 1",
+  platinum2: "Platinum 2",
+  platinum3: "Platinum 3",
+  platinum4: "Platinum 4",
+};
+
+function addPayloads(...payloads: readonly (ResourceVector | null)[]): ResourceVector | null {
+  const out: ResourceVector = {};
+  for (const payload of payloads) {
+    if (!payload) continue;
+    for (const [key, value] of Object.entries(payload)) out[key] = (out[key] ?? 0) + value;
+  }
+  return Object.keys(out).length ? out : null;
+}
+
 /** Map each play-style CM level to the `reward_maps.champions-meeting` label it
- *  claims — the best finish that level expects. `skip` stamps nothing (the CM
+ *  claims — the best finish that level expects. `off` stamps nothing (the CM
  *  renders unpriced). A frontend interpretation of the slider; the table carries
  *  more granularity (Open League, the spare 2nd-place rows) than the levels expose. */
 const CHAMPIONS_MEETING_LABELS: Record<ChampionsMeetingKey, string | null> = {
-  skip: null,
+  off: null,
   groupBContender: "Group B 3rd",
   groupBWinner: "Group B 1st",
   groupARunnerUp: "Second",
@@ -29,33 +52,22 @@ export const playChampionsMeeting = gradedStamp({
   claims: ["cm"],
   row(ctx) {
     const label = CHAMPIONS_MEETING_LABELS[ctx.play.championsMeeting as ChampionsMeetingKey];
-    if (!label) return null; // `skip` or an unknown level — nothing to stamp
+    if (!label) return null; // `off` or an unknown level — nothing to stamp
     const row = ctx.config.reward_maps["champions-meeting"]?.[label];
     return row ? flatPayload(row) : null; // the bake doesn't carry the selected rank
   },
 });
 
-/** Each play-style `storyEvents` archetype → the reward-map tier label it selects.
- *  The map carries only the four engagement tiers, so the two "achievement"
- *  archetypes both fold onto `dedicated` (the 600k→ceiling stretch is featureless
- *  grind — the ETL collapses them to one row). */
-const STORY_TIER: Record<StoryEventKey, string> = {
-  story: "sweetie",
-  welfare: "casual",
-  major: "focused",
-  achievement: "dedicated",
-  earlyAchievement: "dedicated",
-};
-
 /** `play.story` — stories carry no rewards of their own; the row is the curated
- *  era ladder (`reward_maps["story-<era>"]`) at the player's tier. A story with
- *  no era (the proto era) or an era/tier the bake doesn't carry stamps nothing. */
+ *  era ladder (`reward_maps["story-<era>"]`) at the baseline participation tier.
+ *  A story with no era (the proto era) or an era the bake doesn't carry stamps nothing. */
 export const playStory = gradedStamp({
   id: "play.story",
   claims: ["story"],
   row(ctx, event) {
+    if (ctx.play.storyEvents !== "on") return null;
     if (!("era" in event) || !event.era) return null; // proto era — not modelled, pays nothing
-    const row = ctx.config.reward_maps[`story-${event.era}`]?.[STORY_TIER[ctx.play.storyEvents]];
+    const row = ctx.config.reward_maps[`story-${event.era}`]?.["sweetie"];
     return row ? flatPayload(row) : null;
   },
 });
@@ -70,6 +82,38 @@ export const subscriptionTrainingPass = gradedStamp({
   row(ctx) {
     if (!ctx.trainingPass) return null; // free track only — the baked face stands
     const row = ctx.config.reward_maps["training-pass"]?.["premium"];
+    return row ? flatPayload(row) : null;
+  },
+});
+
+export const playLeagueOfHeroes = gradedStamp({
+  id: "play.league-of-heroes",
+  claims: ["leagueofheroes"],
+  row(ctx) {
+    const label = LEAGUE_OF_HEROES_LABELS[ctx.play.leagueOfHeroes as LeagueOfHeroesKey];
+    if (!label) return null;
+    const row = ctx.config.reward_maps["league-of-heroes"]?.[label];
+    return row ? flatPayload(row) : null;
+  },
+});
+
+export const playStrongestTeam = gradedStamp({
+  id: "play.strongest-team",
+  claims: ["strongestteam"],
+  row(ctx) {
+    if (ctx.play.strongestTeam === "off") return null;
+    const baseline = ctx.config.reward_structures["strongest-team"];
+    const rank = ctx.config.reward_maps["strongest-team"]?.[ctx.play.strongestTeam];
+    return addPayloads(baseline ? flatPayload(baseline) : null, rank ? flatPayload(rank) : null);
+  },
+});
+
+export const playMastersChallenge = gradedStamp({
+  id: "play.masters-challenge",
+  claims: ["masterschallenge"],
+  row(ctx) {
+    if (ctx.play.masters === "off") return null;
+    const row = ctx.config.reward_maps["masters"]?.[ctx.play.masters as MastersKey];
     return row ? flatPayload(row) : null;
   },
 });

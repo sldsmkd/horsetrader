@@ -8,7 +8,7 @@
  * events(ctx)`. How a stream makes its events is private — *claimers* settle
  * the baked events their claimed types route to them (stamp a play-graded row,
  * pass through, expand compound facets); *synthesisers* mint events the bake
- * doesn't carry (`routine-dailies-<date>`, `visible: false` — on the ledger,
+ * doesn't carry (`dailies-<date>`, `visible: false` — on the ledger,
  * off the lane). Streams are mutually anonymous: no stream knows another
  * exists; no ordering between them (the linear fold makes them commute).
  */
@@ -93,11 +93,11 @@ export interface StreamCtx {
  * fenced against the bake at registry construction.
  */
 export interface Stream {
-  /** Dotted `selector.name` (`play.routine`, `ground.events`, `subscription.daily-pack`). */
+  /** Dotted `selector.name` (`play.dailies`, `ground.events`, `subscription.daily-pack`). */
   readonly id: string;
   /** Baked event types this stream settles, or the complement of all claims. */
   readonly claims: readonly string[] | "complement";
-  /** Minted key prefixes this stream synthesises under (`["routine-"]`). */
+  /** Minted key prefixes this stream synthesises under (`["dailies-"]`). */
   readonly mints: readonly string[];
   /**
    * The on/off gate, owned by the stream. Gating is PRESENCE, not pricing: a

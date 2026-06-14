@@ -12,12 +12,14 @@
  *    weekly server reset, the realised moment for the week that just closed.
  *  - **The carats depend on how you entered the class**, not the class alone:
  *    promotion-in / retention / demotion-in each pay differently (only Class 6
- *    actually differs by state; Class ≤5 pays the same in every transition).
- *  - **A "flapping" account is a two-week cadence, not an average.** A mid account
- *    cycles promote-to-6 / demote-to-5: it alternates `6:promotion` (300) and
- *    `5:demotion` (225) every Monday — which the old synthetic `5.5: 262` row had
- *    pre-collapsed to their mean. A stable class is the degenerate length-1 cycle
- *    over its `:retention` row.
+ *    actually differs by state; Classes 2–5 pay the same in every transition).
+ *  - **Class 1 is not a steady-state Team Trials class.** The tutorial forces
+ *    one competition, promotes the account immediately, and cannot demote back
+ *    into Class 1, so the selectable ladder starts at Class 2.
+ *  - **A "flapping" account is a two-week cadence, not an average.** A half-rank
+ *    cycles promotion into the higher class and demotion into the lower class
+ *    every Monday. A stable class is the degenerate length-1 cycle over its
+ *    `:retention` row.
  *
  * The client owns only the *cadence* (which Mondays, and the per-Monday state
  * walk); every *value* — each class/transition's carats — comes from the baked
@@ -38,15 +40,20 @@ import { bundleSpan } from "./span.ts";
 const TEAM_TRIALS_SOURCE = "team-trials";
 
 /** Each play level's weekly cadence: the ordered `reward_maps.team-trials` labels
- *  walked one per Monday, repeating. A stable class collects its `:retention`
- *  every week (length 1); the flapping `rank55` account alternates promotion-into-6
- *  and demotion-into-5 (length 2), starting promoted. Client-owned cadence — the
- *  labels *select* rows, they never carry values. */
+ *  walked one per Monday, repeating. Stable classes collect `<class>:retention`;
+ *  half-ranks alternate promotion into the upper class and demotion into the
+ *  lower class, starting promoted. Client-owned cadence — the labels *select*
+ *  rows, they never carry values. */
 const TEAM_TRIALS_CADENCE: Record<TeamTrialKey, string[]> = {
-  rank4: ["4:retention"],
-  rank5: ["5:retention"],
-  rank6: ["6:retention"],
+  rank20: ["2:retention"],
+  rank25: ["3:promotion", "2:demotion"],
+  rank30: ["3:retention"],
+  rank35: ["4:promotion", "3:demotion"],
+  rank40: ["4:retention"],
+  rank45: ["5:promotion", "4:demotion"],
+  rank50: ["5:retention"],
   rank55: ["6:promotion", "5:demotion"],
+  rank60: ["6:retention"],
 };
 
 /** The synthesised weekly-income plan: the cadence span and the per-Monday payout
@@ -87,6 +94,21 @@ export function teamTrialsStream(spec: TeamTrialsSpec, after: CalendarDate): Str
   return emissions;
 }
 
+function rowForLabel(tiers: ConfigBundle["reward_maps"][string], label: string): ResourceVector | null {
+  const row = tiers[label];
+  if (row !== undefined) return flatPayload(row);
+  if (label === "1:retention") return {};
+
+  // Classes 2–5 pay the same amount for promotion/retention/demotion in the
+  // observed reward table. If a transition row is omitted, fall back to the
+  // destination class's retention row.
+  const match = /^([2-5]):(?:promotion|demotion)$/.exec(label);
+  if (!match) return null;
+
+  const retention = tiers[`${match[1]}:retention`];
+  return retention === undefined ? null : flatPayload(retention);
+}
+
 /**
  * Build the team-trials spec from the baked config, the bundle's date span, and
  * the play-style team-trials level. Returns `null` when the channel can't run —
@@ -107,9 +129,9 @@ export function teamTrialsSpecFromBundle(
 
   const cycle: ResourceVector[] = [];
   for (const label of labels) {
-    const row = tiers[label];
-    if (row === undefined) return null; // the cadence names a row the bake doesn't carry
-    cycle.push(flatPayload(row));
+    const row = rowForLabel(tiers, label);
+    if (row === null) return null; // the cadence names a row the bake doesn't carry
+    cycle.push(row);
   }
 
   const span = bundleSpan(bundle, timeZone);

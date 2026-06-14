@@ -19,9 +19,12 @@
 
 SITE   := horsetrader.site
 STATIC := static
+REPORTS := reports
 PYTHON ?= venv/bin/python
+PYTHON_REPORT ?= python
+ANNIVERSARY_FLAGS ?=
 
-.PHONY: all seed bake types build dev serve deploy clean
+.PHONY: all seed bake types build dev serve deploy report-anniversary-economy report-anniversary-plot report-anniversary-equivalent-economy report-anniversary-equivalent-plot report-anniversary-equivalent report-anniversary reports clean
 
 # Full pipeline, sequenced (recursive $(MAKE) keeps order even under `make -j`).
 all:
@@ -58,6 +61,26 @@ dev serve:
 # Publish the assembled static/ root to Cloudflare Pages.
 deploy: all
 	npm --prefix $(SITE) run deploy
+
+# Local analysis reports. Outputs are intentionally gitignored.
+reports:
+	mkdir -p $(REPORTS)
+
+report-anniversary-economy: reports
+	npm run analyze:anniversaries:matrix -- $(ANNIVERSARY_FLAGS) --out $(REPORTS)/anniversary-raw-matrix.csv
+
+report-anniversary-plot: reports
+	$(PYTHON_REPORT) scripts/plot_anniversary_streams.py --csv $(REPORTS)/anniversary-raw-matrix.csv --resource free_carats --out $(REPORTS)/anniversary-streams-free-carats.png
+
+report-anniversary: report-anniversary-economy report-anniversary-plot
+
+report-anniversary-equivalent-economy: reports
+	npm run analyze:anniversaries:matrix -- --carat-equivalents --out $(REPORTS)/anniversary-carat-equivalent-matrix.csv
+
+report-anniversary-equivalent-plot: reports
+	$(PYTHON_REPORT) scripts/plot_anniversary_streams.py --csv $(REPORTS)/anniversary-carat-equivalent-matrix.csv --resource carat_equivalent --out $(REPORTS)/anniversary-streams-carat-equivalent.png
+
+report-anniversary-equivalent: report-anniversary-equivalent-economy report-anniversary-equivalent-plot
 
 # Wipe the regenerated deploy root (skeleton seed + bake + build output).
 clean:

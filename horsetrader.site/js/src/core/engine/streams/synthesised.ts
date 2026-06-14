@@ -15,7 +15,7 @@
 import type { StreamEmission } from "../../projection/ledger.ts";
 import { clubRankSpecFromBundle, clubRankStream } from "../../projection/streams/clubrank.ts";
 import { dailyPackSpecFromBundle, dailyPackStream } from "../../projection/streams/dailypack.ts";
-import { routineSpecFromBundle, routineStream } from "../../projection/streams/routine.ts";
+import { dailiesSpecFromBundle, dailiesStream, weeklyLoginSpecFromBundle, weeklyLoginStream } from "../../projection/streams/routine.ts";
 import { shopTicketsSpecFromBundle, shopTicketsStream } from "../../projection/streams/shoptickets.ts";
 import { teamTrialsSpecFromBundle, teamTrialsStream } from "../../projection/streams/teamtrials.ts";
 import type { SettledEvent, Stream } from "../stream.ts";
@@ -27,19 +27,29 @@ function asMinted(type: string, emissions: StreamEmission[], keyFor: (e: StreamE
   return emissions.map((e) => minted(keyFor(e), type, e.date, e.deltas));
 }
 
-/** `play.routine` — daily mission carats + the per-login 7-slot bonus cycle,
- *  scaled by the `weeklyPlay` engagement level. Two minted families, named for
- *  the reward-structure keys they pay: `routine-dailies-<date>`,
- *  `routine-weekly-login-<date>`. */
-export const playRoutine: Stream = {
-  id: "play.routine",
+/** `play.dailies` — daily mission carats, on/off. */
+export const playDailies: Stream = {
+  id: "play.dailies",
   claims: [],
-  mints: ["routine-"],
-  enabled: (ctx) => routineSpecFromBundle(ctx.bundle, ctx.config, ctx.play.weeklyPlay, ctx.timeZone) !== null,
+  mints: ["dailies-"],
+  enabled: (ctx) => ctx.play.dailies === "on" && dailiesSpecFromBundle(ctx.bundle, ctx.config, ctx.timeZone) !== null,
   events(ctx) {
-    const spec = routineSpecFromBundle(ctx.bundle, ctx.config, ctx.play.weeklyPlay, ctx.timeZone);
+    const spec = dailiesSpecFromBundle(ctx.bundle, ctx.config, ctx.timeZone);
     if (!spec) return [];
-    return asMinted("routine", routineStream(spec, ctx.after), (e) => `routine-${e.source}-${e.date}`);
+    return asMinted("dailies", dailiesStream(spec, ctx.after), (e) => `dailies-${e.date}`);
+  },
+};
+
+/** `play.weekly-login` — the 7-login bonus cycle, on/off and assumed daily. */
+export const playWeeklyLogin: Stream = {
+  id: "play.weekly-login",
+  claims: [],
+  mints: ["weekly-login-"],
+  enabled: (ctx) => ctx.play.weeklyLogin === "on" && weeklyLoginSpecFromBundle(ctx.bundle, ctx.config, ctx.timeZone) !== null,
+  events(ctx) {
+    const spec = weeklyLoginSpecFromBundle(ctx.bundle, ctx.config, ctx.timeZone);
+    if (!spec) return [];
+    return asMinted("weekly-login", weeklyLoginStream(spec, ctx.after), (e) => `weekly-login-${e.date}`);
   },
 };
 

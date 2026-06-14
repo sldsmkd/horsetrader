@@ -19,6 +19,7 @@ function config(): ConfigBundle {
       dailies: { free_carats: 75 },
       "weekly-login": { sequence: { type: "free_carats", sequence: [50, null, null, null, null, null, 150] } },
       "daily-carats": { paid_carats: 500, generator: { free_carats: 50, repeat: 30 } },
+      "strongest-team": { free_carats: 300, support_tickets: 1 },
     },
     reward_maps: {
       "champions-meeting": { "Group B 1st": { free_carats: 1000, support_tickets: 2 } },
@@ -26,6 +27,9 @@ function config(): ConfigBundle {
       "training-pass": { premium: { free_carats: 1000, paid_carats: 350 } },
       "team-trials": { "5:retention": { free_carats: 225 } },
       "club-rank": { "B+": { free_carats: 425 } },
+      "league-of-heroes": { "Gold 4": { free_carats: 1300, support_tickets: 2 } },
+      "strongest-team": { B: { free_carats: 400 }, A: { free_carats: 400, trainee_tickets: 1 } },
+      masters: { "2": { free_carats: 3000, gold_crystal_shards: 5 } },
     },
     gacha: { carats_per_pull: 150, paid_daily_pull: 50, spark_threshold: 200 },
   } as unknown as ConfigBundle;
@@ -37,7 +41,7 @@ function bundle(): EventsBundle {
     events: [
       // ground truth: a holiday with discrete + generator facets on ONE key.
       { type: "holiday", name: "Golden Week", start: "2026-06-05", end: "2026-06-08", predicted: false, key: "holiday-gw", rewards: { free_carats: 600, generator: { free_carats: 50, repeat: 3 } } },
-      // a play-gated mission (claimed by play.missions)…
+      // an event-gated mission (claimed by event.missions)…
       { type: "mission", title: "Grindy", start: "2026-06-04", end: "2026-06-14", predicted: false, key: "mission-grindy", rewards: { free_carats: 400 } },
       // …and an anniversary mission (separate type — universal, rides the complement).
       { type: "anniversarymission", title: "Anniv", start: "2026-06-04", end: "2026-06-14", predicted: false, key: "mission-anniv", rewards: { free_carats: 250 } },
@@ -45,6 +49,9 @@ function bundle(): EventsBundle {
       { type: "cm", name: "Taurus", start: "2026-06-10", end: "2026-06-16", predicted: false, key: "cm-2026-06", rewards: {} },
       { type: "story", title: "Tale", era: "1m", start: "2026-06-09", end: "2026-06-19", predicted: false, key: "story-tale", rewards: {} },
       { type: "trainingpass", start: "2026-06-01", end: "2026-06-30", predicted: false, key: "training-pass-1", rewards: { free_carats: 120 } },
+      { type: "leagueofheroes", name: "LoH", start: "2026-06-20", end: "2026-06-30", predicted: false, key: "loh-1", rewards: {} },
+      { type: "strongestteam", name: "Strongest", start: "2026-06-21", end: "2026-06-30", predicted: false, key: "strongest-1", rewards: {} },
+      { type: "masterschallenge", name: "Masters", start: "2026-06-22", end: "2026-06-30", predicted: false, key: "masters-1", rewards: {} },
       // a banner — pulls on the face must never bank; commitments claim it.
       { type: "support", contents: [], image: "", start: "2026-06-12", end: "2026-06-22", predicted: false, key: "banner-kita", rewards: { pulls: 10 } },
       { type: "trainee", contents: [], image: "", start: "2026-06-14", end: "2026-06-24", predicted: false, key: "banner-sakura", rewards: { pulls: 10 } },
@@ -55,6 +62,27 @@ function bundle(): EventsBundle {
 const NOW = cal("2026-06-01");
 const FAR = cal("2026-12-31");
 const snapshot = { date: "2026-06-01", recordedAt: "2026-06-01T00:00:00.000Z", resources: { free_carats: 10000 } };
+const play = {
+  dailies: "on",
+  weeklyLogin: "on",
+  teamTrials: "rank50",
+  anniversaryMissions: "on",
+  holidays: "on",
+  scenarioMissions: "on",
+  traineeDebuts: "on",
+  factorStudies: "off",
+  racingCarnival: "off",
+  showtime: "off",
+  missions: "off",
+  storyEvents: "on",
+  championsMeeting: "off",
+  shopTickets: "none",
+  leagueOfHeroes: "gold4",
+  strongestTeam: "B",
+  legendRaces: "off",
+  skillTests: "off",
+  masters: "2",
+} as const;
 
 function coordinator(streams?: readonly Stream[]) {
   const coord = createCoordinator({ bundle: bundle(), config: config(), now: NOW, store: memoryStore(), streams });
@@ -81,20 +109,23 @@ test("registry: a mint prefix colliding with a baked key fails to construct", ()
 
 test("registry: the full roster constructs against the real shapes", () => {
   const registry = buildRegistry(DEFAULT_STREAMS, bundle());
-  assert.equal(registry.streams.length, 10);
+  assert.equal(registry.streams.length, 23);
 });
 
 // ── the settled world (the render source) ───────────────────────────────────
 
-test("settled world: faces are resolved by the engine — CM stamped, story graded, premium boosted", () => {
+test("settled world: faces are resolved by the engine — CM stamped, story included, premium boosted", () => {
   const coord = coordinator();
-  coord.setPlay("custom", { weeklyPlay: "twoDays", teamTrials: "rank5", missions: "no", storyEvents: "major", championsMeeting: "groupBWinner", shopTickets: "none" });
+  coord.setPlay("custom", { ...play, storyEvents: "on", championsMeeting: "groupBWinner" });
   coord.setSubscriptions({ trainingPass: true });
 
   const byKey = new Map(coord.settledEvents().map((e) => [e.key, e]));
   assert.deepEqual(byKey.get("cm-2026-06")!.rewards, { free_carats: 1000, support_tickets: 2 });
-  assert.deepEqual(byKey.get("story-tale")!.rewards, { free_carats: 900 }); // era 1m × focused
+  assert.deepEqual(byKey.get("story-tale")!.rewards, { free_carats: 300 }); // era 1m × baseline story participation
   assert.deepEqual(byKey.get("training-pass-1")!.rewards, { free_carats: 120 + 1000, paid_carats: 350 });
+  assert.deepEqual(byKey.get("loh-1")!.rewards, { free_carats: 1300, support_tickets: 2 });
+  assert.deepEqual(byKey.get("strongest-1")!.rewards, { free_carats: 700, support_tickets: 1 });
+  assert.deepEqual(byKey.get("masters-1")!.rewards, { free_carats: 3000, gold_crystal_shards: 5 });
   // pulls are banner-scoped: never on the face (read off the record at spend).
   assert.deepEqual(byKey.get("banner-kita")!.rewards, {});
 });
@@ -112,19 +143,19 @@ test("settled world: compound facets expand into invisible children under the pa
 });
 
 test("enabled is presence: missions off ⇒ the mission leaves world AND ledger; anniversary missions stay", () => {
-  const coord = coordinator(); // default play style: missions "no" (sweetie default preset)
-  coord.setPlay("custom", { weeklyPlay: "twoDays", teamTrials: "rank5", missions: "no", storyEvents: "story", championsMeeting: "skip", shopTickets: "none" });
+  const coord = coordinator(); // default play style: missions off (sweetie default preset)
+  coord.setPlay("custom", play);
   const keys = new Set(coord.settledEvents().map((e) => e.key));
   assert.ok(!keys.has("mission-grindy"));
   assert.ok(keys.has("mission-anniv")); // separate type — universal, never gated
 
-  coord.setPlay("custom", { weeklyPlay: "twoDays", teamTrials: "rank5", missions: "yes", storyEvents: "story", championsMeeting: "skip", shopTickets: "none" });
+  coord.setPlay("custom", { ...play, missions: "on" });
   assert.ok(new Set(coord.settledEvents().map((e) => e.key)).has("mission-grindy"));
 });
 
-test("grading is the face, not the gate: CM at skip stays on the lane, unpriced", () => {
+test("grading is the face, not the gate: CM off stays on the lane, unpriced", () => {
   const coord = coordinator();
-  coord.setPlay("custom", { weeklyPlay: "twoDays", teamTrials: "rank5", missions: "no", storyEvents: "story", championsMeeting: "skip", shopTickets: "none" });
+  coord.setPlay("custom", play);
   const cm = coord.settledEvents().find((e) => e.key === "cm-2026-06")!;
   assert.equal(cm.visible, true);
   assert.deepEqual(cm.rewards, {});
@@ -134,8 +165,8 @@ test("grading is the face, not the gate: CM at skip stays on the lane, unpriced"
 
 test("fold: pays faces at end, expansion children per-day, nothing on or before the snapshot", () => {
   const coord = coordinator();
-  coord.setPlay("custom", { weeklyPlay: "twoDays", teamTrials: "rank4", missions: "no", storyEvents: "story", championsMeeting: "skip", shopTickets: "none" });
-  // rank4 has no row in the test config ⇒ team-trials inert; twoDays routine pays.
+  coord.setPlay("custom", { ...play, teamTrials: "rank40" });
+  // rank40 has no row in the test config ⇒ team-trials inert; dailies pay.
   // Check a pure ground-truth date: holiday discrete lands on its end (06-08),
   // children on 06-06..06-08 (the 06-05 child is the start day, after snapshot).
   const ledger = coord.projection().ledger;
@@ -224,13 +255,13 @@ test("mutators notify once per write; reads never notify", () => {
 
 test("setEnabled is ephemeral whole-stream isolation: the contribution drops, the account state survives", () => {
   const coord = coordinator();
-  const withRoutine = coord.balanceAt(FAR).free_carats!;
-  coord.setEnabled("play.routine", false);
+  const withDailies = coord.balanceAt(FAR).free_carats!;
+  coord.setEnabled("play.dailies", false);
   const without = coord.balanceAt(FAR).free_carats!;
-  assert.ok(without < withRoutine); // routine contributed
+  assert.ok(without < withDailies); // dailies contributed
   assert.equal(coord.document().config, undefined); // nothing persisted by the toggle
-  coord.setEnabled("play.routine", true);
-  assert.equal(coord.balanceAt(FAR).free_carats, withRoutine);
+  coord.setEnabled("play.dailies", true);
+  assert.equal(coord.balanceAt(FAR).free_carats, withDailies);
 });
 
 test("subscriptions: the daily pack mints both families under the daily- fence", () => {

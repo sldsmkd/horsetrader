@@ -19,7 +19,7 @@ fold reads events into money → surfaces read both → repeat. Nothing else mov
 Stream = id + enabled(ctx) + claims + events(ctx) → list[Event]
 ```
 
-- **`id`** — dotted `selector.name` (`play.routine`, `ground.events`,
+- **`id`** — dotted `selector.name` (`play.dailies`, `ground.events`,
   `subscription.daily-pack`). Names the stream; never names events. The `flow`
   axis (`income.*`) was dropped — every stream is income by construction; balance-
   readers are reconciliation rules, never streams.
@@ -32,7 +32,7 @@ Stream = id + enabled(ctx) + claims + events(ctx) → list[Event]
   `ground.events` claims the **complement** of all claimed types.
 - **`events(ctx)`** — the one verb. How a stream makes its events is private:
   **claimers** price the baked events they own; **synthesisers** mint events the
-  bake doesn't carry (`routine-dailies-<date>`, `visible: false`). Streams are
+  bake doesn't carry (`dailies-<date>`, `visible: false`). Streams are
   mutually anonymous — no stream knows another exists.
 
 **Shared rule — `GradedStamp` (N=2):** return claimed events priced by the
@@ -51,8 +51,8 @@ one-day events; rushing moves only the parent's discrete face.
 Claims are **static** — a disabled stream's types do NOT fall back to
 `ground.events`' complement. Gating drops events; it never re-routes them.
 
-Synthesisers mint under reserved key prefixes (`routine-`, `team-`, `shop-`,
-`club-`, `daily-`) that are fenced at construction (disjoint from baked first
+Synthesisers mint under reserved key prefixes (`dailies-`, `weekly-login-`,
+`team-`, `shop-`, `club-`, `daily-`) that are fenced at construction (disjoint from baked first
 tokens and each other).
 
 Emission `source` = the event's stable key. One naming system: stream ids name
@@ -213,18 +213,28 @@ reading `settledEvents()` are broadcast-free. Returns an unsubscribe.
 
 ## The registry
 
-13 pre-Eclipse producers → **10 streams + 2 shared rules + reconciliation**.
+13 pre-Eclipse producers → **22 streams + 2 shared rules + reconciliation**.
 
 `selector.name` ids. **C** = claimer, **S** = synthesiser.
 
 | id | kind | claims (types) / mints (prefixes) | `enabled(ctx)` | notes |
 |---|---|---|---|---|
-| `ground.events` | C | **complement** of all claimed types | always | pass-through + facet expansion; skips `pulls` (banner-scoped, never banked) |
-| `play.missions` | C | `mission` | `play.missions === "yes"` | presence gate — a "no" player's 161 grindy cards vanish |
+| `ground.events` | C | **complement** of all claimed types | always | catch-all for anchor/non-bankable records; pass-through + facet expansion; skips `pulls` (banner-scoped, never banked) |
+| `event.anniversary-missions` | C | `anniversarymission` | always | passive baked event-income, pass-through + facet expansion |
+| `event.factor-studies` | C | `factorstudies` | `play.factorStudies === "on"` | presence gate for minor-beat participation |
+| `event.holidays` | C | `holiday` | always | passive baked event-income, pass-through + facet expansion |
+| `event.legend-races` | C | `legendrace` | always | passive baked event-income, pass-through + facet expansion |
+| `event.racing-carnival` | C | `racingcarnival` | `play.racingCarnival === "on"` | presence gate for minor-beat participation |
+| `event.scenario-missions` | C | `scenariomission` | always | passive baked event-income, pass-through + facet expansion |
+| `event.showtime` | C | `showtime` | `play.showtime === "on"` | presence gate for minor-beat participation |
+| `event.skill-tests` | C | `skilltest` | always | passive baked event-income, pass-through + facet expansion |
+| `event.trainee-debuts` | C | `trainee` | always | passive baked Original-debut story carats; banner `pulls` remain non-bankable |
+| `event.missions` | C | `mission` | `play.missions === "on"` | presence gate — an off player's 161 grindy cards vanish |
 | `play.champions-meeting` | C | `cm` | always | GradedStamp: face = `reward_maps` row at `play.championsMeeting`; `skip` ⇒ unpriced pass-through |
 | `play.story` | C | `story` | always | GradedStamp: face = `reward_maps[story-<era>]` row at `play.storyEvents`; proto-era ⇒ unpriced |
 | `subscription.training-pass` | C | `trainingpass` | always | GradedStamp, binary row: free track + premium row when subscribed |
-| `play.routine` | S | mints `routine-` | weeklyPlay resolvable | login cadence from epoch; dailies + weekly-login slots from `reward_structures` |
+| `play.dailies` | S | mints `dailies-` | `play.dailies === "on"` | daily cadence; payload from `reward_structures.dailies` |
+| `play.weekly-login` | S | mints `weekly-login-` | `play.weeklyLogin === "on"` | daily cadence through the 7-login cycle from `reward_structures.weekly-login` |
 | `play.team-trials` | S | mints `team-` | teamTrials set | Monday cadence; `reward_maps.team-trials` row by class-transition cycle |
 | `play.shop-tickets` | S | mints `shop-` | bracket ≠ `none` | monthly 1st; bracket count IS the payload (engagement gating, not a baked rate) |
 | `identity.club-rank` | S | mints `club-` | `clubRank !== null` | monthly 1st; `reward_maps.club-rank` row at rank |
@@ -232,7 +242,7 @@ reading `settledEvents()` are broadcast-free. Returns an unsubscribe.
 
 Reconciliation (not a stream): `ctx.commitments` → ordered debits, per above.
 
-**Mint-prefix fence** — the five minted prefixes are pairwise disjoint and
+**Mint-prefix fence** — the six minted prefixes are pairwise disjoint and
 disjoint from every baked first token (`anniversary`, `mission`, `cm`,
 `factorstudies`, `holiday`, `leagueofheroes`, `legendrace`, `masterschallenge`,
 `racingcarnival`, `scenario`, `showtime`, `skilltest`, `story`, `strongestteam`,
@@ -243,9 +253,10 @@ disjoint from every baked first token (`anniversary`, `mission`, `cm`,
 A disabled claimer's events leave the settled world — off the ledger and off the
 lane. Each stream chooses which lever fits:
 
-- **Gate** (`enabled`) when opting out should remove the cards: `play.missions`
-  — a "no" player's missions vanish. This is the old `hiddenKinds` UI hack
-  falling out of the model for free.
+- **Gate** (`enabled`) when opting out should remove the cards:
+  `event.factor-studies`, `event.racing-carnival`, `event.showtime`, and
+  `event.missions` — an opted-out player's minor beats vanish. This is the old
+  `hiddenKinds` UI hack falling out of the model for free.
 - **Face** (the row) when the cards must stay regardless of play: CM at `skip`,
   a proto-era story, an unsubscribed training pass — always-enabled, event
   renders with an unpriced/free-track face.
@@ -255,8 +266,5 @@ Disabled claims still hold their partition (types do NOT fall back to
 
 ### Open
 
-- **PvP trio (#61)** — future `GradedStamp` occupants 3–5 (`leagueofheroes`,
-  `strongestteam`, `masterschallenge` are already distinct types — the partition
-  handles them free).
 - **Child key convention** — `<parent>-<date>` (date-keyed reads better off the
   ledger); settled in TS, cosmetic.

@@ -71,9 +71,14 @@ function config(over: Partial<ConfigBundle["reward_maps"]["team-trials"]> = {}):
       "team-trials": {
         "6:promotion": { free_carats: 300 },
         "6:retention": { free_carats: 375 },
+        "5:promotion": { free_carats: 225 },
         "5:demotion": { free_carats: 225 },
         "5:retention": { free_carats: 225 },
+        "4:promotion": { free_carats: 150 },
+        "4:demotion": { free_carats: 150 },
         "4:retention": { free_carats: 150 },
+        "3:retention": { free_carats: 75 },
+        "2:retention": { free_carats: 35 },
         ...over,
       },
     },
@@ -95,7 +100,7 @@ test("teamTrialsSpecFromBundle draws epoch/horizon from the bundle span and the 
     holiday("early", "2026-01-15", "2026-01-20"),
     holiday("end", "2026-06-01", "2026-06-30"),
   ]);
-  assert.deepEqual(teamTrialsSpecFromBundle(b, config(), "rank6"), {
+  assert.deepEqual(teamTrialsSpecFromBundle(b, config(), "rank60"), {
     epoch: "2026-01-15",
     horizon: "2026-06-30",
     cycle: [{ free_carats: 375 }],
@@ -110,15 +115,23 @@ test("a flapping level resolves to the two-row promotion/demotion cycle", () => 
   ]);
 });
 
+test("lower half-ranks fall back to retention rows when transition rows are equivalent but omitted", () => {
+  const b = bundle([holiday("x", "2026-01-15", "2026-06-30")]);
+  assert.deepEqual(teamTrialsSpecFromBundle(b, config(), "rank25")?.cycle, [
+    { free_carats: 75 },
+    { free_carats: 35 },
+  ]);
+});
+
 test("teamTrialsSpecFromBundle buckets the bundle instants into the view timezone", () => {
   const b = bundle([holiday("x", "2026-01-15T22:00:00+00:00", "2026-06-30T22:00:00+00:00")]);
-  const out = teamTrialsSpecFromBundle(b, config(), "rank4", "Australia/Sydney");
+  const out = teamTrialsSpecFromBundle(b, config(), "rank40", "Australia/Sydney");
   assert.equal(out?.epoch, "2026-01-16");
   assert.equal(out?.horizon, "2026-07-01");
 });
 
 test("teamTrialsSpecFromBundle returns null when it cannot run (no events, unknown level, missing row)", () => {
-  assert.equal(teamTrialsSpecFromBundle(bundle([]), config(), "rank6"), null);
+  assert.equal(teamTrialsSpecFromBundle(bundle([]), config(), "rank60"), null);
   assert.equal(teamTrialsSpecFromBundle(bundle([holiday("x", "2026-01-01", "2026-01-02")]), config(), "rank99"), null);
   // rank55 needs 6:promotion; a map without it can't resolve the cadence.
   const b = bundle([holiday("x", "2026-01-01", "2026-06-30")]);

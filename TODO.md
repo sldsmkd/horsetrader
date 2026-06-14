@@ -127,14 +127,21 @@ Kale juice is the wrong icon for rushed. Replace with sprinting shoes (or simila
 
 Done: removed the dartboard slug and made the persistent pity gutter the commit trigger, visible even at 0 pities. A whole-card double-click/long-press was trialled and dropped because it fought timeline panning.
 
-## Wire missing income channels
+## Income channel follow-ups
 
-Four channels not yet wired:
+Done: League of Heroes, Strongest Team, and Masters Challenge are now wired as
+graded event streams with naive play-style sliders. Defaults sit at midpoint
+assumptions for now: League of Heroes Gold 4, Strongest Team B, Masters level 2.
 
-1. League of Heroes (quarterly PvP)
-2. Shop tickets
-3. Strongest Team
-4. Tachyons (confirm name — you couldn't remember at capture time)
+Still to settle:
+
+1. Tachyons (confirm name — you couldn't remember at capture time)
+2. Revisit the naive slider labels/defaults once the analytical pass has signal
+
+Follow-up: move shop ticket tier counts into baked config. The current frontend
+stream hard-codes the naive monthly ticket counts by engagement tier; acceptable
+for the passive/everyone-gets pass, but the tier values should live beside the
+other income recipes rather than in TS.
 
 ## Menubar carats notifier
 

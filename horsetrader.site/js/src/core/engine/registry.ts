@@ -18,15 +18,34 @@
 import type { EventsBundle } from "../bundle/events.gen.ts";
 import type { BakedEvent, Stream } from "./stream.ts";
 import { groundEvents } from "./streams/ground.ts";
-import { playMissions } from "./streams/missions.ts";
-import { playChampionsMeeting, playStory, subscriptionTrainingPass } from "./streams/graded.ts";
+import { eventMissions } from "./streams/missions.ts";
+import {
+  playChampionsMeeting,
+  playLeagueOfHeroes,
+  playMastersChallenge,
+  playStory,
+  playStrongestTeam,
+  subscriptionTrainingPass,
+} from "./streams/graded.ts";
 import {
   identityClubRank,
-  playRoutine,
+  playDailies,
   playShopTickets,
   playTeamTrials,
+  playWeeklyLogin,
   subscriptionDailyPack,
 } from "./streams/synthesised.ts";
+import {
+  eventAnniversaryMissions,
+  eventFactorStudies,
+  eventHolidays,
+  eventLegendRaces,
+  eventRacingCarnival,
+  eventScenarioMissions,
+  eventShowtime,
+  eventSkillTests,
+  eventTraineeDebuts,
+} from "./streams/passive.ts";
 
 /** A validated registry: the streams plus the routing the assertions proved sound. */
 export interface Registry {
@@ -38,11 +57,24 @@ export interface Registry {
 /** Every stream the engine folds by default — the full roster of 4.REGISTRY. */
 export const DEFAULT_STREAMS: readonly Stream[] = [
   groundEvents,
-  playMissions,
+  eventAnniversaryMissions,
+  eventFactorStudies,
+  eventHolidays,
+  eventLegendRaces,
+  eventRacingCarnival,
+  eventScenarioMissions,
+  eventShowtime,
+  eventSkillTests,
+  eventTraineeDebuts,
+  eventMissions,
   playChampionsMeeting,
   playStory,
   subscriptionTrainingPass,
-  playRoutine,
+  playLeagueOfHeroes,
+  playStrongestTeam,
+  playMastersChallenge,
+  playDailies,
+  playWeeklyLogin,
   playTeamTrials,
   identityClubRank,
   playShopTickets,

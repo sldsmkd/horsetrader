@@ -1,0 +1,7 @@
+{
+  "private": true,
+  "scripts": {
+    "analyze:anniversaries": "node --no-warnings horsetrader.site/scripts/anniversary-economy.ts",
+    "analyze:anniversaries:matrix": "node --no-warnings horsetrader.site/scripts/anniversary-economy.ts --matrix"
+  }
+}

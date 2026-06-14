@@ -34,5 +34,8 @@ _horsetrader.old/
 # .cache for caching data
 .cache/
 
+# Local analysis output — generated reports, not source.
+/reports/
+
 # scratcpad
 scratch.txt
