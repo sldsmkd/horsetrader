@@ -212,7 +212,6 @@ export function mountApp(
     onPlannerWarp: (date) => tl.warpTo(date),
     onPlannerCommit: (bannerKey) => view.set({ committing: bannerKey }),
     onFace: (bookmarksFace) => view.set({ bookmarksFace }),
-    fav,
   });
 
   const menu = menubar({

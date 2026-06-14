@@ -4,7 +4,6 @@
      border render the card ~1.4rem wider than the panel — a constant overflow that
      widening the drawer can never catch. */
   box-sizing: border-box;
-  position: relative;
   display: grid;
   /* Reserve a fixed track for the pity+date so a wide pill row can never squeeze
      them out and push the date off the card (which is what scrolled the panel). */
@@ -30,35 +29,20 @@
   outline: 0;
 }
 
-/* The banner art is an out-of-flow backdrop covering the whole card at a flat 20%
- * — a whisper of the art, not a panel. It's absolutely positioned so the grid never
- * measures its (large) intrinsic width: only the pills and date drive column sizing,
- * so the date can't be pushed off the card edge (which is what scrolled the panel). */
+/* With the pills gone the banner art does the talking: in-flow in the content
+ * column at full strength. min-width:0 lets the column shrink (the img's intrinsic
+ * width would otherwise force the card wider than the panel). */
 .planner-card__image {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: left center;
-  opacity: 0.2;
-  pointer-events: none;
-}
-
-.planner-card__atoms {
   grid-column: 1;
   grid-row: 1;
-  position: relative;
-  z-index: 1;
+  align-self: center;
+  display: block;
+  width: 100%;
   min-width: 0;
-  display: flex;
-  flex-wrap: wrap;
-  align-content: center;
-  gap: 0.25rem;
-  margin: 0;
-  padding: 0 0 0 5.5rem;
-  list-style: none;
+  height: 2.75rem;
+  object-fit: cover;
+  object-position: left center;
+  border-radius: 0.25rem;
 }
 
 .planner-card__date {
@@ -73,8 +57,6 @@
 .planner-card__meta {
   grid-column: 2;
   grid-row: 1;
-  position: relative;
-  z-index: 1;
   display: flex;
   flex-direction: column;
   align-items: flex-end;

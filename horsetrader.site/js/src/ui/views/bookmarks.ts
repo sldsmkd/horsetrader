@@ -22,7 +22,6 @@ import type { PlannerRow } from "../select/planner.ts";
 import { bookmarkCard } from "../widgets/bookmarkCard.ts";
 import type { BookmarkCard } from "../widgets/bookmarkCard.ts";
 import { plannerCard } from "../widgets/plannerCard.ts";
-import type { FavouriteBinding } from "../widgets/atomChip.ts";
 
 export type BookmarksFace = "favourites" | "planner";
 
@@ -37,8 +36,6 @@ export interface BookmarksHandlers {
   onPlannerCommit(bannerKey: string): void;
   /** Flip the shared drawer slot between favourites and committed banners. */
   onFace(face: BookmarksFace): void;
-  /** Shared favourite persistence seam used by planner chips. */
-  fav: FavouriteBinding;
 }
 
 /** What `refresh` needs: the derived rows and whether the drawer is open. */
@@ -58,7 +55,7 @@ export interface Bookmarks {
   setView(date: CalendarDate): void;
 }
 
-export function bookmarks({ onToggle, onWarp, onPlannerWarp, onPlannerCommit, onFace, fav }: BookmarksHandlers): Bookmarks {
+export function bookmarks({ onToggle, onWarp, onPlannerWarp, onPlannerCommit, onFace }: BookmarksHandlers): Bookmarks {
   const list = h("ul", { class: "bookmarks__list" });
   const emptyHint = h("li", { class: "bookmarks__empty" }, "Add favourites by clicking the star on a banner.");
   const plannerEmptyHint = h("li", { class: "bookmarks__empty" }, "Commit pities on a banner to add it to the planner.");
@@ -125,7 +122,7 @@ export function bookmarks({ onToggle, onWarp, onPlannerWarp, onPlannerCommit, on
             h(
               "li",
               { class: `bookmark-row${row.predicted ? " bookmark-row--predicted" : ""}` },
-              plannerCard({ row, fav, onWarp: onPlannerWarp, onCommit: onPlannerCommit }),
+              plannerCard({ row, onWarp: onPlannerWarp, onCommit: onPlannerCommit }),
             ),
           ),
         );

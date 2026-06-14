@@ -4,25 +4,19 @@ import { h } from "../h.ts";
 import { formatDate } from "../format.ts";
 import type { CalendarDate } from "../../core/projection/dates.ts";
 import type { PlannerRow } from "../select/planner.ts";
-import { atomChip } from "./atomChip.ts";
-import type { FavouriteBinding } from "./atomChip.ts";
 import { commitmentBadge } from "./commitmentBadge.ts";
 
 export interface PlannerCardOpts {
   row: PlannerRow;
-  fav: FavouriteBinding;
   onWarp(date: CalendarDate): void;
   onCommit(bannerKey: string): void;
 }
 
-export function plannerCard({ row, fav, onWarp, onCommit }: PlannerCardOpts): HTMLElement {
+export function plannerCard({ row, onWarp, onCommit }: PlannerCardOpts): HTMLElement {
   const warp = (): void => onWarp(row.date);
 
-  // In the planner the pills are a reminder of *what you committed for*, so we show
-  // only the starred ones. None starred → no pills: the card still warps to the
-  // banner, where the full line-up answers "why am I pulling?" on demand.
-  const shownAtoms = row.atoms.filter((atom) => fav.isFavourited(atom.id));
-
+  // No pills here: the banner art carries the identity, and the card warps to the
+  // banner itself for the full line-up. Just the art, the commitment, and the date.
   return h(
     "div",
     {
@@ -38,11 +32,6 @@ export function plannerCard({ row, fav, onWarp, onCommit }: PlannerCardOpts): HT
       },
     },
     h("img", { class: "planner-card__image", attr: { src: row.image, alt: "", loading: "lazy", decoding: "async" } }),
-    h(
-      "ul",
-      { class: "planner-card__atoms" },
-      ...shownAtoms.map((atom) => atomChip(atom, fav)),
-    ),
     h(
       "span",
       { class: "planner-card__meta" },
