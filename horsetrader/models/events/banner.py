@@ -347,15 +347,23 @@ class Banners(Events[Banner], metaclass=SingletonMeta):
         by_slug: dict[_SupportKey, list[Support]] = defaultdict(list)
         by_canonical: dict[_SupportKey, list[Support]] = defaultdict(list)
         for s in Supports().values():
-            if (
-                s.character is None
-                or s.type is None
-                or s.rarity == SupportRarity.UNKNOWN
-            ):
+            if s.type is None or s.rarity == SupportRarity.UNKNOWN:
                 continue
-            # Bare character slug, not the `char-` prefixed key — see
-            # `_build_trainee_indexes`.
-            slug = s.character.key.removeprefix(Character.KEY_PREFIX)
+            if s.type == SupportType.GROUP:
+                # Group cards (e.g. "The Throne's Assemblage") have no single
+                # character, so they're keyed by the slug of their display name
+                # — which is also what the GROUP pickup row carries. Slug the
+                # EN-preferring form (`.display`), since the base payload is JP
+                # and the pickup name is English.
+                if s.display is None:
+                    continue
+                slug = _slugify(s.display.display)
+            elif s.character is not None:
+                # Bare character slug, not the `char-` prefixed key — see
+                # `_build_trainee_indexes`.
+                slug = s.character.key.removeprefix(Character.KEY_PREFIX)
+            else:
+                continue
             by_slug[(slug, s.rarity, s.type)].append(s)
             by_canonical[(_canonical(slug), s.rarity, s.type)].append(s)
         return by_slug, by_canonical
@@ -406,13 +414,6 @@ class Banners(Events[Banner], metaclass=SingletonMeta):
         rarity = pickup["support_rarity"]
         sup_type = pickup["support_type"]
 
-        # GROUP is a collection/obtain label (e.g. "Embodiment of Legends"), not
-        # an individual card — it never resolves to a single Support by design.
-        # The banner's real cards are listed separately, so skip it quietly.
-        if sup_type == SupportType.GROUP:
-            logger.debug("Skipping GROUP pickup %r on %s", name, record_key)
-            return None
-
         if rarity is None or sup_type is None:
             logger.warning(
                 "Unresolvable rarity/type for %s pickup %r",
@@ -426,6 +427,15 @@ class Banners(Events[Banner], metaclass=SingletonMeta):
             (_slugify(name), rarity, sup_type)
         ) or by_canonical.get((_canonical(name), rarity, sup_type), [])
         if not candidates:
+            # GROUP cards (e.g. "The Throne's Assemblage") are real cards with no
+            # single character, keyed by display-name slug above. An unresolved
+            # GROUP is either a not-yet-ingested group card or a collection/obtain
+            # label that names no single card — skip it quietly rather than warn.
+            if sup_type == SupportType.GROUP:
+                logger.debug(
+                    "Skipping unresolved GROUP pickup %r on %s", name, record_key
+                )
+                return None
             logger.warning(
                 "No support match for %s pickup %r (%s %s)",
                 record_key,
