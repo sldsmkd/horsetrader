@@ -23,7 +23,7 @@ function config(): ConfigBundle {
     },
     reward_maps: {
       "champions-meeting": { "Group B 1st": { free_carats: 1000, support_tickets: 2 } },
-      "story-1m": { sweetie: { free_carats: 300 }, focused: { free_carats: 900 } },
+      "story-1m": { tier1: { free_carats: 300 }, tier3: { free_carats: 900 } },
       "training-pass": { premium: { free_carats: 1000, paid_carats: 350 } },
       "team-trials": { "5:retention": { free_carats: 225 } },
       "club-rank": { "B+": { free_carats: 425 } },
@@ -74,7 +74,7 @@ const play = {
   racingCarnival: "off",
   showtime: "off",
   missions: "off",
-  storyEvents: "on",
+  storyEvents: "tier1",
   championsMeeting: "off",
   shopTickets: "none",
   leagueOfHeroes: "gold4",
@@ -116,12 +116,12 @@ test("registry: the full roster constructs against the real shapes", () => {
 
 test("settled world: faces are resolved by the engine — CM stamped, story included, premium boosted", () => {
   const coord = coordinator();
-  coord.setPlay("custom", { ...play, storyEvents: "on", championsMeeting: "groupBWinner" });
+  coord.setPlay("custom", { ...play, storyEvents: "tier1", championsMeeting: "groupBWinner" });
   coord.setSubscriptions({ trainingPass: true });
 
   const byKey = new Map(coord.settledEvents().map((e) => [e.key, e]));
   assert.deepEqual(byKey.get("cm-2026-06")!.rewards, { free_carats: 1000, support_tickets: 2 });
-  assert.deepEqual(byKey.get("story-tale")!.rewards, { free_carats: 300 }); // era 1m × baseline story participation
+  assert.deepEqual(byKey.get("story-tale")!.rewards, { free_carats: 300 }); // era 1m × tier1 (baseline story participation)
   assert.deepEqual(byKey.get("training-pass-1")!.rewards, { free_carats: 120 + 1000, paid_carats: 350 });
   assert.deepEqual(byKey.get("loh-1")!.rewards, { free_carats: 1300, support_tickets: 2 });
   assert.deepEqual(byKey.get("strongest-1")!.rewards, { free_carats: 700, support_tickets: 1 });
@@ -229,6 +229,16 @@ test("reconcile: seniority is earlier-by-start — a later banner sees the earli
 test("reconcile: a claim against an unknown key throws (resolve-or-throw)", () => {
   const coord = coordinator();
   assert.throws(() => coord.commit("banner-ghost", 10), /unknown event/);
+});
+
+test("a committed trainee banner survives trainee-debuts being toggled off", () => {
+  const coord = coordinator();
+  coord.commit("banner-sakura", 5); // a trainee banner, committed while debuts are on
+  // Toggling the debut-income lever off must NOT drop the banner (a pull target
+  // with a live claim) from the lane — it would orphan the commitment.
+  assert.doesNotThrow(() => coord.setPlay("custom", { ...play, traineeDebuts: "off" }));
+  const byKey = new Map(coord.settledEvents().map((e) => [e.key, e]));
+  assert.ok(byKey.has("banner-sakura")); // still present, just unpriced
 });
 
 test("commit(key, 0) clears the claim", () => {

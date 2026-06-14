@@ -14,7 +14,7 @@ import type { UiStrings } from "../strings.ts";
 export function buildTrainerCard(
   identity: IdentityController,
   strings: UiStrings,
-  opts: { suspended?: boolean; previewPlayStyleKey?: PlayStyleKey; customUnlocked?: boolean },
+  opts: { suspended?: boolean; previewPlayStyleKey?: PlayStyleKey },
   on: {
     onOshiSelect: () => void;
     onClubSelect: () => void;
@@ -34,7 +34,6 @@ export function buildTrainerCard(
       club: identity.club(),
       playStyleKey: opts.previewPlayStyleKey ?? identity.savedPlayStyleKey(),
       savedPlayStyleKey: identity.savedPlayStyleKey(),
-      customUnlocked: opts.customUnlocked ?? false,
       playStyleStrings: strings.playStyle,
       onTrainerNameChange: (name) => identity.setTrainerName(name),
       onTrainerIdChange: (id) => identity.setTrainerId(id),
@@ -88,7 +87,7 @@ export function buildPlayStyleOverlay(
   identity: IdentityController,
   strings: UiStrings,
   state: PlayStyleMachineState,
-  opts: { suspended?: boolean; customUnlocked?: boolean },
+  opts: { suspended?: boolean },
   on: {
     onOshiSelect: () => void;
     onClubSelect: () => void;
@@ -102,7 +101,15 @@ export function buildPlayStyleOverlay(
   const savedPlayStyleKey = identity.savedPlayStyleKey();
   const savedPlayStyleSettings = identity.savedPlayStyleSettings();
   const playStyleKey = previewedPlayStyle(state, savedPlayStyleKey);
-  const playStyleSettings = state.stagedPlayStyleSettings ?? playStyleSettingsForPreset(playStyleKey);
+  // Staged edits win. Otherwise: Custom seeds from whatever's currently applied
+  // (it's "your settings, now editable" — no canonical defaults), as does viewing
+  // your own saved style; previewing a *different* preset shows that preset's
+  // defaults.
+  const playStyleSettings =
+    state.stagedPlayStyleSettings ??
+    (playStyleKey === "custom" || playStyleKey === savedPlayStyleKey
+      ? savedPlayStyleSettings
+      : playStyleSettingsForPreset(playStyleKey));
 
   const playStyleCard = overlay({
     title: strings.playStyle.title,
@@ -122,7 +129,7 @@ export function buildPlayStyleOverlay(
   const identityCard = buildTrainerCard(
     identity,
     strings,
-    { previewPlayStyleKey: playStyleKey, customUnlocked: opts.customUnlocked ?? false, ...(opts.suspended ? { suspended: true } : {}) },
+    { previewPlayStyleKey: playStyleKey, ...(opts.suspended ? { suspended: true } : {}) },
     { onOshiSelect: on.onOshiSelect, onClubSelect: on.onClubSelect, onPlayStylePreview: on.onPlayStylePreview, onClose: on.onTrainerClose },
   );
 

@@ -12,6 +12,7 @@ export {
   LEAGUE_OF_HEROES_KEYS,
   STRONGEST_TEAM_KEYS,
   MASTERS_KEYS,
+  STORY_KEYS,
   playStyleSettingsForPreset,
   normalizePlayStyleSettings,
   samePlayStyleSettings,
@@ -25,6 +26,7 @@ export type {
   LeagueOfHeroesKey,
   StrongestTeamKey,
   MastersKey,
+  StoryKey,
   PlayStyleSettings,
 } from "./settings.ts";
 export { resolvePlayStyle } from "./resolve.ts";

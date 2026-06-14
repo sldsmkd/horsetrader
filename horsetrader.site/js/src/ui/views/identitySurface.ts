@@ -15,7 +15,6 @@ export interface IdentitySurfaceOpts {
   club: ClubIdentity | null;
   playStyleKey: PlayStyleKey;
   savedPlayStyleKey: PlayStyleKey;
-  customUnlocked: boolean;
   playStyleStrings: PlayStyleStrings;
   onTrainerNameChange: (name: string) => void;
   onTrainerIdChange: (id: string) => void;
@@ -206,7 +205,6 @@ function playStyle(opts: IdentitySurfaceOpts): HTMLElement {
     selectedKey: opts.playStyleKey,
     activeKey: opts.savedPlayStyleKey,
     strings: opts.playStyleStrings,
-    customUnlocked: opts.customUnlocked,
     onPreview: opts.onPlayStylePreview,
   });
 }

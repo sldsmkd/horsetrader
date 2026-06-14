@@ -352,8 +352,9 @@ these rewards; Sweetie, Casual, and Focused leave them off.
 Behavior measured: highest PvE challenge clear.
 
 Design read: challenge outcome selector. This should read as clear level,
-not general sweatiness. Current preset defaults: Sweetie off, Casual Level 3,
-Focused Level 2, Dedicated Level 1, Unhinged EX.
+not general sweatiness. The reward ladder ascends 1→2→3→EX (1500→3000→4500→4500+
+carats), so a higher level is the harder, higher-reward clear. Preset defaults:
+Sweetie off, Casual Level 1, Focused Level 2, Dedicated Level 3, Unhinged EX.
 
 Open verdict:
 

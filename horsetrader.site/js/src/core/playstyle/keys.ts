@@ -8,7 +8,7 @@ export const PLAY_STYLE_KEYS = ["sweetie", "casual", "focused", "dedicated", "un
 
 export type PlayStyleKey = (typeof PLAY_STYLE_KEYS)[number];
 
-export const DEFAULT_PLAY_STYLE: PlayStyleKey = "focused";
+export const DEFAULT_PLAY_STYLE = "focused" as const;
 
 export function isPlayStyleKey(value: unknown): value is PlayStyleKey {
   return typeof value === "string" && (PLAY_STYLE_KEYS as readonly string[]).includes(value);

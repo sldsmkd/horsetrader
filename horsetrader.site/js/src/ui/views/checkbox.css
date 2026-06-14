@@ -1,0 +1,88 @@
+.checkbox {
+  display: grid;
+  grid-template-columns: 1.05rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+  padding: 0.5rem 0.6rem;
+  border: 0;
+  background: color-mix(in srgb, Canvas 88%, transparent);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.checkbox--locked {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.checkbox:not(.checkbox--locked):hover {
+  background: color-mix(in srgb, #5fcf00 9%, Canvas 84%);
+}
+
+.checkbox:not(.checkbox--locked):focus-visible {
+  outline: 2px solid color-mix(in srgb, #5fcf00 70%, currentColor 18%);
+  outline-offset: -0.15rem;
+}
+
+.checkbox__box {
+  width: 1.05rem;
+  aspect-ratio: 1;
+  border: 2px solid color-mix(in srgb, currentColor 40%, transparent);
+  border-radius: 0.22rem;
+  background: color-mix(in srgb, Canvas 70%, transparent);
+}
+
+/* Checked + editable: the live accent green. */
+.checkbox--on .checkbox__box {
+  position: relative;
+  border-color: color-mix(in srgb, #5fcf00 60%, currentColor 20%);
+  background: color-mix(in srgb, #5fcf00 30%, Canvas 60%);
+}
+
+/* Checked + locked: muted grey, so it reads as a fixed preset value. */
+.checkbox--locked.checkbox--on .checkbox__box {
+  border-color: color-mix(in srgb, currentColor 44%, transparent);
+  background: color-mix(in srgb, currentColor 26%, Canvas 60%);
+}
+
+.checkbox--on .checkbox__box::after {
+  content: "";
+  position: absolute;
+  top: 0.04rem;
+  left: 0.3rem;
+  width: 0.26rem;
+  height: 0.5rem;
+  border: solid color-mix(in srgb, currentColor 88%, transparent);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.checkbox--locked.checkbox--on .checkbox__box::after {
+  border-color: color-mix(in srgb, currentColor 70%, transparent);
+}
+
+.checkbox__label {
+  min-width: 0;
+  overflow: hidden;
+  color: color-mix(in srgb, currentColor 78%, transparent);
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.checkbox--on .checkbox__label {
+  color: color-mix(in srgb, currentColor 92%, transparent);
+}
+
+.checkbox--locked .checkbox__label {
+  color: color-mix(in srgb, currentColor 55%, transparent);
+}
+
+.checkbox--locked.checkbox--on .checkbox__label {
+  color: color-mix(in srgb, currentColor 72%, transparent);
+}

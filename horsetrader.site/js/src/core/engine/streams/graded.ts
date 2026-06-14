@@ -59,15 +59,18 @@ export const playChampionsMeeting = gradedStamp({
 });
 
 /** `play.story` — stories carry no rewards of their own; the row is the curated
- *  era ladder (`reward_maps["story-<era>"]`) at the baseline participation tier.
- *  A story with no era (the proto era) or an era the bake doesn't carry stamps nothing. */
+ *  era ladder (`reward_maps["story-<era>"]`), keyed by preset-agnostic commitment
+ *  tiers. The play-style `storyEvents` selector IS the tier key: `tier0` is
+ *  no-participation (stamp nothing — don't paint a +0 face), `tier1`…`tier4` are
+ *  the Pt-commitment rungs. A story with no era (the proto era) or an era the
+ *  bake doesn't carry stamps nothing. */
 export const playStory = gradedStamp({
   id: "play.story",
   claims: ["story"],
   row(ctx, event) {
-    if (ctx.play.storyEvents !== "on") return null;
+    if (ctx.play.storyEvents === "tier0") return null; // no participation
     if (!("era" in event) || !event.era) return null; // proto era — not modelled, pays nothing
-    const row = ctx.config.reward_maps[`story-${event.era}`]?.["sweetie"];
+    const row = ctx.config.reward_maps[`story-${event.era}`]?.[ctx.play.storyEvents];
     return row ? flatPayload(row) : null;
   },
 });

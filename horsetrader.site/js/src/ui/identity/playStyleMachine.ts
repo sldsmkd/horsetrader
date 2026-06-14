@@ -25,6 +25,7 @@ export type PlayStyleMachineEvent =
   | { type: "stage-settings"; settings: PlayStyleSettings }
   | { type: "discard-playstyle" }
   | { type: "commit-playstyle" }
+  | { type: "commit-playstyle-stay" }
   | { type: "close-all" };
 
 export const PLAY_STYLE_MACHINE_INITIAL: PlayStyleMachineState = {
@@ -76,6 +77,11 @@ export function reducePlayStyleMachine(
     case "discard-playstyle":
     case "commit-playstyle":
       return { overlay: "identity", stagedPlayStyle: null, stagedPlayStyleSettings: null };
+    // Custom is a tweaker surface: committing clears the staging (the saved value
+    // now IS the edit) but keeps the play-style page open so tuning can continue,
+    // rather than collapsing back to the trainer card like a streamlined preset.
+    case "commit-playstyle-stay":
+      return { overlay: "playstyle", stagedPlayStyle: null, stagedPlayStyleSettings: null };
     case "close-all":
       return PLAY_STYLE_MACHINE_INITIAL;
     case "stage-settings":

@@ -20,7 +20,7 @@ test("preset settings define the persisted assumption defaults", () => {
     racingCarnival: "off",
     showtime: "off",
     missions: "off",
-    storyEvents: "on",
+    storyEvents: "tier1",
     championsMeeting: "off",
     shopTickets: "none",
     leagueOfHeroes: "off",
@@ -41,14 +41,14 @@ test("preset settings define the persisted assumption defaults", () => {
     racingCarnival: "off",
     showtime: "off",
     missions: "off",
-    storyEvents: "on",
+    storyEvents: "tier2",
     championsMeeting: "groupBContender",
     shopTickets: "cleats",
     leagueOfHeroes: "gold2",
     strongestTeam: "C",
     legendRaces: "off",
     skillTests: "off",
-    masters: "3",
+    masters: "1",
   });
   assert.deepEqual(playStyleSettingsForPreset("focused"), {
     dailies: "on",
@@ -62,7 +62,7 @@ test("preset settings define the persisted assumption defaults", () => {
     racingCarnival: "on",
     showtime: "on",
     missions: "off",
-    storyEvents: "on",
+    storyEvents: "tier3",
     championsMeeting: "groupBWinner",
     shopTickets: "cleats",
     leagueOfHeroes: "gold4",
@@ -83,14 +83,14 @@ test("preset settings define the persisted assumption defaults", () => {
     racingCarnival: "on",
     showtime: "on",
     missions: "on",
-    storyEvents: "on",
+    storyEvents: "tier4",
     championsMeeting: "groupARunnerUp",
     shopTickets: "friendPoints",
     leagueOfHeroes: "platinum1",
     strongestTeam: "S",
     legendRaces: "on",
     skillTests: "on",
-    masters: "1",
+    masters: "3",
   });
   assert.deepEqual(playStyleSettingsForPreset("unhinged"), {
     dailies: "on",
@@ -104,7 +104,7 @@ test("preset settings define the persisted assumption defaults", () => {
     racingCarnival: "on",
     showtime: "on",
     missions: "on",
-    storyEvents: "on",
+    storyEvents: "tier4",
     championsMeeting: "groupAChampion",
     shopTickets: "rainbow",
     leagueOfHeroes: "platinum2",
@@ -113,7 +113,8 @@ test("preset settings define the persisted assumption defaults", () => {
     skillTests: "on",
     masters: "EX",
   });
-  assert.deepEqual(playStyleSettingsForPreset("custom"), playStyleSettingsForPreset("unhinged"));
+  // Custom has no canonical defaults; the fallback backstop is the default preset.
+  assert.deepEqual(playStyleSettingsForPreset("custom"), playStyleSettingsForPreset("focused"));
 });
 
 test("normalizes stored settings against a fallback", () => {
@@ -155,7 +156,7 @@ test("normalizes stored settings against a fallback", () => {
     racingCarnival: "on",
     showtime: "on",
     missions: "on",
-    storyEvents: "off",
+    storyEvents: "tier0",
     championsMeeting: "groupAChampion",
     shopTickets: "rainbow",
     leagueOfHeroes: "platinum4",

@@ -6,6 +6,7 @@
  * A preset seeds a full set; Custom edits them freely.
  */
 
+import { DEFAULT_PLAY_STYLE } from "./keys.ts";
 import type { PlayStyleKey } from "./keys.ts";
 
 export const PLAY_TOGGLE_KEYS = ["off", "on"] as const;
@@ -28,6 +29,10 @@ export const SHOP_TICKET_KEYS = ["none", "cleats", "friendPoints", "rainbow"] as
 export const LEAGUE_OF_HEROES_KEYS = ["off", "silver4", "gold1", "gold2", "gold3", "gold4", "platinum1", "platinum2", "platinum3", "platinum4"] as const;
 export const STRONGEST_TEAM_KEYS = ["off", "E", "D", "C", "B", "A", "S", "SS"] as const;
 export const MASTERS_KEYS = ["off", "1", "2", "3", "EX"] as const;
+// Story is a commitment selector, not a binary gate: the baked `story-<era>`
+// ladder runs tier0 (no participation) → tier4 (Pt ceiling). Preset-agnostic by
+// design — the bake stopped knowing playstyle names; the presets seed a tier.
+export const STORY_KEYS = ["tier0", "tier1", "tier2", "tier3", "tier4"] as const;
 
 export type PlayToggleKey = (typeof PLAY_TOGGLE_KEYS)[number];
 export type TeamTrialKey = (typeof TEAM_TRIAL_KEYS)[number];
@@ -37,6 +42,7 @@ export type ShopTicketKey = (typeof SHOP_TICKET_KEYS)[number];
 export type LeagueOfHeroesKey = (typeof LEAGUE_OF_HEROES_KEYS)[number];
 export type StrongestTeamKey = (typeof STRONGEST_TEAM_KEYS)[number];
 export type MastersKey = (typeof MASTERS_KEYS)[number];
+export type StoryKey = (typeof STORY_KEYS)[number];
 
 export interface PlayStyleSettings {
   dailies: PlayToggleKey;
@@ -50,7 +56,7 @@ export interface PlayStyleSettings {
   racingCarnival: PlayToggleKey;
   showtime: PlayToggleKey;
   missions: MissionKey;
-  storyEvents: PlayToggleKey;
+  storyEvents: StoryKey;
   championsMeeting: ChampionsMeetingKey;
   shopTickets: ShopTicketKey;
   leagueOfHeroes: LeagueOfHeroesKey;
@@ -73,7 +79,7 @@ const PRESET_SETTINGS: Record<Exclude<PlayStyleKey, "custom">, PlayStyleSettings
     racingCarnival: "off",
     showtime: "off",
     missions: "off",
-    storyEvents: "on",
+    storyEvents: "tier1",
     championsMeeting: "off",
     shopTickets: "none",
     leagueOfHeroes: "off",
@@ -94,14 +100,14 @@ const PRESET_SETTINGS: Record<Exclude<PlayStyleKey, "custom">, PlayStyleSettings
     racingCarnival: "off",
     showtime: "off",
     missions: "off",
-    storyEvents: "on",
+    storyEvents: "tier2",
     championsMeeting: "groupBContender",
     shopTickets: "cleats",
     leagueOfHeroes: "gold2",
     strongestTeam: "C",
     legendRaces: "off",
     skillTests: "off",
-    masters: "3",
+    masters: "1",
   },
   focused: {
     dailies: "on",
@@ -115,7 +121,7 @@ const PRESET_SETTINGS: Record<Exclude<PlayStyleKey, "custom">, PlayStyleSettings
     racingCarnival: "on",
     showtime: "on",
     missions: "off",
-    storyEvents: "on",
+    storyEvents: "tier3",
     championsMeeting: "groupBWinner",
     shopTickets: "cleats",
     leagueOfHeroes: "gold4",
@@ -136,14 +142,14 @@ const PRESET_SETTINGS: Record<Exclude<PlayStyleKey, "custom">, PlayStyleSettings
     racingCarnival: "on",
     showtime: "on",
     missions: "on",
-    storyEvents: "on",
+    storyEvents: "tier4",
     championsMeeting: "groupARunnerUp",
     shopTickets: "friendPoints",
     leagueOfHeroes: "platinum1",
     strongestTeam: "S",
     legendRaces: "on",
     skillTests: "on",
-    masters: "1",
+    masters: "3",
   },
   unhinged: {
     dailies: "on",
@@ -157,7 +163,7 @@ const PRESET_SETTINGS: Record<Exclude<PlayStyleKey, "custom">, PlayStyleSettings
     racingCarnival: "on",
     showtime: "on",
     missions: "on",
-    storyEvents: "on",
+    storyEvents: "tier4",
     championsMeeting: "groupAChampion",
     shopTickets: "rainbow",
     leagueOfHeroes: "platinum2",
@@ -173,14 +179,26 @@ function isOneOf<T extends string>(value: unknown, keys: readonly T[]): value is
 }
 
 export function playStyleSettingsForPreset(key: PlayStyleKey): PlayStyleSettings {
-  // Interim: Custom has no tuning surface, so it mirrors the ceiling preset.
-  return key === "custom" ? { ...PRESET_SETTINGS.unhinged } : { ...PRESET_SETTINGS[key] };
+  // Custom has no canonical defaults — its live seed is the currently-applied
+  // settings (identityOverlay) and a committed Custom persists its own full set.
+  // This only backstops a malformed/partial stored Custom, so fall back to the
+  // neutral default preset (not a hardcoded ceiling).
+  return key === "custom" ? { ...PRESET_SETTINGS[DEFAULT_PLAY_STYLE] } : { ...PRESET_SETTINGS[key] };
 }
 
 function normalizeToggle(value: unknown, fallback: PlayToggleKey): PlayToggleKey {
   if (isOneOf(value, PLAY_TOGGLE_KEYS)) return value;
   if (value === "yes") return "on";
   if (value === "no") return "off";
+  return fallback;
+}
+
+// Story was a binary gate before it became a tier selector. Migrate persisted
+// values: a stored `off` drops to the no-participation floor; a stored `on`
+// carried no tier, so defer to the preset's seeded tier (the fallback).
+function normalizeStory(value: unknown, fallback: StoryKey): StoryKey {
+  if (isOneOf(value, STORY_KEYS)) return value;
+  if (value === "off") return "tier0";
   return fallback;
 }
 
@@ -199,7 +217,7 @@ export function normalizePlayStyleSettings(value: unknown, fallback: PlayStyleSe
     racingCarnival: normalizeToggle(raw["racingCarnival"], fallback.racingCarnival),
     showtime: normalizeToggle(raw["showtime"], fallback.showtime),
     missions: normalizeToggle(raw["missions"], fallback.missions),
-    storyEvents: normalizeToggle(raw["storyEvents"], fallback.storyEvents),
+    storyEvents: normalizeStory(raw["storyEvents"], fallback.storyEvents),
     championsMeeting: isOneOf(raw["championsMeeting"], CHAMPIONS_MEETING_KEYS)
       ? raw["championsMeeting"]
       : fallback.championsMeeting,

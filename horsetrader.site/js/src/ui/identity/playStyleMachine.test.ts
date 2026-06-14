@@ -80,6 +80,15 @@ test("discarding or committing returns to the trainer card with no staged preset
   });
 });
 
+test("commit-playstyle-stay clears staging but keeps the play-style page open (custom tweaker)", () => {
+  const state: PlayStyleMachineState = { overlay: "playstyle", stagedPlayStyle: "custom", stagedPlayStyleSettings: null };
+  assert.deepEqual(reducePlayStyleMachine(state, { type: "commit-playstyle-stay" }, saved), {
+    overlay: "playstyle",
+    stagedPlayStyle: null,
+    stagedPlayStyleSettings: null,
+  });
+});
+
 test("previewing custom opens the playstyle page like any other preset", () => {
   const state = reducePlayStyleMachine(
     { overlay: "identity", stagedPlayStyle: null, stagedPlayStyleSettings: null },

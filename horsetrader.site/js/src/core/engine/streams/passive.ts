@@ -25,4 +25,16 @@ export const eventRacingCarnival = passiveEventStream("event.racing-carnival", "
 export const eventScenarioMissions = passiveEventStream("event.scenario-missions", "scenariomission", (ctx) => ctx.play.scenarioMissions === "on");
 export const eventShowtime = passiveEventStream("event.showtime", "showtime", (ctx) => ctx.play.showtime === "on");
 export const eventSkillTests = passiveEventStream("event.skill-tests", "skilltest", (ctx) => ctx.play.skillTests === "on");
-export const eventTraineeDebuts = passiveEventStream("event.trainee-debuts", "trainee", (ctx) => ctx.play.traineeDebuts === "on");
+// Trainee banners are pull targets the user commits pity against, so the stream
+// is ALWAYS enabled — you can't toggle a committed banner off the lane (reconcile
+// would orphan the claim). The `traineeDebuts` play setting is a *completeness*
+// lever over the incidental 80-carat debut income these banners sometimes hold:
+// off keeps the banner present but blanks its face so that income isn't counted.
+export const eventTraineeDebuts: Stream = {
+  id: "event.trainee-debuts",
+  claims: ["trainee"],
+  mints: [],
+  enabled: () => true,
+  events: (ctx) =>
+    ctx.play.traineeDebuts === "on" ? settleAll(ctx) : settleAll(ctx).map((ev) => ({ ...ev, rewards: {} })),
+};

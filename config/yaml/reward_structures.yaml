@@ -130,33 +130,37 @@ reward-map-training-pass:
       support_tickets: 2
       rainbow_crystal_shards: 1
 
-# Story events — graded by PLAY-STYLE tier (the client's selector, off the
-# play-style slider), not by rank. Each tier is the player's TOTAL story-event
-# income: the three tracked-economy engines folded into one bundle.
+# Story events — graded by COMMITMENT tier, not by rank. Each tier is the
+# player's TOTAL story-event income at an ascending Pt-commitment anchor: the
+# three tracked-economy engines folded into one bundle. Tiers are deliberately
+# preset-agnostic (`tier1`…`tier4`) — the client owns which preset seeds which
+# tier; the bake must not know playstyle names.
 #   - Pt-reward LADDER (scraped, fixed template): cumulative bundle at the tier's
-#     absolute Pt anchor — sweetie 150k / casual 400k / focused ~620k (grabs the
-#     2nd x300 carat row) / dedicated = ceiling.
+#     absolute Pt anchor — tier1 150k / tier2 400k / tier3 ~620k (grabs the
+#     2nd x300 carat row) / tier4 = ceiling.
 #   - BINGO (curated, constant since story-3): 250 carats + 1 gold per clear,
 #     ramping 1/2/3/3 clears across the tiers (the 3rd clear lands ~600k).
 #   - STORY chapters (curated): flat 240 carats (8 × 30) at EVERY tier — even the
-#     sweetie plays for the story.
+#     lightest tier plays for the story.
 # Trailing comments decompose each carat total as ladder + bingo + 240 story.
 # NOT modelled (by design): welfare support cards + the event song (not carat
 # economy — we don't track them), and story-event mission carats (the lone
-# story-11 +250 is a discounted N=1 scenario artifact). `dedicated` == unhinged
-# (one tier; 600k→ceiling is featureless grind — client folds unhinged here).
+# story-11 +250 is a discounted N=1 scenario artifact). tier4 is the ceiling
+# (600k→ceiling is featureless grind — the client folds its top presets here).
 # Two maps keyed by Pt ceiling; the ONLY economy difference between eras is the
-# `dedicated` carat total. Proto era (stories 1–5) is historical, not modelled.
+# `tier4` carat total. Proto era (stories 1–5) is historical, not modelled.
 reward-map-story-1m: # mature era (stories 6–33) — 1,000,000 Pt ceiling
   tiers:
-    sweetie:   { free_carats: 690,  gold_crystal_shards: 1, support_tickets: 1 }                                                # 200+250+240
-    casual:    { free_carats: 1240, gold_crystal_shards: 2, rainbow_crystal_shards: 1, support_tickets: 1, trainee_tickets: 1 } # 500+500+240
-    focused:   { free_carats: 1990, gold_crystal_shards: 3, rainbow_crystal_shards: 2, support_tickets: 2, trainee_tickets: 1 } # 1000+750+240
-    dedicated: { free_carats: 2490, gold_crystal_shards: 3, rainbow_crystal_shards: 3, support_tickets: 2, trainee_tickets: 2 } # 1500+750+240
+    tier0: { free_carats: 0 }                                                                                                 # no participation (explicit zero — empty {} trips fail-loud)
+    tier1: { free_carats: 690,  gold_crystal_shards: 1, support_tickets: 1 }                                                # 200+250+240
+    tier2: { free_carats: 1240, gold_crystal_shards: 2, rainbow_crystal_shards: 1, support_tickets: 1, trainee_tickets: 1 } # 500+500+240
+    tier3: { free_carats: 1990, gold_crystal_shards: 3, rainbow_crystal_shards: 2, support_tickets: 2, trainee_tickets: 1 } # 1000+750+240
+    tier4: { free_carats: 2490, gold_crystal_shards: 3, rainbow_crystal_shards: 3, support_tickets: 2, trainee_tickets: 2 } # 1500+750+240
 
-reward-map-story-1-5m: # current era (stories 34+) — 1,500,000 Pt ceiling; only `dedicated` differs from 1m
+reward-map-story-1-5m: # current era (stories 34+) — 1,500,000 Pt ceiling; only `tier4` differs from 1m
   tiers:
-    sweetie:   { free_carats: 690,  gold_crystal_shards: 1, support_tickets: 1 }                                                # 200+250+240
-    casual:    { free_carats: 1240, gold_crystal_shards: 2, rainbow_crystal_shards: 1, support_tickets: 1, trainee_tickets: 1 } # 500+500+240
-    focused:   { free_carats: 1990, gold_crystal_shards: 3, rainbow_crystal_shards: 2, support_tickets: 2, trainee_tickets: 1 } # 1000+750+240
-    dedicated: { free_carats: 3240, gold_crystal_shards: 3, rainbow_crystal_shards: 3, support_tickets: 2, trainee_tickets: 2 } # 2250+750+240
+    tier0: { free_carats: 0 }                                                                                                 # no participation (explicit zero — empty {} trips fail-loud)
+    tier1: { free_carats: 690,  gold_crystal_shards: 1, support_tickets: 1 }                                                # 200+250+240
+    tier2: { free_carats: 1240, gold_crystal_shards: 2, rainbow_crystal_shards: 1, support_tickets: 1, trainee_tickets: 1 } # 500+500+240
+    tier3: { free_carats: 1990, gold_crystal_shards: 3, rainbow_crystal_shards: 2, support_tickets: 2, trainee_tickets: 1 } # 1000+750+240
+    tier4: { free_carats: 3240, gold_crystal_shards: 3, rainbow_crystal_shards: 3, support_tickets: 2, trainee_tickets: 2 } # 2250+750+240

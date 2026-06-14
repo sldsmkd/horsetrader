@@ -315,17 +315,11 @@ export function mountApp(
   };
   const commitPlayStylePreview = (key: PlayStyleKey, settings: PlayStyleSettings): void => {
     identity.commitPlayStyle(key, settings);
-    sendIdentityEvent({ type: "commit-playstyle" });
+    // Custom keeps the page open (tweaker affordance); presets collapse to the
+    // trainer card — they're a one-and-done streamlined pick.
+    sendIdentityEvent({ type: key === "custom" ? "commit-playstyle-stay" : "commit-playstyle" });
   };
 
-  // Supporter status gates the custom play-style preset. Resolved once at init
-  // (hash + fetch of the published list) — deliberately not re-checked at
-  // runtime; an ID/name edit takes effect on next load.
-  let supporterUnlocked = false;
-  void identity.isSupporter().then((unlocked) => {
-    supporterUnlocked = unlocked;
-    if (unlocked) renderOverlay();
-  });
 
   // Live read of "is a shield (modal child window) up?" — the fallback guard for
   // every spawn control. Suspension already makes the controls unreachable; this
@@ -382,7 +376,10 @@ export function mountApp(
       ...trainerCardOn,
       onTrainerClose: () => sendIdentityEvent({ type: "close-all" }),
       onDiscard: discardPlayStylePreview,
-      onSettingsChange: (settings: PlayStyleSettings) => sendIdentityEvent({ type: "stage-settings", settings }),
+      // Silent: the surface updates the touched control + Apply button in place,
+      // so re-rendering would only thrash (collapsing drawers, resetting scroll).
+      // Staging still persists for the next real render (e.g. opening a modal).
+      onSettingsChange: (settings: PlayStyleSettings) => identityMachine.send({ type: "stage-settings", settings }, { silent: true }),
       onApply: commitPlayStylePreview,
     };
 
@@ -391,27 +388,27 @@ export function mountApp(
     liveResources = null;
 
     if (left === "identity") {
-      children.push(buildTrainerCard(identity, strings, { suspended: anyShield, customUnlocked: supporterUnlocked }, trainerCardOn));
+      children.push(buildTrainerCard(identity, strings, { suspended: anyShield }, trainerCardOn));
     } else if (left === "oshi") {
       children.push(
-        buildTrainerCard(identity, strings, { suspended: true, customUnlocked: supporterUnlocked }, trainerCardOn),
+        buildTrainerCard(identity, strings, { suspended: true }, trainerCardOn),
         buildOshiSelectorOverlay(identity, { onClose: closeOshiSelector }),
       );
     } else if (left === "club") {
       children.push(
-        buildTrainerCard(identity, strings, { suspended: true, customUnlocked: supporterUnlocked }, trainerCardOn),
+        buildTrainerCard(identity, strings, { suspended: true }, trainerCardOn),
         buildClubSelectorOverlay(identity, { onClose: closeClubSelector }),
       );
     } else if (left === "playstyle") {
-      children.push(buildPlayStyleOverlay(identity, strings, identityUi, { suspended: anyShield, customUnlocked: supporterUnlocked }, playStyleOn));
+      children.push(buildPlayStyleOverlay(identity, strings, identityUi, { suspended: anyShield }, playStyleOn));
     } else if (left === "playstyle-oshi") {
       children.push(
-        buildPlayStyleOverlay(identity, strings, identityUi, { suspended: true, customUnlocked: supporterUnlocked }, playStyleOn),
+        buildPlayStyleOverlay(identity, strings, identityUi, { suspended: true }, playStyleOn),
         buildOshiSelectorOverlay(identity, { onClose: closeOshiSelector }),
       );
     } else if (left === "playstyle-club") {
       children.push(
-        buildPlayStyleOverlay(identity, strings, identityUi, { suspended: true, customUnlocked: supporterUnlocked }, playStyleOn),
+        buildPlayStyleOverlay(identity, strings, identityUi, { suspended: true }, playStyleOn),
         buildClubSelectorOverlay(identity, { onClose: closeClubSelector }),
       );
     }

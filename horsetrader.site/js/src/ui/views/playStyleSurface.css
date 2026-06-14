@@ -71,8 +71,8 @@
 }
 
 .playstyle-surface__drawers {
-  display: grid;
-  align-content: start;
+  display: flex;
+  flex-direction: column;
   gap: 0.55rem;
   min-height: 0;
   overflow: auto;
@@ -80,11 +80,17 @@
 }
 
 .playstyle-surface__drawer {
-  width: 100%;
+  /* No width:100% — the flex column already stretches each drawer to full
+     width via align-items, and an explicit content-box 100% + 1px borders
+     overflowed the list by 2px (a stray horizontal scrollbar). */
   border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
   border-radius: 0.45rem;
   background: color-mix(in srgb, Canvas 82%, currentColor 4%);
   overflow: hidden;
+  /* Keep natural height so an open drawer pushes the rest down (and the list
+     scrolls) instead of the flex container shrinking it back to toggle-height —
+     overflow:hidden above would otherwise let its min-size collapse to 0. */
+  flex-shrink: 0;
 }
 
 .playstyle-surface__drawer-toggle {
@@ -161,6 +167,15 @@
 
 .playstyle-surface__drawer-toggle[aria-expanded="true"] + .playstyle-surface__drawer-body {
   display: grid;
+}
+
+/* Passive binary gates share one row — checkboxes across, 1px-hairline split to
+   match the body's row separators. */
+.playstyle-surface__checkbox-row {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr));
+  gap: 1px;
+  background: color-mix(in srgb, currentColor 12%, transparent);
 }
 
 .playstyle-surface__actions {

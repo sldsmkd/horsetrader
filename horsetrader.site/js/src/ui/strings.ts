@@ -6,6 +6,7 @@ import type {
   PlayToggleKey,
   PlayStyleKey,
   ShopTicketKey,
+  StoryKey,
   StrongestTeamKey,
   TeamTrialKey,
 } from "../core/playstyle/index.ts";
@@ -43,7 +44,7 @@ export interface PlayStyleStrings {
     racingCarnival: PlayStyleSettingStrings<PlayToggleKey>;
     showtime: PlayStyleSettingStrings<PlayToggleKey>;
     missions: PlayStyleSettingStrings<MissionKey>;
-    storyEvents: PlayStyleSettingStrings<PlayToggleKey>;
+    storyEvents: PlayStyleSettingStrings<StoryKey>;
     championsMeeting: PlayStyleSettingStrings<ChampionsMeetingKey>;
     shopTickets: PlayStyleSettingStrings<ShopTicketKey>;
     leagueOfHeroes: PlayStyleSettingStrings<LeagueOfHeroesKey>;
@@ -191,8 +192,11 @@ export const UI_STRINGS: UiStrings = {
       storyEvents: {
         title: "Story events",
         steps: {
-          off: { value: "Off", description: "I do not count story event rewards." },
-          on: { value: "On", description: "I show up for story events." },
+          tier0: { value: "Skip", description: "I do not count story event rewards." },
+          tier1: { value: "Story only", description: "I show up for the story and the light Pt rewards." },
+          tier2: { value: "Light grind", description: "I push to around 400k event Pt." },
+          tier3: { value: "Deep grind", description: "I push to ~620k Pt for the second carat row." },
+          tier4: { value: "Ceiling", description: "I grind story events to the Pt ceiling." },
         },
       },
       championsMeeting: {
