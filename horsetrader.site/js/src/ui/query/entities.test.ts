@@ -114,6 +114,9 @@ const ACADEMY: Academy = {
       aliases: [],
     },
   },
+  courses: {},
+  races: {},
+  racetracks: {},
 };
 
 const search = () => createSearchIndex(createBundle(EVENTS, ACADEMY, TEST_CONFIG), "2026-06-05");

@@ -33,6 +33,9 @@ const ACADEMY: Academy = {
     "s-unfav": { character: "char-spe", display: "Unfavourited Support", type: "speed", rarity: "ssr", title: null, release: "2021", thumbnail: null, art: null, aliases: [] },
   },
   trainees: { "t-spe": { character: "char-spe", variant: null, rarity: 3, release: "2021", thumbnail: null, portrait: null, aliases: [] } },
+  courses: {},
+  races: {},
+  racetracks: {},
 };
 
 const bundle = () => createBundle(EVENTS, ACADEMY, TEST_CONFIG);

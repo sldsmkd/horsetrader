@@ -90,3 +90,9 @@ story-014:
     start: 2026-05-18T22:00:00+00:00
     end: 2026-05-29T22:00:00+00:00
     name: "The Promised Hour: Silks & Three Riddles"
+
+story-015:
+  en:
+    start: 2026-06-11T22:00:00+00:00
+    end: 2026-06-22T22:00:00+00:00
+    name: "Search! Solve! Summer!"

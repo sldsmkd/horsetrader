@@ -14,6 +14,9 @@ const ACADEMY: Academy = {
   characters: { "char-1": { name: "Special Week", quote: null, icon: null, portrait: null } },
   supports: { "support-1": { character: "char-1", display: "Special Week", type: "speed", rarity: "ssr", title: null, release: "2021", thumbnail: null, art: null, aliases: [] } },
   trainees: {},
+  courses: {},
+  races: {},
+  racetracks: {},
 };
 
 test("a lookup resolves a present key to its typed record", () => {
