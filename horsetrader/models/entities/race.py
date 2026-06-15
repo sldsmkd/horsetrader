@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, ClassVar
 
 from ethicrawl import ResourceList
@@ -6,6 +6,7 @@ from ethicrawl import ResourceList
 from horsetrader.core import Config, Japlish, SingletonMeta, StableKey
 from horsetrader.enums import RaceGrade, Sources, Surface
 from horsetrader.extractors.gametora import Gametora
+from horsetrader.extractors.static import Static
 from horsetrader.info import Logger
 from horsetrader.models.core import References
 from horsetrader.models.media import CurrenChan, Image, ImageRequest
@@ -44,6 +45,10 @@ class Race(Entity):
     distance: int | None = None
     racetrack: Racetrack | None = None
     banner: Image | None = None
+    # Curated JRA abbreviations the game's mission titles use (ホープフルS for
+    # ホープフルステークス). Folded into `match` so a contracted token resolves
+    # to the fixture — the join Shuttle's translator leans on (#63).
+    aliases: list[str] = field(default_factory=list, kw_only=True)
 
     def match(self, query: str) -> bool:
         return (
@@ -51,6 +56,7 @@ class Race(Entity):
             or self.name.match(query)
             or self.grade.match(query)
             or self.surface.match(query)
+            or any(query.lower() in alias.lower() for alias in self.aliases)
             or (self.racetrack is not None and self.racetrack.match(query))
         )
 
@@ -87,6 +93,25 @@ class Races(Entities[Race], metaclass=SingletonMeta):
         if item.banner is None:
             self._missing_banner_count += 1
             logger.debug(f"Race {item.key} has no banner")
+
+    def _enrichers(self):
+        return (self._enrich_with_aliases,)
+
+    def _enrich_with_aliases(self, r: Race) -> None:
+        """Fold curated JRA abbreviations onto the race (search phrases)."""
+        r.aliases = Static().search_aliases().get(r.key, [])
+
+    def _validate_collection(self) -> None:
+        """Every curated `race-` alias target must name a real race."""
+        missing = {
+            target
+            for target in Static().search_aliases()
+            if target.startswith(Race.KEY_PREFIX) and target not in self
+        }
+        if missing:
+            raise ValueError(
+                f"search_aliases.yaml race target(s) match no race: {sorted(missing)}"
+            )
 
     def _fetch_primary(self) -> list[Race]:
         rt_by_jp = {rt.name.jp: rt for rt in Racetracks().values()}

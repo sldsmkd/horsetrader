@@ -10,6 +10,7 @@ from horsetrader.models.core import References
 from horsetrader.models.rewards import Rewards, reward_for_gametora_icon
 from horsetrader.output._records import MissionRecord
 from horsetrader.semantics import daitaku
+from horsetrader.services import Translate
 
 from .anniversary import classify_anniversary_mission
 from .event import Event
@@ -17,6 +18,15 @@ from .events import Events
 from .scenario import classify_scenario_mission
 
 logger = Logger.get(__name__)
+
+
+def _has_en(title: Japlish) -> bool:
+    """Whether a title already carries an English slot (`.en` raises when unset)."""
+    try:
+        title.en
+        return True
+    except ValueError:
+        return False
 
 
 def jp_start(record: dict) -> datetime:
@@ -62,6 +72,12 @@ def scraped_missions() -> list[dict]:
                 title.en = en["title"]
             except ValueError as exc:
                 logger.warning("Bad EN title for %s: %s", key, exc)
+        if not _has_en(title):
+            # No Global EN (no row, or a bad one) — let Shuttle project one from
+            # the race domain. Recognises only the GⅠ-celebration family and
+            # no-ops otherwise, so this is a pure fallback: it never overwrites a
+            # real scraped EN, and the JP-only fall-through stays the gap signal.
+            title = Translate().mission(title)
 
         periods = Periods([record["period"]])
         references = References(record.get("references", []))
