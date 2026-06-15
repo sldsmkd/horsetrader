@@ -49,6 +49,27 @@ test("a reward-less below-lane event still gets a card, with an empty reward", (
   assert.deepEqual(card!.reward, {}); // no payout, but present
 });
 
+test("an invisible scenario launch is left to the scenario wallpaper", () => {
+  const events: EventsBundle = {
+    events: [
+      {
+        type: "scenario",
+        title: "Project L'Arc",
+        image: "/img/scenarios/scenario-06_thumb.webp",
+        art: "/img/scenarios/scenario-06.webp",
+        start: "2027-03-06",
+        end: "2027-03-06",
+        predicted: true,
+        key: "scenario-06",
+        visible: false,
+      } as EventsBundle["events"][number],
+    ],
+  };
+
+  const cards = belowLaneCards(settled(events), AXIS, NOW);
+  assert.deepEqual(cards, []);
+});
+
 test("visibility is opt-out: an explicit `visible: false` hides the card, absence shows it", () => {
   // The flag isn't in the generated bundle type yet, so set it structurally.
   const events: EventsBundle = {
@@ -98,6 +119,25 @@ test("story cards carry baked banner art when present", () => {
 
   const cards = belowLaneCards(settled(events), AXIS, NOW);
   assert.equal(cards[0]!.banner, "/img/stories/story-015-banner.webp");
+});
+
+test("holiday cards carry baked banner art when present", () => {
+  const events: EventsBundle = {
+    events: [
+      {
+        type: "holiday",
+        name: "Gyaru Week",
+        banner: "/img/holidays/holiday-golden-week-2023-banner.webp",
+        start: "2027-01-07",
+        end: "2027-01-21",
+        predicted: true,
+        key: "holiday-golden-week-2023",
+      },
+    ],
+  };
+
+  const cards = belowLaneCards(settled(events), AXIS, NOW);
+  assert.equal(cards[0]!.banner, "/img/holidays/holiday-golden-week-2023-banner.webp");
 });
 
 test("past cards are marked after their end date", () => {

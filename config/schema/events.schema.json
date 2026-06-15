@@ -1730,6 +1730,16 @@
         "name": {
           "type": "string"
         },
+        "banner": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "start": {
           "type": "string"
         },

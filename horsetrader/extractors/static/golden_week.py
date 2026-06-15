@@ -35,10 +35,11 @@ def load() -> list[dict]:
     """Curated Golden Week launches (JP + optional EN), from the merged store.
 
     Each record has key, name (the themed title — "Golshi Week", "Gyaru Week",
-    …), period (JST window), source, a 'rewards' key (baked-shape mapping |
-    None), and an 'en' key (dict | None) carrying the EN period + source when
-    shipped. Periods are real windows (`start` + per-region `duration`), not the
-    old span-0 anchor points; the EN window inherits the JP run length.
+    …), period (JST window), source, an optional `banner_url`, a 'rewards' key
+    (baked-shape mapping | None), and an 'en' key (dict | None) carrying the EN
+    period + source when shipped. Periods are real windows (`start` + per-region
+    `duration`), not the old span-0 anchor points; the EN window inherits the JP
+    run length.
     """
     source = store.source()
     records: list[dict] = []
@@ -65,12 +66,15 @@ def load() -> list[dict]:
         rewards = top.get("rewards")
         if rewards is not None and not isinstance(rewards, dict):
             raise ValueError(f"{where}: rewards must be a mapping")
+        banner = top.get("banner")
+        banner_url = str(banner).strip() if banner else None
 
         records.append({
             "key": str(key),
             "name": name,
             "period": jp_period,
             "source": source,
+            "banner_url": banner_url,
             "rewards": rewards,
             "visible": visible,
             "en": en,

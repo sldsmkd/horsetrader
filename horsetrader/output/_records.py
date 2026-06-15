@@ -317,6 +317,7 @@ class HolidayRecord(EventRecord, tag="holiday"):
     # envelope (a real start/end window, not the old span-0 point) plus the
     # themed display `name`. Replaces the synthetic Golden Week anchors.
     name: str
+    banner: str | None | UnsetType = UNSET
 
 
 # Concrete event records, discriminated on ``type``. ``EventsBundle.events`` is

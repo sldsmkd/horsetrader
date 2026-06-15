@@ -369,6 +369,7 @@ export interface TrainingPassRecord {
 export interface HolidayRecord {
   type: "holiday";
   name: string;
+  banner?: string | null;
   start: string;
   end: string;
   predicted: boolean;

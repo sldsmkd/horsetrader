@@ -76,9 +76,7 @@ function calendarEvent(event: BakedEventRecord, timeZone: string): EventRecord {
 }
 
 export function createBundle(events: EventsBundle, academy: Academy, config: ConfigBundle, timeZone: string = UTC_TIME_ZONE): Bundle {
-  const calendarEvents = events.events
-    .filter((event) => event.visible !== false)
-    .map((event) => calendarEvent(event, timeZone));
+  const calendarEvents = events.events.map((event) => calendarEvent(event, timeZone));
   const byKey = new Map<string, EventRecord>(calendarEvents.map((e) => [e.key, e]));
   const characters = Object.entries(academy.characters).map(([id, record]) => ({ id, record }));
   const supports = Object.entries(academy.supports).map(([id, record]) => ({ id, record }));
