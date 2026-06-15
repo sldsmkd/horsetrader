@@ -167,8 +167,9 @@ export function mountApp(
   };
 
   // The minimap is the primary navigation: dragging its track seeks, which pans
-  // the timeline (`centerOn`); the timeline pushes its view-centre date back so
-  // the window tracks the pan — a two-way cheap-path binding, no broadcast.
+  // the timeline (`centerOn`); the timeline pushes its view-centre date and
+  // vertical well offset back so the window tracks the pan — a two-way cheap-path
+  // binding, no broadcast.
   const mini = minimap({ onSeek: (date) => tl.centerOn(date) });
 
   // Track the current view-centre date for the Resources projected block. Updated
@@ -182,14 +183,15 @@ export function mountApp(
 
   // The cheap path: the view centre *is* the focus. The timeline hands us the
   // centre date on every pan; we read the cached series into the menubar and move
-  // the minimap window. No broadcast — a 60 Hz pan stays off the render path.
+  // the minimap window, including its vertical well offset. No broadcast — a
+  // 60 Hz pan stays off the render path.
   const tl = timeline({
-    onView: (date) => {
+    onView: (date, verticalOffset) => {
       viewDate = date;
       const balance = coord.balanceAt(date);
       menu.setDate(date);
       menu.setResources(balance);
-      mini.setView(date);
+      mini.setView(date, verticalOffset);
       book.setView(date);
       liveResources?.update({ viewDate: date, projected: balance });
     },

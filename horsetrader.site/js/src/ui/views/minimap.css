@@ -109,7 +109,7 @@
 .minimap__window {
   position: absolute;
   top: 0;
-  bottom: 0;
+  height: 66.666%;
   width: 56px;
   border: 1px solid color-mix(in srgb, currentColor 45%, transparent);
   border-radius: 3px;
