@@ -10,6 +10,8 @@ from .characters import GametoraCharacters
 from .items import GametoraItems
 from .legend_races import GametoraLegendRaces
 from .missions import GametoraMissions
+from .races import GametoraRaces
+from .racetracks import GametoraRacetracks
 from .story import GametoraStories
 from .support import GametoraSupport
 from .supports import GametoraSupports
@@ -33,6 +35,8 @@ class Gametora(metaclass=SingletonMeta):
         self._items_scraper = GametoraItems()
         self._legend_races_scraper = GametoraLegendRaces()
         self._missions_scraper = GametoraMissions()
+        self._races_scraper = GametoraRaces()
+        self._racetracks_scraper = GametoraRacetracks()
         self._stories_scraper = GametoraStories()
         self._supports_scraper = GametoraSupports()
         self._support_scraper = GametoraSupport()
@@ -65,6 +69,21 @@ class Gametora(metaclass=SingletonMeta):
         """Fetch the EN limited-mission overlay (EN title + UTC window), keyed by
         the shared mission-NNN logo id, across Global history years."""
         return self._missions_scraper.missions_en()
+
+    def races(self) -> Sequence[dict]:
+        """Fetch real race fixtures (JP/EN name + grade + surface + distance +
+        racetrack + banner), keyed race-<banner-id>. Gamey calendar-less
+        pseudo-races (Debut/Maiden/Exhibition) are filtered out."""
+        return self._races_scraper.races()
+
+    def racetracks(self) -> Sequence[dict]:
+        """Fetch the racetrack index (icons + JP/EN names), keyed racetrack-<id>."""
+        return self._racetracks_scraper.racetracks()
+
+    def courses(self) -> Sequence[dict]:
+        """Fetch course records (surface + distance + variant + diagram) from each
+        racetrack detail page, keyed course-<id> with parent racetrack key."""
+        return self._racetracks_scraper.courses()
 
     def stories(self) -> Sequence[dict]:
         """Fetch Story event index."""

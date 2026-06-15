@@ -94,12 +94,41 @@ class TraineeRecord(msgspec.Struct):
 
 
 @eishin
+class RacetrackRecord(msgspec.Struct):
+    name: str | None
+    icon: str | None
+
+
+@eishin
+class CourseRecord(msgspec.Struct):
+    racetrack: str
+    surface: str
+    distance: int
+    variant: str | None
+    diagram: str | None
+
+
+@eishin
+class RaceRecord(msgspec.Struct):
+    name: str | None
+    grade: str
+    surface: str
+    # null for the JBC trio — real G1s run at a randomly generated distance/venue.
+    distance: int | None
+    racetrack: str | None
+    banner: str | None
+
+
+@eishin
 class Academy(msgspec.Struct):
-    """Top-level shape of ``academy.json`` — the three entity collections, each a
+    """Top-level shape of ``academy.json`` — the entity collections, each a
     stable-key → record map (the keys are the collection class names lowercased,
     matching ``Bake.academy``)."""
 
     characters: dict[str, CharacterRecord]
+    courses: dict[str, CourseRecord]
+    races: dict[str, RaceRecord]
+    racetracks: dict[str, RacetrackRecord]
     supports: dict[str, SupportRecord]
     trainees: dict[str, TraineeRecord]
 

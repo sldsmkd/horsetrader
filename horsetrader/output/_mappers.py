@@ -1,6 +1,20 @@
-from horsetrader.models.entities import Character, Support, Trainee
+from horsetrader.models.entities import (
+    Character,
+    Course,
+    Race,
+    Racetrack,
+    Support,
+    Trainee,
+)
 
-from ._records import CharacterRecord, SupportRecord, TraineeRecord
+from ._records import (
+    CharacterRecord,
+    CourseRecord,
+    RaceRecord,
+    RacetrackRecord,
+    SupportRecord,
+    TraineeRecord,
+)
 
 
 def _search_aliases(character: Character | None, own: list[str]) -> list[str]:
@@ -18,6 +32,34 @@ def _map_character(c: Character) -> CharacterRecord:
         quote=c.quote,
         icon=str(c.icon.url) if c.icon else None,
         portrait=str(c.portrait.url) if c.portrait else None,
+    )
+
+
+def _map_racetrack(r: Racetrack) -> RacetrackRecord:
+    return RacetrackRecord(
+        name=r.name,
+        icon=str(r.icon.url) if r.icon else None,
+    )
+
+
+def _map_course(c: Course) -> CourseRecord:
+    return CourseRecord(
+        racetrack=c.racetrack.key,
+        surface=c.surface.value,
+        distance=c.distance,
+        variant=c.variant.value if c.variant else None,
+        diagram=str(c.diagram.url) if c.diagram else None,
+    )
+
+
+def _map_race(r: Race) -> RaceRecord:
+    return RaceRecord(
+        name=r.name,
+        grade=r.grade.value,
+        surface=r.surface.value,
+        distance=r.distance,
+        racetrack=r.racetrack.key if r.racetrack else None,
+        banner=str(r.banner.url) if r.banner else None,
     )
 
 
@@ -52,6 +94,9 @@ def _map_trainee(t: Trainee) -> TraineeRecord:
 # violate and the table stays. (Events own their wire shape via `Event.bake`.)
 MAPPERS = {
     Character: _map_character,
+    Course: _map_course,
+    Race: _map_race,
+    Racetrack: _map_racetrack,
     Support: _map_support,
     Trainee: _map_trainee,
 }

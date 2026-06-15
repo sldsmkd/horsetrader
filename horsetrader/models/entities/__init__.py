@@ -3,6 +3,10 @@ from .entity import Entity
 
 from .character import Character, Characters, ThreeSizes
 
+from .racetrack import Racetrack, Racetracks
+from .course import Course, Courses
+from .race import Race, Races
+
 from .support import Support, Supports
 from .trainee import Trainee, Trainees
 
@@ -11,6 +15,15 @@ __all__ = [
     "Character",
     "Characters",
     "ThreeSizes",
+    # Racetracks
+    "Racetrack",
+    "Racetracks",
+    # Courses
+    "Course",
+    "Courses",
+    # Races
+    "Race",
+    "Races",
     # Supports
     "Support",
     "Supports",
