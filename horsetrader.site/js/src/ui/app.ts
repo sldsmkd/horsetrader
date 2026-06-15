@@ -24,6 +24,7 @@ import "./app.css";
 import { h, qs } from "./h.ts";
 import { timeline } from "./views/timeline.ts";
 import { minimap } from "./views/minimap.ts";
+import { scenarioArt } from "./views/scenarioArt.ts";
 import { perfHud } from "./views/perfHud.ts";
 import type { BakeStats } from "../core/bundle/stats.gen.ts";
 import { belowCard } from "./views/belowCard.ts";
@@ -41,6 +42,7 @@ import { tazunaSurface } from "./views/tazunaSurface.ts";
 import { bookmarks } from "./views/bookmarks.ts";
 import { bookmarkRows, nextBookmarkDate } from "./select/bookmarks.ts";
 import { plannerRows } from "./select/planner.ts";
+import { scenarioLookup } from "./select/scenario.ts";
 import { buildTrainerCard, buildOshiSelectorOverlay, buildClubSelectorOverlay, buildPlayStyleOverlay } from "./views/identityOverlay.ts";
 import { menubar } from "./views/menubar.ts";
 import type { RightSurface } from "./views/menubar.ts";
@@ -182,6 +184,8 @@ export function mountApp(
   // vertical well offset back so the window tracks the pan — a two-way cheap-path
   // binding, no broadcast.
   const mini = minimap({ onSeek: (date) => tl.centerOn(date) });
+  const scen = scenarioArt();
+  const scenarioAt = scenarioLookup(bundle);
 
   // Track the current view-centre date for the Resources projected block. Updated
   // on the cheap path (every pan) so Resources always shows the right projection.
@@ -203,6 +207,7 @@ export function mountApp(
       menu.setDate(date);
       menu.setResources(balance);
       mini.setView(date, verticalOffset);
+      scen.setScenario(scenarioAt(date));
       book.setView(date);
       liveResources?.update({ viewDate: date, projected: balance });
     },
@@ -535,11 +540,11 @@ export function mountApp(
   view.subscribe(renderBookmarks);
   coord.subscribe(renderBookmarks);
 
-  // Mount order is the z-band: timeline (back), the bookmarks drawer, then the
-  // overlay layer (paints over the drawer where they share the top-left zone), with
-  // the menubar/minimap lifted above all of it (their own z-index) so the always-
-  // reachable chrome is never occluded.
-  root.replaceChildren(menu.el, tl.el, book.el, mini.el, overlayLayer, hud.el);
+  // Mount order is the z-band: scenario wallpaper (back), timeline, the bookmarks
+  // drawer, then the overlay layer (paints over the drawer where they share the
+  // top-left zone), with the menubar/minimap lifted above all of it (their own
+  // z-index) so the always-reachable chrome is never occluded.
+  root.replaceChildren(menu.el, scen.el, tl.el, book.el, mini.el, overlayLayer, hud.el);
   refresh();
   renderOverlay();
   renderBookmarks();

@@ -5,7 +5,7 @@ scenario-01:
   jp:
     name: "URAファイナルズ"
     start: 2021-02-24T12:00:00+09:00
-  art: https://media.gametora.com/umamusume/scenarios/hero/thumb/1.png
+  art: https://media.gametora.com/umamusume/scenarios/hero/1.png
 
 scenario-02:
   en:
@@ -14,7 +14,7 @@ scenario-02:
   jp:
     name: "アオハル杯"
     start: 2021-08-30T12:00:00+09:00
-  art: https://media.gametora.com/umamusume/scenarios/hero/thumb/2.png
+  art: https://media.gametora.com/umamusume/scenarios/hero/2.png
 
 scenario-03:
   en:
@@ -23,7 +23,7 @@ scenario-03:
   jp:
     name: "Make a new track!!"
     start: 2022-02-24T12:00:00+09:00
-  art: https://media.gametora.com/umamusume/scenarios/hero/thumb/4.png
+  art: https://media.gametora.com/umamusume/scenarios/hero/4.png
 
 scenario-04:
   en:
@@ -31,7 +31,7 @@ scenario-04:
   jp:
     name: "グランドライブ"
     start: 2022-08-24T12:00:00+09:00
-  art: https://media.gametora.com/umamusume/scenarios/hero/thumb/3.png
+  art: https://media.gametora.com/umamusume/scenarios/hero/3.png
 
 scenario-05:
   en:
@@ -39,7 +39,7 @@ scenario-05:
   jp:
     name: "グランドマスターズ"
     start: 2023-02-24T12:00:00+09:00
-  art: https://media.gametora.com/umamusume/scenarios/hero/thumb/5.png
+  art: https://media.gametora.com/umamusume/scenarios/hero/5.png
 
 scenario-06:
   en:
@@ -47,7 +47,7 @@ scenario-06:
   jp:
     name: "プロジェクトL'Arc"
     start: 2023-08-24T12:00:00+09:00
-  art: https://media.gametora.com/umamusume/scenarios/hero/thumb/6.png
+  art: https://media.gametora.com/umamusume/scenarios/hero/6.png
 
 scenario-07:
   en:
@@ -55,7 +55,7 @@ scenario-07:
   jp:
     name: "U.A.F. Ready GO!"
     start: 2024-02-24T12:00:00+09:00
-  art: https://media.gametora.com/umamusume/scenarios/hero/thumb/7.png
+  art: https://media.gametora.com/umamusume/scenarios/hero/7.png
 
 scenario-08:
   en:
@@ -63,7 +63,7 @@ scenario-08:
   jp:
     name: "大豊食祭"
     start: 2024-06-26T12:00:00+09:00
-  art: https://media.gametora.com/umamusume/scenarios/hero/thumb/8.png
+  art: https://media.gametora.com/umamusume/scenarios/hero/8.png
 
 scenario-09:
   en:
@@ -71,7 +71,7 @@ scenario-09:
   jp:
     name: "走れ！メカウマ娘"
     start: 2024-10-29T12:00:00+09:00
-  art: https://media.gametora.com/umamusume/scenarios/hero/thumb/9.png
+  art: https://media.gametora.com/umamusume/scenarios/hero/9.png
 
 scenario-10:
   en:
@@ -79,7 +79,7 @@ scenario-10:
   jp:
     name: "The Twinkle Legends"
     start: 2025-02-24T12:00:00+09:00
-  art: https://media.gametora.com/umamusume/scenarios/hero/thumb/10.png
+  art: https://media.gametora.com/umamusume/scenarios/hero/10.png
 
 scenario-11:
   en:
@@ -87,7 +87,7 @@ scenario-11:
   jp:
     name: "無人島へようこそ"
     start: 2025-06-27T12:00:00+09:00
-  art: https://media.gametora.com/umamusume/scenarios/hero/thumb/11.png
+  art: https://media.gametora.com/umamusume/scenarios/hero/11.png
 
 scenario-12:
   en:
@@ -95,7 +95,7 @@ scenario-12:
   jp:
     name: "ゆこま温泉郷"
     start: 2025-10-29T12:00:00+09:00
-  art: https://media.gametora.com/umamusume/scenarios/hero/thumb/12.png
+  art: https://media.gametora.com/umamusume/scenarios/hero/12.png
 
 scenario-13:
   en:
@@ -103,4 +103,4 @@ scenario-13:
   jp:
     name: "Beyond Dreams"
     start: 2026-02-24T12:00:00+09:00
-  art: https://media.gametora.com/umamusume/scenarios/hero/thumb/13.png
+  art: https://media.gametora.com/umamusume/scenarios/hero/13.png

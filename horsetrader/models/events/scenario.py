@@ -17,6 +17,9 @@ from .events import Events
 
 logger = Logger.get(__name__)
 
+SCENARIO_ART_WIDTH = 512
+SCENARIO_THUMB_WIDTH = 256
+
 
 @functools.cache
 def _scenario_launch_dates() -> dict[date, StableKey]:
@@ -89,8 +92,12 @@ class Scenarios(Events[Scenario], metaclass=SingletonMeta):
             for r in records
             if r.get("art_url")
         ]
-        art_images = self._process_images(url_by_key)
-        thumb_images = self._process_images(url_by_key, width=256)
+        art_images = self._process_images(url_by_key, width=SCENARIO_ART_WIDTH)
+        thumb_images = self._process_images(
+            url_by_key,
+            suffix="_thumb",
+            width=SCENARIO_THUMB_WIDTH,
+        )
 
         scenarios: list[Scenario] = []
         for record in records:
@@ -139,16 +146,16 @@ class Scenarios(Events[Scenario], metaclass=SingletonMeta):
     @staticmethod
     def _process_images(
         url_by_key: list[tuple[str, str]],
+        suffix: str = "",
         width: int | None = None,
     ) -> dict[str, Image | None]:
         outdir = Config().static / "img" / "scenarios"
         requests: ResourceList[ImageRequest] = ResourceList()
         for key, art_url in url_by_key:
-            stem = f"{key}_thumb" if width else key
             requests.append(
                 ImageRequest(
                     url=Url(art_url),
-                    outfile=outdir / f"{stem}.webp",
+                    outfile=outdir / f"{key}{suffix}.webp",
                     width=width,
                 )
             )

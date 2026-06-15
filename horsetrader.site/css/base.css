@@ -28,6 +28,7 @@ body {
 #app {
   position: fixed;
   inset: 0;
+  isolation: isolate;
 }
 
 /* The pre-hydration splash in index.html. */

@@ -1,0 +1,80 @@
+.scenario-art {
+  position: fixed;
+  right: 1rem;
+  bottom: calc(var(--minimap-h) + 1rem);
+  z-index: -100;
+  width: min(16.75rem, 25vw);
+  max-height: min(16.75rem, 31vh);
+  margin: 0;
+  pointer-events: none;
+  opacity: 0.72;
+  filter: drop-shadow(0 0.75rem 1.6rem rgba(0, 0, 0, 0.45));
+  transition: opacity 160ms ease;
+  --scenario-art-brightness: 1;
+  --scenario-art-visibility: 1;
+}
+
+.scenario-art--empty {
+  display: none;
+}
+
+.scenario-art__image {
+  display: block;
+  width: 100%;
+  max-height: inherit;
+  object-fit: contain;
+  opacity: var(--scenario-art-visibility);
+  filter: brightness(var(--scenario-art-brightness));
+  transition:
+    filter 180ms ease,
+    opacity 180ms ease;
+}
+
+.scenario-art--enter .scenario-art__image {
+  animation: scenario-art-pop 180ms ease-out;
+}
+
+.scenario-art__title {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 0.25rem 0.45rem;
+  border-radius: 0.35rem 0 0 0;
+  background: color-mix(in srgb, Canvas 68%, transparent);
+  color: color-mix(in srgb, currentColor 86%, transparent);
+  font-size: 0.78rem;
+  line-height: 1.2;
+  opacity: var(--scenario-art-visibility);
+  text-align: right;
+  transition: opacity 180ms ease;
+}
+
+@keyframes scenario-art-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.scenario-art--predicted .scenario-art__title::after {
+  content: " forecast";
+  color: color-mix(in srgb, currentColor 62%, transparent);
+}
+
+@media (max-width: 720px) {
+  .scenario-art {
+    width: min(12rem, 36vw);
+    opacity: 0.54;
+  }
+
+  .scenario-art__title {
+    display: none;
+  }
+}

@@ -60,8 +60,9 @@ class Image:
         if outfile is not None and outfile.exists():
             with PillowImage.open(outfile) as img:
                 self._width, self._height = img.size
-            self._processed = True
-            return True
+            if width is None or self._width == width:
+                self._processed = True
+                return True
 
         content = self._fetch_content()
         if content is None:
