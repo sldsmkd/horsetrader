@@ -1,10 +1,11 @@
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Type
 
 import msgspec
 
 from horsetrader.core import Config, JST, Japlish
-from horsetrader.info import Logger
+from horsetrader.info import Logger, Metrics
 from horsetrader.models.config import GachaConfig
 from horsetrader.models.core import TracenModel, TracenModels
 from horsetrader.models.entities.entities import Entities
@@ -14,35 +15,38 @@ from horsetrader.semantics import eishin
 from horsetrader.timeline import Timeline
 
 from ._mappers import MAPPERS
-from ._records import Academy, ConfigBundle, EventsBundle
+from ._records import Academy, BakeStats, ConfigBundle, EventsBundle
 
 logger = Logger.get(__name__)
 
 
-def _enc_hook(obj: object) -> object:
-    # Every `Japlish` in the bundle funnels through here at encode time — the one
-    # place Eishin "encounters" each one. The wire is EN-facing, so render the
-    # EN-preferring `.display`; if no English translation is attached, `.display`
-    # still falls back to JP/base (the bundle stays populated). Logged at INFO,
-    # not WARNING: the automated race-lookup gains (#63) are captured, and the
-    # residue is known manual-curation work (NAR/overseas race EN + support-card
-    # flavour quotes), so the gap is a tracked backlog, not a regression to alarm on.
-    if isinstance(obj, Japlish):
-        try:
-            obj.en
-        except ValueError:
-            logger.info(f"Japlish has no EN translation, baking fallback: {obj!r}")
-        return obj.display
-
-    # Stable keys (and any other `str` subclass) flow into `str`-typed record
-    # fields; msgspec's strict encoder won't auto-coerce a subclass, so narrow it.
-    if isinstance(obj, str):
-        return str(obj)
-    raise NotImplementedError(f"Unencodable bake type: {type(obj).__name__}")
-
-
 @eishin
 class Bake:
+    @staticmethod
+    def _enc_hook(obj: object) -> object:
+        # Every `Japlish` in the bundle funnels through here at encode time — the one
+        # place Eishin "encounters" each one. The wire is EN-facing, so render the
+        # EN-preferring `.display`; if no English translation is attached, `.display`
+        # still falls back to JP/base (the bundle stays populated). Logged at INFO,
+        # not WARNING: the automated race-lookup gains (#63) are captured, and the
+        # residue is known manual-curation work (NAR/overseas race EN + support-card
+        # flavour quotes), so the gap is a tracked backlog, not a regression to alarm
+        # on. The distinct misses are tracked on `Metrics` (`bake.no_en`) — `stats()`
+        # reads the count back for the MANGOHORSE NO-EN gauge.
+        if isinstance(obj, Japlish):
+            try:
+                obj.en
+            except ValueError:
+                Metrics().track("bake.no_en", repr(obj))
+                logger.info(f"Japlish has no EN translation, baking fallback: {obj!r}")
+            return obj.display
+
+        # Stable keys (and any other `str` subclass) flow into `str`-typed record
+        # fields; msgspec's strict encoder won't auto-coerce a subclass, so narrow it.
+        if isinstance(obj, str):
+            return str(obj)
+        raise NotImplementedError(f"Unencodable bake type: {type(obj).__name__}")
+
     @staticmethod
     def academy(models: list[TracenModels]) -> bool:
         """Write academy.json (+ schema) from the entity collections.
@@ -110,6 +114,41 @@ class Bake:
         )
 
     @staticmethod
+    def stats(timeline: Timeline, models: list[TracenModels], build_s: float) -> bool:
+        """Write stats.json — the bake's vanity counters for the MANGOHORSE HUD.
+
+        Called last in the run so the `no_en` tally is complete: the encode hook
+        accumulates it across the academy/events/config writes. `predicted` /
+        `confirmed` split the baked events on their selected-tz period's `predicted`
+        flag (forecast vs already-announced EN window); `entities` rolls up every
+        academy collection's count. `build_s` is the run's total wall-clock, handed
+        in by the orchestrator (the only timing the bake itself doesn't measure)."""
+        events = list(timeline)
+        predicted = sum(
+            next(p for p in e.periods if p.tzinfo == timeline.tz).predicted
+            for e in events
+        )
+        entities = sum(len(m) for m in models if isinstance(m, Entities))
+        # Source documents Shakur read this run — the HTML + JSON she fetched/served
+        # to build the bundle. The customer-facing depth number.
+        sources = Metrics().count("shakur.content_type.html") + Metrics().count(
+            "shakur.content_type.json"
+        )
+        bundle = BakeStats(
+            # UTC: the Global server runs on UTC and players calibrate around it, so
+            # the freshness stamp rides the same clock the audience already reads.
+            baked_at=datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            build_s=round(build_s, 2),
+            events=len(events),
+            predicted=predicted,
+            confirmed=len(events) - predicted,
+            entities=entities,
+            sources=sources,
+            no_en=Metrics().count("bake.no_en"),
+        )
+        return Bake._write(bundle, BakeStats, "stats.json")
+
+    @staticmethod
     def timeline(models: list[TracenModels]) -> Timeline:
         """Build the base JST Timeline from all Events collections in the stage list."""
         tl = Timeline(JST)
@@ -131,7 +170,7 @@ class Bake:
         correct-by-construction (the records are typed); this closes the loop
         for anything the type system can't catch (e.g. the open rewards dict).
         """
-        blob = msgspec.json.encode(bundle, enc_hook=_enc_hook)
+        blob = msgspec.json.encode(bundle, enc_hook=Bake._enc_hook)
         msgspec.json.decode(blob, type=schema_type)  # fail loud before writing
 
         json_dir = Config().static / "json"

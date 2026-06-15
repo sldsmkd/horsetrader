@@ -124,6 +124,21 @@ class UmaClientCache:
         )
 
     @staticmethod
+    def content_label(url: Url, mime_type: str | None = None) -> str:
+        """Coarse content-type bucket for metrics: the file extension this URL maps
+        to. Prefers the response ``mime_type`` (the Content-Type header); falls back
+        to the extension of the cache file already on disk — so a cache hit, which
+        carries no header, still classifies — and ``"unknown"`` if neither resolves.
+        Header and disk paths share the one vocabulary (the mime↔extension maps)."""
+        _ext = UmaClientCache._extension_from_mime(mime_type)
+        if _ext is not None:
+            return _ext
+        _existing = UmaClientCache._existing_cache_paths(url)
+        if _existing:
+            return _existing[-1].suffix.lstrip(".").lower() or "unknown"
+        return "unknown"
+
+    @staticmethod
     def cache_path(url: Url, mime_type: str | None = None):
         _path = url.path.lower()
         _is_binary = UmaClientCache.is_binary(url, mime_type=mime_type)

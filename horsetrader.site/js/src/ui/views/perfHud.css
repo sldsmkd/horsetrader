@@ -38,6 +38,16 @@
   background: rgba(0, 0, 0, 0.22);
 }
 
+.perf-hud__divider {
+  margin: 0.45rem 0 0.3rem;
+  padding-top: 0.4rem;
+  border-top: 1px solid color-mix(in srgb, #7cf0c4 18%, transparent);
+  color: color-mix(in srgb, #7cf0c4 70%, transparent);
+  font-size: 0.62rem;
+  letter-spacing: 0.02em;
+  text-align: center;
+}
+
 .perf-hud__row {
   display: flex;
   justify-content: space-between;

@@ -25,6 +25,7 @@ import { h, qs } from "./h.ts";
 import { timeline } from "./views/timeline.ts";
 import { minimap } from "./views/minimap.ts";
 import { perfHud } from "./views/perfHud.ts";
+import type { BakeStats } from "../core/bundle/stats.gen.ts";
 import { belowCard } from "./views/belowCard.ts";
 import { bannerGroup } from "./views/bannerGroup.ts";
 import type { RushBinding } from "./widgets/rushedToggle.ts";
@@ -147,6 +148,7 @@ export function mountApp(
   bundle: Bundle,
   now: CalendarDate,
   strings: UiStrings,
+  bakeStats: BakeStats,
   root: HTMLElement = qs("#app"),
 ): void {
   const view = createViewStore();
@@ -168,6 +170,7 @@ export function mountApp(
   };
   let cardStats = { cards: 0, aboveCards: 0, belowCards: 0 };
   const hud = perfHud({
+    bake: bakeStats,
     stats: () => ({
       ...cardStats,
       domNodes: root.getElementsByTagName("*").length,

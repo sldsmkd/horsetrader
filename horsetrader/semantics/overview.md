@@ -39,7 +39,7 @@ The horsetrader ETL doesn't use functional module names (`scrapers/`, `predictor
 | **Shuttle** | Japlish / translations — the JP↔EN language seam (names, aliases, romanisation, locale overrides) |
 | **Curren Chan** | Image processing — resizes source images and re-encodes to WebP |
 | **Tazuna** | Early-load + grab-bag utilities (cross-cutting) |
-| **Spechan** | Logging — writes letters home about what's happening (cross-cutting) |
+| **Spechan** | Observability — letters home about what's happening (logs) and how much/many/long (metrics), cross-cutting |
 
 Dataflow: **Rudolf** conducts → **Transcend** scrapes (using **Shakur** for the wire/cache) and stamps both JP and any confirmed UTC Periods at extraction time → **Digitan** + **Daitaku** + **Yayoi** supply entity facts, date primitives, and event rewards → **Matikanefukukitaru** fills in predicted Global dates for what's still unscheduled → **Eishin** bakes the JSON, **Curren Chan** polishes the media. **Tazuna** and **Spechan** sit alongside, called from anywhere.
 
@@ -59,7 +59,7 @@ Role text lives in each decorator's docstring (see `<character>.py`); the per-ch
 | [`@rudolf`](rudolf.py) | Pipeline orchestration | [rudolf.md](rudolf.md) |
 | [`@shakur`](shakur.py) | Transit / web transport | [shakur.md](shakur.md) |
 | [`@shuttle`](shuttle.py) | Japlish / translations — JP↔EN language seam | [shuttle.md](shuttle.md) |
-| [`@spechan`](spechan.py) | Logging (cross-cutting) | [spechan.md](spechan.md) |
+| [`@spechan`](spechan.py) | Observability — logging + metrics (cross-cutting) | [spechan.md](spechan.md) |
 | [`@tazuna`](tazuna.py) | Early-load + utilities (cross-cutting) | [tazuna.md](tazuna.md) |
 | [`@transcend`](transcend.py) | Ingest / scraping | [transcend.md](transcend.md) |
 | [`@yayoi`](yayoi.py) | Rewards — event handouts | [yayoi.md](yayoi.md) |

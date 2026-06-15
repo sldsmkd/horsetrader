@@ -1,5 +1,6 @@
 from datetime import timezone
 
+from horsetrader.info import Metrics
 from horsetrader.semantics import matikanefukukitaru
 
 from .predictors import (
@@ -30,13 +31,10 @@ class Predict:
 
     Returns a UTC Timeline built from all events carrying a UTC period (confirmed and
     predicted).
+
+    Placement counts are pushed to ``Metrics`` under the ``predict.*`` namespace as
+    each pass runs — Mati keeps no tally of her own; Spechan is the single store.
     """
-
-    def __init__(self) -> None:
-        self._stats: dict[str, int] = {}
-
-    def stats(self) -> dict[str, int]:
-        return self._stats
 
     def predict(self, timeline: Timeline) -> Timeline:
         for predictor in (
@@ -54,7 +52,7 @@ class Predict:
             BannerPredictor(timeline),
         ):
             key = type(predictor).__name__.lower().removesuffix("predictor")
-            self._stats[key] = predictor.predict(timeline)
+            Metrics().set(f"predict.{key}", predictor.predict(timeline))
 
         # CM windows are final-anchored and longer than their JP scrape, so they
         # need a dedicated pass before the generic fallthrough would mis-map them
@@ -63,12 +61,12 @@ class Predict:
         # events, so their placements are reported apart.
         meetings = ChampionsMeetingPredictor(timeline)
         meetings.predict(timeline)
-        self._stats["championsmeeting"] = meetings.placed["ChampionsMeeting"]
-        self._stats["leagueofheroes"] = meetings.placed["LeagueOfHeroes"]
+        Metrics().set("predict.championsmeeting", meetings.placed["ChampionsMeeting"])
+        Metrics().set("predict.leagueofheroes", meetings.placed["LeagueOfHeroes"])
 
         # Steady ~monthly cadence with curated EN anchors — a type-specific
         # mapper tracks it better than the cross-type fallthrough.
-        self._stats["legendrace"] = LegendRacePredictor(timeline).predict(timeline)
+        Metrics().set("predict.legendrace", LegendRacePredictor(timeline).predict(timeline))
 
         # Dead last: the generic catch-all, mapping anything still missing a UTC
         # period through a DateMapper built from everything scheduled above. Its
@@ -78,14 +76,15 @@ class Predict:
         # stays an actionable signal.
         fallthrough = FallthroughPredictor(timeline)
         fallthrough.predict(timeline)
-        self._stats["fallthrough"] = fallthrough.surprises
-        self._stats["uncategorised"] = fallthrough.uncategorised
+        Metrics().set("predict.fallthrough", fallthrough.surprises)
+        Metrics().set("predict.uncategorised", fallthrough.uncategorised)
 
         # Not a placement: reshape the anniversary missions' EN spans to their
         # curated login-bonus window (`en.duration`), over both predicted and
         # confirmed periods. Runs last so every EN period it touches already exists.
-        self._stats["anniversarymissionwindow"] = shape_anniversary_mission_windows(
-            timeline
+        Metrics().set(
+            "predict.anniversarymissionwindow",
+            shape_anniversary_mission_windows(timeline),
         )
 
         # Dead last and unlike the rest: the Training Pass has no scrape, so Mati
@@ -93,11 +92,13 @@ class Predict:
         # projected — rolling 30-day windows off the 3rd anniversary to the
         # timeline's right edge. Must follow the chain so it reads the final
         # horizon (and the EN anniversary date the predictors above placed).
-        self._stats["trainingpass"] = TrainingPassPredictor(timeline).predict(timeline)
+        Metrics().set(
+            "predict.trainingpass", TrainingPassPredictor(timeline).predict(timeline)
+        )
 
         utc = Timeline(
             timezone.utc,
             [e for e in timeline if any(p.tzinfo == timezone.utc for p in e.periods)],
         )
-        self._stats["unpredicted"] = len(timeline) - len(utc)
+        Metrics().set("predict.unpredicted", len(timeline) - len(utc))
         return utc

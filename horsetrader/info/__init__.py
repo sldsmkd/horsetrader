@@ -1,4 +1,5 @@
 from .logger import Logger
+from .metrics import Metrics
 from logging import DEBUG, INFO, WARNING, ERROR, CRITICAL
 
 __all__ = [
@@ -8,4 +9,5 @@ __all__ = [
     "ERROR",
     "CRITICAL",
     "Logger",
+    "Metrics",
 ]

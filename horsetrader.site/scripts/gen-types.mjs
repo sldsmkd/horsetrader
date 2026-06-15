@@ -23,6 +23,7 @@ const schemas = [
   { in: "academy.schema.json", out: "academy.gen.ts" },
   { in: "events.schema.json", out: "events.gen.ts" },
   { in: "config.schema.json", out: "config.gen.ts" },
+  { in: "stats.schema.json", out: "stats.gen.ts" },
 ];
 
 async function generate({ in: inFile, out: outFile }) {

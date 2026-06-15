@@ -3,6 +3,7 @@ from ethicrawl import Ethicrawl, HttpClient, Config as EthicrawlConfig, Url, Res
 
 from horsetrader.core import Config, SingletonMeta
 from horsetrader.enums import CacheTime
+from horsetrader.info import Metrics
 from horsetrader.semantics import shakur
 
 from .uma_client_cache import UmaClientCache
@@ -67,7 +68,11 @@ class UmaClient(metaclass=SingletonMeta):
             resource.url, max_age=None if _skip_refresh else _cache_ttl
         )
         if _cached is not None:
+            Metrics().incr("shakur.cache.hit")
+            # No header on a cache hit — content_label infers from the file on disk.
+            Metrics().incr(f"shakur.content_type.{UmaClientCache.content_label(resource.url)}")
             return _cached
+        Metrics().incr("shakur.cache.miss")
 
         if _is_binary or not chrome:
             _client = self._http_client
@@ -85,22 +90,29 @@ class UmaClient(metaclass=SingletonMeta):
             self._ec.bind(resource.url, client=_client)
             self._bound_domains[_domain] = _client
 
+        Metrics().incr("shakur.requests")
         try:
             response = _client.get(resource)
         except Exception as exc:
             if _client is self._chrome_client and self._is_stale_chrome_session_error(
                 exc
             ):
-                # Chrome session can expire if the browser process is closed.
+                # Chrome session can expire if the browser process is closed — a
+                # fresh session and one more wire call, not a failed fetch.
                 self._chrome_client = HttpClient().with_chrome(headless=False)
                 _client = self._chrome_client
                 self._ec.bind(resource.url, client=_client)
                 self._bound_domains[_domain] = _client
+                Metrics().incr("shakur.requests")
                 response = _client.get(resource)
             else:
+                Metrics().incr("shakur.errors")
                 raise
 
         if response.status_code != 200:
+            # Every non-200 counts here; `try_get` reclassifies 404 as "missing" a
+            # layer up, but at the wire it was still a failed fetch.
+            Metrics().incr("shakur.errors")
             raise HttpError(
                 f"Failed to fetch {resource.url}: {response.status_code}",
                 status_code=response.status_code,
@@ -113,6 +125,11 @@ class UmaClient(metaclass=SingletonMeta):
         )
 
         UmaClientCache.write(resource.url, response.content, mime_type=_content_type)
+        # Prefer the response header; content_label falls back to the just-written
+        # file on disk if the server sent no Content-Type.
+        Metrics().incr(
+            f"shakur.content_type.{UmaClientCache.content_label(resource.url, _content_type)}"
+        )
         return response.content if _is_binary_response else response.text
 
     def try_get(
