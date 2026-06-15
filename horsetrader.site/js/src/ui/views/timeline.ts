@@ -45,12 +45,21 @@ const RUBBER_TENSION = 0.55;
 const SPRING_EASE = 0.18;
 const SPRING_SNAP_PX = 0.5;
 
-/** Axis-intent lock: a drag commits to an axis after this much travel, and the
- *  vertical peek only engages when the drag is this many times steeper than it is
- *  wide — so a left/right pan can't slip into a vertical peek. Horizontal is the
- *  default; vertical must be asked for deliberately. */
+/** Axis-intent lock: a drag commits to horizontal after this much travel. The
+ *  railtrack constants below decide when a vertical gesture deliberately derails. */
 const AXIS_COMMIT_PX = 8;
-const VERTICAL_BIAS = 2.8;
+/** The centre line is a railtrack, not a spring: it takes a deliberate vertical
+ *  shove to derail, and once derailed the lane offset persists. Passing back
+ *  through the capture band snaps onto the rail again. */
+const TRACK_DERAIL_PX = 42;
+const TRACK_CAPTURE_PX = 2;
+const TRACK_RAIL_VISUAL_PX = 32;
+const TRACK_DERAIL_BIAS = 1.15;
+const TRACK_MIN_TRAVEL_VIEWPORT = 0.35;
+const TRACK_RETURN_SPEED_PX_PER_MS = 2.4;
+const TRACK_RETURN_MAX_EASE = 0.11;
+const TRACK_GRIP_FALLOFF_PX = 320;
+const TRACK_GRIP_MIN = 0.32;
 
 /** Deliberate navigation ("warp") timing. Short hops should feel crisp; long
  *  jumps should visibly travel without making the user wait through the whole
@@ -146,7 +155,9 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
   const today = h("div", { class: "timeline__today" });
   const cards = h("div", { class: "timeline__cards" }); // hosts the positioned card views
   const content = h("div", { class: "timeline__content" }, line, today, cards);
-  const el = h("section", { class: "timeline", attr: { "aria-label": "Timeline" } }, content);
+  const rail = h("div", { class: "timeline__rail", attr: { "aria-hidden": "true" } });
+  const el = h("section", { class: "timeline", attr: { "aria-label": "Timeline" } }, rail, content);
+  el.style.setProperty("--timeline-rail-height", `${TRACK_RAIL_VISUAL_PX}px`);
 
   const applyPan = () => {
     content.style.transform = `translate(${panX}px, ${panY}px)`;
@@ -169,7 +180,6 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
   let dragging = false;
   let grabX = 0;
   let grabY = 0;
-  let grabPan = 0;
   let grabPanY = 0;
   let velocity = 0; // px/ms, smoothed across a drag's moves (horizontal only)
   let axisLock: "none" | "horizontal" | "free" = "none"; // gesture intent, per drag
@@ -184,13 +194,13 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
     const min = Math.min(0, el.clientWidth - content.offsetWidth);
     return { min, max: 0 };
   };
-  // The vertical peek range — the dynamic roof and floor. Only the lane depth that
-  // overflows the viewport half is reachable: pan down (positive) to peek the
-  // above lane, up (negative) for the below lane. No overflow → no travel (rubber
-  // from 0). Rest is always 0 (the line recentred).
+  // The vertical well. Lane overflow can extend it, but it always has a minimum
+  // viewport-sized run so the track can derail even when cards currently fit.
+  // Rest is wherever the user left the lane, unless the rail recaptures.
   const panBoundsY = () => {
     const half = el.clientHeight / 2;
-    return { min: -Math.max(0, belowDepth - half), max: Math.max(0, aboveDepth - half) };
+    const minTravel = Math.max(TRACK_DERAIL_PX + TRACK_RAIL_VISUAL_PX / 2, el.clientHeight * TRACK_MIN_TRAVEL_VIEWPORT);
+    return { min: -Math.max(minTravel, belowDepth - half), max: Math.max(minTravel, aboveDepth - half) };
   };
   // Diminishing-returns overscroll: the further past a wall, the less it gives —
   // an asymptote at `dim`, so the wall stiffens but never locks.
@@ -205,9 +215,21 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
     const { min, max } = panBounds();
     return dampWith(raw, min, max, el.clientWidth);
   };
-  const dampY = (raw: number) => {
+  const clampY = (raw: number) => {
     const { min, max } = panBoundsY();
-    return dampWith(raw, min, max, el.clientHeight);
+    return Math.max(min, Math.min(max, raw));
+  };
+  const trackReturn = (raw: number, speedX: number, dt: number) => {
+    if (Math.abs(raw) <= TRACK_CAPTURE_PX) return 0;
+    const speed = Math.min(1, Math.abs(speedX) / TRACK_RETURN_SPEED_PX_PER_MS);
+    const ease = TRACK_RETURN_MAX_EASE * speed * Math.min(1, dt / 16);
+    const next = raw * (1 - ease);
+    return Math.abs(next) <= TRACK_CAPTURE_PX ? 0 : clampY(next);
+  };
+  const trackGrip = (y: number) => {
+    const offRail = Math.max(0, Math.abs(y) - TRACK_CAPTURE_PX);
+    const falloff = offRail / TRACK_GRIP_FALLOFF_PX;
+    return TRACK_GRIP_MIN + (1 - TRACK_GRIP_MIN) / (1 + falloff * falloff);
   };
 
   const stopAnim = () => {
@@ -219,10 +241,9 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
     const { min, max } = panBounds();
     return Math.max(min, Math.min(max, el.clientWidth / 2 - axis.xForDate(date)));
   };
-  // One loop for both axes. Horizontal: past a wall it eases home (killing
-  // momentum), within bounds it coasts on friction until it stalls or hits a wall.
-  // Vertical always eases back to 0 — the peek recentres on the timeline. Runs
-  // until both axes have settled.
+  // Horizontal animation: past a wall it eases home (killing momentum), within
+  // bounds it coasts on friction until it stalls or hits a wall. If the timeline
+  // is floating off-rail, horizontal speed also pulls Y back toward the track.
   const startAnim = () => {
     stopAnim();
     let last = performance.now();
@@ -241,18 +262,14 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
         xActive = Math.abs(panX - wall) >= SPRING_SNAP_PX;
         if (!xActive) panX = wall;
       } else {
-        panX += velocity * dt;
+        panX += velocity * dt * trackGrip(panY);
+        panY = trackReturn(panY, velocity, dt);
         velocity *= Math.pow(FRICTION_PER_MS, dt);
         xActive = Math.abs(velocity) > MIN_GLIDE_V || panX < min || panX > max;
       }
 
-      // Vertical — recentre on the line.
-      panY += (0 - panY) * ease;
-      const yActive = Math.abs(panY) >= SPRING_SNAP_PX;
-      if (!yActive) panY = 0;
-
       applyPan();
-      anim = xActive || yActive ? requestAnimationFrame(step) : 0;
+      anim = xActive ? requestAnimationFrame(step) : 0;
     };
     anim = requestAnimationFrame(step);
   };
@@ -268,10 +285,9 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
     // not per pixel, so it doesn't undo the per-day dedupe.
     viewDate = null;
     dragging = true;
-    axisLock = "none";
+    axisLock = Math.abs(panY) > TRACK_CAPTURE_PX ? "free" : "none";
     grabX = ev.clientX;
     grabY = ev.clientY;
-    grabPan = panX;
     grabPanY = panY;
     velocity = 0;
     lastMoveX = ev.clientX;
@@ -283,19 +299,43 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
     if (dragging) {
       const dx = ev.clientX - grabX;
       const dy = ev.clientY - grabY;
-      // Commit the gesture to an axis once it's travelled enough to read intent.
-      // Vertical only wins when the drag is clearly steeper than wide; otherwise
-      // it's a horizontal pan and the vertical peek stays locked out.
-      if (axisLock === "none" && Math.hypot(dx, dy) > AXIS_COMMIT_PX) {
-        axisLock = Math.abs(dy) > Math.abs(dx) * VERTICAL_BIAS ? "free" : "horizontal";
-      }
-      panX = damp(grabPan + dx); // horizontal always pans (the primary gesture)
-      if (axisLock === "free") panY = dampY(grabPanY + dy); // vertical only once asked for
-      applyPan();
       const now = performance.now();
       const dt = now - lastMoveT;
+      const frameDx = ev.clientX - lastMoveX;
+      const sampleVelocity = dt > 0 ? frameDx / dt : 0;
+      // Commit the gesture once it's travelled enough to read intent. When the
+      // gesture starts on the rail, this commits to horizontal; vertical has to
+      // clear the rail's derail threshold below.
+      if (axisLock === "none" && Math.hypot(dx, dy) > AXIS_COMMIT_PX) {
+        axisLock = "horizontal";
+      }
+      // The centre line is a deep rail: when starting on it, a vertical gesture
+      // must spend some travel climbing out before the Y offset starts moving.
+      if (axisLock !== "free" && Math.abs(dy) > TRACK_DERAIL_PX && Math.abs(dy) > Math.abs(dx) * TRACK_DERAIL_BIAS) {
+        axisLock = "free";
+        grabY = ev.clientY - Math.sign(dy) * (TRACK_CAPTURE_PX + 1);
+        grabPanY = 0;
+      }
+      if (axisLock === "free") {
+        const rawY = grabPanY + (ev.clientY - grabY);
+        // Panning back over the rail recaptures it: snap to the line and make the
+        // user deliberately bump out again before vertical movement resumes.
+        if (Math.abs(rawY) <= TRACK_CAPTURE_PX) {
+          panY = 0;
+          grabY = ev.clientY;
+          grabPanY = 0;
+          axisLock = "horizontal";
+        } else {
+          panY = trackReturn(clampY(rawY), sampleVelocity, dt);
+          grabY = ev.clientY;
+          grabPanY = panY;
+          if (panY === 0) axisLock = "horizontal";
+        }
+      }
+      panX = damp(panX + frameDx * trackGrip(panY)); // horizontal always pans (the primary gesture)
+      applyPan();
       if (dt > 0) {
-        velocity = velocity * 0.7 + ((ev.clientX - lastMoveX) / dt) * 0.3; // light smoothing
+        velocity = velocity * 0.7 + sampleVelocity * 0.3; // light smoothing
         lastMoveX = ev.clientX;
         lastMoveT = now;
       }
@@ -307,10 +347,11 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
     dragging = false;
     el.releasePointerCapture(ev.pointerId);
     el.classList.remove("timeline--grabbing");
-    // Carry a fling only when the release follows live motion (not a pause-lift);
-    // otherwise rest. Either way the loop springs back if we're past a wall.
+    // Carry a horizontal fling only when the release follows live motion (not a
+    // pause-lift); otherwise rest. Any Y return is driven by that sideways glide.
     const fling = performance.now() - lastMoveT < STALE_RELEASE_MS && Math.abs(velocity) > MIN_FLING_V;
     if (!fling) velocity = 0;
+    if (Math.abs(panY) <= TRACK_CAPTURE_PX) panY = 0;
     startAnim();
   };
   el.addEventListener("pointerup", endDrag);
@@ -323,6 +364,9 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
     setContentDepth: (above, below) => {
       aboveDepth = above;
       belowDepth = below;
+      panY = clampY(panY);
+      if (Math.abs(panY) <= TRACK_CAPTURE_PX) panY = 0;
+      applyPan();
     },
     centerOn(date) {
       const target = targetPanForDate(date);

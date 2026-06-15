@@ -14,6 +14,36 @@
   cursor: grabbing;
 }
 
+.timeline__rail {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: var(--timeline-rail-height, 32px);
+  transform: translateY(-50%);
+  pointer-events: none;
+  background:
+    linear-gradient(
+      to bottom,
+      transparent,
+      color-mix(in srgb, #000 18%, transparent) 38%,
+      color-mix(in srgb, #000 24%, transparent) 50%,
+      color-mix(in srgb, #000 18%, transparent) 62%,
+      transparent
+    );
+}
+
+.timeline__rail::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 2px;
+  transform: translateY(-50%);
+  background: color-mix(in srgb, currentColor 10%, transparent);
+}
+
 .timeline__content {
   position: absolute;
   top: 0;
