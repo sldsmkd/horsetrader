@@ -53,5 +53,6 @@ alias-race-nhk-mile:         { target: race-1007, phrases: [NHKマイルC] }
 alias-race-champions-cup:    { target: race-1020, phrases: [チャンピオンズC] }
 alias-race-mile-champ:       { target: race-1018, phrases: [マイルCS] }
 alias-race-mile-champ-nambu: { target: race-1110, phrases: [マイルCS南部杯] }
+alias-race-february:         { target: race-1001, phrases: [フェブラリーS] }
 alias-race-asahi-hai-fs:     { target: race-1022, phrases: [朝日杯FS] }
 alias-race-hanshin-jf:       { target: race-1021, phrases: [阪神JF, 阪神ジュベナイルF] }
