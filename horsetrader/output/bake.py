@@ -23,13 +23,15 @@ def _enc_hook(obj: object) -> object:
     # Every `Japlish` in the bundle funnels through here at encode time — the one
     # place Eishin "encounters" each one. The wire is EN-facing, so render the
     # EN-preferring `.display`; if no English translation is attached, `.display`
-    # still falls back to JP/base (the bundle stays populated) and we warn so the
-    # gap surfaces for curation instead of silently shipping Japanese.
+    # still falls back to JP/base (the bundle stays populated). Logged at INFO,
+    # not WARNING: the automated race-lookup gains (#63) are captured, and the
+    # residue is known manual-curation work (NAR/overseas race EN + support-card
+    # flavour quotes), so the gap is a tracked backlog, not a regression to alarm on.
     if isinstance(obj, Japlish):
         try:
             obj.en
         except ValueError:
-            logger.warning(f"Japlish has no EN translation, baking fallback: {obj!r}")
+            logger.info(f"Japlish has no EN translation, baking fallback: {obj!r}")
         return obj.display
 
     # Stable keys (and any other `str` subclass) flow into `str`-typed record

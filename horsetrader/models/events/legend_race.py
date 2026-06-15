@@ -10,6 +10,7 @@ from horsetrader.models.entities import Trainee, Trainees
 from horsetrader.models.rewards import stamp_legend_race_rewards
 from horsetrader.output._records import LegendLegRecord, LegendRaceRecord
 from horsetrader.semantics import daitaku
+from horsetrader.services import Translate
 
 from .event import Event
 from .events import Events
@@ -138,6 +139,11 @@ class LegendRaces(Events[LegendRace], metaclass=SingletonMeta):
                         title.en = title_en
                     except ValueError as exc:
                         logger.warning("Bad EN name for %s: %s", record["key"], exc)
+                else:
+                    # No Global EN — the title is a race name the Race entity
+                    # already translates, so let Shuttle project it (#63's
+                    # second bucket). No-ops on NAR races awaiting EN curation.
+                    title = Translate().race(title)
             elif title_en:
                 title = Japlish(title_en, encoding="en")
 
