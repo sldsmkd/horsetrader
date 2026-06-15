@@ -40,3 +40,18 @@ alias-maruzensky:         { target: char-maruzensky,         phrases: [maru, mar
 # ── card-specific / seasonal shorthands ──────────────────────────────────────
 alias-maruzensky-summer:        { target: support-30107-maruzensky,       phrases: [smaru, summer maru] }
 alias-mihono-bourbon-valentine: { target: trainee-102602-mihono-bourbon,  phrases: [chocobon] }
+
+# ── race JRA abbreviations ───────────────────────────────────────────────────
+# The contracted forms (ステークス→S, カップ→C, チャンピオンシップ→CS …) that
+# mission titles use — folded onto the race so `Races().search` resolves the
+# token, which is how Shuttle's mission translator finds the fixture (#63).
+# One race can have several (阪神JF / 阪神ジュベナイルF). Copy a neighbour to add.
+alias-race-hopeful:          { target: race-1024, phrases: [ホープフルS] }
+alias-race-sprinters:        { target: race-1013, phrases: [スプリンターズS] }
+alias-race-japan-cup:        { target: race-1019, phrases: [ジャパンC] }
+alias-race-nhk-mile:         { target: race-1007, phrases: [NHKマイルC] }
+alias-race-champions-cup:    { target: race-1020, phrases: [チャンピオンズC] }
+alias-race-mile-champ:       { target: race-1018, phrases: [マイルCS] }
+alias-race-mile-champ-nambu: { target: race-1110, phrases: [マイルCS南部杯] }
+alias-race-asahi-hai-fs:     { target: race-1022, phrases: [朝日杯FS] }
+alias-race-hanshin-jf:       { target: race-1021, phrases: [阪神JF, 阪神ジュベナイルF] }

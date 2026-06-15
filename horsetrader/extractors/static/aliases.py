@@ -11,9 +11,11 @@ logger = Logger.get(__name__)
 # describe via `target` — the same indirection anchored events use with `anchor:`.
 _KEY_PATTERN = re.compile(r"^alias-")
 
-# A target is an atom (or a character whose atoms inherit the phrases); never an
+# A target is an atom (or a character whose atoms inherit the phrases), or a
+# reference entity that carries searchable shorthands (a `race-` whose JRA
+# abbreviations — ホープフルS — let mission titles resolve to it); never an
 # event key, and never another `alias-` entry.
-_TARGET_PATTERN = re.compile(r"^(char|trainee|support)-")
+_TARGET_PATTERN = re.compile(r"^(char|trainee|support|race)-")
 
 
 @functools.cache
@@ -41,8 +43,8 @@ def load() -> dict[str, list[str]]:
         target = fields.get("target")
         if not isinstance(target, str) or not _TARGET_PATTERN.match(target):
             raise ValueError(
-                f"{where}: 'target' must be a char-/trainee-/support- stable key; "
-                f"got {target!r}"
+                f"{where}: 'target' must be a char-/trainee-/support-/race- stable "
+                f"key; got {target!r}"
             )
         if target in by_target:
             raise ValueError(f"{where}: target {target!r} already aliased by another entry")
