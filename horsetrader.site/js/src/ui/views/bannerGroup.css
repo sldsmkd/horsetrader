@@ -43,6 +43,15 @@
 
 /* One banner within the group: art identity on top, content atoms as pills below. */
 .banner {
+  --banner-flash-colour: currentColor;
+  --banner-hot-border: 0%;
+  --banner-hot-inset: 0%;
+  --banner-hot-glow: 0%;
+  --banner-hot-halo: 0%;
+  --banner-hot-wash: 0%;
+  --banner-hot-glow-sm: 0;
+  --banner-hot-glow-lg: 0;
+  --banner-hot-opacity: 0;
   position: relative;
   box-sizing: border-box;
   display: flex;
@@ -54,6 +63,58 @@
   overflow: visible;
 }
 
+.banner--hot-1 {
+  --banner-hot-border: 32%;
+  --banner-hot-inset: 20%;
+  --banner-hot-glow: 14%;
+  --banner-hot-halo: 26%;
+  --banner-hot-wash: 8%;
+  --banner-hot-glow-sm: 0.3rem;
+  --banner-hot-glow-lg: 0.75rem;
+  --banner-hot-opacity: 0.38;
+}
+
+.banner--hot-2 {
+  --banner-hot-border: 42%;
+  --banner-hot-inset: 28%;
+  --banner-hot-glow: 20%;
+  --banner-hot-halo: 36%;
+  --banner-hot-wash: 12%;
+  --banner-hot-glow-sm: 0.55rem;
+  --banner-hot-glow-lg: 1.25rem;
+  --banner-hot-opacity: 0.52;
+}
+
+.banner--hot-3 {
+  --banner-hot-border: 56%;
+  --banner-hot-inset: 40%;
+  --banner-hot-glow: 28%;
+  --banner-hot-halo: 46%;
+  --banner-hot-wash: 19%;
+  --banner-hot-glow-sm: 0.85rem;
+  --banner-hot-glow-lg: 1.75rem;
+  --banner-hot-opacity: 0.66;
+}
+
+.banner--hot-4 {
+  --banner-hot-border: 70%;
+  --banner-hot-inset: 52%;
+  --banner-hot-glow: 36%;
+  --banner-hot-halo: 56%;
+  --banner-hot-wash: 26%;
+  --banner-hot-glow-sm: 1.1rem;
+  --banner-hot-glow-lg: 2.2rem;
+  --banner-hot-opacity: 0.78;
+}
+
+.banner--hot {
+  border-color: color-mix(in srgb, var(--banner-flash-colour) var(--banner-hot-border), transparent);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--banner-flash-colour) var(--banner-hot-inset), transparent),
+    0 0 var(--banner-hot-glow-sm) color-mix(in srgb, var(--banner-flash-colour) var(--banner-hot-glow), transparent),
+    0 0 var(--banner-hot-glow-lg) color-mix(in srgb, var(--banner-flash-colour) var(--banner-hot-wash), transparent);
+}
+
 .banner::before {
   content: "";
   position: absolute;
@@ -62,6 +123,28 @@
   width: 4px;
   background: currentColor;
   pointer-events: none;
+}
+
+.banner--hot::after {
+  content: "";
+  position: absolute;
+  inset: -0.25rem;
+  z-index: 1;
+  border-radius: 0.45rem;
+  background:
+    radial-gradient(60% 54% at 18% 100%, color-mix(in srgb, var(--banner-flash-colour) var(--banner-hot-halo), transparent), transparent 72%),
+    radial-gradient(58% 48% at 78% 100%, color-mix(in srgb, var(--banner-flash-colour) var(--banner-hot-glow), transparent), transparent 68%),
+    linear-gradient(to top, color-mix(in srgb, var(--banner-flash-colour) var(--banner-hot-wash), transparent), transparent 58%);
+  opacity: var(--banner-hot-opacity);
+  pointer-events: none;
+}
+
+.banner--trainee {
+  --banner-flash-colour: var(--ht-colour-trainee);
+}
+
+.banner--support {
+  --banner-flash-colour: var(--ht-colour-support);
 }
 
 .banner--trainee::before {

@@ -124,6 +124,21 @@ test("uncommitted banners show pull capacity available before any own reservatio
   assert.equal(banner.commitmentUnfundable, false);
 });
 
+test("banner-local free pulls are surfaced as the intrinsic value signal", () => {
+  const events: EventsBundle = {
+    events: [{ type: "support", rushable: false, contents: ["s-spe"], image: "/i/hot.webp", start: "2026-06-10", end: "2026-06-16", predicted: false, key: "banner-hot", rewards: { pulls: 80 } }],
+  };
+  const groups = aboveLaneGroups(settled(events), createBundle(events, ACADEMY, TEST_CONFIG), axis(), NOW, {
+    balanceAt: () => ({}),
+    availableFor: () => undefined,
+    commitments: {},
+  });
+  const banner = groups[0]!.banners[0]!;
+
+  assert.equal(banner.freePulls, 80);
+  assert.equal(banner.pullsAvailable, 80);
+});
+
 test("timestamped banners group and position by the selected viewer calendar", () => {
   const events: EventsBundle = {
     events: [
