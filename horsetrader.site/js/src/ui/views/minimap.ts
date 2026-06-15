@@ -31,6 +31,9 @@ const SVG_NS = "http://www.w3.org/2000/svg";
 /** The window's width (px) — a comfortable grab handle, *not* a to-scale viewport
  *  mirror (ui.md: "sized for the hand"). Tunable by eye. */
 const WINDOW_PX = 56;
+/** Symbolic viewport height in the minimap. Two-thirds of the strip reads as
+ *  roughly four pity bands while leaving travel room to show vertical offset. */
+const WINDOW_HEIGHT_FRACTION = 2 / 3;
 
 /** What `refresh` needs to repaint — the same projection + bundle the canvas reads. */
 export interface MinimapRefresh {
@@ -47,8 +50,8 @@ export interface Minimap {
   readonly el: HTMLElement;
   /** Repaint line/frets/dots for the current projection + extent — the render path. */
   refresh(p: MinimapRefresh): void;
-  /** Move the window to centre on `date` — the cheap path (a pan pushed this here). */
-  setView(date: CalendarDate): void;
+  /** Move the window to centre on `date` and vertical offset — the cheap path. */
+  setView(date: CalendarDate, verticalOffset?: number): void;
 }
 
 export interface MinimapHandlers {
@@ -105,10 +108,15 @@ export function minimap({ onSeek }: MinimapHandlers): Minimap {
   const el = h("section", { class: "minimap", attr: { "aria-label": "Minimap" } }, today, window, dots);
   el.append(canvas); // the SVG mounts under the chrome (today/window/dots draw over it)
 
-  /** Centre the window on a content-x, clamped to stay fully on the track. */
-  const placeWindow = (x: number) => {
+  /** Centre the window on a content-x/y, clamped to stay fully on the track. */
+  const placeWindow = (x: number, verticalOffset = 0) => {
     const max = Math.max(0, el.clientWidth - WINDOW_PX);
     window.style.left = `${Math.max(0, Math.min(max, x - WINDOW_PX / 2))}px`;
+    const height = el.clientHeight * WINDOW_HEIGHT_FRACTION;
+    const travel = Math.max(0, el.clientHeight - height);
+    const offset = Math.max(-1, Math.min(1, verticalOffset));
+    window.style.height = `${height}px`;
+    window.style.top = `${travel / 2 - offset * (travel / 2)}px`;
   };
 
   // --- navigation: a press/drag anywhere on the track seeks to that date. The
@@ -214,9 +222,9 @@ export function minimap({ onSeek }: MinimapHandlers): Minimap {
         ),
       );
     },
-    setView(date) {
+    setView(date, verticalOffset = 0) {
       if (!axis) return;
-      placeWindow(axis.xForDate(date));
+      placeWindow(axis.xForDate(date), verticalOffset);
     },
   };
 }

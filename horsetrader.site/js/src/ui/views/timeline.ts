@@ -116,11 +116,12 @@ export interface Timeline {
 export interface TimelineHandlers {
   /**
    * Fired when the *view centre* moves (any pan: drag, glide, layout, seek) — the
-   * date at the middle of the viewport, which is the focus. The shell turns it
-   * into a `balanceAt` + menubar write and routes it to the minimap window, so
-   * both track the pan. Cheap path, deduped by date; never broadcasts.
+   * date at the middle of the viewport, which is the focus, plus the vertical
+   * well offset in `[-1, 1]` for the minimap window. The shell turns the date into
+   * a `balanceAt` + menubar write and routes both values to the minimap window.
+   * Cheap path, deduped by date + vertical offset; never broadcasts.
    */
-  onView(date: CalendarDate): void;
+  onView(date: CalendarDate, verticalOffset: number): void;
 }
 
 /** Clamp a calendar date into `[lo, hi]` — lexical compare is correct for `YYYY-MM-DD`. */
@@ -144,6 +145,7 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
   let axis: Axis | null = null;
   let extent: Extent = null;
   let viewDate: CalendarDate | null = null; // last emitted view-centre date, for dedupe
+  let viewOffset = Number.NaN; // last emitted vertical well offset, for dedupe
   let centerX = 0; // exact content-space x at the viewport middle — preserved across resizes
   let centered = false; // first layout centres the view on today; later ones keep the pan
   // How far cards reach above / below the centre line (px), set after each pack.
@@ -169,7 +171,12 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
     // always the middle of the view. Guarded by the axis; clamped into the extent.
     if (axis && extent) {
       const date = clampDate(axis.dateForX(centerX), extent);
-      if (date !== viewDate) onView((viewDate = date));
+      const offset = verticalOffset();
+      if (date !== viewDate || offset !== viewOffset) {
+        viewDate = date;
+        viewOffset = offset;
+        onView(date, offset);
+      }
     }
   };
 
@@ -201,6 +208,11 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
     const half = el.clientHeight / 2;
     const minTravel = Math.max(TRACK_DERAIL_PX + TRACK_RAIL_VISUAL_PX / 2, el.clientHeight * TRACK_MIN_TRAVEL_VIEWPORT);
     return { min: -Math.max(minTravel, belowDepth - half), max: Math.max(minTravel, aboveDepth - half) };
+  };
+  const verticalOffset = () => {
+    const { min, max } = panBoundsY();
+    const range = panY >= 0 ? max : -min;
+    return range > 0 ? Math.max(-1, Math.min(1, panY / range)) : 0;
   };
   // Diminishing-returns overscroll: the further past a wall, the less it gives —
   // an asymptote at `dim`, so the wall stiffens but never locks.
