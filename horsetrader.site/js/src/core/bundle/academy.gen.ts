@@ -5,13 +5,22 @@
  */
 
 /**
- * Top-level shape of ``academy.json`` — the three entity collections, each a
+ * Top-level shape of ``academy.json`` — the entity collections, each a
  * stable-key → record map (the keys are the collection class names lowercased,
  * matching ``Bake.academy``).
  */
 export interface Academy {
   characters: {
     [k: string]: CharacterRecord;
+  };
+  courses: {
+    [k: string]: CourseRecord;
+  };
+  races: {
+    [k: string]: RaceRecord;
+  };
+  racetracks: {
+    [k: string]: RacetrackRecord;
   };
   supports: {
     [k: string]: SupportRecord;
@@ -25,6 +34,25 @@ export interface CharacterRecord {
   quote: string | null;
   icon: string | null;
   portrait: string | null;
+}
+export interface CourseRecord {
+  racetrack: string;
+  surface: string;
+  distance: number;
+  variant: string | null;
+  diagram: string | null;
+}
+export interface RaceRecord {
+  name: string | null;
+  grade: string;
+  surface: string;
+  distance: number | null;
+  racetrack: string | null;
+  banner: string | null;
+}
+export interface RacetrackRecord {
+  name: string | null;
+  icon: string | null;
 }
 export interface SupportRecord {
   character: string | null;

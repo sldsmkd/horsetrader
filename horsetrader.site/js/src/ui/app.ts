@@ -24,6 +24,7 @@ import "./app.css";
 import { h, qs } from "./h.ts";
 import { timeline } from "./views/timeline.ts";
 import { minimap } from "./views/minimap.ts";
+import { perfHud } from "./views/perfHud.ts";
 import { belowCard } from "./views/belowCard.ts";
 import { bannerGroup } from "./views/bannerGroup.ts";
 import type { RushBinding } from "./widgets/rushedToggle.ts";
@@ -165,6 +166,13 @@ export function mountApp(
     const current = view.get().right;
     view.set({ right: current === member ? null : member, resourcesEditing: false });
   };
+  let cardStats = { cards: 0, aboveCards: 0, belowCards: 0 };
+  const hud = perfHud({
+    stats: () => ({
+      ...cardStats,
+      domNodes: root.getElementsByTagName("*").length,
+    }),
+  });
 
   // The minimap is the primary navigation: dragging its track seeks, which pans
   // the timeline (`centerOn`); the timeline pushes its view-centre date back so
@@ -280,6 +288,7 @@ export function mountApp(
     });
     const belowEls = below.map((card) => belowCard(card, rush));
     const aboveEls = above.map((group) => bannerGroup(group, fav, commit));
+    cardStats = { cards: belowEls.length + aboveEls.length, aboveCards: aboveEls.length, belowCards: belowEls.length };
     tl.setCards([...belowEls, ...aboveEls]);
     // Mounted now → heights are measurable. Pack each lane (below returns its
     // floor depth, above its roof height); the timeline turns these into its
@@ -525,7 +534,7 @@ export function mountApp(
   // overlay layer (paints over the drawer where they share the top-left zone), with
   // the menubar/minimap lifted above all of it (their own z-index) so the always-
   // reachable chrome is never occluded.
-  root.replaceChildren(menu.el, tl.el, book.el, mini.el, overlayLayer);
+  root.replaceChildren(menu.el, tl.el, book.el, mini.el, overlayLayer, hud.el);
   refresh();
   renderOverlay();
   renderBookmarks();
