@@ -59,9 +59,10 @@ function lane(kind: BannerKind, banners: readonly Banner[], fav: FavouriteBindin
 
 function bannerCard(banner: Banner, fav: FavouriteBinding, commit: CommitBinding, groupPast: boolean): HTMLElement {
   const atoms = atomList(banner, fav);
-  return h(
+  const heatBand = banner.open ? bannerHeatBand(banner.freePulls) : 0;
+  const el = h(
     "div",
-    { class: `banner banner--${banner.kind}${banner.past && !groupPast ? " banner--past" : ""}` },
+    { class: `banner banner--${banner.kind}${heatBand > 0 ? ` banner--hot banner--hot-${heatBand}` : ""}${banner.past && !groupPast ? " banner--past" : ""}` },
     h(
       "div",
       { class: "banner__image-frame" },
@@ -70,6 +71,15 @@ function bannerCard(banner: Banner, fav: FavouriteBinding, commit: CommitBinding
     atoms,
     banner.open ? pullChin(banner, commit) : null,
   );
+  return el;
+}
+
+function bannerHeatBand(freePulls: number): 0 | 1 | 2 | 3 | 4 {
+  if (freePulls <= 0) return 0;
+  if (freePulls < 10) return 1;
+  if (freePulls < 40) return 2;
+  if (freePulls < 80) return 3;
+  return 4;
 }
 
 function atomList(banner: Banner, fav: FavouriteBinding): HTMLUListElement {
