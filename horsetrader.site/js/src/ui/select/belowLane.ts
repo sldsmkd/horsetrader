@@ -83,6 +83,8 @@ export interface BelowCard {
   past: boolean;
   /** True when the event is rush-eligible and not yet ended. */
   rushable: boolean;
+  /** Optional compact banner art for story/event cards. */
+  banner: string | null;
   /** This event's resolved reward face (its height/breakdown signal). */
   reward: ResourceVector;
 }
@@ -92,6 +94,10 @@ function labelOf(record: NonNullable<SettledEvent["record"]>): string {
   if ("name" in record && record.name) return record.name;
   if ("title" in record && record.title) return record.title;
   return record.key;
+}
+
+function bannerOf(record: NonNullable<SettledEvent["record"]>): string | null {
+  return "banner" in record ? record.banner : null;
 }
 
 /** A minted cadence child's parent key — strip the `-<date>` mint suffix
@@ -121,6 +127,7 @@ export function belowLaneCards(events: readonly SettledEvent[], axis: Axis, now:
       predicted: record.predicted,
       past: ev.end < now,
       rushable: isRushable(record) && ev.end >= now,
+      banner: bannerOf(record),
       reward: { ...ev.rewards },
     };
     cards.push(card);

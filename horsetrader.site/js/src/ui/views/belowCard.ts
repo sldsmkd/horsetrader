@@ -19,7 +19,7 @@ import { rushedToggleFor } from "../widgets/rushedToggle.ts";
 import type { RushBinding } from "../widgets/rushedToggle.ts";
 
 export function belowCard(card: BelowCard, rush: RushBinding): HTMLElement {
-  const cls = `card card--below card--${card.kind}${card.past ? " card--past" : ""}`;
+  const cls = `card card--below card--${card.kind}${card.banner ? " card--bannered" : ""}${card.past ? " card--past" : ""}`;
   const el = h(
     "div",
     { class: cls },
@@ -27,6 +27,13 @@ export function belowCard(card: BelowCard, rush: RushBinding): HTMLElement {
     h(
       "div",
       { class: "card__body" },
+      card.banner
+        ? h(
+            "div",
+            { class: "card__media" },
+            h("img", { class: "card__image", attr: { src: card.banner, alt: "", loading: "lazy", decoding: "async" } }),
+          )
+        : null,
       h("span", { class: "card__label" }, card.label),
       card.rushable ? rushedToggleFor(rush, card.key) : null,
       rewardStrip(card.reward),

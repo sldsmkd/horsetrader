@@ -68,12 +68,36 @@ test("each card resolves its label (name/title, falling back to key) and predict
 
   assert.equal(byKey.get("cm-1")!.label, "Summer CM");
   assert.equal(byKey.get("story-1")!.label, "A Story");
+  assert.equal(byKey.get("story-1")!.banner, null);
   assert.equal(byKey.get("holiday-1")!.label, "Golden Week"); // carries a name
   assert.equal(byKey.get("sce-1")!.label, "sce-1"); // title null → the key
   assert.equal(byKey.get("story-1")!.predicted, true);
   assert.equal(byKey.get("cm-1")!.predicted, false);
   assert.equal(byKey.get("story-1")!.past, false);
   assert.equal(byKey.get("cm-1")!.past, false);
+});
+
+test("story cards carry baked banner art when present", () => {
+  const events: EventsBundle = {
+    events: [
+      {
+        type: "story",
+        title: "Banner Story",
+        contents: [],
+        image: null,
+        banner: "/img/stories/story-015-banner.webp",
+        art: null,
+        era: "1m",
+        start: "2026-06-14",
+        end: "2026-06-20",
+        predicted: false,
+        key: "story-015",
+      },
+    ],
+  };
+
+  const cards = belowLaneCards(settled(events), AXIS, NOW);
+  assert.equal(cards[0]!.banner, "/img/stories/story-015-banner.webp");
 });
 
 test("past cards are marked after their end date", () => {
