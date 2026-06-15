@@ -110,7 +110,7 @@ class Mission(Event):
     def bake(self, period: Period) -> MissionRecord:
         return MissionRecord(
             **self._envelope(period),
-            name=self.title.display if self.title else None,
+            name=self.title,
         )
 
 

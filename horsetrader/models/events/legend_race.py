@@ -54,7 +54,7 @@ class LegendRace(Event):
     def bake(self, period: Period) -> LegendRaceRecord:
         return LegendRaceRecord(
             **self._envelope(period),
-            name=self.title.display if self.title else None,
+            name=self.title,
             legs=self._baked_legs(period),
         )
 

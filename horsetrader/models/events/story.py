@@ -71,7 +71,7 @@ class Story(Rushable, Event):
     def bake(self, period: Period) -> StoryRecord:
         return StoryRecord(
             **self._envelope(period),
-            title=self.title.display if self.title else None,
+            title=self.title,
             contents=[],
             image=str(self.thumb.url) if self.thumb else None,
             banner=str(self.banner.url) if self.banner else None,

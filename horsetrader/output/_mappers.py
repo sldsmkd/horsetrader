@@ -14,8 +14,8 @@ def _search_aliases(character: Character | None, own: list[str]) -> list[str]:
 
 def _map_character(c: Character) -> CharacterRecord:
     return CharacterRecord(
-        name=c.name.display if c.name else None,
-        quote=c.quote.display if c.quote else None,
+        name=c.name,
+        quote=c.quote,
         icon=str(c.icon.url) if c.icon else None,
         portrait=str(c.portrait.url) if c.portrait else None,
     )
@@ -24,10 +24,10 @@ def _map_character(c: Character) -> CharacterRecord:
 def _map_support(s: Support) -> SupportRecord:
     return SupportRecord(
         character=s.character.key if s.character else None,
-        display=s.display.display if s.display else None,
+        display=s.display,
         type=s.type.value if s.type else None,
         rarity=s.rarity.value if s.rarity else None,
-        title=s.title.display if s.title else None,
+        title=s.title,
         release=s.release.isoformat(),
         thumbnail=str(s.thumbnail.url) if s.thumbnail else None,
         art=str(s.art.url) if s.art else None,
@@ -38,7 +38,7 @@ def _map_support(s: Support) -> SupportRecord:
 def _map_trainee(t: Trainee) -> TraineeRecord:
     return TraineeRecord(
         character=t.character.key,
-        variant=t.variant.title.display if t.variant.title else None,
+        variant=t.variant.title,
         rarity=t.variant.rarity,
         release=t.release.isoformat(),
         thumbnail=str(t.thumbnail.url) if t.thumbnail else None,

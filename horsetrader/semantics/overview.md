@@ -36,6 +36,7 @@ The horsetrader ETL doesn't use functional module names (`scrapers/`, `predictor
 | **Yayoi** | Rewards — what an event hands out (currencies, tickets, and sequence-shaped handouts) |
 | **Matikanefukukitaru** (Fuku-chan) | Prediction oracle — vibes-based heuristics that fill in Global dates for unscheduled events |
 | **Eishin** | Bake — tidies and serialises the final JSON outputs |
+| **Shuttle** | Japlish / translations — the JP↔EN language seam (names, aliases, romanisation, locale overrides) |
 | **Curren Chan** | Image processing — resizes source images and re-encodes to WebP |
 | **Tazuna** | Early-load + grab-bag utilities (cross-cutting) |
 | **Spechan** | Logging — writes letters home about what's happening (cross-cutting) |
@@ -57,6 +58,7 @@ Role text lives in each decorator's docstring (see `<character>.py`); the per-ch
 | [`@matikanefukukitaru`](matikanefukukitaru.py) | Prediction oracle | [matikanefukukitaru.md](matikanefukukitaru.md) |
 | [`@rudolf`](rudolf.py) | Pipeline orchestration | [rudolf.md](rudolf.md) |
 | [`@shakur`](shakur.py) | Transit / web transport | [shakur.md](shakur.md) |
+| [`@shuttle`](shuttle.py) | Japlish / translations — JP↔EN language seam | [shuttle.md](shuttle.md) |
 | [`@spechan`](spechan.py) | Logging (cross-cutting) | [spechan.md](spechan.md) |
 | [`@tazuna`](tazuna.py) | Early-load + utilities (cross-cutting) | [tazuna.md](tazuna.md) |
 | [`@transcend`](transcend.py) | Ingest / scraping | [transcend.md](transcend.md) |

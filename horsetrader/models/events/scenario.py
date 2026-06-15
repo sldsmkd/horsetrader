@@ -66,7 +66,7 @@ class Scenario(Event):
         # banner/contents a story carries.
         return ScenarioRecord(
             **self._envelope(period),
-            title=self.title.display if self.title else None,
+            title=self.title,
             image=str(self.thumb.url) if self.thumb else None,
             art=str(self.art.url) if self.art else None,
         )

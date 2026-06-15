@@ -3,7 +3,8 @@ from typing import Type
 
 import msgspec
 
-from horsetrader.core import Config, JST
+from horsetrader.core import Config, JST, Japlish
+from horsetrader.info import Logger
 from horsetrader.models.config import GachaConfig
 from horsetrader.models.core import TracenModel, TracenModels
 from horsetrader.models.entities.entities import Entities
@@ -15,10 +16,24 @@ from horsetrader.timeline import Timeline
 from ._mappers import MAPPERS
 from ._records import Academy, ConfigBundle, EventsBundle
 
+logger = Logger.get(__name__)
+
 
 def _enc_hook(obj: object) -> object:
-    # Stable keys (and any `str` subclass) flow into `str`-typed record fields;
-    # msgspec's strict encoder won't auto-coerce a subclass, so narrow it here.
+    # Every `Japlish` in the bundle funnels through here at encode time — the one
+    # place Eishin "encounters" each one. The wire is EN-facing, so render the
+    # EN-preferring `.display`; if no English translation is attached, `.display`
+    # still falls back to JP/base (the bundle stays populated) and we warn so the
+    # gap surfaces for curation instead of silently shipping Japanese.
+    if isinstance(obj, Japlish):
+        try:
+            obj.en
+        except ValueError:
+            logger.warning(f"Japlish has no EN translation, baking fallback: {obj!r}")
+        return obj.display
+
+    # Stable keys (and any other `str` subclass) flow into `str`-typed record
+    # fields; msgspec's strict encoder won't auto-coerce a subclass, so narrow it.
     if isinstance(obj, str):
         return str(obj)
     raise NotImplementedError(f"Unencodable bake type: {type(obj).__name__}")

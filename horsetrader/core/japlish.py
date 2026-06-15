@@ -2,10 +2,10 @@ from re import sub as re_sub
 from typing import Optional, Union
 
 from horsetrader.enums import JaplishEncoding
-from horsetrader.semantics import tazuna
+from horsetrader.semantics import shuttle
 
 
-@tazuna
+@shuttle
 class Japlish(str):
 
     @staticmethod

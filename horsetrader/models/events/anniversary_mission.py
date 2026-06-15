@@ -53,7 +53,7 @@ class AnniversaryMission(Mission):
     def bake(self, period: Period) -> AnniversaryMissionRecord:
         return AnniversaryMissionRecord(
             **self._envelope(period),
-            name=self.title.display if self.title else None,
+            name=self.title,
             anniversary=self.anniversary,
             part=self.part,
         )

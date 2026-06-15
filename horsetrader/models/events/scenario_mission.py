@@ -33,7 +33,7 @@ class ScenarioMission(Mission):
     def bake(self, period: Period) -> ScenarioMissionRecord:
         return ScenarioMissionRecord(
             **self._envelope(period),
-            name=self.title.display if self.title else None,
+            name=self.title,
             scenario=self.scenario,
         )
 
