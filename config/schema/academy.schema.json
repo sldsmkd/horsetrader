@@ -3,13 +3,31 @@
   "$defs": {
     "Academy": {
       "title": "Academy",
-      "description": "Top-level shape of ``academy.json`` — the three entity collections, each a\nstable-key → record map (the keys are the collection class names lowercased,\nmatching ``Bake.academy``).",
+      "description": "Top-level shape of ``academy.json`` — the entity collections, each a\nstable-key → record map (the keys are the collection class names lowercased,\nmatching ``Bake.academy``).",
       "type": "object",
       "properties": {
         "characters": {
           "type": "object",
           "additionalProperties": {
             "$ref": "#/$defs/CharacterRecord"
+          }
+        },
+        "courses": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/CourseRecord"
+          }
+        },
+        "races": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/RaceRecord"
+          }
+        },
+        "racetracks": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/RacetrackRecord"
           }
         },
         "supports": {
@@ -27,6 +45,9 @@
       },
       "required": [
         "characters",
+        "courses",
+        "races",
+        "racetracks",
         "supports",
         "trainees"
       ]
@@ -81,6 +102,138 @@
         "quote",
         "icon",
         "portrait"
+      ]
+    },
+    "CourseRecord": {
+      "title": "CourseRecord",
+      "type": "object",
+      "properties": {
+        "racetrack": {
+          "type": "string"
+        },
+        "surface": {
+          "type": "string"
+        },
+        "distance": {
+          "type": "integer"
+        },
+        "variant": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "diagram": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "racetrack",
+        "surface",
+        "distance",
+        "variant",
+        "diagram"
+      ]
+    },
+    "RaceRecord": {
+      "title": "RaceRecord",
+      "type": "object",
+      "properties": {
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "grade": {
+          "type": "string"
+        },
+        "surface": {
+          "type": "string"
+        },
+        "distance": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "racetrack": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "banner": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "name",
+        "grade",
+        "surface",
+        "distance",
+        "racetrack",
+        "banner"
+      ]
+    },
+    "RacetrackRecord": {
+      "title": "RacetrackRecord",
+      "type": "object",
+      "properties": {
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "icon": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "name",
+        "icon"
       ]
     },
     "SupportRecord": {
