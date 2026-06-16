@@ -9,6 +9,7 @@
 // Global shell + tokens; each view co-locates its own styles (ui/**/*.css).
 import "../../css/palette.css";
 import "../../css/base.css";
+import "../../css/timelineSizing.css";
 
 import { createCoordinator } from "./core/engine/index.ts";
 import { defaultTimeZone, todayInTimeZone } from "./core/projection/dates.ts";

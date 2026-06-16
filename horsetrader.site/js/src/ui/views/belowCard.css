@@ -6,11 +6,14 @@
   width: var(--timeline-card-w);
 }
 
+.card--below .card__stem {
+  height: var(--timeline-lane-first-gap);
+}
+
 .card--mission-art {
-  --mission-thumb-w: 9.6rem;
-  --mission-thumb-h: 4.8rem;
-  --mission-thumb-overhang: 0.9rem;
-  width: 20rem;
+  --mission-thumb-w: 8.9rem;
+  --mission-thumb-h: 4.45rem;
+  --mission-thumb-overhang: 0.7rem;
 }
 
 .card__body {
@@ -128,6 +131,7 @@
 .card__label {
   padding: 0.4rem 0.5rem 0.35rem;
   line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
 .card--mission-art .card__body {
@@ -137,8 +141,8 @@
 .card__mission-layout {
   position: relative;
   display: grid;
-  grid-template-columns: calc(var(--mission-thumb-w) - var(--mission-thumb-overhang) + 0.45rem) minmax(0, 1fr);
-  grid-template-rows: minmax(4.35rem, auto) auto;
+  grid-template-columns: calc(var(--mission-thumb-w) - var(--mission-thumb-overhang) + 0.35rem) minmax(0, 1fr);
+  grid-template-rows: minmax(4.1rem, auto) auto;
   align-items: stretch;
 }
 
@@ -174,8 +178,8 @@
 
 .card__mission-copy .card__label {
   display: -webkit-box;
-  min-height: 4.35rem;
-  padding: 0.58rem 0.7rem 0.45rem 0.55rem;
+  min-height: 4.1rem;
+  padding: 0.52rem 0.6rem 0.4rem 0.45rem;
   overflow: hidden;
   line-height: 1.36;
   -webkit-box-orient: vertical;

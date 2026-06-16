@@ -67,13 +67,11 @@ import type { Coordinator, SettledEvent } from "../core/engine/index.ts";
 import type { CalendarDate } from "../core/projection/dates.ts";
 import type { Bundle } from "./bundle/access.ts";
 
-/** Below-lane collision spacing (content px): horizontal breathing room between
- *  neighbours, and the vertical gap between stacked cards. Tune by eye. */
-const BELOW_GAP_X = 10;
-const BELOW_GAP_Y = 6;
-/** Above-lane horizontal breathing room between adjacent banner groups (px). */
-const ABOVE_GAP = 8;
-
+function timelinePxVar(name: string, fallback: number): number {
+  const raw = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  const px = Number.parseFloat(raw);
+  return Number.isFinite(px) ? px : fallback;
+}
 
 /**
  * The packer's impure bookend: measure the just-mounted below cards once, run the
@@ -91,8 +89,10 @@ function packBelowLane(cards: readonly BelowCard[], els: readonly HTMLElement[])
   const baseStem = stems[0].getBoundingClientRect().height;
   const heights = bodies.map((b) => b.getBoundingClientRect().height);
   const boxes = cards.map((card, i) => ({ x: card.x, height: heights[i] }));
+  const gapX = timelinePxVar("--timeline-below-gap-x", 10);
+  const gapY = timelinePxVar("--timeline-stack-gap", 14);
 
-  const offsets = packBelow(boxes, { width, gapX: BELOW_GAP_X, gapY: BELOW_GAP_Y });
+  const offsets = packBelow(boxes, { width, gapX, gapY });
   let depth = 0;
   offsets.forEach((offset, i) => {
     stems[i].style.height = `${baseStem + offset}px`;
@@ -114,8 +114,9 @@ function packAboveLane(groups: readonly BannerGroup[], els: readonly HTMLElement
   const bodies = els.map((el) => el.querySelector(".banner-group") as HTMLElement);
   const stem = (els[0].querySelector(".card__stem") as HTMLElement).getBoundingClientRect().height;
   const boxes = groups.map((group, i) => ({ x: group.x, width: bodies[i].getBoundingClientRect().width }));
+  const gap = timelinePxVar("--timeline-above-gap-x", 8);
 
-  const nudges = packAbove(boxes, ABOVE_GAP);
+  const nudges = packAbove(boxes, gap);
   let roof = 0;
   nudges.forEach((nudge, i) => {
     bodies[i].style.transform = nudge ? `translateX(${nudge}px)` : "";

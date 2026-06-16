@@ -30,7 +30,7 @@ function missionBody(card: BelowCard, rush: RushBinding): HTMLElement {
     h(
       "div",
       { class: "card__mission-copy" },
-      h("span", { class: "card__label" }, card.label),
+      h("span", { class: "card__label", attr: { title: card.fullLabel } }, card.label),
       card.rushable ? rushedToggleFor(rush, card.key) : null,
     ),
     rewardStrip(card.reward),
@@ -55,7 +55,7 @@ export function belowCard(card: BelowCard, rush: RushBinding): HTMLElement {
         "div",
         { class: "card__body" },
         rectangularMedia(card),
-        h("span", { class: "card__label" }, card.label),
+        h("span", { class: "card__label", attr: { title: card.fullLabel } }, card.label),
         card.rushable ? rushedToggleFor(rush, card.key) : null,
         rewardStrip(card.reward),
       );

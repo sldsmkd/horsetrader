@@ -72,6 +72,8 @@ export interface BelowCard {
   kind: BelowKind;
   /** Display name, falling back to the key when the source carries none. */
   label: string;
+  /** Full source display name, for hover/tooltips when `label` is compacted. */
+  fullLabel: string;
   /** The arrival date — when the event shows up on the timeline; the stem's true
    *  date (principle 4). The reward still posts on `end` in the ledger. */
   date: CalendarDate;
@@ -96,6 +98,38 @@ function labelOf(record: NonNullable<SettledEvent["record"]>): string {
   if ("name" in record && record.name) return record.name;
   if ("title" in record && record.title) return record.title;
   return record.key;
+}
+
+function compactAnniversaryMissionLabel(record: Extract<NonNullable<SettledEvent["record"]>, { type: "anniversarymission" }>, label: string): string {
+  const ann = label.match(/^(.+?)\s+Anniversary\b/);
+  const version = ann ? `${ann[1]} Anniv.` : "Anniv.";
+  return `${version} P${record.part}`;
+}
+
+function g1MissionRaceName(label: string): string | null {
+  const g1 = label.match(/^(?:(?:Spring|Fall)\s+)?G1\s+Celebration\s+Missions(?:,?\s*Part\s+\d+)?(?::|\s+)(.+)$/);
+  const race = g1?.[1]?.trim();
+  return race || null;
+}
+
+function compactG1RaceName(race: string): string {
+  return race
+    .replace(/\bQueen Elizabeth II\b/g, "QEII")
+    .replace(/\bChampionship\b/g, "Ch.")
+    .replace(/\bStakes\b/g, "S.");
+}
+
+function compactRegularMissionLabel(label: string): string {
+  const race = g1MissionRaceName(label);
+  if (race) return compactG1RaceName(race);
+
+  return label.replace(/\s+Missions$/, "").trim();
+}
+
+function cardLabelOf(record: NonNullable<SettledEvent["record"]>, fullLabel: string): string {
+  if (record.type === "anniversarymission") return compactAnniversaryMissionLabel(record, fullLabel);
+  if (record.type === "mission" || record.type === "scenariomission") return compactRegularMissionLabel(fullLabel);
+  return fullLabel;
 }
 
 function bannerOf(record: NonNullable<SettledEvent["record"]>): string | null {
@@ -128,10 +162,12 @@ export function belowLaneCards(events: readonly SettledEvent[], axis: Axis, now:
     if (!BELOW_LANE.has(ev.type)) continue; // above-lane banner or unknown kind
     const record = ev.record;
     if (!record) continue; // minted events are never lane cards
+    const fullLabel = labelOf(record);
     const card: BelowCard = {
       key: ev.key,
       kind: ev.type as BelowKind,
-      label: labelOf(record),
+      label: cardLabelOf(record, fullLabel),
+      fullLabel,
       date: ev.start,
       x: axis.xForDate(ev.start),
       predicted: record.predicted,

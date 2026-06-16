@@ -186,8 +186,139 @@ test("an anniversary mission's card combines its flat face and its minted daily 
   const cards = belowLaneCards(settled(events), AXIS, NOW);
 
   assert.deepEqual(cards.map((c) => c.kind), ["anniversarymission"]);
+  assert.equal(cards[0]!.label, "1st Anniv. P1");
+  assert.equal(cards[0]!.fullLabel, "1st Anniversary Missions Part 1");
   // free_carats: 500 (flat) + 150 + 150 (sequence); trainee_tickets: 3 (flat).
   assert.deepEqual(cards[0]!.reward, { trainee_tickets: 3, free_carats: 800 });
+});
+
+test("mission-shaped cards use compact display labels without losing the source label", () => {
+  const events: EventsBundle = {
+    events: [
+      {
+        type: "mission",
+        name: "Spring G1 Celebration Missions, Part 1: Takamatsunomiya Kinen",
+        image: "/img/missions/mission-g1.webp",
+        start: "2026-07-01",
+        end: "2026-07-10",
+        predicted: false,
+        key: "mission-g1",
+      },
+      {
+        type: "mission",
+        name: "G1 Celebration Missions Part 1 February Stakes",
+        image: "/img/missions/mission-g1-plain.webp",
+        start: "2026-07-02",
+        end: "2026-07-10",
+        predicted: false,
+        key: "mission-g1-plain",
+      },
+      {
+        type: "mission",
+        name: "Spring G1 Celebration Missions, Part 1: Oka Sho",
+        image: "/img/missions/mission-oka.webp",
+        start: "2026-07-03",
+        end: "2026-07-10",
+        predicted: false,
+        key: "mission-oka",
+      },
+      {
+        type: "mission",
+        name: "Spring G1 Celebration Missions, Part 1: Osaka Hai",
+        image: "/img/missions/mission-osaka.webp",
+        start: "2026-07-04",
+        end: "2026-07-10",
+        predicted: false,
+        key: "mission-osaka",
+      },
+      {
+        type: "mission",
+        name: "Fall G1 Celebration Missions, Part 2: Queen Elizabeth II Cup",
+        image: "/img/missions/mission-qeii.webp",
+        start: "2026-07-05",
+        end: "2026-07-10",
+        predicted: false,
+        key: "mission-qeii",
+      },
+      {
+        type: "mission",
+        name: "Fall G1 Celebration Missions, Part 1: Mile Championship Nambu Hai",
+        image: "/img/missions/mission-mile-cs.webp",
+        start: "2026-07-06",
+        end: "2026-07-10",
+        predicted: false,
+        key: "mission-mile-cs",
+      },
+      {
+        type: "mission",
+        name: "Fall G1 Celebration Missions, Part 1: Sprinters Stakes",
+        image: "/img/missions/mission-sprinters.webp",
+        start: "2026-07-07",
+        end: "2026-07-10",
+        predicted: false,
+        key: "mission-sprinters",
+      },
+      {
+        type: "mission",
+        name: "Golshi Week Special Missions",
+        image: "/img/missions/mission-golshi.webp",
+        start: "2026-07-08",
+        end: "2026-07-10",
+        predicted: false,
+        key: "mission-golshi",
+      },
+      {
+        type: "scenariomission",
+        name: "Run, Mecha Umamusume! Missions",
+        image: "/img/missions/mission-scenario.webp",
+        scenario: "scenario-09",
+        start: "2026-07-09",
+        end: "2026-07-10",
+        predicted: false,
+        key: "mission-scenario",
+      },
+    ],
+  };
+
+  const cards = belowLaneCards(settled(events), AXIS, NOW);
+  const labels = new Map(cards.map((c) => [c.key, [c.label, c.fullLabel]]));
+
+  assert.deepEqual(labels.get("mission-g1"), [
+    "Takamatsunomiya Kinen",
+    "Spring G1 Celebration Missions, Part 1: Takamatsunomiya Kinen",
+  ]);
+  assert.deepEqual(labels.get("mission-g1-plain"), [
+    "February S.",
+    "G1 Celebration Missions Part 1 February Stakes",
+  ]);
+  assert.deepEqual(labels.get("mission-oka"), [
+    "Oka Sho",
+    "Spring G1 Celebration Missions, Part 1: Oka Sho",
+  ]);
+  assert.deepEqual(labels.get("mission-osaka"), [
+    "Osaka Hai",
+    "Spring G1 Celebration Missions, Part 1: Osaka Hai",
+  ]);
+  assert.deepEqual(labels.get("mission-qeii"), [
+    "QEII Cup",
+    "Fall G1 Celebration Missions, Part 2: Queen Elizabeth II Cup",
+  ]);
+  assert.deepEqual(labels.get("mission-mile-cs"), [
+    "Mile Ch. Nambu Hai",
+    "Fall G1 Celebration Missions, Part 1: Mile Championship Nambu Hai",
+  ]);
+  assert.deepEqual(labels.get("mission-sprinters"), [
+    "Sprinters S.",
+    "Fall G1 Celebration Missions, Part 1: Sprinters Stakes",
+  ]);
+  assert.deepEqual(labels.get("mission-golshi"), [
+    "Golshi Week Special",
+    "Golshi Week Special Missions",
+  ]);
+  assert.deepEqual(labels.get("mission-scenario"), [
+    "Run, Mecha Umamusume!",
+    "Run, Mecha Umamusume! Missions",
+  ]);
 });
 
 test("presence is the stream's call: a gated-off mission is absent from the input, so no card", () => {

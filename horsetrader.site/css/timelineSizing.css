@@ -1,0 +1,9 @@
+/* Shared timeline layout rhythm. Component-specific image offsets and artwork
+   geometry stay with their card styles; these tokens are the cross-lane contract. */
+:root {
+  --timeline-card-w: 17.5rem; /* 280px at the default font size; shared by timeline cards */
+  --timeline-lane-first-gap: 1.65rem;
+  --timeline-stack-gap: 14px;
+  --timeline-below-gap-x: 10px;
+  --timeline-above-gap-x: 8px;
+}
