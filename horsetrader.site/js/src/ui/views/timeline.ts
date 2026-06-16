@@ -23,9 +23,10 @@ import { addDays } from "../../core/projection/dates.ts";
 import type { CalendarDate } from "../../core/projection/dates.ts";
 
 /** Px per day — the fixed true-to-date scale (ui.md principle 2). We don't zoom
- *  beyond browser ctrl-+/-, so this is a constant, not view-state. Matches the
- *  prototype's spacing so a date-gap reads as room, not a crush. */
-const PX_PER_DAY = 100;
+ *  beyond browser ctrl-+/-, so this is a constant, not view-state. A date-gap
+ *  should read as room, not a crush: at this scale a 2-day gap (240px) clears a
+ *  full + compact card pair (collision ~220px) so the slimmer card sits flush. */
+const PX_PER_DAY = 120;
 /** Breathing room (days) padded either side of the data extent — the prototype's
  *  fixed buffer before the first card and after the last. */
 const PAD_DAYS = 3;

@@ -13,18 +13,20 @@
  * strategy; the above-lane group-and-nudge follows separately.
  */
 
-/** One card to place: its true-date centre x and its measured height (content px). */
+/** One card to place: its true-date centre x and its measured width/height (content px). */
 export interface Box {
   /** Content-space centre x (off the shared axis) — the card's true date, never moved. */
   x: number;
+  /** Collision-footprint width in px. Cards come in unit multiples (1u = 140px: a
+   *  compact card is 1u, a full card 2u), so a 1u card only fights for the room it
+   *  actually occupies — not a uniform full-width footprint. */
+  width: number;
   /** Measured card height in px. */
   height: number;
 }
 
 /** The spacing that defines collisions. All in content-space px. */
 export interface BelowConfig {
-  /** Card width — two cards x-collide when their centres are closer than this (+ `gapX`). */
-  width: number;
   /** Minimum horizontal breathing room between neighbouring cards. */
   gapX: number;
   /** Vertical gap between two cards stacked in the same column. */
@@ -46,7 +48,7 @@ export interface BelowConfig {
  * Returns offsets **aligned to the input order** (`boxes[i] → offsets[i]`), so the
  * caller zips them straight back onto its cards.
  */
-export function packBelow(boxes: readonly Box[], { width, gapX, gapY }: BelowConfig): number[] {
+export function packBelow(boxes: readonly Box[], { gapX, gapY }: BelowConfig): number[] {
   // Placement priority — the one tuning knob. Tallest-first today (big cards
   // anchor the line, small ones fill the gaps); could become fattest-loot-first
   // or another key without touching the geometry below. x then index break ties
@@ -58,8 +60,10 @@ export function packBelow(boxes: readonly Box[], { width, gapX, gapY }: BelowCon
   const placed: number[] = []; // input-indices already given an offset, in placement order
 
   // Two cards share a column (and so can vertically collide) when their centres
-  // are nearer than a full card-width-plus-gap apart.
-  const xCollides = (a: number, b: number) => Math.abs(boxes[a].x - boxes[b].x) < width + gapX;
+  // are nearer than their two half-widths plus the gap — so a slim card beside a
+  // wide one only collides over the room they genuinely share.
+  const xCollides = (a: number, b: number) =>
+    Math.abs(boxes[a].x - boxes[b].x) < (boxes[a].width + boxes[b].width) / 2 + gapX;
   // `cur` at `yOff` clears `prev` when one sits entirely above the other (+ gapY).
   const clears = (cur: number, yOff: number, prev: number) =>
     yOff + boxes[cur].height + gapY <= offsets[prev] || yOff >= offsets[prev] + boxes[prev].height + gapY;

@@ -77,22 +77,27 @@ function timelinePxVar(name: string, fallback: number): number {
  * The packer's impure bookend: measure the just-mounted below cards once, run the
  * pure `packBelow` geometry, then apply each offset by **growing the stem** — so
  * the body drops to its packed row while the stem still reaches its true-date tick
- * (principle 4). The card width is uniform (CSS), so one measurement sets the
- * collision width; heights are per-card body heights. Shallower cards sit on top.
+ * (principle 4). Each card's collision width is measured and snapped to the unit
+ * grid (1u = 140px; compact = 1u, full = 2u), so a slim card only fights for the
+ * room it occupies; heights are per-card body heights. Shallower cards sit on top.
  * Returns how far the deepest card reaches below the line (px) — the lane's floor.
  */
 function packBelowLane(cards: readonly BelowCard[], els: readonly HTMLElement[]): number {
   if (els.length === 0) return 0;
   const stems = els.map((el) => el.querySelector(".card__stem") as HTMLElement);
   const bodies = els.map((el) => el.querySelector(".card__body") as HTMLElement);
-  const width = els[0].getBoundingClientRect().width;
   const baseStem = stems[0].getBoundingClientRect().height;
   const heights = bodies.map((b) => b.getBoundingClientRect().height);
-  const boxes = cards.map((card, i) => ({ x: card.x, height: heights[i] }));
+  // Snap each measured width to the nearest unit (1u = 140px, half the full card)
+  // so the collision grid stays on clean 1u/2u/3u multiples, never a sub-pixel
+  // rem-rounding sliver. The grid emerged from the real card styling.
+  const unit = timelinePxVar("--timeline-card-w", 280) / 2;
+  const widths = els.map((el) => Math.round(el.getBoundingClientRect().width / unit) * unit);
+  const boxes = cards.map((card, i) => ({ x: card.x, width: widths[i], height: heights[i] }));
   const gapX = timelinePxVar("--timeline-below-gap-x", 10);
   const gapY = timelinePxVar("--timeline-stack-gap", 14);
 
-  const offsets = packBelow(boxes, { width, gapX, gapY });
+  const offsets = packBelow(boxes, { gapX, gapY });
   let depth = 0;
   offsets.forEach((offset, i) => {
     stems[i].style.height = `${baseStem + offset}px`;
