@@ -98,6 +98,7 @@ const ACADEMY: Academy = {
     "trainee-teio-autumn": {
       character: "char-teio",
       variant: "Autumn Festival",
+      title: null,
       rarity: 3,
       release: "2021-10-01",
       thumbnail: null,
@@ -107,6 +108,7 @@ const ACADEMY: Academy = {
     "trainee-palmer-reindeer": {
       character: "char-palmer",
       variant: "Warm-Hearted Reindeer",
+      title: null,
       rarity: 3,
       release: "2021-10-01",
       thumbnail: null,

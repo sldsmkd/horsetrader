@@ -23,8 +23,8 @@ const ACADEMY: Academy = {
     "s-sr": { character: "char-suzuka", display: "Aaa Support", type: "speed", rarity: "sr", title: null, release: "2021", thumbnail: null, art: null, aliases: [] },
   },
   trainees: {
-    "t-spe": { character: "char-spe", variant: null, rarity: 3, release: "2021", thumbnail: "/img/t-spe.webp", portrait: null, aliases: [] },
-    "t-suzuka": { character: "char-suzuka", variant: null, rarity: 3, release: "2021", thumbnail: null, portrait: null, aliases: [] },
+    "t-spe": { character: "char-spe", variant: "Original", title: null, rarity: 3, release: "2021", thumbnail: "/img/t-spe.webp", portrait: null, aliases: [] },
+    "t-suzuka": { character: "char-suzuka", variant: "Original", title: null, rarity: 3, release: "2021", thumbnail: null, portrait: null, aliases: [] },
   },
   courses: {},
   races: {},

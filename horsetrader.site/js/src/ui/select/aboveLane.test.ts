@@ -29,8 +29,8 @@ const ACADEMY: Academy = {
   characters: { "char-spe": { name: "Special Week", quote: null, icon: null, portrait: null }, "char-suzuka": { name: "Silence Suzuka", quote: null, icon: null, portrait: null } },
   supports: { "s-spe": { character: "char-spe", display: "Special Week", type: "guts", rarity: "ssr", title: null, release: "2021", thumbnail: null, art: null, aliases: [] } },
   trainees: {
-    "t-spe": { character: "char-spe", variant: null, rarity: 3, release: "2021", thumbnail: null, portrait: null, aliases: [] },
-    "t-suzuka": { character: "char-suzuka", variant: null, rarity: 3, release: "2021", thumbnail: null, portrait: null, aliases: [] },
+    "t-spe": { character: "char-spe", variant: "Original", title: null, rarity: 3, release: "2021", thumbnail: null, portrait: null, aliases: [] },
+    "t-suzuka": { character: "char-suzuka", variant: "Original", title: null, rarity: 3, release: "2021", thumbnail: null, portrait: null, aliases: [] },
   },
   courses: {},
   races: {},

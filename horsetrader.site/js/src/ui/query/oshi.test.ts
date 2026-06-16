@@ -34,7 +34,8 @@ const ACADEMY: Academy = {
   trainees: {
     "trainee-admire-groove": {
       character: "char-admire-groove",
-      variant: null,
+      variant: "Original",
+      title: null,
       rarity: 3,
       release: "2021-02-24",
       thumbnail: null,
@@ -43,7 +44,8 @@ const ACADEMY: Academy = {
     },
     "trainee-haru-urara": {
       character: "char-haru-urara",
-      variant: null,
+      variant: "Original",
+      title: null,
       rarity: 1,
       release: "2021-02-24",
       thumbnail: null,
@@ -52,7 +54,8 @@ const ACADEMY: Academy = {
     },
     "trainee-maruzensky": {
       character: "char-maruzensky",
-      variant: null,
+      variant: "Original",
+      title: null,
       rarity: 3,
       release: "2021-02-24",
       thumbnail: null,
@@ -62,6 +65,7 @@ const ACADEMY: Academy = {
     "trainee-teio-autumn": {
       character: "char-teio",
       variant: "Autumn Festival",
+      title: null,
       rarity: 3,
       release: "2021-10-01",
       thumbnail: null,
@@ -71,6 +75,7 @@ const ACADEMY: Academy = {
     "trainee-palmer-reindeer": {
       character: "char-palmer",
       variant: "Warm-Hearted Reindeer",
+      title: null,
       rarity: 3,
       release: "2021-12-01",
       thumbnail: null,
