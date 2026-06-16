@@ -80,7 +80,7 @@ def _map_support(s: Support) -> SupportRecord:
 def _map_trainee(t: Trainee) -> TraineeRecord:
     return TraineeRecord(
         character=t.character.key,
-        variant=t.variant.variant.value,
+        variant=t.variant.variant.en,
         title=t.variant.title,
         rarity=t.variant.rarity,
         release=t.release.isoformat(),

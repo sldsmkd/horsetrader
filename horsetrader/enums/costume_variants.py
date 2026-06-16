@@ -1,6 +1,9 @@
 from enum import Enum
 from typing import TYPE_CHECKING
 
+from horsetrader.semantics import shuttle
+
+
 if TYPE_CHECKING:
     from horsetrader.core import Japlish
 
@@ -74,7 +77,7 @@ _COSTUME_VARIANT_JP_MAP = {
     "FULL_ARMOR": "フルアーマー",
 }
 
-
+@shuttle
 class CostumeVariants(Enum):
     DEFAULT = "default"
     NEW_YEAR = "new-year"

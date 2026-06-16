@@ -83,8 +83,9 @@ class SupportRecord(msgspec.Struct):
 @eishin
 class TraineeRecord(msgspec.Struct):
     character: str
-    # Costume *category*, normalised to the `CostumeVariants` enum slug (e.g.
-    # "new-year"); always present, like the other enum-valued fields.
+    # Costume *category*, normalised by the `CostumeVariants` enum to its
+    # display-ready EN label (e.g. "New Year"); always present. The FE has no
+    # slug->label map, so the wire carries the human form, not the slug.
     variant: str
     # Unique per-card *flavour* title (EN-preferring, e.g. "[Jubilant
     # Star・Auspicious Crane]"); `null` when no source carries one.
