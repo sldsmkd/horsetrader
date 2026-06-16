@@ -200,6 +200,7 @@ class ShowtimeRecord(EventRecord, tag="showtime"):
     # Rushable (post-at-start) + carries rewards via the shared envelope, unlike
     # a CM. `name` is the EN display label ("Fuji Kiseki's Showtime Event").
     name: str | None
+    banner: str | None
 
 
 @eishin
@@ -216,17 +217,17 @@ class NamedEventRecord(EventRecord):
 @eishin
 class SkillTestRecord(NamedEventRecord, tag="skilltest"):
     # Recurring Trainer Skills Test; carries the fixed full-clear rewards.
-    pass
+    banner: str | None
 
 
 @eishin
 class RacingCarnivalRecord(NamedEventRecord, tag="racingcarnival"):
-    pass
+    banner: str | None
 
 
 @eishin
 class StrongestTeamRecord(NamedEventRecord, tag="strongestteam"):
-    pass
+    banner: str | None
 
 
 @eishin
@@ -236,7 +237,7 @@ class MastersChallengeRecord(NamedEventRecord, tag="masterschallenge"):
 
 @eishin
 class FactorStudiesRecord(NamedEventRecord, tag="factorstudies"):
-    pass
+    banner: str | None
 
 
 @eishin

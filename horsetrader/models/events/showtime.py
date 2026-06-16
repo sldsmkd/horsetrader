@@ -1,14 +1,16 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from horsetrader.core import Period, Periods, SingletonMeta, StableKey
 from horsetrader.extractors.static import Static, store
 from horsetrader.extractors.wikiru import Wikiru
 from horsetrader.info import Logger
 from horsetrader.models.core import References
+from horsetrader.models.media import Image
 from horsetrader.models.rewards import rewards_from_baked
 from horsetrader.output._records import ShowtimeRecord
 from horsetrader.semantics import daitaku
 
+from ._misc_banner import process_misc_banner
 from .event import Event, Rushable
 from .events import Events
 
@@ -33,6 +35,7 @@ class Showtime(Rushable, Event):
     """
 
     name: str | None = None
+    banner: Image | None = field(default=None, kw_only=True)
 
     def match(self, query: str) -> bool:
         return super().match(query) or (
@@ -42,7 +45,11 @@ class Showtime(Rushable, Event):
     def bake(self, period: Period) -> ShowtimeRecord:
         # Tag is "showtime" — the concise discriminator matching the stable-key
         # prefix. Carries rewards (folded in by `_envelope`), unlike a CM.
-        return ShowtimeRecord(**self._envelope(period), name=self.name)
+        return ShowtimeRecord(
+            **self._envelope(period),
+            name=self.name,
+            banner=str(self.banner.url) if self.banner else None,
+        )
 
 
 @daitaku
@@ -72,7 +79,7 @@ class Showtimes(Events[Showtime], metaclass=SingletonMeta):
 
     def _fetch_primary(self) -> list[Showtime]:
         records = Wikiru().occurrences("フジキセキのショータイム", "showtime")
-        return [
+        showtimes = [
             Showtime(
                 key=StableKey(record["key"]),
                 periods=Periods([record["period"]]),
@@ -81,3 +88,15 @@ class Showtimes(Events[Showtime], metaclass=SingletonMeta):
             )
             for record in records
         ]
+        self._assign_banner(showtimes)
+        return showtimes
+
+    @staticmethod
+    def _assign_banner(showtimes: list[Showtime]) -> None:
+        image = process_misc_banner("showtime.png")
+        if image is None:
+            return
+
+        for showtime in showtimes:
+            showtime.banner = image
+            showtime.references.add(image.references)

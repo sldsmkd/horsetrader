@@ -133,6 +133,7 @@ export interface CMRecord {
 export interface ShowtimeRecord {
   type: "showtime";
   name: string | null;
+  banner: string | null;
   start: string;
   end: string;
   predicted: boolean;
@@ -150,6 +151,7 @@ export interface ShowtimeRecord {
 export interface SkillTestRecord {
   type: "skilltest";
   name: string | null;
+  banner: string | null;
   start: string;
   end: string;
   predicted: boolean;
@@ -167,6 +169,7 @@ export interface SkillTestRecord {
 export interface RacingCarnivalRecord {
   type: "racingcarnival";
   name: string | null;
+  banner: string | null;
   start: string;
   end: string;
   predicted: boolean;
@@ -184,6 +187,7 @@ export interface RacingCarnivalRecord {
 export interface StrongestTeamRecord {
   type: "strongestteam";
   name: string | null;
+  banner: string | null;
   start: string;
   end: string;
   predicted: boolean;
@@ -218,6 +222,7 @@ export interface MastersChallengeRecord {
 export interface FactorStudiesRecord {
   type: "factorstudies";
   name: string | null;
+  banner: string | null;
   start: string;
   end: string;
   predicted: boolean;

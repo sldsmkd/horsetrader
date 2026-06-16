@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from horsetrader.core import Period, SingletonMeta
 from horsetrader.semantics import transcend
 
@@ -8,6 +10,7 @@ from . import champions_meetings as _champions_meetings
 from . import golden_week as _golden_week
 from . import new_year as _new_year
 from . import legend_races as _legend_races
+from . import misc as _misc
 from . import reward_maps as _reward_maps
 from . import reward_structures as _reward_structures
 from . import scenarios as _scenarios
@@ -81,6 +84,10 @@ class Static(metaclass=SingletonMeta):
         Each record has ``n`` (1-based ordinal) and ``banner_path`` (Path).
         """
         return _stories.load()
+
+    def misc_image(self, name: str) -> Path | None:
+        """Path to a curated misc image under config/img/misc/, or None."""
+        return _misc.image(name)
 
     def event_flags(self, key: str) -> dict[str, bool]:
         """Curated optional event flags for ``key``.

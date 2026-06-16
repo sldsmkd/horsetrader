@@ -140,6 +140,105 @@ test("holiday cards carry baked banner art when present", () => {
   assert.equal(cards[0]!.banner, "/img/holidays/holiday-golden-week-2023-banner.webp");
 });
 
+test("skill test cards carry baked misc banner art", () => {
+  const events: EventsBundle = {
+    events: [
+      {
+        type: "skilltest",
+        name: "Trainer Skills Test",
+        banner: "/img/misc/trainers-skill-test.webp",
+        start: "2026-08-01",
+        end: "2026-08-10",
+        predicted: false,
+        key: "skilltest-001",
+        rewards: { free_carats: 1500 },
+      },
+    ],
+  };
+
+  const cards = belowLaneCards(settled(events), AXIS, NOW);
+  assert.equal(cards[0]!.banner, "/img/misc/trainers-skill-test.webp");
+});
+
+test("factor studies cards carry baked misc banner art", () => {
+  const events: EventsBundle = {
+    events: [
+      {
+        type: "factorstudies",
+        name: "Factor Studies of Agnes Tachyon",
+        banner: "/img/misc/event-factors.webp",
+        start: "2026-08-01",
+        end: "2026-08-10",
+        predicted: false,
+        key: "factorstudies-001",
+        rewards: { free_carats: 500 },
+      },
+    ],
+  };
+
+  const cards = belowLaneCards(settled(events), AXIS, NOW);
+  assert.equal(cards[0]!.banner, "/img/misc/event-factors.webp");
+});
+
+test("showtime cards carry baked misc banner art", () => {
+  const events: EventsBundle = {
+    events: [
+      {
+        type: "showtime",
+        name: "Fuji Kiseki's Showtime Event",
+        banner: "/img/misc/showtime.webp",
+        start: "2026-08-01",
+        end: "2026-08-10",
+        predicted: false,
+        key: "showtime-001",
+        rewards: { free_carats: 500 },
+      },
+    ],
+  };
+
+  const cards = belowLaneCards(settled(events), AXIS, NOW);
+  assert.equal(cards[0]!.banner, "/img/misc/showtime.webp");
+});
+
+test("racing carnival cards carry baked misc banner art", () => {
+  const events: EventsBundle = {
+    events: [
+      {
+        type: "racingcarnival",
+        name: "Racing Carnival",
+        banner: "/img/misc/racing-carnival.webp",
+        start: "2026-08-01",
+        end: "2026-08-10",
+        predicted: false,
+        key: "racingcarnival-001",
+        rewards: { free_carats: 500 },
+      },
+    ],
+  };
+
+  const cards = belowLaneCards(settled(events), AXIS, NOW);
+  assert.equal(cards[0]!.banner, "/img/misc/racing-carnival.webp");
+});
+
+test("strongest team cards carry baked misc banner art", () => {
+  const events: EventsBundle = {
+    events: [
+      {
+        type: "strongestteam",
+        name: "Aim! Strongest Team",
+        banner: "/img/misc/strongest-team.webp",
+        start: "2026-08-01",
+        end: "2026-08-10",
+        predicted: false,
+        key: "strongestteam-001",
+      },
+    ],
+  };
+
+  const cards = belowLaneCards(settled(events), AXIS, NOW);
+  assert.equal(cards[0]!.banner, "/img/misc/strongest-team.webp");
+});
+
 test("past cards are marked after their end date", () => {
   const cards = belowLaneCards(settled(EVENTS), AXIS, cal("2026-07-02"));
   const byKey = new Map(cards.map((c) => [c.key, c]));

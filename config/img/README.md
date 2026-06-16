@@ -6,6 +6,21 @@ just kept for a human to eyeball. That's the line between this directory and
 `static/`; anything that only exists so a maintainer can check a date stays in
 `references/`.
 
+## `misc/`
+
+Shared one-off event images that do not need their own source folder. Files are
+addressed by explicit filename from the owning model rather than matched by
+ordinal. Current event banners:
+
+- `event-factors.png` → `factorstudies` records.
+- `racing-carnival.png` → `racingcarnival` records.
+- `showtime.png` → `showtime` records.
+- `strongest-team.png` → `strongestteam` records.
+- `trainers-skill-test.png` → `skilltest` records.
+
+The bake publishes each as `static/img/misc/<name>.webp` and attaches that URL
+to the owning event records as `banner`.
+
 ## `stories/`
 
 Story-event banner images, named `story_NN_banner.png` (1-based ordinal, no
