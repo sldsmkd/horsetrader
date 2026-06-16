@@ -272,6 +272,7 @@ test("an anniversary mission's card combines its flat face and its minted daily 
         type: "anniversarymission",
         name: "1st Anniversary Missions Part 1",
         image: null,
+        banner: null,
         anniversary: "anniversary-1_0",
         part: 1,
         start: "2026-07-01",

@@ -116,6 +116,7 @@ export interface StoryRecord {
 export interface CMRecord {
   type: "cm";
   name: string | null;
+  banner?: string | null;
   start: string;
   end: string;
   predicted: boolean;
@@ -258,6 +259,7 @@ export interface LeagueOfHeroesRecord {
 export interface LegendRaceRecord {
   type: "legendrace";
   name: string | null;
+  banner: string | null;
   legs: LegendLegRecord[];
   start: string;
   end: string;
@@ -323,6 +325,7 @@ export interface AnniversaryMissionRecord {
   type: "anniversarymission";
   name: string | null;
   image: string | null;
+  banner: string | null;
   anniversary: string;
   part: number;
   start: string;

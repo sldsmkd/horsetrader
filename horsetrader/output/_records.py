@@ -193,6 +193,7 @@ class StoryRecord(EventRecord, tag="story"):
 @eishin
 class CMRecord(EventRecord, tag="cm"):
     name: str | None
+    banner: str | None | UnsetType = UNSET
 
 
 @eishin
@@ -263,6 +264,7 @@ class LegendRaceRecord(EventRecord, tag="legendrace"):
     # per-trainee legs. `name` is the EN race label (None until it reaches Global).
     # Not rushable — the legs are date-pinned, so there's no post-at-start choice.
     name: str | None
+    banner: str | None
     legs: list[LegendLegRecord]
 
 
@@ -291,6 +293,7 @@ class AnniversaryMissionRecord(EventRecord, tag="anniversarymission"):
     # 1 = countdown, 2 = on the date, 3 = continuation).
     name: str | None
     image: str | None
+    banner: str | None
     anniversary: str
     part: int
 

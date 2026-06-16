@@ -535,6 +535,16 @@
             }
           ]
         },
+        "banner": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "start": {
           "type": "string"
         },
@@ -1265,6 +1275,16 @@
             }
           ]
         },
+        "banner": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "legs": {
           "type": "array",
           "items": {
@@ -1329,6 +1349,7 @@
       "required": [
         "type",
         "name",
+        "banner",
         "legs",
         "start",
         "end",
@@ -1563,6 +1584,16 @@
             }
           ]
         },
+        "banner": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "anniversary": {
           "type": "string"
         },
@@ -1628,6 +1659,7 @@
         "type",
         "name",
         "image",
+        "banner",
         "anniversary",
         "part",
         "start",

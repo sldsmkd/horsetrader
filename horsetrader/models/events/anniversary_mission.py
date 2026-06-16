@@ -1,11 +1,15 @@
 from dataclasses import dataclass, field
 
-from horsetrader.core import Period, SingletonMeta, StableKey
+from ethicrawl import ResourceList, Url
+
+from horsetrader.core import Config, Period, SingletonMeta, StableKey
 from horsetrader.extractors.static import store
 from horsetrader.info import Logger
+from horsetrader.models.media import CurrenChan, Image, ImageRequest
 from horsetrader.models.rewards import FreeCarats, Rewards, SequenceReward
 from horsetrader.output._records import AnniversaryMissionRecord
 from horsetrader.semantics import daitaku
+from horsetrader.services import News, NewsArticle
 
 from .anniversary import classify_anniversary_mission
 from .events import Events
@@ -49,12 +53,14 @@ class AnniversaryMission(Mission):
 
     anniversary: StableKey = field(kw_only=True)
     part: int = field(kw_only=True)
+    banner: Image | None = field(default=None, kw_only=True)
 
     def bake(self, period: Period) -> AnniversaryMissionRecord:
         return AnniversaryMissionRecord(
             **self._envelope(period),
             name=self.title,
             image=str(self.image.url) if self.image else None,
+            banner=str(self.banner.url) if self.banner else None,
             anniversary=self.anniversary,
             part=self.part,
         )
@@ -101,4 +107,53 @@ class AnniversaryMissions(Events[AnniversaryMission], metaclass=SingletonMeta):
             if r["flags"]:
                 mission.apply_flags(r["flags"])
             missions.append(mission)
+        self._assign_banners(missions)
         return missions
+
+    @staticmethod
+    def _assign_banners(missions: list[AnniversaryMission]) -> None:
+        articles_by_key: dict[str, NewsArticle] = {}
+        news = News()
+        for mission in missions:
+            if not mission.periods:
+                continue
+            article = news.anniversary_campaign(
+                str(mission.anniversary),
+                mission.part,
+                mission.periods[0].start,
+            )
+            if article is None or article.banner_image_url is None:
+                continue
+            articles_by_key[str(mission.key)] = article
+
+        images = AnniversaryMissions._process_banners(articles_by_key)
+        for mission in missions:
+            article = articles_by_key.get(str(mission.key))
+            if article is None or article.banner_image_url is None:
+                continue
+            image = images.get(article.banner_image_url)
+            if image is None:
+                continue
+            mission.banner = image
+            mission.references.add(article.url)
+            mission.references.add(image.references)
+
+    @staticmethod
+    def _process_banners(
+        articles_by_key: dict[str, NewsArticle]
+    ) -> dict[str, Image | None]:
+        outdir = Config().static / "img" / "misc"
+        requests: ResourceList[ImageRequest] = ResourceList()
+        for key, article in articles_by_key.items():
+            image_url = article.banner_image_url
+            if image_url is None:
+                continue
+            requests.append(
+                ImageRequest(
+                    url=Url(image_url),
+                    outfile=outdir / f"{key}-banner.webp",
+                )
+            )
+        if not requests:
+            return {}
+        return CurrenChan().process(requests)

@@ -1,12 +1,16 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
-from horsetrader.core import Period, Periods, SingletonMeta, StableKey
+from ethicrawl import ResourceList, Url
+
+from horsetrader.core import Config, Period, Periods, SingletonMeta, StableKey
 from horsetrader.extractors.gametora import Gametora
 from horsetrader.extractors.static import Static, store
 from horsetrader.info import Logger
 from horsetrader.models.core import References
+from horsetrader.models.media import CurrenChan, Image, ImageRequest
 from horsetrader.output._records import CMRecord
 from horsetrader.semantics import daitaku
+from horsetrader.services import News, NewsArticle
 
 from .event import Event
 from .events import Events
@@ -31,6 +35,7 @@ class ChampionsMeeting(Event):
     """
 
     name: str | None = None
+    banner: Image | None = field(default=None, kw_only=True)
 
     def match(self, query: str) -> bool:
         return super().match(query) or (
@@ -40,7 +45,13 @@ class ChampionsMeeting(Event):
     def bake(self, period: Period) -> CMRecord:
         # `CMRecord`'s tag is "cm" — the concise discriminator matching the
         # stable-key prefix, not the class-derived "championsmeeting".
-        return CMRecord(**self._envelope(period), name=self.name)
+        fields = self._envelope(period)
+        if self.banner:
+            fields["banner"] = str(self.banner.url)
+        return CMRecord(
+            **fields,
+            name=self.name,
+        )
 
 
 @daitaku
@@ -68,7 +79,7 @@ class ChampionsMeetings(Events[ChampionsMeeting], metaclass=SingletonMeta):
 
     def _fetch_primary(self) -> list[ChampionsMeeting]:
         records = Gametora().champions_meetings()
-        return [
+        meetings = [
             ChampionsMeeting(
                 key=StableKey(record["key"]),
                 periods=Periods([record["period"]]),
@@ -77,3 +88,49 @@ class ChampionsMeetings(Events[ChampionsMeeting], metaclass=SingletonMeta):
             )
             for record in records
         ]
+        self._assign_banners(meetings)
+        return meetings
+
+    @staticmethod
+    def _assign_banners(meetings: list[ChampionsMeeting]) -> None:
+        articles_by_key: dict[str, NewsArticle] = {}
+        news = News()
+        for meeting in meetings:
+            if meeting.name is None or not meeting.periods:
+                continue
+            article = news.champions_meeting(meeting.name, meeting.periods[0].start)
+            if article is None or article.banner_image_url is None:
+                continue
+            articles_by_key[str(meeting.key)] = article
+
+        images = ChampionsMeetings._process_banners(articles_by_key)
+        for meeting in meetings:
+            article = articles_by_key.get(str(meeting.key))
+            if article is None or article.banner_image_url is None:
+                continue
+            image = images.get(article.banner_image_url)
+            if image is None:
+                continue
+            meeting.banner = image
+            meeting.references.add(article.url)
+            meeting.references.add(image.references)
+
+    @staticmethod
+    def _process_banners(
+        articles_by_key: dict[str, NewsArticle]
+    ) -> dict[str, Image | None]:
+        outdir = Config().static / "img" / "misc"
+        requests: ResourceList[ImageRequest] = ResourceList()
+        for key, article in articles_by_key.items():
+            image_url = article.banner_image_url
+            if image_url is None:
+                continue
+            requests.append(
+                ImageRequest(
+                    url=Url(image_url),
+                    outfile=outdir / f"{key}-banner.webp",
+                )
+            )
+        if not requests:
+            return {}
+        return CurrenChan().process(requests)

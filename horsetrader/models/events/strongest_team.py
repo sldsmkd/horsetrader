@@ -1,9 +1,12 @@
 from dataclasses import dataclass, field
 
-from horsetrader.core import Period
-from horsetrader.models.media import Image
+from ethicrawl import ResourceList, Url
+
+from horsetrader.core import Config, Period
+from horsetrader.models.media import CurrenChan, Image, ImageRequest
 from horsetrader.output._records import StrongestTeamRecord
 from horsetrader.semantics import daitaku
+from horsetrader.services import News, NewsArticle
 
 from ._misc_banner import process_misc_banner
 from .wikiru_event import WikiruEvent, WikiruEvents
@@ -53,10 +56,47 @@ class StrongestTeams(WikiruEvents[StrongestTeam]):
 
     @staticmethod
     def _assign_banner(teams: list[StrongestTeam]) -> None:
-        image = process_misc_banner("strongest-team.png")
-        if image is None:
-            return
-
+        generic = process_misc_banner("strongest-team.png")
+        articles_by_key: dict[str, NewsArticle] = {}
+        news = News()
         for team in teams:
-            team.banner = image
-            team.references.add(image.references)
+            if not team.periods:
+                continue
+            article = news.strongest_team(team.periods[0].start)
+            if article is None or article.banner_image_url is None:
+                continue
+            articles_by_key[str(team.key)] = article
+
+        images = StrongestTeams._process_news_banners(articles_by_key)
+        for team in teams:
+            article = articles_by_key.get(str(team.key))
+            specific = None
+            if article is not None and article.banner_image_url is not None:
+                specific = images.get(article.banner_image_url)
+            if specific is not None:
+                team.banner = specific
+                team.references.add(article.url)
+                team.references.add(specific.references)
+            elif generic is not None:
+                team.banner = generic
+                team.references.add(generic.references)
+
+    @staticmethod
+    def _process_news_banners(
+        articles_by_key: dict[str, NewsArticle]
+    ) -> dict[str, Image | None]:
+        outdir = Config().static / "img" / "misc"
+        requests: ResourceList[ImageRequest] = ResourceList()
+        for key, article in articles_by_key.items():
+            image_url = article.banner_image_url
+            if image_url is None:
+                continue
+            requests.append(
+                ImageRequest(
+                    url=Url(image_url),
+                    outfile=outdir / f"{key}-banner.webp",
+                )
+            )
+        if not requests:
+            return {}
+        return CurrenChan().process(requests)

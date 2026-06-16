@@ -12,6 +12,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from html.parser import HTMLParser
+import re
 from typing import Any
 
 from horsetrader.core import SingletonMeta
@@ -22,6 +23,34 @@ from horsetrader.semantics import robroy
 logger = Logger.get(__name__)
 
 _NEWS_LEAF_URL_PREFIX = "https://umapyoi.net/api/v1/news"
+
+_CM_SELECTION_TITLE_NEEDLES = (
+    "selection begins",
+    "selection of participating leagues",
+    "selecting leagues",
+    "selecting a league",
+    "start selecting",
+)
+_CM_HELD_TITLE_NEEDLES = (
+    "racing event",
+    "race event",
+    'held "champions meeting',
+)
+_LEGEND_RACE_HELD_TITLE_NEEDLES = (
+    "held",
+    "here",
+    "has begun",
+)
+_LEGEND_RACE_PREVIEW_TITLE_NEEDLES = (
+    "coming soon",
+    "starting soon",
+    "to be held",
+    "begun soon",
+)
+_ANNIVERSARY_CAMPAIGN_TITLE = re.compile(
+    r"(?P<version>(?:\d+(?:\.5)?|Half))(?:st|nd|rd|th)?\s+Anniversary\s+Campaign\s+Vol\.?\s*(?P<part>\d+)",
+    re.I,
+)
 
 
 @robroy
@@ -54,6 +83,13 @@ class NewsArticle:
     @property
     def url(self) -> str:
         return f"{_NEWS_LEAF_URL_PREFIX}/{self.announce_id}"
+
+    @property
+    def banner_image_url(self) -> str | None:
+        for candidate in (self.image, self.article_image):
+            if candidate:
+                return candidate
+        return None
 
     @property
     def primary_image_url(self) -> str | None:
@@ -143,6 +179,138 @@ class News(metaclass=SingletonMeta):
             and "team building period begins" in article.title_english.lower()
         ]
 
+    def legend_race(self, jp_start: datetime) -> NewsArticle | None:
+        """Best banner article for one Legend Race occurrence."""
+        ranked: list[tuple[float, NewsArticle]] = []
+        for article in self.search(
+            "Legend Race",
+            label="Game",
+            english=True,
+            japanese=False,
+        ):
+            title = article.title_english or ""
+            if article.post_at_datetime is None or article.banner_image_url is None:
+                continue
+            article_kind = self._legend_race_article_kind(title)
+            if article_kind is None:
+                continue
+
+            hours = (
+                self._as_utc(jp_start) - article.post_at_datetime
+            ).total_seconds() / 3600
+            if article_kind == "held" and -12 <= hours <= 24:
+                score = abs(hours)
+            elif article_kind == "preview" and 0 <= hours <= 72:
+                score = 100 + abs(hours - 24)
+            else:
+                continue
+            ranked.append((score, article))
+
+        if not ranked:
+            return None
+        ranked.sort(key=lambda item: item[0])
+        return ranked[0][1]
+
+    def anniversary_campaign(
+        self,
+        anniversary_key: str,
+        part: int,
+        jp_start: datetime,
+    ) -> NewsArticle | None:
+        """Best banner article for one anniversary campaign mission part."""
+        ranked: list[tuple[float, NewsArticle]] = []
+        for article in self.search(
+            "Anniversary Campaign",
+            label="Game",
+            english=True,
+            japanese=False,
+        ):
+            title = article.title_english or ""
+            parsed = self._anniversary_campaign_title(title)
+            if parsed != (anniversary_key, part):
+                continue
+            if article.post_at_datetime is None or article.banner_image_url is None:
+                continue
+
+            hours = (
+                self._as_utc(jp_start) - article.post_at_datetime
+            ).total_seconds() / 3600
+            if -12 <= hours <= 120:
+                ranked.append((abs(hours), article))
+
+        if not ranked:
+            return None
+        ranked.sort(key=lambda item: item[0])
+        return ranked[0][1]
+
+    def champions_meeting(self, name: str, jp_start: datetime) -> NewsArticle | None:
+        """Best close-signal article for one Champions Meeting occurrence.
+
+        The news archive has several CM article families. For event art/enrichment,
+        prefer the pre-event league-selection article keyed by CM name/category and
+        date proximity; fall back to same-day held articles. Earlier historical CMs
+        legitimately have no article match.
+        """
+        normalized_name = self._normalize_cm_name(name)
+        ranked: list[tuple[float, NewsArticle]] = []
+        for article in self.search(
+            label="Game",
+            english=True,
+            japanese=False,
+        ):
+            title = article.title_english or ""
+            if self._cm_title_name(title) != normalized_name:
+                continue
+            if article.post_at_datetime is None:
+                continue
+
+            hours = (
+                self._as_utc(jp_start) - article.post_at_datetime
+            ).total_seconds() / 3600
+            article_kind = self._cm_article_kind(title)
+            if article_kind == "selection" and 0 <= hours <= 120:
+                score = abs(hours - 72)
+            elif article_kind == "held" and -24 <= hours <= 24:
+                score = 100 + abs(hours)
+            else:
+                continue
+            ranked.append((score, article))
+
+        if not ranked:
+            return None
+        ranked.sort(key=lambda item: item[0])
+        return ranked[0][1]
+
+    def strongest_team(self, jp_start: datetime) -> NewsArticle | None:
+        """Best custom-art article for one Aim! Strongest Team occurrence.
+
+        Strongest Team has preview/end articles too, but the event-specific
+        oshi art lives on the underway/has-begun article at the event start.
+        """
+        ranked: list[tuple[float, NewsArticle]] = []
+        for article in self.search(
+            "Strongest Team",
+            label="Game",
+            english=True,
+            japanese=False,
+        ):
+            title = article.title_english or ""
+            if article.post_at_datetime is None or article.banner_image_url is None:
+                continue
+            if not self._strongest_team_is_underway(title):
+                continue
+
+            hours = (
+                self._as_utc(jp_start) - article.post_at_datetime
+            ).total_seconds() / 3600
+            if -12 <= hours <= 36:
+                ranked.append((abs(hours), article))
+
+        if not ranked:
+            return None
+        ranked.sort(key=lambda item: item[0])
+        return ranked[0][1]
+
     def _article_ids(self) -> list[str]:
         payload = self._umapyoi.news()
         if not isinstance(payload, list):
@@ -209,6 +377,69 @@ class News(metaclass=SingletonMeta):
         if value.tzinfo is None:
             return value.replace(tzinfo=UTC)
         return value.astimezone(UTC)
+
+    @staticmethod
+    def _cm_article_kind(title: str) -> str | None:
+        lowered = title.lower()
+        if any(needle in lowered for needle in _CM_SELECTION_TITLE_NEEDLES):
+            return "selection"
+        if any(needle in lowered for needle in _CM_HELD_TITLE_NEEDLES):
+            return "held"
+        return None
+
+    @staticmethod
+    def _legend_race_article_kind(title: str) -> str | None:
+        lowered = title.lower()
+        if "legend race" not in lowered:
+            return None
+        if any(needle in lowered for needle in _LEGEND_RACE_HELD_TITLE_NEEDLES):
+            return "held"
+        if any(needle in lowered for needle in _LEGEND_RACE_PREVIEW_TITLE_NEEDLES):
+            return "preview"
+        return None
+
+    @classmethod
+    def _cm_title_name(cls, title: str) -> str | None:
+        match = re.search(r"Champions Meeting\s+([^\"!]+)", title)
+        if not match:
+            match = re.search(r"Meeting of Champions\s+([^\"!]+)", title)
+        if not match:
+            return None
+        return cls._normalize_cm_name(match.group(1))
+
+    @staticmethod
+    def _normalize_cm_name(name: str) -> str:
+        out = name.strip().rstrip(",").upper()
+        out = re.sub(r",?\s+A\s+RACING\s+EVENT.*$", "", out)
+        out = re.sub(r"\s+RACE\s+EVENT.*$", "", out)
+        out = re.sub(r"\s+RACING\s+EVENT.*$", "", out)
+        if out == "VARGO CUP":
+            return "VIRGO CUP"
+        return out
+
+    @staticmethod
+    def _anniversary_campaign_title(title: str) -> tuple[str, int] | None:
+        match = _ANNIVERSARY_CAMPAIGN_TITLE.search(title)
+        if not match:
+            return None
+        version = match.group("version")
+        if version.lower() == "half":
+            normalized = "0_5"
+        elif "." in version:
+            normalized = version.replace(".", "_")
+        else:
+            normalized = f"{version}_0"
+        return (f"anniversary-{normalized}", int(match.group("part")))
+
+    @staticmethod
+    def _strongest_team_is_underway(title: str) -> bool:
+        lowered = title.lower()
+        return (
+            "strongest team" in lowered
+            and ("underway" in lowered or "has begun" in lowered)
+            and "ends" not in lowered
+            and "over" not in lowered
+        )
 
 
 def _str_or_none(value: Any) -> str | None:

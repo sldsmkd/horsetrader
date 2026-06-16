@@ -1,16 +1,19 @@
 from dataclasses import dataclass, field
 from datetime import timedelta
 
-from horsetrader.core import JST, Japlish, Period, Periods, SingletonMeta, StableKey
+from ethicrawl import ResourceList, Url
+
+from horsetrader.core import Config, JST, Japlish, Period, Periods, SingletonMeta, StableKey
 from horsetrader.extractors.gametora import Gametora
 from horsetrader.extractors.static import Static, store
 from horsetrader.info import Logger
 from horsetrader.models.core import References
 from horsetrader.models.entities import Trainee, Trainees
+from horsetrader.models.media import CurrenChan, Image, ImageRequest
 from horsetrader.models.rewards import stamp_legend_race_rewards
 from horsetrader.output._records import LegendLegRecord, LegendRaceRecord
 from horsetrader.semantics import daitaku
-from horsetrader.services import Translate
+from horsetrader.services import News, NewsArticle, Translate
 
 from .event import Event
 from .events import Events
@@ -44,6 +47,7 @@ class LegendRace(Event):
 
     title: Japlish | None = None
     legs: list[LegendLeg] = field(default_factory=list, kw_only=True)
+    banner: Image | None = field(default=None, kw_only=True)
 
     def match(self, query: str) -> bool:
         return (
@@ -56,6 +60,7 @@ class LegendRace(Event):
         return LegendRaceRecord(
             **self._envelope(period),
             name=self.title,
+            banner=str(self.banner.url) if self.banner else None,
             legs=self._baked_legs(period),
         )
 
@@ -158,4 +163,49 @@ class LegendRaces(Events[LegendRace], metaclass=SingletonMeta):
             )
 
         stamp_legend_race_rewards(races)
+        self._assign_banners(races)
         return races
+
+    @staticmethod
+    def _assign_banners(races: list[LegendRace]) -> None:
+        articles_by_key: dict[str, NewsArticle] = {}
+        news = News()
+        for race in races:
+            if not race.periods:
+                continue
+            article = news.legend_race(race.periods[0].start)
+            if article is None or article.banner_image_url is None:
+                continue
+            articles_by_key[str(race.key)] = article
+
+        images = LegendRaces._process_banners(articles_by_key)
+        for race in races:
+            article = articles_by_key.get(str(race.key))
+            if article is None or article.banner_image_url is None:
+                continue
+            image = images.get(article.banner_image_url)
+            if image is None:
+                continue
+            race.banner = image
+            race.references.add(article.url)
+            race.references.add(image.references)
+
+    @staticmethod
+    def _process_banners(
+        articles_by_key: dict[str, NewsArticle]
+    ) -> dict[str, Image | None]:
+        outdir = Config().static / "img" / "misc"
+        requests: ResourceList[ImageRequest] = ResourceList()
+        for key, article in articles_by_key.items():
+            image_url = article.banner_image_url
+            if image_url is None:
+                continue
+            requests.append(
+                ImageRequest(
+                    url=Url(image_url),
+                    outfile=outdir / f"{key}-banner.webp",
+                )
+            )
+        if not requests:
+            return {}
+        return CurrenChan().process(requests)

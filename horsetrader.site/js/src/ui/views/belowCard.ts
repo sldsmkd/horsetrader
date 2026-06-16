@@ -48,8 +48,8 @@ function rectangularMedia(card: BelowCard): HTMLElement | null {
 }
 
 export function belowCard(card: BelowCard, rush: RushBinding): HTMLElement {
-  const cls = `card card--below card--${card.kind}${card.banner ? " card--bannered" : ""}${card.image ? " card--mission-art" : ""}${card.past ? " card--past" : ""}`;
-  const body = card.image
+  const cls = `card card--below card--${card.kind}${card.banner ? " card--bannered" : ""}${card.image && !card.banner ? " card--mission-art" : ""}${card.past ? " card--past" : ""}`;
+  const body = card.image && !card.banner
     ? h("div", { class: "card__body" }, missionBody(card, rush))
     : h(
         "div",

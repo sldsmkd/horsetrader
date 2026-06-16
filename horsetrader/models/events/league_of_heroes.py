@@ -62,7 +62,7 @@ class LeaguesOfHeroes(WikiruEvents[LeagueOfHeroes]):
 
         images = LeaguesOfHeroes._process_banners(articles[: len(leagues)])
         for league, article in zip(leagues, articles):
-            image_url = article.primary_image_url
+            image_url = article.banner_image_url
             if image_url is None:
                 continue
             image = images.get(image_url)
@@ -77,7 +77,7 @@ class LeaguesOfHeroes(WikiruEvents[LeagueOfHeroes]):
         outdir = Config().static / "img" / "misc"
         requests: ResourceList[ImageRequest] = ResourceList()
         for ordinal, article in enumerate(articles, start=1):
-            image_url = article.primary_image_url
+            image_url = article.banner_image_url
             if image_url is None:
                 continue
             requests.append(
