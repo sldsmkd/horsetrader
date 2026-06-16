@@ -13,6 +13,7 @@ from . import reward_structures as _reward_structures
 from . import scenarios as _scenarios
 from . import showtimes as _showtimes
 from . import stories as _stories
+from . import translations as _translations
 
 
 @transcend
@@ -35,6 +36,16 @@ class Static(metaclass=SingletonMeta):
     def anniversaries(self) -> list[dict]:
         """Records from the consolidated anniversaries.yaml (JP + EN)."""
         return _anniversaries.load()
+
+    def mission_translations(self) -> dict[str, str]:
+        """Curated whole-string mission-title translations (``translate-mission-*``)
+        as a ``jp -> en`` map — the Shuttle tokenizer's one-off vocabulary."""
+        return _translations.missions()
+
+    def race_translations(self) -> dict[str, str]:
+        """Curated NAR/local race-name translations (``translate-race-*``) as a
+        ``jp -> en`` map, for races whose `Race` entity has no `.en` yet."""
+        return _translations.races()
 
     def scenarios(self) -> list[dict]:
         """Records from the consolidated scenarios.yaml (JP + EN).

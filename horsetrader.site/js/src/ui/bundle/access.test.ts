@@ -33,9 +33,16 @@ test("a miss throws — the ETL guarantees referential integrity, so it's a bug,
   assert.throws(() => bundle.trainee("nope"), /no trainee for "nope"/);
 });
 
-test("all() returns every event in bake order — for selectors that scan", () => {
-  const bundle = createBundle(EVENTS, ACADEMY, TEST_CONFIG);
-  assert.deepEqual(bundle.all().map((e) => e.key), ["cm-1"]);
+test("all() returns every event in bake order, including lane-invisible records", () => {
+  const events: EventsBundle = {
+    events: [
+      { type: "cm", name: "Shown CM", start: "2026-06-27", end: "2026-07-01", predicted: false, key: "cm-shown" },
+      { type: "scenario", title: "Wallpaper", image: "/scenario-thumb.webp", art: "/scenario.webp", start: "2026-07-20", end: "2026-07-20", predicted: false, key: "scenario-hidden", visible: false } as EventsBundle["events"][number],
+    ],
+  };
+  const bundle = createBundle(events, ACADEMY, TEST_CONFIG);
+
+  assert.deepEqual(bundle.all().map((e) => e.key), ["cm-shown", "scenario-hidden"]);
 });
 
 test("academy scans expose id-keyed entries for pure indexes", () => {

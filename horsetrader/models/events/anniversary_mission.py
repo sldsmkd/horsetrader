@@ -54,6 +54,7 @@ class AnniversaryMission(Mission):
         return AnniversaryMissionRecord(
             **self._envelope(period),
             name=self.title,
+            image=str(self.image.url) if self.image else None,
             anniversary=self.anniversary,
             part=self.part,
         )
@@ -93,6 +94,7 @@ class AnniversaryMissions(Events[AnniversaryMission], metaclass=SingletonMeta):
                 title=r["title"],
                 rewards=rewards or None,
                 references=r["references"],
+                image=r["image"],
                 anniversary=anniversary,
                 part=part,
             )

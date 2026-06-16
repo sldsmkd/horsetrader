@@ -38,6 +38,7 @@ export function perfHud({ stats, bake }: PerfHudOptions): PerfHud {
   const cardsValue = h("span", { class: "perf-hud__value" }, "0");
   const lanesValue = h("span", { class: "perf-hud__value" }, "0 / 0");
   const domValue = h("span", { class: "perf-hud__value" }, "0");
+  const viewportValue = h("span", { class: "perf-hud__value" }, viewportResolution());
   const graph = h("canvas", { class: "perf-hud__graph", attr: { width: GRAPH_W, height: GRAPH_H } });
   const ctx = graph.getContext("2d");
   const buildMs = Math.round(bake.build_s * 1000).toLocaleString();
@@ -56,6 +57,7 @@ export function perfHud({ stats, bake }: PerfHudOptions): PerfHud {
     row("CARDS", cardsValue),
     row("LANES", lanesValue),
     row("DOM", domValue),
+    row("VIEW", viewportValue),
     // Eishin's production report: build-time facts, set once (not on the tick).
     // The header is in-character — the precise German baker signing off her run,
     // with the build time (ms, comma-grouped) as her stamp.
@@ -121,6 +123,7 @@ export function perfHud({ stats, bake }: PerfHudOptions): PerfHud {
         cardsValue.textContent = String(s.cards);
         lanesValue.textContent = `${s.aboveCards} / ${s.belowCards}`;
         domValue.textContent = String(s.domNodes);
+        viewportValue.textContent = viewportResolution();
         draw();
       }
     }
@@ -133,6 +136,11 @@ export function perfHud({ stats, bake }: PerfHudOptions): PerfHud {
 
 function row(label: string, value: HTMLElement): HTMLElement {
   return h("div", { class: "perf-hud__row" }, h("span", { class: "perf-hud__label" }, label), value);
+}
+
+function viewportResolution(): string {
+  const dpr = window.devicePixelRatio || 1;
+  return `${window.innerWidth}x${window.innerHeight} @${dpr.toFixed(2)}x`;
 }
 
 // A row whose value never changes after construction (the bake-stat block).

@@ -1,12 +1,15 @@
 import functools
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 
-from horsetrader.core import JST, Japlish, Period, Periods, SingletonMeta, StableKey
+from ethicrawl import ResourceList, Url
+
+from horsetrader.core import Config, JST, Japlish, Period, Periods, SingletonMeta, StableKey
 from horsetrader.extractors.gametora import Gametora
 from horsetrader.extractors.static import Static, store
 from horsetrader.info import Logger
 from horsetrader.models.core import References
+from horsetrader.models.media import CurrenChan, Image, ImageRequest
 from horsetrader.models.rewards import Rewards, reward_for_gametora_icon
 from horsetrader.output._records import MissionRecord
 from horsetrader.semantics import daitaku
@@ -50,6 +53,22 @@ def _resolve_rewards(reward_items: list[tuple[str, int]], key: str) -> Rewards |
     return rewards or None
 
 
+def _process_images(records: list[dict]) -> dict[str, Image | None]:
+    outdir = Config().static / "img" / "missions"
+    requests: ResourceList[ImageRequest] = ResourceList()
+    for record in records:
+        if thumb_url := record.get("thumb_url"):
+            requests.append(
+                ImageRequest(
+                    url=Url(thumb_url),
+                    outfile=outdir / f"{record['key']}.webp",
+                )
+            )
+    if not requests:
+        return {}
+    return CurrenChan().process(requests)
+
+
 @functools.cache
 def scraped_missions() -> list[dict]:
     """The shared scraped mission substrate — one built record per Gametora
@@ -60,11 +79,15 @@ def scraped_missions() -> list[dict]:
     heavy per-record build (the EN join + reward resolution) happens once.
     """
     en_by_key = {r["key"]: r for r in Gametora().missions_en()}
+    records = list(Gametora().missions())
+    images = _process_images(records)
 
     built: list[dict] = []
-    for record in Gametora().missions():
+    for record in records:
         key = record["key"]
         en = en_by_key.get(key)
+        thumb_url = record.get("thumb_url")
+        image = images.get(thumb_url) if thumb_url else None
 
         title = Japlish(record["title"], encoding="jp")
         if en is not None:
@@ -84,6 +107,8 @@ def scraped_missions() -> list[dict]:
         if en is not None:
             periods.append(en["period"])
             references.add(en.get("references", []))
+        if image is not None:
+            references.add(image.references)
 
         flags = Static().event_flags(str(key))
         if flags:
@@ -95,6 +120,7 @@ def scraped_missions() -> list[dict]:
             "periods": periods,
             "references": references,
             "rewards": _resolve_rewards(record.get("reward_items", []), key),
+            "image": image,
             "flags": flags,
         })
     return built
@@ -117,6 +143,7 @@ class Mission(Event):
     """
 
     title: Japlish | None = None
+    image: Image | None = field(default=None, kw_only=True)
 
     def match(self, query: str) -> bool:
         return super().match(query) or (
@@ -127,6 +154,7 @@ class Mission(Event):
         return MissionRecord(
             **self._envelope(period),
             name=self.title,
+            image=str(self.image.url) if self.image else None,
         )
 
 
@@ -156,6 +184,7 @@ class Missions(Events[Mission], metaclass=SingletonMeta):
                 title=r["title"],
                 rewards=r["rewards"],
                 references=r["references"],
+                image=r["image"],
             )
             if r["flags"]:
                 mission.apply_flags(r["flags"])

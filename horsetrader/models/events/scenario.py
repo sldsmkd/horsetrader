@@ -12,7 +12,7 @@ from horsetrader.models.media import CurrenChan, Image, ImageRequest
 from horsetrader.output._records import ScenarioRecord
 from horsetrader.semantics import daitaku
 
-from .event import Event
+from .event import Event, Invisible
 from .events import Events
 
 logger = Logger.get(__name__)
@@ -53,7 +53,7 @@ def classify_scenario_mission(title_jp: str, jp_start: datetime) -> StableKey | 
 
 @daitaku
 @dataclass
-class Scenario(Event):
+class Scenario(Invisible, Event):
     """A major scenario release date."""
 
     title: Japlish | None = None

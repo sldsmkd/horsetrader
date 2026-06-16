@@ -50,6 +50,31 @@ test("activeScenario falls back to thumbnail art and skips image-less scenarios"
   assert.equal(activeScenario(b, cal("2026-03-01"))?.image, "/thumb.webp");
 });
 
+test("activeScenario uses invisible scenario records for wallpaper context", () => {
+  const b = bundle([
+    {
+      type: "scenario",
+      title: "Project L'Arc",
+      image: "/thumb-6.webp",
+      art: "/art-6.webp",
+      start: "2027-04-01T22:00:00+00:00",
+      end: "2027-04-01T22:00:00+00:00",
+      predicted: true,
+      key: "scenario-06",
+      visible: false,
+    } as EventsBundle["events"][number],
+  ]);
+
+  assert.deepEqual(activeScenario(b, cal("2027-04-02")), {
+    key: "scenario-06",
+    title: "Project L'Arc",
+    image: "/art-6.webp",
+    date: cal("2027-04-01"),
+    predicted: true,
+    fadeToBlack: 0,
+  });
+});
+
 test("activeScenario fades out before the prelaunch window, then brightens the incoming art", () => {
   const b = bundle([
     { type: "scenario", title: "Outgoing", image: "/thumb-1.webp", art: "/art-1.webp", start: "2026-01-01", end: "2026-01-01", predicted: false, key: "scenario-01" },

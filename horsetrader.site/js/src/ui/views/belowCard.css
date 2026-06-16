@@ -6,6 +6,13 @@
   width: var(--timeline-card-w);
 }
 
+.card--mission-art {
+  --mission-thumb-w: 9.6rem;
+  --mission-thumb-h: 4.8rem;
+  --mission-thumb-overhang: 0.9rem;
+  width: 20rem;
+}
+
 .card__body {
   border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
   border-radius: 0.4rem;
@@ -53,6 +60,10 @@
   border-left-color: var(--ht-colour-card-accent-anniversarymission);
 }
 
+.card--scenariomission .card__body {
+  border-left-color: var(--ht-colour-card-accent-scenario);
+}
+
 .card--bannered .card__body {
   position: relative;
   border-color: transparent;
@@ -97,6 +108,10 @@
   background: var(--ht-colour-card-accent-anniversarymission);
 }
 
+.card--scenariomission .card__body::before {
+  background: var(--ht-colour-card-accent-scenario);
+}
+
 .card__media {
   aspect-ratio: 936 / 228;
   margin: -4px -4px 0 -3px;
@@ -113,4 +128,75 @@
 .card__label {
   padding: 0.4rem 0.5rem 0.35rem;
   line-height: 1.35;
+}
+
+.card--mission-art .card__body {
+  overflow: visible;
+}
+
+.card__mission-layout {
+  position: relative;
+  display: grid;
+  grid-template-columns: calc(var(--mission-thumb-w) - var(--mission-thumb-overhang) + 0.45rem) minmax(0, 1fr);
+  grid-template-rows: minmax(4.35rem, auto) auto;
+  align-items: stretch;
+}
+
+.card__mission-media {
+  position: relative;
+  grid-column: 1;
+  grid-row: 1;
+  min-width: 0;
+}
+
+.card__mission-image {
+  position: absolute;
+  left: calc(var(--mission-thumb-overhang) * -1);
+  top: -0.45rem;
+  z-index: 2;
+  display: block;
+  width: var(--mission-thumb-w);
+  height: var(--mission-thumb-h);
+  aspect-ratio: 2 / 1;
+  object-fit: contain;
+  object-position: center;
+  filter: drop-shadow(0 0.18rem 0.22rem color-mix(in srgb, CanvasText 42%, transparent));
+  pointer-events: none;
+}
+
+.card__mission-copy {
+  display: flex;
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.card__mission-copy .card__label {
+  display: -webkit-box;
+  min-height: 4.35rem;
+  padding: 0.58rem 0.7rem 0.45rem 0.55rem;
+  overflow: hidden;
+  line-height: 1.36;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.card__mission-layout > .reward-strip {
+  flex-wrap: wrap;
+  grid-column: 1 / -1;
+  grid-row: 2;
+  min-width: 0;
+  overflow: hidden;
+  border-top-color: color-mix(in srgb, currentColor 14%, transparent);
+  background: color-mix(in srgb, currentColor 4%, Canvas);
+  white-space: normal;
+}
+
+.card__mission-layout > .reward-strip .reward-strip__item {
+  flex: 0 0 auto;
+}
+
+.card__mission-layout > .reward-strip .reward-strip__separator {
+  flex: 0 0 auto;
 }

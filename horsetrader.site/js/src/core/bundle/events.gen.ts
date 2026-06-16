@@ -281,6 +281,7 @@ export interface LegendLegRecord {
 export interface MissionRecord {
   type: "mission";
   name: string | null;
+  image: string | null;
   start: string;
   end: string;
   predicted: boolean;
@@ -315,6 +316,7 @@ export interface AnniversaryRecord {
 export interface AnniversaryMissionRecord {
   type: "anniversarymission";
   name: string | null;
+  image: string | null;
   anniversary: string;
   part: number;
   start: string;
@@ -334,6 +336,7 @@ export interface AnniversaryMissionRecord {
 export interface ScenarioMissionRecord {
   type: "scenariomission";
   name: string | null;
+  image: string | null;
   scenario: string;
   start: string;
   end: string;
@@ -369,6 +372,7 @@ export interface TrainingPassRecord {
 export interface HolidayRecord {
   type: "holiday";
   name: string;
+  banner?: string | null;
   start: string;
   end: string;
   predicted: boolean;

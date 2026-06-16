@@ -1,0 +1,59 @@
+# Curated JP→EN translations — the vocabulary the Shuttle tokenizer leans on
+# (`horsetrader/services/_missions.py` + `_races.py`). The tokenizer owns the
+# *grammar* (seasons, the 記念ミッション / 第N弾 / G1 tokens); this file owns the
+# *strings* it can't derive structurally.
+#
+# Two namespaces, each a jp→en name pair (same shape as scenarios.yaml, minus
+# the dates):
+#
+#   translate-mission-<slug>:   whole-string mission titles that fit no frame
+#     jp: { name: "<japanese title>" }
+#     en: { name: "<english title>" }
+#
+#   translate-race-<slug>:      NAR/local races whose `Race` entity has no `.en`
+#     jp: { name: "<japanese race token, as it appears in titles>" }
+#     en: { name: "<english race name>" }
+#
+# Both fail loud: a missing/blank jp.name or en.name raises so the bake run is
+# the editor's feedback loop. Copy a neighbour to add more.
+#
+# translate-race- is the permanent home for these names, not a stopgap: the JRA
+# race DB doesn't carry them (JDダービー has no `Race` entity at all; the others
+# exist but Gametora ships no EN, and there's no race-`.en` curation path).
+
+# ── whole-string mission one-offs ────────────────────────────────────────────
+translate-mission-main-story-ch4:
+  jp: { name: "メインストーリー第4章 公開記念ミッション" }
+  en: { name: "Main Story Chapter 4 Release Celebration Missions" }
+translate-mission-golshi-gw:
+  jp: { name: "ゴルシちゃんのGW特別ミッション" }
+  en: { name: "Golshi Week Special Missions" }
+translate-mission-anime-s2-finale:
+  jp: { name: "TVアニメ第2期最終回応援ミッション" }
+  en: { name: "Anime Season 2 Support Missions" }
+translate-mission-mecha-launch:
+  jp: { name: "走れ！メカウマ娘 -夢繋ぐ発明- 公開記念ミッション" }
+  en: { name: "Run, Mecha Umamusume! -Invention of Dreams- Launch Celebration Missions" }
+translate-mission-food-festival:
+  jp: { name: "収穫ッ！満腹ッ！大豊食祭 公開記念ミッション" }
+  en: { name: "Harvesting! Feasting! Great Food Festival Release Celebration Missions" }
+translate-mission-new-scenario:
+  jp: { name: "新育成シナリオ公開記念ミッション" }
+  en: { name: "New Scenario Release Celebration Missions" }
+
+# ── NAR/local races without an entity `.en` ──────────────────────────────────
+translate-race-zen-nippon-junior-yushun:
+  jp: { name: "全日本ジュニア優駿" }
+  en: { name: "Zen-Nippon Junior Yushun" }
+translate-race-mile-cs-nambu-hai:
+  jp: { name: "マイルCS南部杯" }
+  en: { name: "Mile Championship Nambu Hai" }
+translate-race-kashiwa-kinen:
+  jp: { name: "かしわ記念" }
+  en: { name: "Kashiwa Kinen" }
+translate-race-kawasaki-kinen:
+  jp: { name: "川崎記念" }
+  en: { name: "Kawasaki Kinen" }
+translate-race-jd-derby:
+  jp: { name: "JDダービー" }
+  en: { name: "Japan Dirt Derby" }

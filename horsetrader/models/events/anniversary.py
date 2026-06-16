@@ -8,7 +8,7 @@ from horsetrader.models.core import References
 from horsetrader.output._records import AnniversaryRecord
 from horsetrader.semantics import daitaku
 
-from .event import Event
+from .event import Event, Invisible
 from .events import Events
 
 logger = Logger.get(__name__)
@@ -56,7 +56,7 @@ def classify_anniversary_mission(title_jp: str) -> tuple[StableKey, int] | None:
 
 @daitaku
 @dataclass
-class Anniversary(Event):
+class Anniversary(Invisible, Event):
     """A game anniversary launch — a scenario-shaped below-line point event.
 
     Anniversaries used to be the synthetic empty `Anchor` peg (`anchor-anni-*`)

@@ -270,8 +270,10 @@ class MissionRecord(EventRecord, tag="mission"):
     # A limited-mission campaign window carrying its scraped reward subset (via
     # the shared envelope). `name` is the EN title when the campaign has reached
     # Global, else the JP title. Not rushable — a mission set is farmed over its
-    # window, there's no post-at-start choice. High-volume, flat catalogue.
+    # window, there's no post-at-start choice. `image` is the scraped Gametora
+    # mission logo, processed into the static image bundle.
     name: str | None
+    image: str | None
 
 
 @eishin
@@ -287,6 +289,7 @@ class AnniversaryMissionRecord(EventRecord, tag="anniversarymission"):
     # anniversary (`anniversary-N_M`) and carries its `part` (第N弾 wave —
     # 1 = countdown, 2 = on the date, 3 = continuation).
     name: str | None
+    image: str | None
     anniversary: str
     part: int
 
@@ -297,6 +300,7 @@ class ScenarioMissionRecord(EventRecord, tag="scenariomission"):
     # scenario (`scenario-NN`). One-shot launch income, not the grind catalogue —
     # split out of `Mission` the same way anniversary missions are.
     name: str | None
+    image: str | None
     scenario: str
 
 
@@ -317,6 +321,7 @@ class HolidayRecord(EventRecord, tag="holiday"):
     # envelope (a real start/end window, not the old span-0 point) plus the
     # themed display `name`. Replaces the synthetic Golden Week anchors.
     name: str
+    banner: str | None | UnsetType = UNSET
 
 
 # Concrete event records, discriminated on ``type``. ``EventsBundle.events`` is
