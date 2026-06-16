@@ -24,6 +24,25 @@ class UmapyoiTrainees(metaclass=SingletonMeta):
         self._uc = UmaClient()
         self._outfit_cache: dict[int, list[dict]] = {}
 
+    @staticmethod
+    def _build_title(title_jp: object, title_en: object) -> Japlish | None:
+        """Assemble the bilingual flavour title from the outfit's two fields.
+
+        The EN slot is set with an explicit ``encoding="en"`` rather than via
+        auto-detection: some EN titles carry a katakana middle-dot (U+30FB, e.g.
+        "Jubilant Star・Auspicious Crane") which would otherwise be mis-sniffed
+        as Japanese and the translation silently dropped.
+        """
+        jp = title_jp.strip() if isinstance(title_jp, str) and title_jp.strip() else None
+        en = title_en.strip() if isinstance(title_en, str) and title_en.strip() else None
+        if jp is None and en is None:
+            return None
+
+        title = Japlish(jp) if jp else Japlish(en, encoding="en")  # type: ignore[arg-type]
+        if en and jp:
+            title.en = en
+        return title
+
     def _outfits(self, gametora_id: int) -> list[dict]:
         cached = self._outfit_cache.get(gametora_id)
         if cached is not None:
@@ -47,8 +66,11 @@ class UmapyoiTrainees(metaclass=SingletonMeta):
         """Fetch the umapyoi outfit record for a specific trainee.
 
         Returns a raw record dict (no Trainee construction — that's Digitan's
-        job). `title` is a `Japlish` when an EN outfit title is available;
-        otherwise the dict carries an empty `title` slot.
+        job). `title` is the outfit's unique *flavour* title (e.g. "[Jubilant
+        Star・Auspicious Crane]"), NOT the costume category — that's the
+        `CostumeVariants` enum's job. The returned `Japlish` carries the JP base
+        plus an EN translation when umapyoi has one; `None` when the outfit
+        carries neither.
         """
         if trainee_id <= 0 or gametora_id <= 0:
             raise ValueError("trainee_id and gametora_id must be positive integers")
@@ -64,9 +86,7 @@ class UmapyoiTrainees(metaclass=SingletonMeta):
                     continue
             except (TypeError, ValueError):
                 continue
-            title_en = outfit.get("title_en")
-            if isinstance(title_en, str) and title_en.strip():
-                title = Japlish(title_en.strip())
+            title = self._build_title(outfit.get("title"), outfit.get("title_en"))
             break
 
         logger.info(

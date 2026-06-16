@@ -340,6 +340,9 @@
           "type": "string"
         },
         "variant": {
+          "type": "string"
+        },
+        "title": {
           "anyOf": [
             {
               "type": "string"
@@ -385,6 +388,7 @@
       "required": [
         "character",
         "variant",
+        "title",
         "rarity",
         "release",
         "thumbnail",

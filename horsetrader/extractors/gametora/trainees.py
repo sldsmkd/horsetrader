@@ -140,7 +140,10 @@ class GametoraTrainees(metaclass=SingletonMeta):
                     "release": record["release"],
                     "variant_name": record["variant_name"],
                     "rarity": record["rarity"],
-                    "title": CostumeVariants[record["variant_name"]].jp,
+                    # The unique flavour title is the umapyoi enricher's job; the
+                    # Gametora index only carries the costume *category* (badge →
+                    # CostumeVariants), which rides `variant_name`. Conflating the
+                    # two here is exactly the bug this split fixes.
                     "thumbnail_url": record["thumbnail_url"],
                     "portrait_url": record["portrait_url"],
                     "correlations": correlations,

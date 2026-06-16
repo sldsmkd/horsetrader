@@ -23,9 +23,11 @@ logger = Logger.get(__name__)
 @digitan
 @dataclass
 class TraineeVariant:
-    variant: CostumeVariants
-    title: Japlish
+    variant: CostumeVariants  # costume *category* (New Year, Wedding, …)
     rarity: int  # 1-3 for trainees; 1-5 for characters
+    # Unique per-card *flavour* title (e.g. "[Jubilant Star・Auspicious Crane]"),
+    # backfilled from umapyoi. `None` when no source carries it for this outfit.
+    title: Japlish | None = None
 
     def __post_init__(self):
         if self.variant == CostumeVariants.DEFAULT and self.rarity not in {1, 2, 3}:
@@ -34,7 +36,9 @@ class TraineeVariant:
             raise ValueError("Non-default costumes must have rarity 3")
 
     def match(self, query: str) -> bool:
-        return self.title.match(query) or self.variant.match(query)
+        if self.title is not None and self.title.match(query):
+            return True
+        return self.variant.match(query)
 
 
 @digitan
@@ -133,8 +137,8 @@ class Trainees(Entities[Trainee], metaclass=SingletonMeta):
                     release=record["release"],
                     variant=TraineeVariant(
                         variant=CostumeVariants[record["variant_name"]],
-                        title=record["title"],
                         rarity=record["rarity"],
+                        # Flavour title arrives later via the umapyoi enricher.
                     ),
                     thumbnail=thumbnail,
                     portrait=portrait,
@@ -202,11 +206,12 @@ class Trainees(Entities[Trainee], metaclass=SingletonMeta):
             )
 
     def _enrich_with_umapyoi(self, t: Trainee) -> None:
-        """Backfill the EN slot on the trainee's outfit title from Umapyoi.
+        """Attach the trainee's unique outfit flavour title from Umapyoi.
 
-        Umapyoi contributes the EN title text only; everything else is
-        Gametora-sourced and already on the trainee. Skips silently if either
-        side of the (trainee_id, gametora_id) correlation is missing.
+        Umapyoi owns the per-card flavour title (JP + EN); the costume *category*
+        is already on the trainee (Gametora badge → `CostumeVariants`). Skips
+        silently if either side of the (trainee_id, gametora_id) correlation is
+        missing, leaving `title` `None`.
         """
         trainee_id = t.correlations.get(Sources.GAMETORA.value)
         gametora_id = t.character.correlations.get(Sources.GAMETORA.value)
@@ -214,11 +219,8 @@ class Trainees(Entities[Trainee], metaclass=SingletonMeta):
             return
 
         record = Umapyoi().trainee(int(trainee_id), int(gametora_id))
-        en_title = record.get("title")
-        if en_title is not None and en_title.encoding.value == "en":
-            try:
-                t.variant.title.en  # already has EN
-            except ValueError:
-                t.variant.title.en = str(en_title)
+        title = record.get("title")
+        if title is not None:
+            t.variant.title = title
 
         t.references.extend(record.get("references", []))

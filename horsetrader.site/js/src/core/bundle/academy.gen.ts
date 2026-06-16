@@ -67,7 +67,8 @@ export interface SupportRecord {
 }
 export interface TraineeRecord {
   character: string;
-  variant: string | null;
+  variant: string;
+  title: string | null;
   rarity: number;
   release: string;
   thumbnail: string | null;

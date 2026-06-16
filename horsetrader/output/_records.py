@@ -83,7 +83,12 @@ class SupportRecord(msgspec.Struct):
 @eishin
 class TraineeRecord(msgspec.Struct):
     character: str
-    variant: str | None
+    # Costume *category*, normalised to the `CostumeVariants` enum slug (e.g.
+    # "new-year"); always present, like the other enum-valued fields.
+    variant: str
+    # Unique per-card *flavour* title (EN-preferring, e.g. "[Jubilant
+    # Star・Auspicious Crane]"); `null` when no source carries one.
+    title: str | None
     rarity: int
     release: str
     thumbnail: str | None
