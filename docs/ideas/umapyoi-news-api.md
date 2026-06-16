@@ -1,6 +1,7 @@
 # Idea: Ingest umapyoi's news API as the EN-overlay feed
 
-Status: **exploration** — not committed, no code. ETL / data-source concern.
+Status: **exploration** — raw cache fetcher and query service wired, no
+overlay/entity semantics committed. ETL / data-source concern.
 
 ## Observation
 
@@ -38,9 +39,12 @@ blocks of `config/*.yaml`.
 
 ## Idea
 
-Wire umapyoi's news endpoint into the transport/extractor layer as an **automated
-EN-overlay feed**, replacing (or seeding) the manual JPG-eyeballing step. First-party
-EN truth, fetched rather than hand-keyed:
+Wire umapyoi's news endpoint into the transport/extractor layer as a raw cached
+discovery surface first, then build toward an **automated EN-overlay feed** once
+the payload shape is understood. The raw fetcher is available as
+`Umapyoi().news()` for `/api/v1/news` and `Umapyoi().news_item(id)` for
+`/api/v1/news/{id}`; `services.News` builds a compact queryable article index
+over those leaves. First-party EN truth, fetched rather than hand-keyed:
 
 - Canonical EN **names** → the `en.name` slot ([[project_scenario_name_precedence]]).
 - Exact UTC **start** → the `en.start` that also marks an event "shipped to Global".

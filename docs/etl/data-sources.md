@@ -90,8 +90,13 @@ The **JS-rendered scenarios page is off-limits** — see
 
 Lighter scraper used for enrichment after the Gametora pass. Hits the
 character detail endpoint, list and mapping/tag resolution endpoints, and
-the outfit endpoint during trainee enrichment. Hands records back to the
-appropriate `_enrich_…` method on each `TracenModels`.
+the outfit endpoint during trainee enrichment. Also exposes the raw news API
+(`/api/v1/news` and `/api/v1/news/{id}`) as a cacheable JSON surface for
+scripts and future EN-overlay work. `services.News` consumes that full raw
+corpus and exposes a compact queryable article index (`announce_id`,
+`label_name_en`, `title`, `title_english`, `post_at`) for model enrichment; it
+deliberately does **not** materialise news into project entities yet. Hands
+records back to the appropriate `_enrich_…` method on each `TracenModels`.
 
 ## Wikiru
 

@@ -240,6 +240,7 @@ export interface FactorStudiesRecord {
 export interface LeagueOfHeroesRecord {
   type: "leagueofheroes";
   name: string | null;
+  banner: string | null;
   start: string;
   end: string;
   predicted: boolean;

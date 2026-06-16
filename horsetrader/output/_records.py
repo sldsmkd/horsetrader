@@ -242,7 +242,7 @@ class FactorStudiesRecord(NamedEventRecord, tag="factorstudies"):
 
 @eishin
 class LeagueOfHeroesRecord(NamedEventRecord, tag="leagueofheroes"):
-    pass
+    banner: str | None
 
 
 @eishin

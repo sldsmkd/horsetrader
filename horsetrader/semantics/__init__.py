@@ -3,6 +3,7 @@ from .daitaku import daitaku
 from .digitan import digitan
 from .eishin import eishin
 from .matikanefukukitaru import matikanefukukitaru
+from .robroy import robroy
 from .rudolf import rudolf
 from .shakur import shakur
 from .shuttle import shuttle
@@ -17,6 +18,7 @@ __all__ = [
     "digitan",
     "eishin",
     "matikanefukukitaru",
+    "robroy",
     "rudolf",
     "shakur",
     "shuttle",

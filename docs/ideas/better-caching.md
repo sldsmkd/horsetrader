@@ -1,0 +1,3 @@
+can we stamp a future date on a cache file? i.e. if release date was 2022-03-01 then put today - release date as the refresh time / times some multy for a refresh; so it ends up not event bothering to refresh cache on old items for like 6-12 months.
+
+need a force cachebuster for a class of extractions I think; or versioned extraction - so old pages still follow old path when newer ones have had style changed.
