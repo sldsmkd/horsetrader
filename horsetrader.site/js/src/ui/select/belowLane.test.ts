@@ -172,6 +172,7 @@ test("an anniversary mission's card combines its flat face and its minted daily 
       {
         type: "anniversarymission",
         name: "1st Anniversary Missions Part 1",
+        image: null,
         anniversary: "anniversary-1_0",
         part: 1,
         start: "2026-07-01",
@@ -195,7 +196,16 @@ test("presence is the stream's call: a gated-off mission is absent from the inpu
   // (The old `hiddenKinds` re-derivation in the shell is gone.)
   const events: EventsBundle = {
     events: [
-      { type: "mission", name: "G1 Mission", start: "2026-07-01", end: "2026-07-10", predicted: false, key: "mission-1", rewards: { free_carats: 150 } } as EventsBundle["events"][number],
+      {
+        type: "mission",
+        name: "G1 Mission",
+        image: "/img/missions/mission-1.webp",
+        start: "2026-07-01",
+        end: "2026-07-10",
+        predicted: false,
+        key: "mission-1",
+        rewards: { free_carats: 150 },
+      },
       { type: "cm", name: "Summer CM", start: "2026-07-05", end: "2026-07-08", predicted: false, key: "cm-1", rewards: { free_carats: 1000 } },
     ],
   };
@@ -204,6 +214,7 @@ test("presence is the stream's call: a gated-off mission is absent from the inpu
   const on = belowLaneCards(settled(events), AXIS, NOW);
   assert.deepEqual(on.map((c) => c.key), ["mission-1", "cm-1"]);
   assert.deepEqual(on.find((c) => c.key === "mission-1")!.reward, { free_carats: 150 });
+  assert.equal(on.find((c) => c.key === "mission-1")!.image, "/img/missions/mission-1.webp");
 
   // Missions OFF: the stream contributed nothing — the mission card is gone.
   const off = belowLaneCards(settled(events).filter((ev) => ev.type !== "mission"), AXIS, NOW);

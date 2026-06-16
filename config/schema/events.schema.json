@@ -1310,6 +1310,16 @@
             }
           ]
         },
+        "image": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "start": {
           "type": "string"
         },
@@ -1368,6 +1378,7 @@
       "required": [
         "type",
         "name",
+        "image",
         "start",
         "end",
         "predicted",
@@ -1476,6 +1487,16 @@
             }
           ]
         },
+        "image": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "anniversary": {
           "type": "string"
         },
@@ -1540,6 +1561,7 @@
       "required": [
         "type",
         "name",
+        "image",
         "anniversary",
         "part",
         "start",
@@ -1558,6 +1580,16 @@
           ]
         },
         "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "image": {
           "anyOf": [
             {
               "type": "string"
@@ -1628,6 +1660,7 @@
       "required": [
         "type",
         "name",
+        "image",
         "scenario",
         "start",
         "end",

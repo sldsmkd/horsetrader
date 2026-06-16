@@ -303,9 +303,9 @@ events, so the long tail (manie, friend points) drops at debug. A mission that
 hasn't reached Global has no EN window and stays predicted via the fallthrough;
 those land at plausible-but-far-future EN dates (Global is ~3.7 years behind JP).
 
-**Images deferred.** The JP/EN logo thumbs aren't baked in v1 — missions are the
-highest-volume type, so they'd add the most image weight for the least per-item
-value; the record carries `name` only (consistent with CM). Easy follow-up.
+**Images.** The logo thumb scraped from Gametora is processed into
+`/img/missions/<mission-key>.webp` and baked as `image` on regular, anniversary,
+and scenario mission records.
 
 ## Banners
 

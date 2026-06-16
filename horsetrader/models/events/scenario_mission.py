@@ -34,6 +34,7 @@ class ScenarioMission(Mission):
         return ScenarioMissionRecord(
             **self._envelope(period),
             name=self.title,
+            image=str(self.image.url) if self.image else None,
             scenario=self.scenario,
         )
 
@@ -66,6 +67,7 @@ class ScenarioMissions(Events[ScenarioMission], metaclass=SingletonMeta):
                 title=r["title"],
                 rewards=r["rewards"],
                 references=r["references"],
+                image=r["image"],
                 scenario=scenario,
             )
             if r["flags"]:

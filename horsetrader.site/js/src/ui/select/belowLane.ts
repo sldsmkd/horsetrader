@@ -85,6 +85,8 @@ export interface BelowCard {
   rushable: boolean;
   /** Optional compact banner art for story/event cards. */
   banner: string | null;
+  /** Optional transparent badge/logo art for mission-shaped cards. */
+  image: string | null;
   /** This event's resolved reward face (its height/breakdown signal). */
   reward: ResourceVector;
 }
@@ -98,6 +100,14 @@ function labelOf(record: NonNullable<SettledEvent["record"]>): string {
 
 function bannerOf(record: NonNullable<SettledEvent["record"]>): string | null {
   return "banner" in record ? record.banner : null;
+}
+
+function missionImageOf(record: NonNullable<SettledEvent["record"]>): string | null {
+  return (
+    (record.type === "mission" || record.type === "anniversarymission" || record.type === "scenariomission")
+    && "image" in record
+    && record.image
+  ) ? record.image : null;
 }
 
 /** A minted cadence child's parent key — strip the `-<date>` mint suffix
@@ -128,6 +138,7 @@ export function belowLaneCards(events: readonly SettledEvent[], axis: Axis, now:
       past: ev.end < now,
       rushable: isRushable(record) && ev.end >= now,
       banner: bannerOf(record),
+      image: missionImageOf(record),
       reward: { ...ev.rewards },
     };
     cards.push(card);
