@@ -89,6 +89,8 @@ export interface BelowCard {
   banner: string | null;
   /** Optional transparent badge/logo art for mission-shaped cards. */
   image: string | null;
+  /** Compact mission-art card: art carries identity, full label remains a tooltip. */
+  compact: boolean;
   /** This event's resolved reward face (its height/breakdown signal). */
   reward: ResourceVector;
 }
@@ -144,6 +146,10 @@ function missionImageOf(record: NonNullable<SettledEvent["record"]>): string | n
   ) ? record.image : null;
 }
 
+function compactMissionArtOf(record: NonNullable<SettledEvent["record"]>, label: string): boolean {
+  return record.type === "mission" && g1MissionRaceName(label) !== null;
+}
+
 /** A minted cadence child's parent key — strip the `-<date>` mint suffix
  *  (rules/settle.ts keys children `<parent-key>-YYYY-MM-DD`); null otherwise. */
 function cadenceParent(key: string): string | null {
@@ -163,6 +169,8 @@ export function belowLaneCards(events: readonly SettledEvent[], axis: Axis, now:
     const record = ev.record;
     if (!record) continue; // minted events are never lane cards
     const fullLabel = labelOf(record);
+    const banner = bannerOf(record);
+    const image = missionImageOf(record);
     const card: BelowCard = {
       key: ev.key,
       kind: ev.type as BelowKind,
@@ -173,8 +181,9 @@ export function belowLaneCards(events: readonly SettledEvent[], axis: Axis, now:
       predicted: record.predicted,
       past: ev.end < now,
       rushable: isRushable(record) && ev.end >= now,
-      banner: bannerOf(record),
-      image: missionImageOf(record),
+      banner,
+      image,
+      compact: image !== null && compactMissionArtOf(record, fullLabel),
       reward: { ...ev.rewards },
     };
     cards.push(card);

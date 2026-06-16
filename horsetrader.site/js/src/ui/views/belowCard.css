@@ -16,6 +16,13 @@
   --mission-thumb-overhang: 0.7rem;
 }
 
+.card--compact {
+  --mission-thumb-w: 8.45rem;
+  --mission-thumb-h: 4.25rem;
+  --mission-thumb-overhang: 0.25rem;
+  width: calc(var(--timeline-card-w) / 2);
+}
+
 .card__body {
   border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
   border-radius: 0.4rem;
@@ -146,6 +153,11 @@
   align-items: stretch;
 }
 
+.card--compact .card__mission-layout {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(4rem, auto) auto;
+}
+
 .card__mission-media {
   position: relative;
   grid-column: 1;
@@ -166,6 +178,12 @@
   object-position: center;
   filter: drop-shadow(0 0.18rem 0.22rem color-mix(in srgb, CanvasText 42%, transparent));
   pointer-events: none;
+}
+
+.card--compact .card__mission-image {
+  left: 50%;
+  top: -0.45rem;
+  transform: translateX(-50%);
 }
 
 .card__mission-copy {

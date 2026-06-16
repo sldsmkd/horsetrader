@@ -27,12 +27,14 @@ function missionBody(card: BelowCard, rush: RushBinding): HTMLElement {
       { class: "card__mission-media" },
       h("img", { class: "card__mission-image", attr: { src: card.image!, alt: "", loading: "lazy", decoding: "async" } }),
     ),
-    h(
-      "div",
-      { class: "card__mission-copy" },
-      h("span", { class: "card__label", attr: { title: card.fullLabel } }, card.label),
-      card.rushable ? rushedToggleFor(rush, card.key) : null,
-    ),
+    card.compact
+      ? null
+      : h(
+          "div",
+          { class: "card__mission-copy" },
+          h("span", { class: "card__label", attr: { title: card.fullLabel } }, card.label),
+          card.rushable ? rushedToggleFor(rush, card.key) : null,
+        ),
     rewardStrip(card.reward),
   );
 }
@@ -48,7 +50,7 @@ function rectangularMedia(card: BelowCard): HTMLElement | null {
 }
 
 export function belowCard(card: BelowCard, rush: RushBinding): HTMLElement {
-  const cls = `card card--below card--${card.kind}${card.banner ? " card--bannered" : ""}${card.image && !card.banner ? " card--mission-art" : ""}${card.past ? " card--past" : ""}`;
+  const cls = `card card--below card--${card.kind}${card.banner ? " card--bannered" : ""}${card.image && !card.banner ? " card--mission-art" : ""}${card.compact ? " card--compact" : ""}${card.past ? " card--past" : ""}`;
   const body = card.image && !card.banner
     ? h("div", { class: "card__body" }, missionBody(card, rush))
     : h(
@@ -61,7 +63,7 @@ export function belowCard(card: BelowCard, rush: RushBinding): HTMLElement {
       );
   const el = h(
     "div",
-    { class: cls },
+    { class: cls, attr: card.compact ? { title: card.fullLabel } : {} },
     h("div", { class: "card__stem" }),
     body,
   );

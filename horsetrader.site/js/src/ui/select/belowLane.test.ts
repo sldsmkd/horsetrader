@@ -382,6 +382,7 @@ test("mission-shaped cards use compact display labels without losing the source 
 
   const cards = belowLaneCards(settled(events), AXIS, NOW);
   const labels = new Map(cards.map((c) => [c.key, [c.label, c.fullLabel]]));
+  const compact = new Map(cards.map((c) => [c.key, c.compact]));
 
   assert.deepEqual(labels.get("mission-g1"), [
     "Takamatsunomiya Kinen",
@@ -419,6 +420,11 @@ test("mission-shaped cards use compact display labels without losing the source 
     "Run, Mecha Umamusume!",
     "Run, Mecha Umamusume! Missions",
   ]);
+  assert.equal(compact.get("mission-g1"), true);
+  assert.equal(compact.get("mission-g1-plain"), true);
+  assert.equal(compact.get("mission-sprinters"), true);
+  assert.equal(compact.get("mission-golshi"), false);
+  assert.equal(compact.get("mission-scenario"), false);
 });
 
 test("presence is the stream's call: a gated-off mission is absent from the input, so no card", () => {
