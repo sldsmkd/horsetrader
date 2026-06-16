@@ -10,7 +10,9 @@
 
 const plain = new Intl.NumberFormat("en-US");
 const signed = new Intl.NumberFormat("en-US", { signDisplay: "exceptZero" });
-const date = new Intl.DateTimeFormat("en-US", { day: "numeric", month: "short", year: "2-digit", timeZone: "UTC" });
+const date = new Intl.DateTimeFormat("en-US", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+const dateNoYear = new Intl.DateTimeFormat("en-US", { day: "numeric", month: "short", timeZone: "UTC" });
+const dayOnly = new Intl.DateTimeFormat("en-US", { day: "numeric", timeZone: "UTC" });
 
 const rewardLabels: Record<string, string> = {
   free_carats: "carats",
@@ -48,10 +50,24 @@ export interface RewardLine {
   icon?: string;
 }
 
-/** An ISO date (`2026-06-10`) → a compact label (`Jun 10, 26`), formatted in UTC
+/** An ISO date (`2026-06-10`) → a compact label (`Jun 10, 2026`), formatted in UTC
  *  so the calendar day never shifts under a local timezone. */
 export function formatDate(iso: string): string {
   return date.format(new Date(`${iso}T00:00:00Z`));
+}
+
+/** A closed date range → a compact label, collapsing shared parts: same month
+ *  `Aug 23 – 31, 2026`, same year `Aug 23 – Sep 5, 2026`, otherwise full both ends
+ *  `Dec 28, 2026 – Jan 5, 2027`. A zero-length range falls back to the single date. */
+export function formatDateRange(startIso: string, endIso: string): string {
+  if (startIso === endIso) return formatDate(startIso);
+  const start = new Date(`${startIso}T00:00:00Z`);
+  const end = new Date(`${endIso}T00:00:00Z`);
+  const sameYear = start.getUTCFullYear() === end.getUTCFullYear();
+  const sameMonth = sameYear && start.getUTCMonth() === end.getUTCMonth();
+  const startLabel = sameYear ? dateNoYear.format(start) : date.format(start);
+  const endLabel = sameMonth ? `${dayOnly.format(end)}, ${date.format(end).split(", ")[1]}` : date.format(end);
+  return `${startLabel} – ${endLabel}`;
 }
 
 /** A balance / magnitude: grouped, a minus only when negative. `1,250` · `-50` · `0`. */

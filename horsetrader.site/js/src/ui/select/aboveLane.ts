@@ -35,6 +35,11 @@ const NO_INPUTS: AboveLaneInputs = { balanceAt: () => ({}), availableFor: () => 
 
 export type BannerKind = "trainee" | "support";
 
+/** Pity past which a commitment reads as overspend (the badge's purple band). A
+ *  trainee's spark guarantees the featured copy at 1, so anything more is waste;
+ *  a support card wants ~3 to reach a usable MLB before the same applies. */
+export const PITY_WASTE_ABOVE: Record<BannerKind, number> = { trainee: 1, support: 3 };
+
 /** Within a group, trainee gacha read before support gacha (the prototype order). */
 const KIND_ORDER: Record<BannerKind, number> = { trainee: 0, support: 1 };
 const NAME_ORDER = new Intl.Collator("en", { numeric: true, sensitivity: "base" });
@@ -87,6 +92,8 @@ export interface BannerGroup {
   key: string;
   /** The appearance date — the stem's true date (principle 4). */
   date: CalendarDate;
+  /** The latest close date across the group's banners — the range's far end. */
+  end: CalendarDate;
   /** Content-space x for `date` off the axis (true-to-date, principle 2). */
   x: number;
   /** Any banner in the group predicted → the group reads as predicted. */
@@ -136,8 +143,9 @@ export function aboveLaneGroups(
     const record = ev.record;
     if (!record || (record.type !== "trainee" && record.type !== "support")) continue;
     let group = byDate.get(ev.start);
-    if (!group) byDate.set(ev.start, (group = { key: ev.start, date: ev.start, x: axis.xForDate(ev.start), predicted: false, past: false, banners: [] }));
+    if (!group) byDate.set(ev.start, (group = { key: ev.start, date: ev.start, end: ev.end, x: axis.xForDate(ev.start), predicted: false, past: false, banners: [] }));
     group.predicted = group.predicted || record.predicted;
+    if (ev.end > group.end) group.end = ev.end; // the range spans to the last banner to close
     // Ammo is measured at the banner's **end** (project_spend_model). A committed banner
     // reads its self-excluded available (income minus *earlier* claims, not its own); an
     // uncommitted one reads the series at its end (which already nets out earlier claims).

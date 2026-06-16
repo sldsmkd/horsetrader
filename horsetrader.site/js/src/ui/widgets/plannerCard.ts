@@ -4,6 +4,7 @@ import { h } from "../h.ts";
 import { formatDate } from "../format.ts";
 import type { CalendarDate } from "../../core/projection/dates.ts";
 import type { PlannerRow } from "../select/planner.ts";
+import { PITY_WASTE_ABOVE } from "../select/aboveLane.ts";
 import { commitmentBadge } from "./commitmentBadge.ts";
 
 export interface PlannerCardOpts {
@@ -35,7 +36,7 @@ export function plannerCard({ row, onWarp, onCommit }: PlannerCardOpts): HTMLEle
     h(
       "span",
       { class: "planner-card__meta" },
-      h("span", { class: "planner-card__pity" }, commitmentBadge({ pity: row.pity, unfundable: row.unfundable, onOpen: () => onCommit(row.key) })),
+      h("span", { class: "planner-card__pity" }, commitmentBadge({ pity: row.pity, unfundable: row.unfundable, wasteAbove: PITY_WASTE_ABOVE[row.kind], onOpen: () => onCommit(row.key) })),
       h("span", { class: "planner-card__date" }, formatDate(row.date)),
     ),
   );

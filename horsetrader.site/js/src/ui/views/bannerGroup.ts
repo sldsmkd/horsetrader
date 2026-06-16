@@ -14,7 +14,8 @@ import "./card.css";
 import "./bannerGroup.css";
 
 import { h } from "../h.ts";
-import { formatDate, formatBalance } from "../format.ts";
+import { formatDateRange, formatBalance } from "../format.ts";
+import { PITY_WASTE_ABOVE } from "../select/aboveLane.ts";
 import type { Banner, BannerGroup, BannerKind } from "../select/aboveLane.ts";
 import { atomChip } from "../widgets/atomChip.ts";
 import type { FavouriteBinding } from "../widgets/atomChip.ts";
@@ -40,7 +41,7 @@ export function bannerGroup(group: BannerGroup, fav: FavouriteBinding, commit: C
         lane("trainee", group.banners, fav, commit, group.past),
         lane("support", group.banners, fav, commit, group.past),
       ),
-      h("span", { class: "banner-group__date" }, formatDate(group.date)),
+      h("span", { class: "banner-group__date" }, formatDateRange(group.date, group.end)),
     ),
     h("div", { class: "card__stem" }),
   );
@@ -69,9 +70,20 @@ function bannerCard(banner: Banner, fav: FavouriteBinding, commit: CommitBinding
       h("img", { class: "banner__image", attr: { src: banner.image, alt: "", loading: "lazy" } }),
     ),
     atoms,
-    banner.open ? pullChin(banner, commit) : null,
+    banner.open ? pullChin(banner) : null,
+    // The commit badge floats over the card's bottom-right corner (a circle), so
+    // it's a direct child of `.banner` (the positioned ancestor), not the chin.
+    banner.open ? commitBadge(banner, commit) : null,
   );
   return el;
+}
+
+function commitBadge(banner: Banner, commit: CommitBinding): HTMLElement {
+  return h(
+    "span",
+    { class: "banner__commit-badge" },
+    commitmentBadge({ pity: banner.committedPity ?? 0, unfundable: banner.commitmentUnfundable, wasteAbove: PITY_WASTE_ABOVE[banner.kind], onOpen: () => commit.open(banner.key) }),
+  );
 }
 
 function bannerHeatBand(freePulls: number): 0 | 1 | 2 | 3 | 4 {
@@ -107,7 +119,7 @@ function atomList(banner: Banner, fav: FavouriteBinding): HTMLUListElement {
   return el;
 }
 
-function pullChin(banner: Banner, commit: CommitBinding): HTMLElement {
+function pullChin(banner: Banner): HTMLElement {
   return h(
     "footer",
     { class: "banner__pull-chin", attr: { "aria-label": "Available pulls" } },
@@ -121,7 +133,6 @@ function pullChin(banner: Banner, commit: CommitBinding): HTMLElement {
       separator(),
       pullStat("paid-carats", "/icons/carat.png", "paid carat pulls", banner.paidCaratPulls),
     ),
-    h("span", { class: "banner__commit-badge" }, commitmentBadge({ pity: banner.committedPity ?? 0, unfundable: banner.commitmentUnfundable, onOpen: () => commit.open(banner.key) })),
   );
 }
 

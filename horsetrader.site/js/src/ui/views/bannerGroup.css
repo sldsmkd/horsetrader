@@ -58,7 +58,10 @@
   flex: 0 0 var(--timeline-card-w);
   border: 1px solid transparent;
   border-radius: 0.3rem;
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 20%, transparent);
+  /* No perimeter outline here: the .banner-group border already frames the card,
+     and a per-banner inset shadow lands 1px inside it (hidden behind the colour
+     flash on the left, but a visible double line on the right). Hot banners still
+     set their own glow box-shadow below. */
   overflow: visible;
 }
 
@@ -172,30 +175,53 @@
   z-index: 2;
 }
 
+/* The commit badge floats as a circle straddling the card's bottom-right corner
+   (principle: the commitment is the loudest control on the card). It sits above
+   the chin and art, ringed in the canvas colour so it reads as lifted off the
+   card rather than painted onto it. */
 .banner__commit-badge {
-  grid-column: 3;
-  grid-row: 1 / span 2;
-  flex: none;
-  align-self: stretch;
-  width: 2.35rem;
-  border-top: 1px solid color-mix(in srgb, currentColor 18%, transparent);
-  border-left: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  position: absolute;
+  right: -0.55rem;
+  bottom: -0.55rem;
+  z-index: 3;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  /* Ring + lift live on the wrapper: its currentColor is the card's grey
+     foreground (the inner badge sets currentColor to white for its label, which
+     would make this ring a near-invisible white line). Matches the card border. */
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, currentColor 35%, Canvas),
+    0 1px 4px color-mix(in srgb, black 45%, transparent);
 }
 
 .banner__commit-badge .commitment-badge {
   width: 100%;
   height: 100%;
-  border-radius: 0 0 0.28rem 0;
-  font-size: 1rem;
+  border-radius: 50%;
+  font-size: 0.95rem;
+}
+
+/* The greeble is a fixture on the card, not a floating control, so a hot banner's
+   external glow blooms onto it too. Reuse the card's inherited --banner-hot-* vars
+   (the flash colour, not the pity fill) layered behind the ring + contact shadow,
+   so the bloom is ambient and the pity colour stays legible. */
+.banner--hot .banner__commit-badge {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, currentColor 35%, Canvas),
+    0 1px 4px color-mix(in srgb, black 45%, transparent),
+    0 0 var(--banner-hot-glow-sm) color-mix(in srgb, var(--banner-flash-colour) var(--banner-hot-glow), transparent),
+    0 0 var(--banner-hot-glow-lg) color-mix(in srgb, var(--banner-flash-colour) var(--banner-hot-wash), transparent);
 }
 
 .banner__atoms {
   display: flex;
   flex-wrap: wrap;
   align-content: flex-start;
+  justify-content: center;
   gap: 0.2rem;
   margin: 0.2rem 0 0;
-  padding: 0 0.35rem 0.25rem 0.3rem;
+  padding: 0 0.75rem 0.25rem;
   list-style: none;
   max-height: 5.5rem;
   overflow-y: auto;
@@ -213,7 +239,9 @@
 
 .banner__pull-chin {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) 2.35rem;
+  /* Fixed 35% first column gives the breakdown a stable left anchor, so the misc
+     pulls don't slide around as the digit counts change width. */
+  grid-template-columns: 35% minmax(0, 1fr);
   grid-template-rows: minmax(0.75rem, 1fr) auto;
   align-items: stretch;
   column-gap: 0;
@@ -235,6 +263,7 @@
   grid-row: 2;
   padding: 0.25rem 0;
   border-top: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, currentColor 18%, transparent);
   background: color-mix(in srgb, currentColor 6%, Canvas);
 }
 
@@ -249,9 +278,16 @@
 .banner__pull-breakdown {
   grid-column: 2;
   flex: 1;
-  justify-content: flex-end;
+  justify-content: flex-start;
   padding-left: 0.45rem;
-  padding-right: 0.45rem;
+  /* Clears the floating commit circle straddling the bottom-right corner. */
+  padding-right: 1.55rem;
+}
+
+/* Dim the breakdown's numbers on the stats, not the cell: overriding the cell's
+   `color` also recomputes its currentColor-based background/borders, leaving the
+   middle a shade darker than the dice cell. */
+.banner__pull-breakdown .banner__stat {
   color: color-mix(in srgb, currentColor 82%, transparent);
 }
 
@@ -283,7 +319,8 @@
 
 .banner-group__date {
   position: absolute;
-  right: 0.5rem;
+  /* Cleared past the commit circle straddling the bottom-right corner. */
+  right: 2.4rem;
   bottom: 0.3rem;
   font-size: 0.65rem;
   font-variant-numeric: tabular-nums;

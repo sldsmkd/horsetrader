@@ -6,16 +6,19 @@ import { formatBalance } from "../format.ts";
 export interface CommitmentBadgeOpts {
   pity: number;
   unfundable?: boolean;
+  /** Pity above which the commitment reads as overspend (purple); kind-dependent,
+   *  so the caller supplies it (see PITY_WASTE_ABOVE). Defaults to the support tier. */
+  wasteAbove?: number;
   onOpen(): void;
 }
 
 /** Shared pity commitment affordance. It is both status (the committed pity) and
  * the edit entry point for the commit shield. */
-export function commitmentBadge({ pity, unfundable = false, onOpen }: CommitmentBadgeOpts): HTMLElement {
+export function commitmentBadge({ pity, unfundable = false, wasteAbove = 3, onOpen }: CommitmentBadgeOpts): HTMLElement {
   return h(
     "button",
     {
-      class: `commitment-badge${unfundable ? " commitment-badge--unfundable" : ""}${pity === 0 ? " commitment-badge--empty" : ""}`,
+      class: `commitment-badge${unfundable ? " commitment-badge--unfundable" : ""}${pity === 0 ? " commitment-badge--empty" : ""}${pity > wasteAbove ? " commitment-badge--waste" : ""}`,
       attr: { type: "button", "aria-label": pity > 0 ? `Edit ${formatBalance(pity)} pity commitment` : "Plan a pull" },
       on: {
         pointerdown: (ev) => ev.stopPropagation(),

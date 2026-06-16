@@ -15,20 +15,23 @@
   transform: translateX(-50%);
 }
 
-/* The stem pins the card to its true-date tick on the line (principle 4).
-   TODO(styling): same-date below-lane events each draw their own stem, so they
-   overlap in one column near the line; the 50% transparency + a half-device-pixel
-   straddle splits that into a faint "double line". Fix in the styling pass — make
-   the stem opaque (`background: currentColor`) and/or render one shared trunk per
-   same-date cluster instead of a stem per card. Cosmetic only; deferred. */
+/* The stem pins the card to its true-date tick on the line (principle 4). Mix
+   toward Canvas rather than transparent: same-date below-lane events each draw
+   their own stem in one column near the line, and a translucent stem + a
+   half-device-pixel straddle composited those into a faint "double line". An
+   opaque stem at the same perceived weight overlaps cleanly. */
 .card__stem {
   width: 2px;
   height: 1.1rem;
-  background: color-mix(in srgb, currentColor 50%, transparent);
+  background: color-mix(in srgb, currentColor 50%, Canvas);
 }
 
-/* Grey = already gone: past cards recede so the planning-relevant future stays prominent. */
+/* Grey = already gone: past cards recede so the planning-relevant future stays
+   prominent. Dim via `filter`, not `opacity`: the card background is opaque
+   (`Canvas`), and fading the whole element would make it translucent so the
+   connector stems behind it bleed through. `brightness`+`saturate` recedes the
+   content while keeping the body opaque. */
 .card--past,
 .banner--past {
-  opacity: 0.55;
+  filter: brightness(0.62) saturate(0.7);
 }

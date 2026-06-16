@@ -100,9 +100,32 @@ Done: banner atoms are sorted crystal → gold → silver, then alphanumeric by 
 
 Design and wire in a custom star fruit icon to replace the emoji ⭐ used for favourites throughout the UI. (Owner: Kris)
 
-## Dates on cards
+## ✅ Dates on cards
 
-Show start and end dates on banner cards.
+~~Show start and end dates on banner cards.~~
+
+Done: the banner-group footer now shows a compact date *range* (start → end)
+instead of just the appearance date, collapsing shared parts (`Aug 23 – 31, 26`
+same month, `Aug 23 – Sep 5, 26` same year, full both ends across a year). The
+group's `end` is the **max** close date across its banners.
+
+Open question (think about it): groups are keyed only on `start`, so banners in
+a group can have *different* ends. In the current bake that's 2 of 185 groups
+(`2028-05-25`, `2028-06-06`) — e.g. one trainee runs to Jun 27 while its
+support + sibling trainee close Jun 18. The max-end label therefore overstates
+the shorter banner's window for those outliers. Per-banner pull math is still
+computed off each banner's own end, so only the cosmetic footer generalises.
+Options: keep max-end span (current), show a range only when all ends agree
+(else fall back to start), or render the end per-banner. Decide later.
+
+Below-the-line dates: the below-lane cards (scenarios, stories, missions,
+holidays, legend races, CMs) currently render **no date at all** — `BelowCard`
+carries only `date` (= the event's `start` arrival), and `end` isn't threaded
+through (it's available on `ev.end`). Once the above-line range format is
+settled, mirror it below the line so those cards also show their window. Watch
+the cadence-minted children (`<parent-key>-<date>`, `visible:false`) and the
+reward-posts-on-`end` vs arrival-on-`start` distinction — the displayed range
+should read as the live window, not the ledger-post date.
 
 ## ✅ Grey-out inversion
 
