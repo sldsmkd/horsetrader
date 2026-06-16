@@ -24,22 +24,22 @@
 # ── whole-string mission one-offs ────────────────────────────────────────────
 translate-mission-main-story-ch4:
   jp: { name: "メインストーリー第4章 公開記念ミッション" }
-  en: { name: "Main Story Chapter 4 Release Celebration Missions" }
+  en: { name: "Main Story Chapter 4" }
 translate-mission-golshi-gw:
   jp: { name: "ゴルシちゃんのGW特別ミッション" }
   en: { name: "Golshi Week Special Missions" }
 translate-mission-anime-s2-finale:
   jp: { name: "TVアニメ第2期最終回応援ミッション" }
-  en: { name: "Anime Season 2 Support Missions" }
+  en: { name: "New Trainer Missions" }
 translate-mission-mecha-launch:
   jp: { name: "走れ！メカウマ娘 -夢繋ぐ発明- 公開記念ミッション" }
-  en: { name: "Run, Mecha Umamusume! -Invention of Dreams- Launch Celebration Missions" }
+  en: { name: "Run, Mecha Umamusume! Missions" }
 translate-mission-food-festival:
   jp: { name: "収穫ッ！満腹ッ！大豊食祭 公開記念ミッション" }
-  en: { name: "Harvesting! Feasting! Great Food Festival Release Celebration Missions" }
+  en: { name: "Great Food Festial Missions" }
 translate-mission-new-scenario:
   jp: { name: "新育成シナリオ公開記念ミッション" }
-  en: { name: "New Scenario Release Celebration Missions" }
+  en: { name: "Design Your Island Missions" }
 
 # ── NAR/local races without an entity `.en` ──────────────────────────────────
 translate-race-zen-nippon-junior-yushun:
