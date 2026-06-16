@@ -36,17 +36,14 @@ _CM_HELD_TITLE_NEEDLES = (
     "race event",
     'held "champions meeting',
 )
-_LEGEND_RACE_HELD_TITLE_NEEDLES = (
-    "held",
-    "here",
-    "has begun",
-)
-_LEGEND_RACE_PREVIEW_TITLE_NEEDLES = (
-    "coming soon",
-    "starting soon",
-    "to be held",
-    "begun soon",
-)
+# Match on the invariant JP title. The DeepL-projected EN wobbles across the
+# corpus ("Legend Race" / "Legendary race" / "The Legends Race"), so the EN
+# needles silently dropped every pre-2023-07 occurrence; the JP is stable.
+# Preview ("開催決定" — holding decided) is a superset of held ("開催"), so test
+# the preview marker first.
+_LEGEND_RACE_JP_NEEDLE = "レジェンドレース"
+_LEGEND_RACE_PREVIEW_JP_NEEDLE = "開催決定"
+_LEGEND_RACE_HELD_JP_NEEDLE = "開催"
 _ANNIVERSARY_CAMPAIGN_TITLE = re.compile(
     r"(?P<version>(?:\d+(?:\.5)?|Half))(?:st|nd|rd|th)?\s+Anniversary\s+Campaign\s+Vol\.?\s*(?P<part>\d+)",
     re.I,
@@ -183,15 +180,14 @@ class News(metaclass=SingletonMeta):
         """Best banner article for one Legend Race occurrence."""
         ranked: list[tuple[float, NewsArticle]] = []
         for article in self.search(
-            "Legend Race",
+            _LEGEND_RACE_JP_NEEDLE,
             label="Game",
-            english=True,
-            japanese=False,
+            english=False,
+            japanese=True,
         ):
-            title = article.title_english or ""
             if article.post_at_datetime is None or article.banner_image_url is None:
                 continue
-            article_kind = self._legend_race_article_kind(title)
+            article_kind = self._legend_race_article_kind(article.title or "")
             if article_kind is None:
                 continue
 
@@ -389,13 +385,12 @@ class News(metaclass=SingletonMeta):
 
     @staticmethod
     def _legend_race_article_kind(title: str) -> str | None:
-        lowered = title.lower()
-        if "legend race" not in lowered:
+        if _LEGEND_RACE_JP_NEEDLE not in title:
             return None
-        if any(needle in lowered for needle in _LEGEND_RACE_HELD_TITLE_NEEDLES):
-            return "held"
-        if any(needle in lowered for needle in _LEGEND_RACE_PREVIEW_TITLE_NEEDLES):
+        if _LEGEND_RACE_PREVIEW_JP_NEEDLE in title:
             return "preview"
+        if _LEGEND_RACE_HELD_JP_NEEDLE in title:
+            return "held"
         return None
 
     @classmethod
