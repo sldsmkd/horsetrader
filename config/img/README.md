@@ -13,6 +13,7 @@ addressed by explicit filename from the owning model rather than matched by
 ordinal. Current event banners:
 
 - `event-factors.png` → `factorstudies` records.
+- `masters-challenge.png` → `masterschallenge` records.
 - `racing-carnival.png` → `racingcarnival` records.
 - `showtime.png` → `showtime` records.
 - `strongest-team.png` → `strongestteam` records.

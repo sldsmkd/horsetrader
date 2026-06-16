@@ -39,26 +39,62 @@ function missionBody(card: BelowCard, rush: RushBinding): HTMLElement {
   );
 }
 
+function communityLabel(card: BelowCard): string | null {
+  if (card.kind !== "cm") return null;
+  const match = /^cm-0*(\d+)$/i.exec(card.key);
+  return match ? `CM${match[1]}` : null;
+}
+
 function rectangularMedia(card: BelowCard): HTMLElement | null {
+  const label = communityLabel(card);
   return card.banner
     ? h(
         "div",
         { class: "card__media" },
         h("img", { class: "card__image", attr: { src: card.banner, alt: "", loading: "lazy", decoding: "async" } }),
+        label ? h("span", { class: "card__media-label", attr: { "aria-hidden": "true" } }, label) : null,
       )
     : null;
 }
 
+function bannerCarriesLabel(card: BelowCard): boolean {
+  return card.banner !== null && (
+    card.kind === "cm" ||
+    card.kind === "legendrace" ||
+    card.kind === "showtime" ||
+    card.kind === "strongestteam" ||
+    card.kind === "factorstudies" ||
+    card.kind === "masterschallenge" ||
+    card.kind === "skilltest" ||
+    card.kind === "racingcarnival" ||
+    card.kind === "leagueofheroes"
+  );
+}
+
+function bannerCarriesRushControl(card: BelowCard): boolean {
+  return card.banner !== null && (
+    card.kind === "story" ||
+    card.kind === "strongestteam" ||
+    card.kind === "factorstudies" ||
+    card.kind === "masterschallenge" ||
+    card.kind === "skilltest" ||
+    card.kind === "racingcarnival" ||
+    card.kind === "leagueofheroes"
+  );
+}
+
 export function belowCard(card: BelowCard, rush: RushBinding): HTMLElement {
-  const cls = `card card--below card--${card.kind}${card.banner ? " card--bannered" : ""}${card.image && !card.banner ? " card--mission-art" : ""}${card.compact ? " card--compact" : ""}${card.past ? " card--past" : ""}`;
+  const hideLabel = bannerCarriesLabel(card);
+  const hideRush = bannerCarriesRushControl(card);
+  const cls = `card card--below card--${card.kind}${card.banner ? " card--bannered" : ""}${hideLabel ? " card--banner-label-art" : ""}${card.image && !card.banner ? " card--mission-art" : ""}${card.compact ? " card--compact" : ""}${card.past ? " card--past" : ""}`;
   const body = card.image && !card.banner
     ? h("div", { class: "card__body" }, missionBody(card, rush))
     : h(
         "div",
         { class: "card__body" },
         rectangularMedia(card),
-        h("span", { class: "card__label", attr: { title: card.fullLabel } }, card.label),
-        card.rushable ? rushedToggleFor(rush, card.key) : null,
+        hideLabel ? null : h("span", { class: "card__label", attr: { title: card.fullLabel } }, card.label),
+        card.rushable && !hideRush ? rushedToggleFor(rush, card.key) : null,
         rewardStrip(card.reward),
       );
   const el = h(

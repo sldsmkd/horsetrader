@@ -206,6 +206,7 @@ export interface StrongestTeamRecord {
 export interface MastersChallengeRecord {
   type: "masterschallenge";
   name: string | null;
+  banner: string | null;
   start: string;
   end: string;
   predicted: boolean;

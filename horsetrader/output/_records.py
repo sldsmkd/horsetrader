@@ -239,7 +239,7 @@ class StrongestTeamRecord(NamedEventRecord, tag="strongestteam"):
 
 @eishin
 class MastersChallengeRecord(NamedEventRecord, tag="masterschallenge"):
-    pass
+    banner: str | None
 
 
 @eishin

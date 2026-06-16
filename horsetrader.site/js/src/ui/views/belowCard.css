@@ -123,6 +123,7 @@
 }
 
 .card__media {
+  position: relative;
   aspect-ratio: 936 / 228;
   margin: -4px -4px 0 -3px;
   background: transparent;
@@ -135,10 +136,41 @@
   object-fit: contain;
 }
 
+.card__media-label {
+  position: absolute;
+  top: 8%;
+  left: 4%;
+  z-index: 2;
+  color: white;
+  font-size: calc(var(--timeline-card-w) * 0.1);
+  font-weight: 900;
+  line-height: 1;
+  pointer-events: none;
+  text-shadow:
+    0 0 0.1em black,
+    0.035em 0.035em 0 black,
+    -0.035em 0.035em 0 black,
+    0.035em -0.035em 0 black,
+    -0.035em -0.035em 0 black;
+  -webkit-text-stroke: 0.045em color-mix(in srgb, black 85%, transparent);
+}
+
 .card__label {
   padding: 0.4rem 0.5rem 0.35rem;
   line-height: 1.35;
   overflow-wrap: anywhere;
+}
+
+.card--story.card--bannered .card__label,
+.card--holiday.card--bannered .card__label,
+.card--anniversarymission.card--bannered .card__label {
+  padding-inline: 0.65rem;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.card--banner-label-art .reward-strip {
+  border-top-color: color-mix(in srgb, currentColor 18%, transparent);
 }
 
 .card--mission-art .card__body {

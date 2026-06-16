@@ -104,8 +104,8 @@ function labelOf(record: NonNullable<SettledEvent["record"]>): string {
 
 function compactAnniversaryMissionLabel(record: Extract<NonNullable<SettledEvent["record"]>, { type: "anniversarymission" }>, label: string): string {
   const ann = label.match(/^(.+?)\s+Anniversary\b/);
-  const version = ann ? `${ann[1]} Anniv.` : "Anniv.";
-  return `${version} P${record.part}`;
+  const version = ann ? `${ann[1]} Anniversary` : "Anniversary";
+  return `${version} Part ${record.part}`;
 }
 
 function g1MissionRaceName(label: string): string | null {

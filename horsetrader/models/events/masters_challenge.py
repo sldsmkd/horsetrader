@@ -1,8 +1,11 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
+from horsetrader.core import Period
+from horsetrader.models.media import Image
 from horsetrader.output._records import MastersChallengeRecord
 from horsetrader.semantics import daitaku
 
+from ._misc_banner import process_misc_banner
 from .wikiru_event import WikiruEvent, WikiruEvents
 
 
@@ -18,7 +21,15 @@ class MastersChallenge(WikiruEvent):
     model graded/performance-dependent payouts.
     """
 
+    banner: Image | None = field(default=None, kw_only=True)
     _RECORD = MastersChallengeRecord
+
+    def bake(self, period: Period) -> MastersChallengeRecord:
+        return MastersChallengeRecord(
+            **self._envelope(period),
+            name=self.name,
+            banner=str(self.banner.url) if self.banner else None,
+        )
 
 
 @daitaku
@@ -35,4 +46,16 @@ class MastersChallenges(WikiruEvents[MastersChallenge]):
     def _fetch_primary(self) -> list[MastersChallenge]:
         # Rewards HELD (#15): PvP graded payout — see class docstring. Raw data
         # for when we return: 900 carats, 1 rainbow + 1 gold shard (full clear).
-        return self._build_events()
+        challenges = self._build_events()
+        self._assign_banner(challenges)
+        return challenges
+
+    @staticmethod
+    def _assign_banner(challenges: list[MastersChallenge]) -> None:
+        image = process_misc_banner("masters-challenge.png")
+        if image is None:
+            return
+
+        for challenge in challenges:
+            challenge.banner = image
+            challenge.references.add(image.references)

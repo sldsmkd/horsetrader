@@ -1004,6 +1004,16 @@
             }
           ]
         },
+        "banner": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "start": {
           "type": "string"
         },
@@ -1062,6 +1072,7 @@
       "required": [
         "type",
         "name",
+        "banner",
         "start",
         "end",
         "predicted",

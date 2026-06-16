@@ -180,6 +180,25 @@ test("factor studies cards carry baked misc banner art", () => {
   assert.equal(cards[0]!.banner, "/img/misc/event-factors.webp");
 });
 
+test("masters challenge cards carry baked misc banner art", () => {
+  const events: EventsBundle = {
+    events: [
+      {
+        type: "masterschallenge",
+        name: "Masters Challenge",
+        banner: "/img/misc/masters-challenge.webp",
+        start: "2026-08-01",
+        end: "2026-08-10",
+        predicted: false,
+        key: "masterschallenge-001",
+      },
+    ],
+  };
+
+  const cards = belowLaneCards(settled(events), AXIS, NOW);
+  assert.equal(cards[0]!.banner, "/img/misc/masters-challenge.webp");
+});
+
 test("showtime cards carry baked misc banner art", () => {
   const events: EventsBundle = {
     events: [
@@ -286,7 +305,7 @@ test("an anniversary mission's card combines its flat face and its minted daily 
   const cards = belowLaneCards(settled(events), AXIS, NOW);
 
   assert.deepEqual(cards.map((c) => c.kind), ["anniversarymission"]);
-  assert.equal(cards[0]!.label, "1st Anniv. P1");
+  assert.equal(cards[0]!.label, "1st Anniversary Part 1");
   assert.equal(cards[0]!.fullLabel, "1st Anniversary Missions Part 1");
   // free_carats: 500 (flat) + 150 + 150 (sequence); trainee_tickets: 3 (flat).
   assert.deepEqual(cards[0]!.reward, { trainee_tickets: 3, free_carats: 800 });
