@@ -215,6 +215,19 @@ Given the camera:
 
 The active window should be measured scientifically first, then tuned by feel.
 
+Overscan is a **pan** concept, not a warp one. A fixed buffer around the viewport
+serves bounded pan velocity — the camera can only move so fast under a drag, so a
+modest margin keeps the leading edge materialized. It cannot serve warp: warp tops
+out around 1,400 px/frame (see [appendix.md](appendix.md)) and no sane overscan
+margin reaches that far. So pan and warp are **two materialization strategies, not
+one tunable knob**:
+
+- pan: a buffer around the viewport;
+- warp: endpoint materialization (see Move-To Navigation).
+
+Do not collapse them into a single overscan number — that road ends in an absurd
+buffer width that tries and fails to cover warp transit.
+
 ## Pooling
 
 Virtualization without pooling can become churn.
@@ -227,6 +240,21 @@ The renderer should reuse compatible shells:
 - flat low-detail shells, if introduced;
 - repeated substructures only if profiling shows they dominate churn.
 
+Reconciliation must be **keyed**: a shell is bound to a `sceneId`, and the live
+set is diffed by key against the previous frame's set, not rebuilt positionally.
+Without keys a pan that shifts every card by one slot reassigns every shell.
+
+Guard against **recycler flash** — the classic pooling bug. When a shell is
+reassigned to new content, the new content can paint a frame late, so the user
+briefly sees the *previous* card's text at the new position. This is the failure
+that feels janky even when every metric is green. The reuse path must make
+"old content never shows at the new position" an explicit rule, not an emergent
+property. Pick one and state it:
+
+- clear-then-fill (blank the shell before it moves/repaints);
+- hide-during-reassign (visibility off until the new content is committed);
+- double-buffer (build the new content, then swap).
+
 Metrics must include:
 
 - nodes created;
@@ -238,6 +266,13 @@ Metrics must include:
 
 The goal is not only fewer live nodes. It is fewer short-lived objects and fewer
 GC spikes.
+
+Note on the GC metric: allocation/GC pressure is **not cleanly observable from
+JS** — there are no GC hooks and `performance.memory` is coarse and Chrome-only.
+Expect this number from manual DevTools allocation profiling, not from the
+automated harness or CI. Decide that up front so the harness does not stall
+trying to automate the un-automatable; the other budget numbers are queryable and
+belong in the harness, GC pressure is a manual read.
 
 ## Findability
 
@@ -313,6 +348,13 @@ The most important end-to-end nav test is a real user flow: search for an entity
 whose card is currently culled, choose a result, warp to it, materialize the
 destination slice before arrival, and land with no blank frame or distracting
 pop.
+
+Materialize the destination at **warp start, not on approach**. `warpTo` already
+computes the target pan immediately at t=0, so query the destination tiles and
+build that live set offscreen *while the camera is still travelling*. This is the
+clean guarantee that the destination is mounted before arrival. Building on
+approach reintroduces the blank-frame risk exactly under load — the moment when
+the renderer is busiest is the worst moment to start the destination build.
 
 Favourites need an explicit multi-appearance policy. A favourite can have several
 future appearances, so tapping the row must choose one:
@@ -450,3 +492,22 @@ Expected first intervention if the offscreen ratio is high:
 4. shell pooling.
 
 LOD, imposters, canvas, and bitmap caching remain conditional follow-ups.
+
+## Checkpoint Strategy
+
+The intervention list above is a sequence of checkpoints, not a fixed build plan.
+After each step the loop is:
+
+> improve -> measure -> decide.
+
+Re-run the harness after each intervention and ask whether the numbers already
+clear the goal. It is a likely and acceptable outcome that culling alone — or
+culling plus pooling — meets the budget, and the remaining steps are never built.
+Stopping early is success, not an abandoned plan. The conditional follow-ups (LOD,
+imposters, canvas, WebGL, bitmap) only open if a trace at a checkpoint proves the
+spine so far cannot carry the load.
+
+This is also why the expensive commit/repack path needs no special new contract:
+repacking already happens behind an attention-owning surface on a discrete commit
+(correct-on-reveal). The cost lands on the existing expensive path, so the
+checkpoint loop only has to defend the continuous camera path.

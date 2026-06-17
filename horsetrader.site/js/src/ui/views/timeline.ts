@@ -70,7 +70,50 @@ const WARP_MIN_MS = 650;
 const WARP_MAX_MS = 1500;
 const WARP_DISTANCE_SCALE_PX = 4000;
 
+/** Spatial culling overscan (Trackblazer): how far past each viewport edge a card
+ *  stays mounted, as a multiple of the viewport width. One viewport each side is
+ *  the measured near-band (appendix), so the live set is the gating measurement's
+ *  visible + near (~35 at the worst frame) — generous enough that a sub-card error
+ *  in a card's measured world bounds can never pop a card in late under a pan. This
+ *  serves the *pan* path; warp transit is a separate concern (design.md Culling). */
+const OVERSCAN_VIEWPORTS = 1;
+
 type Extent = readonly [CalendarDate, CalendarDate] | null;
+
+/**
+ * The gating measurement (see trackblazer/design.md): of the mounted cards, how
+ * many fall inside the viewport, in the near-band overscan, or fully offscreen.
+ * Counts are over rendered rects, so the camera transform (pan + future zoom) is
+ * already baked in — no need to reason about `panX` here.
+ */
+export interface VisibilityStats {
+  total: number;
+  visible: number;
+  near: number;
+  offscreen: number;
+}
+
+/**
+ * The pairing the shell hands the substrate to arm spatial culling: a stable id
+ * (the card/group key) and its built element. The timeline measures each element's
+ * world bounds once (at arm time, after the packer has settled heights/nudges) and
+ * thereafter mounts only the slice inside the viewport + overscan, keying the live
+ * set by id so a pan that shifts every card reconciles by membership, not position.
+ */
+export interface SceneCard {
+  id: string;
+  el: HTMLElement;
+}
+
+/** A scene object's retained element plus its measured world-x bounds (content
+ *  space, camera-independent). The known-scene layer between selectors and the
+ *  live DOM: the element exists whether or not it is currently mounted. */
+interface SceneObject {
+  id: string;
+  el: HTMLElement;
+  left: number;
+  right: number;
+}
 
 export interface Timeline {
   /** The always-mounted canvas viewport. */
@@ -95,6 +138,15 @@ export interface Timeline {
    */
   setCards(elements: HTMLElement[]): void;
   /**
+   * Arm spatial culling: record each card's world-x bounds (measured once, now, so
+   * the packer's settled heights/nudges are already baked in) and reconcile the live
+   * set down to the viewport + overscan slice. Call **after** `setCards` mounted the
+   * full set and the packer ran — the measure needs the cards laid out. From here the
+   * camera path (`applyPan`) keeps the mounted set in step with the viewport by key,
+   * so a 618-card world only ever paints its visible neighbourhood (~35 cards).
+   */
+  setScene(cards: SceneCard[]): void;
+  /**
    * Report how far the packed cards reach above and below the centre line (px),
    * measured after a pack. Sets the dynamic vertical roof/floor — only the depth
    * past the viewport half becomes a peekable region.
@@ -112,6 +164,26 @@ export interface Timeline {
    * bounded by distance, and still cheap-path only.
    */
   warpTo(date: CalendarDate): void;
+  /**
+   * Count the mounted cards by where they fall relative to the viewport — the
+   * Trackblazer gating measurement. `overscanPx` is the near-band buffer each side
+   * (default: one viewport width); cards inside it but off the visible rect count
+   * as `near`, everything beyond as `offscreen`. A cheap-enough diagnostic read
+   * (one batched reflow); call it off the HUD sample tick, not per frame.
+   */
+  visibility(overscanPx?: number): VisibilityStats;
+  /**
+   * Read and reset the DOM node churn (nodes added + removed under the card host)
+   * accumulated since the last call. The HUD calls this once per frame to bucket
+   * churn by frame for its high-watermark / percentile pass. Pre-culling it reads 0
+   * during pan/warp — the baseline the cull/pool path must not regress.
+   */
+  drainChurn(): number;
+  /**
+   * The current display extent `[first, last]`, or `null` before the first layout.
+   * The churn benchmark warps between these ends to drive full-extent sweeps.
+   */
+  extentRange(): Extent;
 }
 
 export interface TimelineHandlers {
@@ -153,14 +225,56 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
   // The dynamic roof and floor: only the overflow past the viewport half is pannable.
   let aboveDepth = 0;
   let belowDepth = 0;
+  // The known scene + the live mounted set. `scene` holds every card's retained
+  // element and world-x bounds; `mountedIds` is which of them are currently in the
+  // DOM. Empty `scene` = culling disarmed (raw `setCards` mode, every element
+  // mounted) so `reconcile` is inert until `setScene` arms it.
+  let scene: SceneObject[] = [];
+  const mountedIds = new Set<string>();
 
   const line = h("div", { class: "timeline__line" });
   const today = h("div", { class: "timeline__today" });
   const cards = h("div", { class: "timeline__cards" }); // hosts the positioned card views
   const content = h("div", { class: "timeline__content" }, line, today, cards);
+
+  // Churn meter: count DOM nodes added/removed under the card host. Pre-culling this
+  // reads ~0 on the camera path — pan/warp are pure transforms, they don't touch
+  // childList — so it establishes the "no churn while panning" baseline the cull/pool
+  // work must not regress. A domain recompute's `setCards` replaceChildren spikes it
+  // (the expensive commit path, expected). The HUD drains this once per frame so the
+  // count buckets by frame; `subtree` catches in-place card-internal rebuilds too.
+  let pendingChurn = 0;
+  new MutationObserver((records) => {
+    for (const r of records) pendingChurn += r.addedNodes.length + r.removedNodes.length;
+  }).observe(cards, { childList: true, subtree: true });
   const rail = h("div", { class: "timeline__rail", attr: { "aria-hidden": "true" } });
   const el = h("section", { class: "timeline", attr: { "aria-label": "Timeline" } }, rail, content);
   el.style.setProperty("--timeline-rail-height", `${TRACK_RAIL_VISUAL_PX}px`);
+
+  // Spatial culling (Trackblazer). Mount exactly the scene objects whose world-x
+  // bounds intersect the viewport + overscan, keyed by id so a pan that shifts the
+  // whole world only touches the cards crossing an edge — not every shell. Pure
+  // arithmetic against precomputed bounds + a few appendChild/remove; it reads no
+  // geometry, so it forces no reflow and stays on the cheap camera path. Inert until
+  // `setScene` arms it (empty scene = raw all-mounted mode). The DOM mutations it
+  // makes are the cull turnover the churn meter now measures on the camera path.
+  const reconcile = () => {
+    if (scene.length === 0) return;
+    const overscan = el.clientWidth * OVERSCAN_VIEWPORTS;
+    const left = -panX - overscan;
+    const right = -panX + el.clientWidth + overscan;
+    for (const o of scene) {
+      const inWindow = o.right >= left && o.left <= right;
+      const mounted = mountedIds.has(o.id);
+      if (inWindow && !mounted) {
+        cards.appendChild(o.el); // zIndex is set per-card by the packer, so DOM order is free
+        mountedIds.add(o.id);
+      } else if (!inWindow && mounted) {
+        o.el.remove();
+        mountedIds.delete(o.id);
+      }
+    }
+  };
 
   const applyPan = () => {
     content.style.transform = `translate(${panX}px, ${panY}px)`;
@@ -179,6 +293,8 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
         onView(date, offset);
       }
     }
+    // The camera moved → bring the live set back in step with the new viewport.
+    reconcile();
   };
 
   // --- pan: grab the world, bounded by elastic walls. `panX` is the *applied*
@@ -373,7 +489,56 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
   return {
     el,
     axis: () => axis,
-    setCards: (elements) => cards.replaceChildren(...elements),
+    setCards: (elements) => {
+      // Raw all-mounted mode: the shell needs every card laid out so the packer can
+      // measure it. Disarm culling (empty scene) until `setScene` re-arms it, so an
+      // applyPan during the measure window doesn't reconcile against a stale scene.
+      scene = [];
+      mountedIds.clear();
+      cards.replaceChildren(...elements);
+    },
+    setScene(sceneCards) {
+      // Measure each element's world-x bounds once, now — the packer has settled
+      // stem heights / group nudges, and the element is mounted, so its rect is
+      // final. Subtracting the content layer's own rect cancels the pan transform,
+      // giving camera-independent content-space bounds. One viewport of overscan
+      // dwarfs any sub-card centring error, so DOM-measured bounds are plenty exact.
+      const contentLeft = content.getBoundingClientRect().left;
+      scene = sceneCards.map(({ id, el: cardEl }) => {
+        const r = cardEl.getBoundingClientRect();
+        return { id, el: cardEl, left: r.left - contentLeft, right: r.right - contentLeft };
+      });
+      // Everything is mounted right now (from setCards); cull down to the window.
+      mountedIds.clear();
+      for (const { id } of sceneCards) mountedIds.add(id);
+      reconcile();
+    },
+    visibility(overscanPx) {
+      // The gating measurement, computed over the *known scene* (not the mounted
+      // DOM), so it stays correct once culling has unmounted the offscreen cards.
+      // Horizontal basis, matching the horizontal cull: a card counts visible when
+      // its world-x bounds intersect the viewport, near when within overscan. Pure
+      // arithmetic against precomputed bounds — no reflow, safe off the sample tick.
+      if (scene.length === 0) return { total: 0, visible: 0, near: 0, offscreen: 0 };
+      const overscan = overscanPx ?? el.clientWidth;
+      const viewLeft = -panX;
+      const viewRight = -panX + el.clientWidth;
+      let visible = 0;
+      let near = 0;
+      let offscreen = 0;
+      for (const o of scene) {
+        if (o.right >= viewLeft && o.left <= viewRight) visible += 1;
+        else if (o.right >= viewLeft - overscan && o.left <= viewRight + overscan) near += 1;
+        else offscreen += 1;
+      }
+      return { total: scene.length, visible, near, offscreen };
+    },
+    drainChurn() {
+      const n = pendingChurn;
+      pendingChurn = 0;
+      return n;
+    },
+    extentRange: () => extent,
     setContentDepth: (above, below) => {
       aboveDepth = above;
       belowDepth = below;

@@ -181,8 +181,21 @@ export function mountApp(
     bake: bakeStats,
     stats: () => ({
       ...cardStats,
+      ...tl.visibility(),
       domNodes: root.getElementsByTagName("*").length,
     }),
+    drainChurn: () => tl.drainChurn(),
+    // The F3 churn benchmark's motion: warp end-to-end `sweeps` times, alternating
+    // ends, awaiting each full-extent leg (capped at 1.5s — see WARP_MAX_MS) before
+    // the next so sweeps don't overlap.
+    warpScan: async (sweeps) => {
+      const ends = tl.extentRange();
+      if (!ends) return;
+      for (let i = 0; i < sweeps; i++) {
+        tl.warpTo(i % 2 === 0 ? ends[1] : ends[0]);
+        await new Promise((resolve) => setTimeout(resolve, 1650));
+      }
+    },
   });
 
   // The minimap is the primary navigation: dragging its track seeks, which pans
@@ -312,6 +325,14 @@ export function mountApp(
     const belowDepth = packBelowLane(below, belowEls);
     const aboveDepth = packAboveLane(above, aboveEls);
     tl.setContentDepth(aboveDepth, belowDepth);
+    // Arm spatial culling: hand the substrate every card's id + element so it can
+    // measure world bounds (now, with the packer settled) and thereafter mount only
+    // the visible neighbourhood. Ids are lane-prefixed so a below event key and an
+    // above group key (a bare date) can never collide in the live-set membership.
+    tl.setScene([
+      ...below.map((card, i) => ({ id: `below:${card.key}`, el: belowEls[i] })),
+      ...above.map((group, i) => ({ id: `above:${group.key}`, el: aboveEls[i] })),
+    ]);
   }
   coord.subscribe(refresh);
 
