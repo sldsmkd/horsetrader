@@ -179,11 +179,6 @@ export interface Timeline {
    * during pan/warp — the baseline the cull/pool path must not regress.
    */
   drainChurn(): number;
-  /**
-   * The current display extent `[first, last]`, or `null` before the first layout.
-   * The churn benchmark warps between these ends to drive full-extent sweeps.
-   */
-  extentRange(): Extent;
 }
 
 export interface TimelineHandlers {
@@ -538,7 +533,6 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
       pendingChurn = 0;
       return n;
     },
-    extentRange: () => extent,
     setContentDepth: (above, below) => {
       aboveDepth = above;
       belowDepth = below;

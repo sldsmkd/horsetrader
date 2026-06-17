@@ -166,6 +166,13 @@ follow-ups do **not** open on this evidence:
 These reopen only if a later trace (zoom, a larger bake, or a slower device) shows
 the live window's paint or the cull turnover regressing past budget.
 
+**F3 harness retired.** With the gate resolved, the automated churn benchmark (F3,
+`warpScan`, `timeline.extentRange()`) has been removed — it was scaffolding to prove
+the cull, and the numbers it produced are recorded above. The live HUD stays as a
+fun diagnostic: F2 toggles MANGOHORSE, FPS / CHURN / ONSCREEN / DOM still sample on
+the 250ms tick. It's bounded (fixed-size ring + graph, nothing grows) and cheap, so
+it's left in as-is — most people will never open it.
+
 ## Warp Speed
 
 `warpTo` duration is capped at 1.5s for long distances. Representative

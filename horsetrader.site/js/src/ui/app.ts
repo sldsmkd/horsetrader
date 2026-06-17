@@ -185,17 +185,6 @@ export function mountApp(
       domNodes: root.getElementsByTagName("*").length,
     }),
     drainChurn: () => tl.drainChurn(),
-    // The F3 churn benchmark's motion: warp end-to-end `sweeps` times, alternating
-    // ends, awaiting each full-extent leg (capped at 1.5s — see WARP_MAX_MS) before
-    // the next so sweeps don't overlap.
-    warpScan: async (sweeps) => {
-      const ends = tl.extentRange();
-      if (!ends) return;
-      for (let i = 0; i < sweeps; i++) {
-        tl.warpTo(i % 2 === 0 ? ends[1] : ends[0]);
-        await new Promise((resolve) => setTimeout(resolve, 1650));
-      }
-    },
   });
 
   // The minimap is the primary navigation: dragging its track seeks, which pans
