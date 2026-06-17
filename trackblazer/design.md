@@ -1,11 +1,18 @@
 # Trackblazer Design
 
-Status: design draft.
+Status: **delivered — spatial culling resolved the gate.**
 
-Trackblazer is the renderer-performance redesign for the Horsetrader timeline.
-The current app can hit good FPS, but the DOM count is already large and will
-only grow with the bake. The design goal is not "make the current DOM faster";
-it is to stop treating DOM as the scene graph.
+Trackblazer was the renderer-performance redesign for the Horsetrader timeline.
+The current app could hit good FPS, but the DOM count was already large and would
+only grow with the bake. The design goal was not "make the current DOM faster"; it
+was to stop treating DOM as the scene graph.
+
+This document is the design as built: the governing principle, the measurement
+that gated scope, the spine that shipped (scene model → cull), and the scaling
+future it leaves open. The deeper interventions that were designed but never needed
+to be built — pooling, imposters, the detail resolver, warp-transit handling, LOD
+— live in [considered.md](considered.md). The outcome is at the end: culling alone
+met the budget, and the checkpoint strategy stopped the spine there.
 
 ## Governing Principle
 
@@ -38,31 +45,17 @@ The channels fall out of that:
 
 ## The Gating Measurement
 
-The first number to measure is:
+The first number to measure was:
 
 > Of the current timeline cards and DOM nodes, how many are offscreen at the
 > captured viewport?
 
-That ratio decides the scope.
-
-If most cards are offscreen, the first win is probably plain spatial
-virtualization plus pooling. If viewport culling can cut live card DOM from the
-whole timeline to the visible slice plus overscan, the renderer may get the first
-order-of-magnitude win without needing imposters, bitmap caches, canvas, or
-WebGL.
-
-The rough capture estimate and current numeric findings live in
-[appendix.md](appendix.md).
-
-So the first audit must report:
-
-- total timeline cards/renderables;
-- visible cards/renderables;
-- near-visible cards/renderables;
-- offscreen cards/renderables;
-- DOM nodes by surface and component family;
-- nodes per card family;
-- live renderer churn during pan and `warpTo`.
+That ratio decided the scope. The answer, measured: **94% offscreen at the worst
+hand-picked frame** — the live set culling plus a one-viewport overscan must carry
+is ~35 cards of 618. That is well inside the 40-60 target, and it meant the first
+order-of-magnitude win was available from plain spatial culling without imposters,
+bitmap caches, canvas, or WebGL. The full baseline, the churn benchmark, and the
+post-cull result are in [appendix.md](appendix.md).
 
 ## Budget Model
 
@@ -87,12 +80,12 @@ Known scene objects may exist without being mounted.
 Objects actively realized by the renderer:
 
 - mounted full cards;
-- pooled shells assigned to visible objects;
-- flat imposters, if needed;
 - minimap primitives;
 - overscan and transition-zone objects.
 
-This is what the browser must style, paint, composite, upload, or draw now.
+This is what the browser must style, paint, composite, upload, or draw now. After
+culling, it is the viewport slice plus a one-viewport overscan — roughly an order
+of magnitude smaller than the known scene.
 
 ### Interactive DOM Budget
 
@@ -108,9 +101,9 @@ can inspect or act on now.
 
 ## Core Strategy
 
-Use virtualization as the architecture, but roll a custom spatial virtualizer.
+Use virtualization as the architecture, with a custom spatial virtualizer.
 
-Existing list/grid virtualizers are useful prior art, but Horsetrader is not a
+Existing list/grid virtualizers were useful prior art, but Horsetrader is not a
 row list:
 
 - x is a true-to-date world axis;
@@ -121,34 +114,24 @@ row list:
 - future zoom changes camera scale, not layout;
 - viewport chrome is separate from the timeline world.
 
-The spine is:
+The spine that shipped:
 
 1. Build a renderer-facing scene model.
-2. Measure or derive card footprints.
+2. Measure card footprints (the existing packer, once, on the commit path).
 3. Run packing into world-space bounds.
-4. Store bounds in spatial tiles/chunks.
-5. Query viewport plus overscan.
-6. Reconcile that live set through pools.
-7. Keep interactive DOM only where the user can read or act.
+4. Record each card's world-x bounds.
+5. Query viewport plus overscan on the camera path.
+6. Mount only that live slice; keep interactive DOM only where the user can read
+   or act.
 
-This is scene model -> cull -> pool. Everything else is conditional.
-
-Initial R&D ordering:
-
-1. Measurement harness.
-2. Scene model and packed bounds.
-3. Spatial culling.
-4. Shell pooling and reconciliation.
-5. Layout/packing pipeline instrumentation.
-6. Camera resolver for pan, warp, minimap, and zoom.
-
-LOD and imposters are parked until traces show culling + pooling cannot handle
-warp-transit load. Bitmap imposters are deleted from initial scope.
+This is **scene model → cull**. The originally-planned follow-ons — shell pooling,
+a detail resolver, imposters — were conditional on culling proving insufficient. It
+did not, so they were not built; see [considered.md](considered.md).
 
 ## Scene Model
 
-The scene model is the known-world layer between selectors and DOM. It should
-contain stable records like:
+The scene model is the known-world layer between selectors and DOM. It holds stable
+records:
 
 - `sceneId`;
 - semantic source id;
@@ -156,17 +139,20 @@ contain stable records like:
 - date and world x;
 - measured/derived footprint;
 - packed world bounds;
-- tile/chunk membership;
-- current detail eligibility;
 - focus/search/bookmark target metadata.
 
-The scene model may be large. That is acceptable. It is data, not mounted DOM.
+The scene model may be large. That is acceptable. It is data, not mounted DOM. In
+the shipped renderer it lives as `scene[]` of `{id, el, left, right}` world bounds
+plus `mountedIds`, reconciled on the camera path as pure arithmetic against
+precomputed bounds — it reads no geometry, so it forces no reflow.
 
 ## Packing
 
-The existing packer needs sizing information, so Trackblazer cannot simply ignore
-offscreen cards. Packing should operate over known scene footprints and produce
-world-space bounds.
+The packer needs sizing information, so Trackblazer cannot ignore offscreen cards
+at layout time. Packing operates over known scene footprints and produces
+world-space bounds. Every card is built and packed once on the commit path, so the
+packer still measures real heights and nudges; culling only governs what stays
+*mounted* afterward.
 
 Packed bounds are stable during interaction and within a committed world. Pan,
 zoom, warp, and settled-view interaction do not move world bounds; they only move
@@ -174,14 +160,14 @@ the camera or change what slice is live.
 
 Packed bounds may change on an explicit commit: stream toggle, domain recompute,
 configuration change, or another action that deliberately changes the settled
-world. That is allowed to be expensive relative to the continuous path. A
-discrete commit can spend real work repacking if the user just asked the app to
-change the model.
+world. That is allowed to be expensive relative to the continuous path. A discrete
+commit can spend real work repacking if the user just asked the app to change the
+model.
 
 The commit path is correct-on-reveal. A viewport-anchored surface can own the
-user's attention while the timeline repacks behind it. The shield does not need
-to hide the world optically; it only needs to own the fovea. Changes outside the
-locus of attention can settle without a designed transition.
+user's attention while the timeline repacks behind it. The shield does not need to
+hide the world optically; it only needs to own the fovea. Changes outside the locus
+of attention can settle without a designed transition.
 
 Important distinction:
 
@@ -189,100 +175,41 @@ Important distinction:
 - "known to the scene" does not mean "interactive DOM";
 - "visible now" is a query over packed bounds.
 
-Watch for a second cliff here: even if live DOM is virtualized, a global O(all
-events) pack on every domain recompute may still become expensive. Measure pack
-cost separately from render cost.
-
-After a repack, the renderer receives new bounds and rebuilds or reconciles the
-revealed live set from those bounds. It does not need to preserve every
-intermediate placement. If the commit happened behind an attention-owning
-surface, rebuilding the visible/near-visible live set from scratch is fine.
-Pooling and incremental reconciliation are frame-critical on the continuous
-camera path, not on an occluded/peripheral commit reveal.
+Watch for a second cliff here: even with the live DOM virtualized, a global
+O(all events) pack on every domain recompute may still become expensive. Measure
+pack cost separately from render cost. (Not yet a problem at the current bake; the
+commit path's initial mount measured ~1,236 nodes in one frame, two orders of
+magnitude above camera-path churn — comfortably the expensive budget's home.)
 
 ## Culling
 
-Culling is the first real intervention to validate.
+Culling was the first real intervention, and it resolved the gate. The shipped form
+is **retained-element culling**: every card is built and packed once, the substrate
+records each card's world-x bounds, and only the slice inside the viewport plus a
+one-viewport overscan stays mounted. Cards leaving the window are detached, not
+destroyed, and their element instances are kept — a card re-entering the window
+re-attaches its own content.
 
-Given the camera:
+Given the camera, the camera-path reconcile:
 
-1. Convert viewport to world-space bounds.
-2. Add overscan.
-3. Query spatial tiles/chunks.
-4. Keep full DOM for readable/interactable objects.
-5. Keep simpler live renderer objects only if needed.
-6. Keep everything else in the known scene only.
+1. Converts viewport to world-space bounds.
+2. Adds overscan.
+3. Queries the scene bounds (pure arithmetic, no geometry reads).
+4. Attaches cards entering the window, detaches cards leaving it.
 
-The active window should be measured scientifically first, then tuned by feel.
-
-Overscan is a **pan** concept, not a warp one. A fixed buffer around the viewport
-serves bounded pan velocity — the camera can only move so fast under a drag, so a
-modest margin keeps the leading edge materialized. It cannot serve warp: warp tops
-out around 1,400 px/frame (see [appendix.md](appendix.md)) and no sane overscan
-margin reaches that far. So pan and warp are **two materialization strategies, not
-one tunable knob**:
-
-- pan: a buffer around the viewport;
-- warp: endpoint materialization (see Move-To Navigation).
-
-Do not collapse them into a single overscan number — that road ends in an absurd
-buffer width that tries and fails to cover warp transit.
-
-## Pooling
-
-Virtualization without pooling can become churn.
-
-The renderer should reuse compatible shells:
-
-- above-lane banner group shells;
-- below-lane card shells;
-- compact/mission card shells;
-- flat low-detail shells, if introduced;
-- repeated substructures only if profiling shows they dominate churn.
-
-Reconciliation must be **keyed**: a shell is bound to a `sceneId`, and the live
-set is diffed by key against the previous frame's set, not rebuilt positionally.
-Without keys a pan that shifts every card by one slot reassigns every shell.
-
-Guard against **recycler flash** — the classic pooling bug. When a shell is
-reassigned to new content, the new content can paint a frame late, so the user
-briefly sees the *previous* card's text at the new position. This is the failure
-that feels janky even when every metric is green. The reuse path must make
-"old content never shows at the new position" an explicit rule, not an emergent
-property. Pick one and state it:
-
-- clear-then-fill (blank the shell before it moves/repaints);
-- hide-during-reassign (visibility off until the new content is committed);
-- double-buffer (build the new content, then swap).
-
-Metrics must include:
-
-- nodes created;
-- nodes destroyed;
-- nodes reused;
-- pool hits/misses;
-- promotion/demotion counts;
-- allocation and GC pressure.
-
-The goal is not only fewer live nodes. It is fewer short-lived objects and fewer
-GC spikes.
-
-Note on the GC metric: allocation/GC pressure is **not cleanly observable from
-JS** — there are no GC hooks and `performance.memory` is coarse and Chrome-only.
-Expect this number from manual DevTools allocation profiling, not from the
-automated harness or CI. Decide that up front so the harness does not stall
-trying to automate the un-automatable; the other budget numbers are queryable and
-belong in the harness, GC pressure is a manual read.
+The active window was measured first, then tuned by feel. Retaining each element
+deliberately **defers pooling**: with no shell reuse, the recycler-flash failure
+mode cannot occur — a re-entering card paints its own content, never a neighbour's.
 
 ## Findability
 
 Findability is solved by semantic app navigation, not native text search.
 
 Unmounting cards means native Ctrl+F cannot search every rendered glyph, but that
-is not a meaningful loss for this product. A freeform search that resolves
-`kita` into distinct Kitasan Black variants and warps to the selected result is
-better than native find. Native find cannot disambiguate card variants, know
-future appearances, or understand that a favourite has multiple future returns.
+is not a meaningful loss for this product. A freeform search that resolves `kita`
+into distinct Kitasan Black variants and warps to the selected result is better than
+native find. Native find cannot disambiguate card variants, know future
+appearances, or understand that a favourite has multiple future returns.
 
 Findability lives in:
 
@@ -292,11 +219,10 @@ Findability lives in:
 - Home;
 - minimap navigation.
 
-These all query the known scene, compute a target date, and move the timeline.
-
-If the offscreen estimate holds, this is the default state: most of the timeline
-would be unmounted at any moment. Semantic search/favourites/planner
-materialization must exist from the first virtualized renderer.
+These all query the known scene, compute a target date, and move the timeline. With
+most of the timeline unmounted at any moment, semantic
+search/favourites/planner materialization is not optional — it is how the user
+reaches culled content, and it exists from the first virtualized renderer.
 
 Screen-reader support for the timeline is out of scope. The primary content is
 irreducibly visual: a spatial field of dated cards, character art, lane position,
@@ -305,8 +231,8 @@ Trackblazer to preserve while virtualizing. The real concern was findability whe
 content is unmounted, and the semantic navigation stack answers that better than
 native rendered-text search would.
 
-Chrome focus hygiene is still worth doing, but it is bounded UI behavior rather
-than a timeline-renderer requirement:
+Chrome focus hygiene is still worth doing, but it is bounded UI behavior rather than
+a timeline-renderer requirement:
 
 - Escape closes drawers and overlays where appropriate;
 - modal surfaces trap focus and return it on close;
@@ -330,31 +256,19 @@ trigger -> compute target date -> call warpTo
 The triggers differ; the renderer contract is the same. Existing search and
 bookmark navigation are not speculative; they are already live `warpTo` users.
 
-Long warps can move too fast for card text to matter. Do not promote every
-in-transit card to full DOM during a long warp. Render the start and destination
-neighborhoods for real. The middle can be low-detail or not materialized,
-depending on the measured feel. See [appendix.md](appendix.md) for current warp
-speed findings.
+The end-to-end nav test that mattered: search for an entity whose card is currently
+culled, choose a result, warp to it, and land with no blank frame or distracting
+pop. Post-cull this works without special transit handling — warp churn is trivial
+and retained elements re-attach fast enough that the destination is live on arrival.
+The warp-transit detail handling that was designed for a more expensive warp
+(don't-promote-the-middle, endpoint materialization) proved unnecessary and is
+recorded in [considered.md](considered.md).
 
 Minimap navigation is unsettled:
 
 - current click/drag uses instant `centerOn`;
 - click may become intent-based `warpTo`;
 - drag may remain direct camera control.
-
-The measurement suite should cover both instant seek and smooth warp.
-
-The most important end-to-end nav test is a real user flow: search for an entity
-whose card is currently culled, choose a result, warp to it, materialize the
-destination slice before arrival, and land with no blank frame or distracting
-pop.
-
-Materialize the destination at **warp start, not on approach**. `warpTo` already
-computes the target pan immediately at t=0, so query the destination tiles and
-build that live set offscreen *while the camera is still travelling*. This is the
-clean guarantee that the destination is mounted before arrival. Building on
-approach reintroduces the blank-frame risk exactly under load — the moment when
-the renderer is busiest is the worst moment to start the destination build.
 
 Favourites need an explicit multi-appearance policy. A favourite can have several
 future appearances, so tapping the row must choose one:
@@ -364,12 +278,12 @@ future appearances, so tapping the row must choose one:
 - step-through on repeated activation;
 - another policy, if user testing suggests it.
 
-Whatever policy wins, it should be stable and shared by the bookmark list,
-minimap pips, and planner-adjacent navigation where applicable.
+Whatever policy wins, it should be stable and shared by the bookmark list, minimap
+pips, and planner-adjacent navigation where applicable.
 
-The minimap marker should stay symbolic. A faithful viewport-over-world marker
-would be too narrow to grab, and zoom can make that worse. The drawn handle and
-the navigation mapping should be decoupled:
+The minimap marker should stay symbolic. A faithful viewport-over-world marker would
+be too narrow to grab, and zoom can make that worse. The drawn handle and the
+navigation mapping should be decoupled:
 
 - draw a comfortable oversized marker;
 - map click/drag coordinates to the exact world date underneath;
@@ -377,13 +291,13 @@ the navigation mapping should be decoupled:
 
 This gives "symbolic marker, exact navigation."
 
-## Zoom
+## Zoom (scaling)
 
 Zoom is a camera feature, not a layout feature.
 
 Cards, stems, lanes, and dots keep their world-space relationships. Zoom maps the
-world into the viewport through a bounded camera transform. Continuous zoom
-should not repack.
+world into the viewport through a bounded camera transform. Continuous zoom should
+not repack.
 
 Desired behavior:
 
@@ -393,67 +307,14 @@ Desired behavior:
 - zoom anchored under cursor or pinch center;
 - minimap and move-to stay coherent with camera scale.
 
-Zoom can become the responsive strategy for the timeline: one world layout,
-camera scale instead of many resolution-specific CSS variants.
+Zoom can become the responsive strategy for the timeline: one world layout, camera
+scale instead of many resolution-specific CSS variants. The culling reconcile is
+already transform-aware (it ignores `panX`), so it is zoom-safe by construction —
+which is what keeps zoom an open scaling lever rather than a re-architecture. The
+full scope — optical scale, the `z`-aware conversion spine, the counter-scale for
+infinitely-thin struts, and the fit-to-height bounds — is in [zoom.md](zoom.md).
 
-## Detail Resolver
-
-Zoom, pan speed, and warp speed should feed the same detail resolver:
-
-```text
-camera state + object bounds + focus state -> detail band + live representation
-```
-
-Detail bands might be:
-
-- full interactive card;
-- full visual card but not focusable;
-- flat pooled shell;
-- no live object.
-
-Start with the simplest resolver: viewport/overscan culling and pooled full
-cards. Add lower detail bands only if measurement shows culling + pooling is not
-enough.
-
-The resolver reads committed bounds. It does not repack during pan, zoom, or
-warp. Repacking belongs to explicit commits and domain recompute, then the
-resolver reconciles the new visible slice.
-
-The resolver is the perceptual budget in code: given camera state, attention
-state, and object bounds, decide what fidelity the renderer owes now.
-
-## Imposters
-
-Imposters are conditional, not the spine.
-
-The likely cheap version is a flat pooled DOM shell by card type, stretched to
-the measured bounds. It should preserve only what matters at speed:
-
-- shape;
-- lane;
-- rough size;
-- family/banner colour;
-- important favourite/commitment/value cues if needed.
-
-It should drop:
-
-- glows;
-- filters;
-- shadows;
-- text;
-- reward strips;
-- buttons;
-- chip detail.
-
-Bitmap/raster imposters are out of initial scope. They risk GPU raster cost,
-texture upload, VRAM pressure, compositing pressure, CORS/canvas tainting, and
-cache memory. Bring them back only if measurement proves flat pooled shells are
-not enough.
-
-Current stance: do not build bitmap imposters. Delete that branch from initial
-scope unless a trace later proves the simpler spine cannot handle the load.
-
-## Compositor Constraint
+## Compositor Constraint (scaling)
 
 A single clean promoted layer for the whole timeline is not a safe assumption:
 browsers and GPUs have texture/layer size ceilings that vary by engine and
@@ -461,53 +322,49 @@ hardware.
 
 Virtualization is therefore not only a DOM-count strategy. It also keeps the live
 composited surface close to viewport-sized instead of asking the browser to deal
-with a huge transformed world.
+with a huge transformed world — which is what makes the renderer robust as the bake
+grows and as zoom stretches the world axis.
 
-## First Milestone
+## Outcome
 
-Build the measurement harness and answer the gating question.
+The gate is resolved. Culling alone met the budget.
 
-Required output:
+Post-cull baseline (F3, 25 sweeps, 5,892 frames): camera-path churn p99 / max =
+16 / 29 nodes/frame, mean ~5; framerate ~144 locked. The pre-cull warp sawtooth
+(~79 fps average) is gone — that cost was pure paint/composite of ~618 live cards
+transformed at warp speed, and with the live set bounded to the viewport window it
+is removed. Full numbers in [appendix.md](appendix.md).
 
-- offscreen ratio at the captured viewport size;
-- known scene budget;
-- live renderer budget;
-- interactive DOM budget;
-- DOM nodes by surface and card family;
-- visible/near-visible/offscreen card counts;
-- pack cost;
-- initial render cost;
-- pan cost;
-- short and long `warpTo` cost;
-- minimap seek cost;
-- node churn and GC/allocation pressure.
+Per the checkpoint strategy, this is the success case where the spine stops early.
+The conditional follow-ups do **not** open on this evidence:
 
-Only after that choose the first intervention.
+- shell **pooling** is not built — retained-element culling holds the framerate
+  with trivial churn, and skipping it keeps the recycler-flash failure mode off the
+  table entirely;
+- **warp endpoint-materialization** is not built — warp transit churn is trivial,
+  so there is no fast middle to stop materializing;
+- the **detail resolver**, **imposters**, **LOD**, **canvas**, and **WebGL** remain
+  closed.
 
-Expected first intervention if the offscreen ratio is high:
-
-1. scene model;
-2. packed bounds;
-3. spatial culling;
-4. shell pooling.
-
-LOD, imposters, canvas, and bitmap caching remain conditional follow-ups.
+These reopen only if a later trace shows the live window's paint or the cull
+turnover regressing past budget — the realistic triggers are **scaling** ones:
+zoom stretching the world, a much larger bake, or a slower device. The designs for
+those moves are preserved in [considered.md](considered.md), ready but unbuilt.
 
 ## Checkpoint Strategy
 
-The intervention list above is a sequence of checkpoints, not a fixed build plan.
-After each step the loop is:
+The intervention list was a sequence of checkpoints, not a fixed build plan. After
+each step the loop is:
 
 > improve -> measure -> decide.
 
-Re-run the harness after each intervention and ask whether the numbers already
-clear the goal. It is a likely and acceptable outcome that culling alone — or
-culling plus pooling — meets the budget, and the remaining steps are never built.
-Stopping early is success, not an abandoned plan. The conditional follow-ups (LOD,
-imposters, canvas, WebGL, bitmap) only open if a trace at a checkpoint proves the
-spine so far cannot carry the load.
+Re-run the harness after each intervention and ask whether the numbers already clear
+the goal. It is a likely and acceptable outcome that culling alone meets the budget
+and the remaining steps are never built. Stopping early is success, not an abandoned
+plan — and that is exactly what happened here. The conditional follow-ups only open
+if a trace at a checkpoint proves the spine so far cannot carry the load.
 
 This is also why the expensive commit/repack path needs no special new contract:
 repacking already happens behind an attention-owning surface on a discrete commit
 (correct-on-reveal). The cost lands on the existing expensive path, so the
-checkpoint loop only has to defend the continuous camera path.
+checkpoint loop only has to defend the continuous camera path — which culling did.

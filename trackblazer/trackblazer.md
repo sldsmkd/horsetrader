@@ -1,6 +1,6 @@
 # Trackblazer
 
-Status: scoping / R&D.
+Status: **delivered — spatial culling resolved the gate.**
 
 Trackblazer is the renderer-performance project for the Horsetrader site. The
 timeline is already interactive and smooth in the obvious FPS sense, but the DOM
@@ -50,21 +50,25 @@ That gives three paths:
 Renderer cleverness should concentrate on the continuous camera path: pan, zoom,
 and `warpTo`.
 
-## Intended Shape
+## What Shipped
 
-The likely architectural spine is:
+The architectural spine bottomed out earlier than the worst case planned for:
 
 1. measurement harness;
 2. renderer-facing scene model;
 3. packed world-space bounds;
-4. spatial culling;
-5. shell pooling;
-6. camera/detail resolver.
+4. spatial culling — **resolved the gate here.**
 
-LOD, imposters, canvas, WebGL, and bitmap tricks are conditional follow-ups, not
-the initial plan.
+Shell pooling, the camera/detail resolver, LOD, imposters, canvas, WebGL, and
+bitmap tricks were all conditional follow-ups. Retained-element culling alone held
+a 144 fps lock through full-extent warp with trivial churn, so none of them needed
+building. Per the checkpoint strategy that is the success case: the spine stops
+early. The unbuilt designs are preserved in [considered.md](considered.md).
 
 ## Documents
 
-- [design.md](design.md) — current design direction and architecture.
+- [design.md](design.md) — the design as built, plus the scaling future.
+- [zoom.md](zoom.md) — optical-scale zoom scope (the open scaling lever).
+- [considered.md](considered.md) — interventions designed but never needed
+  (pooling, imposters, detail resolver, warp-transit handling, LOD).
 - [appendix.md](appendix.md) — captured measurements, tables, and raw findings.
