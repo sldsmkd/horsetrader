@@ -2,7 +2,7 @@
 # bake folds onto each atom's `aliases` so the front-end typeahead matches them.
 #
 # Each entry lives in its own `alias-<body>` namespace and points at a `target`
-# stable key (the same indirection anchored events use with `anchor:`):
+# stable key:
 #
 #   alias-<body>:
 #     target: <stable-key>      # char- / trainee- / support-

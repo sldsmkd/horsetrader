@@ -24,8 +24,8 @@ test("large magnitudes keep grouping and sign semantics", () => {
 });
 
 test("date labels are stable UTC day labels", () => {
-  assert.equal(formatDate("2026-06-10"), "Jun 10, 26");
-  assert.equal(formatDate("2024-02-29"), "Feb 29, 24");
+  assert.equal(formatDate("2026-06-10"), "Jun 10, 2026");
+  assert.equal(formatDate("2024-02-29"), "Feb 29, 2024");
 });
 
 test("reward lines are labeled and ordered for the timeline card chin", () => {

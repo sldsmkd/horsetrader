@@ -34,16 +34,10 @@ Notes that are load-bearing, not cosmetic:
   model. The slug after it is human-readable garnish (banner pickups still match
   characters on the bare slug, so the banner index strips `char-` before
   matching — see [`banner.py`](../../horsetrader/models/events/banner.py)).
-- **`anchor-<kind>-` is parsed.** `kind` (new-year / golden-week / anniversary)
-  is read back off the prefix and routes the predictor chain — see
-  [prediction.md](prediction.md). Don't reshape anchor keys without keeping
-  `<kind>` recoverable.
-- **Anchored events are relation-led.** The `before-` / `after-` prefix *is* the
-  namespace and is also the `relation` field. `during-` is **YAML authoring
-  sugar** — at load it (and any `anchor:` chain reference to it) normalises to
-  `after-`; two keys that collapse to the same key raise. So the stable key only
-  ever shows `before-` / `after-` (see
-  [`extractors/static/anchored.py`](../../horsetrader/extractors/static/anchored.py)).
+- **Calendar beats are first-class event types, not synthetic anchors.**
+  Holidays and anniversaries now bake as `holiday` / `anniversary` records with
+  their own stable keys. Older `anchor-*` and `before-` / `after-` anchored-event
+  rows were removed with the static-anchor backend.
 - **Curated YAML keys are these stable keys byte-for-byte** (the one exception
   being the `during-`→`after-` sugar above). An `extractors/static/*.py`
   `_KEY_PATTERN` selects each corpus's rows by this shape — change a key format
@@ -132,11 +126,11 @@ outside the loaded set.
 
 | File | Status | Purpose |
 | --- | --- | --- |
-| [`config/yaml/holidays.yaml`](../../config/yaml/holidays.yaml) | **Consolidated.** | Holiday anchors: `anchor-new-year-YYYY` and `anchor-golden-week-YYYY` entries, an optional region-agnostic `rewards:` (curated login bonus) and `jp:` / `en:` blocks each holding a FQ ISO `start:`. Read by `extractors/static/holidays.py`; loaded with anniversaries into the unified `Anchors` collection. Also hosts the New Year anchored events inline (`before-`/`during-`/`after-`). Golden Week's themed name now rides the anchored spans, not the anchor (the `name:` lines are kept commented as a hand-off). |
+| [`config/yaml/holidays.yaml`](../../config/yaml/holidays.yaml) | **Consolidated.** | Holiday records keyed `holiday-new-year-YYYY`, `holiday-new-year-YYYY-countdown`, and `holiday-golden-week-YYYY`, with optional region-agnostic `rewards:` plus `jp:` / `en:` blocks holding FQ ISO windows. Read by `extractors/static/holidays.py` into `Holiday` events. New Year countdowns are sibling holiday records whose EN windows are derived from the main New Year launch when needed. |
 | [`config/yaml/stories.yaml`](../../config/yaml/stories.yaml) | **Consolidated.** | EN overlay for the Gametora-scraped JP story corpus. Each entry has an `en:` block with FQ ISO `start:` / `end:` (22:00 UTC) and an optional `name:` overriding Gametora's scraped EN title (fansub default; replaced with the Cygames-official title when shipped). YAML keys are zero-padded stable keys (`story-NNN`). Joined by `Static.story_period()` + `Static.story_name_override()`. |
 | [`config/yaml/banners.yaml`](../../config/yaml/banners.yaml) | **Consolidated.** | EN confirmed banner periods, keyed by `<id>-banner`, each under an `en:` block with FQ ISO `start` / `end` (22:00 UTC). Read by `extractors/static/banners.py` (via the merged store); stamps a UTC `Period` onto the matching `Banner` at extraction time. A banner absent here stays predicted. |
 | [`config/yaml/scenarios.yaml`](../../config/yaml/scenarios.yaml) | **Consolidated.** | Full JP scenarios corpus + EN overlay, keyed by zero-padded stable key (`scenario-NN`, release order). Each entry has a `jp:` block (`name`, JP `start` 12:00 JST), an `en:` block (`name` = EN title; `start` 22:00 UTC, present only once it's on Global), and a region-agnostic `art:` URL. Read by `extractors/static/scenarios.py`. Used directly because Gametora's scenarios page is JS-rendered, brittle, and not worth scraping. |
-| [`config/yaml/anniversaries.yaml`](../../config/yaml/anniversaries.yaml) | **Consolidated.** | JP anniversary corpus + EN overlay, keyed `anniversary-N_M` (e.g. `anniversary-1_0`, `anniversary-0_5`). Dates-only ground truth (verified vs wikiru + umamusume.com): each entry has a `jp:` block (`start` 12:00 JST) and an optional `en:` block (`start` 22:00 UTC, present only once on Global). Read by `extractors/static/anniversaries.py` into the `Anniversaries` collection — a scenario-shaped point launch, no longer an `Anchor`. The reward / celebration layer is parked separately (`config/pending/anniversaries.yaml`). |
+| [`config/yaml/anniversaries.yaml`](../../config/yaml/anniversaries.yaml) | **Consolidated.** | JP anniversary corpus + EN overlay, keyed `anniversary-N_M` (e.g. `anniversary-1_0`, `anniversary-0_5`). Dates-only ground truth (verified vs wikiru + umamusume.com): each entry has a `jp:` block (`start` 12:00 JST) and an optional `en:` block (`start` 22:00 UTC, present only once on Global). Read by `extractors/static/anniversaries.py` into the `Anniversaries` collection — a scenario-shaped point launch, no longer an `Anchor`. Anniversary reward streams are co-located under their mission keys in the same file. |
 | [`config/yaml/showtimes.yaml`](../../config/yaml/showtimes.yaml) | **Consolidated.** | EN overlay + region-agnostic `rewards` for the finite Fuji Kiseki Showtime series, keyed `showtime-NNN`. JP runs are scraped from Wikiru; the `en:` block carries the UTC window + EN `name`. Both occurrences are confirmed (the series was never repeated), so there is **no predictor**. Read by `extractors/static/showtimes.py`. |
 | [`config/pending/_en.schedule.yaml`](../../config/pending/_en.schedule.yaml) | **Reference only — out of scope.** | Mainline EN event + CM dates from the Cygames monthly announcements (image archive in [`references/`](../references/)). Lives in `config/pending/`, which is what keeps it out of scope — reference documentation, not pipeline input, not consumed by any loader. |
 

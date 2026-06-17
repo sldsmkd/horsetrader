@@ -11,7 +11,7 @@
   border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
   border-radius: 0.45rem;
   background:
-    linear-gradient(115deg, color-mix(in srgb, #5fcf00 12%, transparent), transparent 42%),
+    linear-gradient(115deg, color-mix(in srgb, var(--ht-colour-interactive) 12%, transparent), transparent 42%),
     color-mix(in srgb, Canvas 94%, currentColor 3%);
 }
 
@@ -31,7 +31,7 @@
   content: "";
   position: absolute;
   inset: 0;
-  border-right: 0.28rem solid #5fcf00;
+  border-right: 0.28rem solid var(--ht-colour-interactive);
   pointer-events: none;
 }
 
@@ -65,7 +65,7 @@
 }
 
 .identity-surface__portrait:focus-visible {
-  outline: 2px solid color-mix(in srgb, #5fcf00 70%, currentColor 18%);
+  outline: 2px solid color-mix(in srgb, var(--ht-colour-interactive) 70%, currentColor 18%);
   outline-offset: -0.35rem;
 }
 
@@ -115,8 +115,8 @@
 }
 
 .identity-surface__name-input:focus {
-  background: color-mix(in srgb, Canvas 72%, #5fcf00 10%);
-  outline: 2px solid color-mix(in srgb, #5fcf00 70%, currentColor 18%);
+  background: color-mix(in srgb, Canvas 72%, var(--ht-colour-interactive) 10%);
+  outline: 2px solid color-mix(in srgb, var(--ht-colour-interactive) 70%, currentColor 18%);
   outline-offset: 0.16rem;
 }
 
@@ -225,8 +225,8 @@
 }
 
 .identity-surface__id-input:focus {
-  background: color-mix(in srgb, Canvas 72%, #5fcf00 10%);
-  outline: 2px solid color-mix(in srgb, #5fcf00 70%, currentColor 18%);
+  background: color-mix(in srgb, Canvas 72%, var(--ht-colour-interactive) 10%);
+  outline: 2px solid color-mix(in srgb, var(--ht-colour-interactive) 70%, currentColor 18%);
   outline-offset: 0.16rem;
 }
 
@@ -253,7 +253,7 @@
 
   .identity-surface__portrait::after {
     border-right: 0;
-    border-bottom: 0.28rem solid #5fcf00;
+    border-bottom: 0.28rem solid var(--ht-colour-interactive);
   }
 
 }

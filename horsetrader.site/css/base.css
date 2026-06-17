@@ -8,16 +8,16 @@
 }
 
 html {
-  background: #111;
-  color: #eee;
+  background: var(--ht-colour-surface-page);
+  color: var(--ht-colour-text-primary);
 }
 
 body {
   margin: 0;
   padding: 0;
   height: 100vh;
-  background: #111;
-  color: #eee;
+  background: var(--ht-colour-surface-page);
+  color: var(--ht-colour-text-primary);
   overflow: hidden; /* the canvas owns scrolling (pan) — the page never scrolls */
   line-height: 1.5;
 }

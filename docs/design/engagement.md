@@ -18,11 +18,13 @@ five behavioral axes:
 - **participate** — showing up for the game: stories, holidays, login rhythms,
   and the front-loaded rewards that say "I was there."
 - **engage** — choosing to do the weird little events that come along and
-  need some effort: schedule cards, mission sets, and mode-specific chores.
+  need some effort. This splits into structured limited modes with decent rewards
+  and plain residual missions that are low-value chores.
 - **compete** — "I am here to beat other players and prove I am the
   strongest": ranked PvP, tournaments, and roster-vs-roster outcomes.
 - **challenge** — "I will take the strongest content the game can throw at me
-  and beat it": PvE clear-level outcomes against power/strategy checks.
+  and beat it": harder structured PvE, like the EX version of engage modes,
+  gated by real power/strategy checks.
 - **off-axis modifiers** — paid/subscription and account/social state, which are
   economic modifiers but not playstyle.
 
@@ -50,20 +52,30 @@ engaged-effort, or challenge-clearing.
 
 ### engage
 
-Schedule-card grinds and mission sets: these are not difficulty/outcome
-selectors, but they are also not passive participation. The player chooses to
-engage with the odd little event assignment and put in some effort.
+Structured limited modes and residual mission chores: these are not
+difficulty/outcome selectors, but they are also not passive participation. The
+player chooses to engage with the odd little event assignment and put in some
+effort.
+
+Structured engage modes give decent rewards and are usually straightforward to
+clear if the player puts in the time:
 
 - `event.factor-studies`
 - `event.racing-carnival`
 - `event.showtime`
+
+Residual missions are the fall-through mission-card chores. They are not marketed
+beats, are usually buried in the event UI, and typically pay only a small amount
+such as 150 carats or one pull:
+
 - `event.missions`
 
 ### compete
 
-Team PvP and ranked competition. The emotional register is proving strength
-against other players; the economy outcome is driven by meta knowledge, team
-quality, roster breadth, and ranking/placement.
+Team PvP and ranked competition across three axes: Champions Meeting, League of
+Heroes, and Strongest Team. The emotional register is proving strength against
+other players; the economy outcome is driven by meta knowledge, team quality,
+roster breadth, and ranking/placement.
 
 - `play.champions-meeting`
 - `play.league-of-heroes`
@@ -71,9 +83,9 @@ quality, roster breadth, and ranking/placement.
 
 ### challenge
 
-PvE modes where the player is asking for the strongest content the game can
-throw at them and trying to beat it. The economy outcome depends on clearing a
-real power or strategy check, rather than merely showing up.
+Harder structured PvE modes: recognisably related to structured engage events,
+but tuned as the EX version. The economy outcome depends on clearing a real
+power or strategy check, rather than merely showing up or spending time.
 
 - `event.legend-races`
 - `event.skill-tests`
@@ -111,11 +123,14 @@ above imply three different control families:
 - Main playstyle presets should describe broad engagement with regular loops and
   beats: dailies, weekly login, Team Trials, shop participation, story-event
   depth, and anniversary/holiday/scenario missions.
-- Engagement streams should be separate binary participation gates: Factor
-  Studies, Racing Carnival, Showtime, and regular missions.
+- Engagement streams should be separate binary participation gates, but not one
+  visual class: Factor Studies, Racing Carnival, and Showtime are structured
+  limited modes; regular missions are residual low-value chores.
 - Competitive and challenge streams are outcome selectors. Champions Meeting,
-  League of Heroes, Strongest Team, and Masters Challenge should be labelled as
-  expected result/clear level, not as generic effort.
+  League of Heroes, and Strongest Team form the three-axis PvP family; Masters
+  Challenge should be labelled as an expected clear level, not generic effort.
+  Legend Races, Skill Tests, and Masters Challenge form the harder structured
+  PvE family.
 - Dolphin and social streams are account-state modifiers with existing UI homes:
   Daily Pack and Training Pass in Resources, club rank in the Trainer surface.
 
@@ -234,19 +249,20 @@ Open verdict:
 
 Behavior measured: whether the player chases regular mission-card events.
 
-Design read: engage participation gate, not a percentage. Anniversary and
-scenario missions fit the broader participation group; this tunable is only the
-regular `event.missions` stream. Sweetie, Casual, and Focused leave it off;
-Dedicated and Unhinged opt in.
+Design read: residual engage participation gate, not a percentage. Anniversary
+and scenario missions fit the broader participation group; this tunable is only
+the regular `event.missions` stream. These are low-value chore cards rather than
+marketed beats. Sweetie, Casual, and Focused leave it off; Dedicated and
+Unhinged opt in.
 
 #### Minor schedule-card events
 
 Behavior measured: whether the player engages with the minor limited event
 families: Factor Studies, Racing Carnival, and Showtime.
 
-Design read: engage gates. Sweetie and Casual leave these off; Focused,
-Dedicated, and Unhinged opt in. The values remain baked event rewards; the
-playstyle only decides whether those event families are present.
+Design read: structured engage gates. Sweetie and Casual leave these off;
+Focused, Dedicated, and Unhinged opt in. The values remain baked event rewards;
+the playstyle only decides whether those event families are present.
 
 Open verdict:
 

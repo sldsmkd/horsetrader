@@ -14,10 +14,9 @@ class StableKey(str):
       - entities — ``char-<slug>``, ``support-<id>-<slug>``, ``trainee-<id>-<slug>``
         (the game id stays in the body; `KEY_PREFIX` ClassVars own the prefix)
       - events — ``banner-<id>``, ``scenario-<nn>``, ``story-<nnn>``, ``cm-<nnn>``,
-        ``anchor-<kind>-<ver>`` (``<kind>`` is parsed back for prediction routing),
-        and anchored events ``before-``/``after-<body>`` (the relation prefix is
-        the namespace; ``during-`` is YAML authoring sugar normalised to
-        ``after-`` at load)
+        ``holiday-<kind>-<year>``, ``anniversary-<version>``, and dedicated
+        event-family prefixes such as ``showtime-``, ``legendrace-``, and
+        ``mission-``.
       - ``item-<id>``
       - config — ``reward-structure-<slug>`` (a standing reward structure) and
         ``reward-map-<slug>`` (a rank-graded reward, whose per-tier structures

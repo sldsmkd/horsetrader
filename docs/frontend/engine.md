@@ -219,7 +219,7 @@ reading `settledEvents()` are broadcast-free. Returns an unsubscribe.
 
 | id | kind | claims (types) / mints (prefixes) | `enabled(ctx)` | notes |
 |---|---|---|---|---|
-| `ground.events` | C | **complement** of all claimed types | always | catch-all for anchor/non-bankable records; pass-through + facet expansion; skips `pulls` (banner-scoped, never banked) |
+| `ground.events` | C | **complement** of all claimed types | always | catch-all for non-bankable records; pass-through + facet expansion; skips `pulls` (banner-scoped, never banked) |
 | `event.anniversary-missions` | C | `anniversarymission` | always | passive baked event-income, pass-through + facet expansion |
 | `event.factor-studies` | C | `factorstudies` | `play.factorStudies === "on"` | presence gate for minor-beat participation |
 | `event.holidays` | C | `holiday` | always | passive baked event-income, pass-through + facet expansion |

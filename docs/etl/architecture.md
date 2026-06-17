@@ -147,7 +147,7 @@ The shape of `academy.json` / `events.json` is defined once, by the
   the models can import without the `output → timeline → models` cycle.
 - **Events are a discriminated union on `type`.** `EventRecord` is a msgspec
   *tagged union* (`tag_field="type"`); each concrete record declares its tag
-  (`support`, `trainee`, `scenario`, `story`, `cm`, `anchor`, `anchoredevent`).
+  (`support`, `trainee`, `scenario`, `story`, `cm`, `holiday`, `anniversary`, …).
   The tag *is* the discriminator — there's no hand-computed `type` string. As
   before, `predicted` is an envelope field set from *which* `Period` matched,
   not a field on the model.
@@ -161,11 +161,9 @@ The shape of `academy.json` / `events.json` is defined once, by the
   that would violate the published schema is never written, and the site is
   never asked to build against bad data.
 
-Optional-vs-null is deliberate: a field that's legitimately absent (`rewards`,
-an anchored event's `name`) is **omitted** (msgspec `UNSET`), while a field
-that's always present but unknown (`cm.name`, `scenario.title`) is emitted as
-`null`. A missing anchored-event `name` additionally *warns* at load — it's a
-displayable event, so the absence is a curation nudge, not a failure.
+Optional-vs-null is deliberate: a field that's legitimately absent (`rewards`) is
+**omitted** (msgspec `UNSET`), while a field that's always present but unknown
+(`cm.name`, `scenario.title`) is emitted as `null`.
 
 ### Transport stays behind `UmaClient`
 

@@ -16,7 +16,7 @@ def load() -> dict[str, dict]:
 
     Region-agnostic: each entry carries a single ``shared`` ``rewards`` block in
     the baked-shape mapping (the model converts it to a `Rewards`, same as
-    anchored events / showtimes). These are the procedural-stream *numbers* the
+    showtimes). These are the procedural-stream *numbers* the
     client expands itself (it owns the cadence); they cross the wire in
     ``config.json``.
 

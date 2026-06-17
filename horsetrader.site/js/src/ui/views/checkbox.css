@@ -19,11 +19,11 @@
 }
 
 .checkbox:not(.checkbox--locked):hover {
-  background: color-mix(in srgb, #5fcf00 9%, Canvas 84%);
+  background: color-mix(in srgb, var(--ht-colour-interactive) 9%, Canvas 84%);
 }
 
 .checkbox:not(.checkbox--locked):focus-visible {
-  outline: 2px solid color-mix(in srgb, #5fcf00 70%, currentColor 18%);
+  outline: 2px solid color-mix(in srgb, var(--ht-colour-interactive) 70%, currentColor 18%);
   outline-offset: -0.15rem;
 }
 
@@ -38,8 +38,8 @@
 /* Checked + editable: the live accent green. */
 .checkbox--on .checkbox__box {
   position: relative;
-  border-color: color-mix(in srgb, #5fcf00 60%, currentColor 20%);
-  background: color-mix(in srgb, #5fcf00 30%, Canvas 60%);
+  border-color: color-mix(in srgb, var(--ht-colour-interactive) 60%, currentColor 20%);
+  background: color-mix(in srgb, var(--ht-colour-interactive) 30%, Canvas 60%);
 }
 
 /* Checked + locked: muted grey, so it reads as a fixed preset value. */

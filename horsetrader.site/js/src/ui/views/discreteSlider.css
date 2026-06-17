@@ -78,7 +78,7 @@
 
 .discrete-slider__range {
   width: 100%;
-  accent-color: #5fcf00;
+  accent-color: var(--ht-colour-interactive);
 }
 
 .discrete-slider__range:focus {
@@ -86,7 +86,7 @@
 }
 
 .discrete-slider__range:focus-visible {
-  outline: 1px solid color-mix(in srgb, #5fcf00 58%, currentColor 18%);
+  outline: 1px solid color-mix(in srgb, var(--ht-colour-interactive) 58%, currentColor 18%);
   outline-offset: 0.2rem;
 }
 

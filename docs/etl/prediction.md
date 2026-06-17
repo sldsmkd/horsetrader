@@ -56,10 +56,9 @@ confirmed for routing purposes.
 
 ### `AnniversaryPredictor`
 
-Predicts EN dates for anchors of kind `anniversary` (`Anchor` instances whose
-key is `anchor-anni-…`) with no confirmed UTC period.
+Predicts EN dates for `anniversary-*` records with no confirmed UTC period.
 
-1. Collect confirmed JP+UTC pairs from those anchors. If none exist, return 0.
+1. Collect confirmed JP+UTC pairs from anniversary records. If none exist, return 0.
 2. Build a **weekday signal** from those same confirmed pairs.
 3. Compute the global `Timeline.acceleration(JST, UTC)` slope. If it can't
    fit, return 0.
@@ -68,10 +67,9 @@ key is `anchor-anni-…`) with no confirmed UTC period.
 
 ### `HolidayPredictor`
 
-Covers anchors of kind `golden-week` and `new-year` — the two holiday
-flavours of the collapsed `Anchor` type. Anniversaries are anchors too but
-predict on their own cadence via `AnniversaryPredictor`; this predictor
-filters on `Anchor.kind`, not the runtime class.
+Covers the holiday flavours `golden-week` and `new-year`. Anniversaries predict
+on their own cadence via `AnniversaryPredictor`; this predictor filters on
+`Holiday.kind`.
 
 Weekday signal is merged across both flavours (any weekday with a confirmed
 EN drop counts as valid). For each unscheduled holiday, project its JP
@@ -139,12 +137,12 @@ problem, not Story's.
 
 ### `BannerPredictor`
 
-Pass 1 (anchor snap): if a JP banner co-released with an `Anchor` (any kind)
-or a `Scenario`, snap the banner's EN start to that event's EN date —
-confirmed or already predicted by an earlier predictor. Anchor types are
-tried in `_ANCHOR_TYPES` order (`Anchor`, then `Scenario`); the scenario
-anchor wins if both share a JP date. The banner's JP `span` carries over; the
-start is 22:00 UTC on the anchor's EN date.
+Pass 1 (launch snap): if a JP banner co-released with a `Holiday` or a
+`Scenario`, snap the banner's EN start to that event's EN date — confirmed or
+already predicted by an earlier predictor. Launch types are tried in
+`_ANCHOR_TYPES` order (`Holiday`, then `Scenario`); the scenario launch wins if
+both share a JP date. The banner's JP `span` carries over; the start is 22:00 UTC
+on the launch's EN date.
 
 Pass 2 (story tie-in): banners that don't share a JP date with an anchor
 event are often promotional banners for a story — e.g. Halloween costume
@@ -197,7 +195,7 @@ place no banner carrying a JP period is left unpredicted.
 
 ### `ChampionsMeetingPredictor`
 
-Runs after `BannerPredictor`, before `AnchorPredictor` / the fallthrough. CMs
+Runs after `BannerPredictor`, before the fallthrough. CMs
 need their own pass because their two sources disagree on span *by design*:
 Gametora records only competitive play, so the JP scrape is always exactly 6
 days, while the EN release is the full availability window (usually 10) that
@@ -217,8 +215,8 @@ the fallthrough.
 
 ### `FallthroughPredictor`
 
-Dead last in the chain — after every dedicated pass, including
-`AnchorPredictor`. Builds a [`DateMapper`](../../horsetrader/timeline/datemapper.py)
+Dead last in the chain — after every dedicated pass, including the holiday and
+anniversary predictors. Builds a [`DateMapper`](../../horsetrader/timeline/datemapper.py)
 from every event already carrying both a JP and a UTC period (confirmed or
 predicted upstream), then maps the JP day of anything *still* missing a UTC
 period through it and stamps `Period(predicted=True)` at 22:00 UTC.

@@ -49,7 +49,12 @@
   border-color: transparent;
   background:
     linear-gradient(Canvas, Canvas) padding-box,
-    linear-gradient(135deg, rgb(168, 85, 247), rgb(59, 130, 246), rgb(34, 197, 94)) border-box;
+    linear-gradient(
+      135deg,
+      var(--ht-colour-rarity-crystal-edge-a),
+      var(--ht-colour-rarity-crystal-edge-b),
+      var(--ht-colour-rarity-crystal-edge-c)
+    ) border-box;
 }
 .bookmark-card--trainee .bookmark-card__image--gold {
   color: var(--ht-colour-rarity-gold);

@@ -95,7 +95,7 @@ const DRAWERS: readonly DrawerDefinition[] = [
   },
   {
     title: "ENGAGE",
-    description: "Limited-event gates for the extra mission/card chores.",
+    description: "Structured event modes and residual mission chores.",
     entries: [
       // All four are binary opt-in gates — two rows of two.
       { checkboxes: ["factorStudies", "racingCarnival"] },
@@ -104,7 +104,7 @@ const DRAWERS: readonly DrawerDefinition[] = [
   },
   {
     title: "CHALLENGE",
-    description: "PvE clear gates and expected challenge level.",
+    description: "Harder structured PvE with real clear gates.",
     entries: [
       // Two binary clear gates share a row; Masters is the graded clear-level slider.
       { checkboxes: ["legendRaces", "skillTests"] },

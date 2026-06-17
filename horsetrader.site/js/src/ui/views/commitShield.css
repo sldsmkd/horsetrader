@@ -57,10 +57,10 @@
   border: 2px solid color-mix(in srgb, currentColor 30%, transparent);
 }
 .commit-shield__card--crystal .commit-shield__card-art {
-  border-color: color-mix(in srgb, mediumslateblue 70%, currentColor);
+  border-color: color-mix(in srgb, var(--ht-colour-rarity-crystal) 70%, currentColor);
 }
 .commit-shield__card--gold .commit-shield__card-art {
-  border-color: color-mix(in srgb, goldenrod 70%, currentColor);
+  border-color: color-mix(in srgb, var(--ht-colour-rarity-gold) 70%, currentColor);
 }
 .commit-shield__card-img {
   display: block;
@@ -84,12 +84,12 @@
   color: Canvas;
 }
 .commit-shield__rarity--crystal {
-  background: color-mix(in srgb, mediumslateblue 85%, black);
-  color: white;
+  background: color-mix(in srgb, var(--ht-colour-rarity-crystal) 85%, var(--ht-colour-shadow));
+  color: var(--ht-colour-text-on-accent);
 }
 .commit-shield__rarity--gold {
-  background: color-mix(in srgb, goldenrod 85%, black);
-  color: white;
+  background: color-mix(in srgb, var(--ht-colour-rarity-gold) 85%, var(--ht-colour-shadow));
+  color: var(--ht-colour-text-on-accent);
 }
 .commit-shield__attr {
   position: absolute;
@@ -242,7 +242,7 @@
 }
 /* Overcommitted: the reservation ran the balance negative — flag it red. */
 .commit-shield__impact-value--negative {
-  color: crimson;
+  color: var(--ht-colour-commit-unfundable);
 }
 .commit-shield__impact-label {
   font-size: 0.66rem;
@@ -276,10 +276,10 @@
   opacity: 0.6;
 }
 .commit-shield__save {
-  background: color-mix(in srgb, mediumslateblue 35%, transparent);
-  border-color: color-mix(in srgb, mediumslateblue 60%, currentColor);
+  background: color-mix(in srgb, var(--ht-colour-commit-action) 35%, transparent);
+  border-color: color-mix(in srgb, var(--ht-colour-commit-action) 60%, currentColor);
   font-weight: 600;
 }
 .commit-shield__save:hover {
-  background: color-mix(in srgb, mediumslateblue 50%, transparent);
+  background: color-mix(in srgb, var(--ht-colour-commit-action) 50%, transparent);
 }

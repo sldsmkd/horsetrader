@@ -31,47 +31,20 @@
   overflow: hidden;
 }
 
-/* Below-lane: a per-kind left-border accent — read the kind before the word.
-   This sets the default gray; the per-kind rules below override the colour, so
-   they must stay after it (equal specificity, source order decides). */
+/* Below-lane: a semantic left-border accent — read the event family before the
+   word. Participate hero economy cards (holidays, anniversaries, scenarios)
+   share the marketed high-value backbone colour. Participate story events remain
+   separate: similarly important, but their own cadence and content loop. Engage
+   splits between structured limited modes and low-value residual mission chores.
+   Challenge is the harder structured PvE family: adjacent to engage, but
+   genuinely power/skill gated. Compete is the three-axis PvP family. */
 .card--below .card__body {
+  --card-accent: var(--ht-colour-card-accent-default);
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
   width: 100%;
-  border-left: 3px solid var(--ht-colour-card-accent-default);
-}
-
-.card--cm .card__body {
-  border-left-color: var(--ht-colour-card-accent-cm);
-}
-
-.card--story .card__body {
-  border-left-color: var(--ht-colour-card-accent-story);
-}
-
-.card--scenario .card__body {
-  border-left-color: var(--ht-colour-card-accent-scenario);
-}
-
-.card--anchor .card__body {
-  border-left-color: var(--ht-colour-card-accent-anchor);
-}
-
-.card--anchoredevent .card__body {
-  border-left-color: var(--ht-colour-card-accent-anchoredevent);
-}
-
-.card--anniversary .card__body {
-  border-left-color: var(--ht-colour-card-accent-anniversary);
-}
-
-.card--anniversarymission .card__body {
-  border-left-color: var(--ht-colour-card-accent-anniversarymission);
-}
-
-.card--scenariomission .card__body {
-  border-left-color: var(--ht-colour-card-accent-scenario);
+  border-left: 3px solid var(--card-accent);
 }
 
 .card--bannered .card__body {
@@ -86,40 +59,42 @@
   inset: 0 auto 0 0;
   z-index: 1;
   width: 3px;
-  background: var(--ht-colour-card-accent-default);
+  background: var(--card-accent);
   pointer-events: none;
 }
 
-.card--cm .card__body::before {
-  background: var(--ht-colour-card-accent-cm);
+.card--cm .card__body,
+.card--leagueofheroes .card__body,
+.card--strongestteam .card__body {
+  --card-accent: var(--ht-colour-card-accent-compete-pvp);
 }
 
-.card--story .card__body::before {
-  background: var(--ht-colour-card-accent-story);
+.card--story .card__body {
+  --card-accent: var(--ht-colour-card-accent-participate-story);
 }
 
-.card--scenario .card__body::before {
-  background: var(--ht-colour-card-accent-scenario);
+.card--scenario .card__body,
+.card--holiday .card__body,
+.card--anniversary .card__body,
+.card--anniversarymission .card__body,
+.card--scenariomission .card__body {
+  --card-accent: var(--ht-colour-card-accent-participate-hero-economy);
 }
 
-.card--anchor .card__body::before {
-  background: var(--ht-colour-card-accent-anchor);
+.card--factorstudies .card__body,
+.card--racingcarnival .card__body,
+.card--showtime .card__body {
+  --card-accent: var(--ht-colour-card-accent-engage-structured);
 }
 
-.card--anchoredevent .card__body::before {
-  background: var(--ht-colour-card-accent-anchoredevent);
+.card--mission .card__body {
+  --card-accent: var(--ht-colour-card-accent-engage-residual);
 }
 
-.card--anniversary .card__body::before {
-  background: var(--ht-colour-card-accent-anniversary);
-}
-
-.card--anniversarymission .card__body::before {
-  background: var(--ht-colour-card-accent-anniversarymission);
-}
-
-.card--scenariomission .card__body::before {
-  background: var(--ht-colour-card-accent-scenario);
+.card--legendrace .card__body,
+.card--skilltest .card__body,
+.card--masterschallenge .card__body {
+  --card-accent: var(--ht-colour-card-accent-challenge-structured);
 }
 
 .card__media {
@@ -141,18 +116,18 @@
   top: 8%;
   left: 4%;
   z-index: 2;
-  color: white;
+  color: var(--ht-colour-text-on-accent);
   font-size: calc(var(--timeline-card-w) * 0.1);
   font-weight: 900;
   line-height: 1;
   pointer-events: none;
   text-shadow:
-    0 0 0.1em black,
-    0.035em 0.035em 0 black,
-    -0.035em 0.035em 0 black,
-    0.035em -0.035em 0 black,
-    -0.035em -0.035em 0 black;
-  -webkit-text-stroke: 0.045em color-mix(in srgb, black 85%, transparent);
+    0 0 0.1em var(--ht-colour-shadow),
+    0.035em 0.035em 0 var(--ht-colour-shadow),
+    -0.035em 0.035em 0 var(--ht-colour-shadow),
+    0.035em -0.035em 0 var(--ht-colour-shadow),
+    -0.035em -0.035em 0 var(--ht-colour-shadow);
+  -webkit-text-stroke: 0.045em color-mix(in srgb, var(--ht-colour-shadow) 85%, transparent);
 }
 
 .card__label {

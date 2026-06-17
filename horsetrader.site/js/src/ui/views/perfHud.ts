@@ -8,6 +8,21 @@ const GRAPH_W = 144;
 const GRAPH_H = 34;
 const SAMPLE_MS = 250;
 
+function cssVar(el: Element, name: string): string {
+  return getComputedStyle(el).getPropertyValue(name).trim();
+}
+
+function withAlpha(colour: string, alpha: number): string {
+  const hex = colour.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i)?.[1];
+  if (hex) {
+    const full = hex.length === 3 ? [...hex].map((c) => c + c).join("") : hex;
+    const value = Number.parseInt(full, 16);
+    return `rgba(${(value >> 16) & 255}, ${(value >> 8) & 255}, ${value & 255}, ${alpha})`;
+  }
+  const rgb = colour.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
+  return rgb ? `rgba(${rgb[1]}, ${rgb[2]}, ${rgb[3]}, ${alpha})` : colour || "transparent";
+}
+
 export interface PerfHudStats {
   cards: number;
   aboveCards: number;
@@ -84,8 +99,11 @@ export function perfHud({ stats, bake }: PerfHudOptions): PerfHud {
 
   const draw = () => {
     if (!ctx) return;
+    const gridColour = withAlpha(cssVar(el, "--ht-colour-text-on-accent"), 0.18);
+    const graphColour = withAlpha(cssVar(el, "--ht-colour-diagnostic-accent"), 0.92);
+
     ctx.clearRect(0, 0, GRAPH_W, GRAPH_H);
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.18)";
+    ctx.strokeStyle = gridColour;
     ctx.lineWidth = 1;
     for (let y = 0; y <= GRAPH_H; y += GRAPH_H / 3) {
       ctx.beginPath();
@@ -93,7 +111,7 @@ export function perfHud({ stats, bake }: PerfHudOptions): PerfHud {
       ctx.lineTo(GRAPH_W, y);
       ctx.stroke();
     }
-    ctx.strokeStyle = "rgba(124, 240, 196, 0.92)";
+    ctx.strokeStyle = graphColour;
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     samples.forEach((sample, i) => {

@@ -19,8 +19,13 @@
   color: var(--ht-colour-rarity-crystal);
   border-color: transparent;
   background:
-    linear-gradient(rgb(26, 16, 48), rgb(26, 16, 48)) padding-box,
-    linear-gradient(135deg, rgb(168, 85, 247), rgb(59, 130, 246), rgb(34, 197, 94)) border-box;
+    linear-gradient(var(--ht-colour-rarity-crystal-bg), var(--ht-colour-rarity-crystal-bg)) padding-box,
+    linear-gradient(
+      135deg,
+      var(--ht-colour-rarity-crystal-edge-a),
+      var(--ht-colour-rarity-crystal-edge-b),
+      var(--ht-colour-rarity-crystal-edge-c)
+    ) border-box;
 }
 
 /* Gold (SR / 2★) — gold border grammar. */
@@ -42,7 +47,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: color-mix(in srgb, currentColor 78%, white);
+  color: color-mix(in srgb, currentColor 78%, var(--ht-colour-text-on-accent));
 }
 
 .atom-chip__star {

@@ -18,7 +18,7 @@ def load() -> dict[str, dict]:
     The JP run comes from the wikiru scrape; this curated file carries the EN
     window (``en.start`` / ``en.end``, UTC), the EN display ``en.name``, and the
     region-agnostic ``rewards`` block (baked-shape mapping — the model converts
-    it, same as anchored events). The closed two-event series has both EN dates
+    it to `Rewards`). The closed two-event series has both EN dates
     confirmed, so neither is predicted.
 
     Curated data fails loud: a missing/ malformed ``en`` block (incl.

@@ -11,8 +11,8 @@
   justify-content: center;
   padding: 0;
   border: 0;
-  background: color-mix(in srgb, seagreen 80%, Canvas);
-  color: white;
+  background: color-mix(in srgb, var(--ht-colour-commit-positive) 80%, Canvas);
+  color: var(--ht-colour-text-on-accent);
   font: inherit;
   font-weight: 800;
   line-height: 1;
@@ -25,12 +25,12 @@
   outline: 0;
 }
 .commitment-badge--waste {
-  background: color-mix(in srgb, rebeccapurple 78%, Canvas);
+  background: color-mix(in srgb, var(--ht-colour-commit-waste) 78%, Canvas);
 }
 .commitment-badge--empty {
   background: color-mix(in srgb, currentColor 12%, Canvas);
   color: color-mix(in srgb, currentColor 72%, Canvas);
 }
 .commitment-badge--unfundable {
-  background: color-mix(in srgb, crimson 78%, Canvas);
+  background: color-mix(in srgb, var(--ht-colour-commit-unfundable) 78%, Canvas);
 }

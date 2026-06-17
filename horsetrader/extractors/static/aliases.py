@@ -8,7 +8,7 @@ from . import store
 logger = Logger.get(__name__)
 
 # Alias entries live in their own `alias-` namespace and point at the atom they
-# describe via `target` — the same indirection anchored events use with `anchor:`.
+# describe via `target`.
 _KEY_PATTERN = re.compile(r"^alias-")
 
 # A target is an atom (or a character whose atoms inherit the phrases), or a

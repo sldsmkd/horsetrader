@@ -141,9 +141,10 @@ Two rules fall out, both load-bearing:
   predictions) *and* **snapshot staleness** (the today-dot and carats total trend
   white→grey over a fresh→≥7-days range). The mechanism is deliberately simple (a
   linear range, not clever) and that's correct.
-- **Per-type accent = kind.** Below-lane cards carry a left-border colour per type
-  (CM / mission / legend race / special / story) so you read *what kind* before
-  you read a word.
+- **Semantic accent = event family.** Below-lane cards carry a left-border colour
+  by event family (participate hero economy / participate story / structured
+  engage / residual mission / structured challenge / compete PvP) so you
+  read *what kind of thing* before you read a word.
 - **Borrowed grammar = rarity / attribute.** Above-lane banner-content pills carry
   the *game's own* rarity and attribute colours (see
   [ui-surfaces.md](ui-surfaces.md#the-banner-card-above-lane-contents)). This is

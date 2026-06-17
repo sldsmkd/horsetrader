@@ -22,16 +22,16 @@
 
 .playstyle-preset:hover,
 .playstyle-preset--selected {
-  border-color: color-mix(in srgb, #5fcf00 62%, currentColor 22%);
+  border-color: color-mix(in srgb, var(--ht-colour-interactive) 62%, currentColor 22%);
 }
 
 .playstyle-preset--selected {
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, #5fcf00 74%, currentColor 18%);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ht-colour-interactive) 74%, currentColor 18%);
 }
 
 .playstyle-preset--active {
-  background: color-mix(in srgb, Canvas 66%, #5fcf00 14%);
-  border-color: color-mix(in srgb, #5fcf00 54%, currentColor 24%);
+  background: color-mix(in srgb, Canvas 66%, var(--ht-colour-interactive) 14%);
+  border-color: color-mix(in srgb, var(--ht-colour-interactive) 54%, currentColor 24%);
 }
 
 .playstyle-preset--locked {

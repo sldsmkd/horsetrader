@@ -27,7 +27,7 @@
 }
 
 .club-selector__name:focus {
-  outline: 2px solid color-mix(in srgb, #5fcf00 70%, currentColor 18%);
+  outline: 2px solid color-mix(in srgb, var(--ht-colour-interactive) 70%, currentColor 18%);
   outline-offset: 0.15rem;
 }
 
@@ -56,8 +56,8 @@
 .club-selector__option:hover,
 .club-selector__option:focus-visible,
 .club-selector__option--selected {
-  border-color: color-mix(in srgb, #5fcf00 58%, currentColor 24%);
-  background: color-mix(in srgb, Canvas 68%, #5fcf00 13%);
+  border-color: color-mix(in srgb, var(--ht-colour-interactive) 58%, currentColor 24%);
+  background: color-mix(in srgb, Canvas 68%, var(--ht-colour-interactive) 13%);
   outline: 0;
 }
 
@@ -81,9 +81,9 @@
 .club-selector__leave {
   margin-right: auto;
   padding: 0.55rem 0.9rem;
-  border: 1px solid color-mix(in srgb, #ff5670 50%, currentColor 22%);
+  border: 1px solid color-mix(in srgb, var(--ht-colour-danger) 50%, currentColor 22%);
   border-radius: 0.4rem;
-  background: color-mix(in srgb, Canvas 78%, #ff5670 10%);
+  background: color-mix(in srgb, Canvas 78%, var(--ht-colour-danger) 10%);
   color: inherit;
   font: inherit;
   font-weight: 700;
@@ -92,17 +92,17 @@
 
 .club-selector__leave:hover,
 .club-selector__leave:focus-visible {
-  border-color: color-mix(in srgb, #ff5670 70%, currentColor 18%);
-  background: color-mix(in srgb, Canvas 68%, #ff5670 16%);
+  border-color: color-mix(in srgb, var(--ht-colour-danger) 70%, currentColor 18%);
+  background: color-mix(in srgb, Canvas 68%, var(--ht-colour-danger) 16%);
   outline: 0;
 }
 
 .club-selector__ok {
   min-width: 5.5rem;
   padding: 0.55rem 0.9rem;
-  border: 1px solid color-mix(in srgb, #5fcf00 58%, currentColor 24%);
+  border: 1px solid color-mix(in srgb, var(--ht-colour-interactive) 58%, currentColor 24%);
   border-radius: 0.4rem;
-  background: color-mix(in srgb, Canvas 66%, #5fcf00 16%);
+  background: color-mix(in srgb, Canvas 66%, var(--ht-colour-interactive) 16%);
   color: inherit;
   font: inherit;
   font-weight: 800;

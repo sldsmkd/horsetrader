@@ -192,7 +192,7 @@
      would make this ring a near-invisible white line). Matches the card border. */
   box-shadow:
     0 0 0 1px color-mix(in srgb, currentColor 35%, Canvas),
-    0 1px 4px color-mix(in srgb, black 45%, transparent);
+    0 1px 4px color-mix(in srgb, var(--ht-colour-shadow) 45%, transparent);
 }
 
 .banner__commit-badge .commitment-badge {
@@ -209,7 +209,7 @@
 .banner--hot .banner__commit-badge {
   box-shadow:
     0 0 0 1px color-mix(in srgb, currentColor 35%, Canvas),
-    0 1px 4px color-mix(in srgb, black 45%, transparent),
+    0 1px 4px color-mix(in srgb, var(--ht-colour-shadow) 45%, transparent),
     0 0 var(--banner-hot-glow-sm) color-mix(in srgb, var(--banner-flash-colour) var(--banner-hot-glow), transparent),
     0 0 var(--banner-hot-glow-lg) color-mix(in srgb, var(--banner-flash-colour) var(--banner-hot-wash), transparent);
 }

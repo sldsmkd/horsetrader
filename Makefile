@@ -24,7 +24,7 @@ PYTHON ?= venv/bin/python
 PYTHON_REPORT ?= python
 ANNIVERSARY_FLAGS ?=
 
-.PHONY: all seed bake types build dev serve deploy report-anniversary-economy report-anniversary-plot report-anniversary-equivalent-economy report-anniversary-equivalent-plot report-anniversary-equivalent report-anniversary reports clean
+.PHONY: all seed bake types build dev serve deploy deploy-nobake report-anniversary-economy report-anniversary-plot report-anniversary-equivalent-economy report-anniversary-equivalent-plot report-anniversary-equivalent report-anniversary reports clean
 
 # Full pipeline, sequenced (recursive $(MAKE) keeps order even under `make -j`).
 all:
@@ -60,6 +60,13 @@ dev serve:
 
 # Publish the assembled static/ root to Cloudflare Pages.
 deploy: all
+	npm --prefix $(SITE) run deploy
+
+# Publish without re-baking: re-seed/type/build over the existing static/json/ +
+# static/img/ and ship. For when the bake's data sources are down (e.g. umapyoi)
+# and you only want to push site (js/css/html) changes. Requires a prior full
+# `make` to have populated the baked data — don't `make clean` before this.
+deploy-nobake: seed types build
 	npm --prefix $(SITE) run deploy
 
 # Local analysis reports. Outputs are intentionally gitignored.

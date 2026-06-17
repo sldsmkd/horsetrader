@@ -1,27 +1,53 @@
 /* Shared colour tokens. Components should reference the semantic token, not the
    pigment, so one place owns the palette when the visual language evolves. */
 :root {
+  /* App chrome and shared UI states. These are deliberately broad: controls,
+     selected cards, focus rings, and editable fields should all speak the same
+     interaction language. Interactive is not generic success/okay; it marks
+     selectable, active, editable, or primary affordances. Danger is for destructive
+     or risky actions, not neutral cancel/dismiss controls. */
+  --ht-colour-surface-page: #111;
+  --ht-colour-text-primary: #eee;
+  --ht-colour-text-on-accent: #fff;
+  --ht-colour-shadow: #000;
+  --ht-colour-interactive: #5fcf00;
+  --ht-colour-danger: #ff5670;
+
   /* Academy entity colours — reused anywhere trainee/support identity is the
      message, not just on cards. */
   --ht-colour-trainee: #27ae60;
   --ht-colour-support: #2980b9;
 
-  /* Banner chip rarity colours. Silver is kept for the grammar even though low
-     tier junk is normally filtered before it reaches the UI. */
-  --ht-colour-rarity-crystal: #00c2a8;
-  --ht-colour-rarity-gold: #d1a900;
-  --ht-colour-rarity-silver: #9aa3ad;
+  /* Rarity colours. These follow the random-support frame assets: SSR is a
+     cyan/blue crystal frame with a violet flash, SR is saturated yellow-gold,
+     and R is a cool blue-silver rather than neutral grey. Silver is kept even
+     though low tier junk is normally filtered before it reaches the UI. */
+  --ht-colour-rarity-crystal: #55e6ff;
+  --ht-colour-rarity-gold: #f0c51f;
+  --ht-colour-rarity-silver: #9eb8d6;
+  --ht-colour-rarity-crystal-bg: #071b2d;
+  --ht-colour-rarity-crystal-edge-a: var(--ht-colour-rarity-crystal);
+  --ht-colour-rarity-crystal-edge-b: #2c8dff;
+  --ht-colour-rarity-crystal-edge-c: #c86cff;
 
-  /* Timeline card accents. These are intentionally semantic even where two
-     meanings share the same pigment today. */
+  /* Commitment state colours: a positive plan, waste past the useful target,
+     and commitments that cannot be funded from projected resources. */
+  --ht-colour-commit-positive: seagreen;
+  --ht-colour-commit-waste: rebeccapurple;
+  --ht-colour-commit-unfundable: crimson;
+  --ht-colour-commit-action: mediumslateblue;
+
+  /* Timeline card accents. Participate hero economy is the marketed, high-value
+     backbone: holidays, anniversaries, and scenarios. Participate story events
+     are also major engagement drivers, but keep their own colour because they
+     are their own cadence and content loop. */
   --ht-colour-card-accent-default: gray;
-  --ht-colour-card-accent-cm: #c0392b;
-  --ht-colour-card-accent-story: #b6b929;
-  --ht-colour-card-accent-scenario: #27ae60;
-  --ht-colour-card-accent-anchor: #8e44ad;
-  --ht-colour-card-accent-anchoredevent: #d35400;
-  --ht-colour-card-accent-anniversary: #d4af37;
-  --ht-colour-card-accent-anniversarymission: #c9a227;
+  --ht-colour-card-accent-participate-hero-economy: #d4af37;
+  --ht-colour-card-accent-participate-story: #b6b929;
+  --ht-colour-card-accent-engage-structured: #00a38f;
+  --ht-colour-card-accent-engage-residual: #6f7782;
+  --ht-colour-card-accent-challenge-structured: #8e44ad;
+  --ht-colour-card-accent-compete-pvp: #c0392b;
 
   /* Minimap state colours. These carry plan semantics and are likely candidates
      for future accessibility themes. */
@@ -29,4 +55,9 @@
   --ht-colour-minimap-negative: #e74c3c;
   --ht-colour-minimap-line: #fff;
   --ht-colour-minimap-today: #fff;
+
+  /* Developer diagnostics. Kept separate from interactive green so perf chrome
+     can stay low-risk and legible without becoming the app's action colour. */
+  --ht-colour-diagnostic-accent: #7cf0c4;
+  --ht-colour-diagnostic-text: #bfffe6;
 }

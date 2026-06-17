@@ -19,9 +19,9 @@
   place-items: center;
   width: 3.25rem;
   aspect-ratio: 1;
-  border: 1px solid color-mix(in srgb, #5fcf00 42%, currentColor 18%);
+  border: 1px solid color-mix(in srgb, var(--ht-colour-interactive) 42%, currentColor 18%);
   border-radius: 0.45rem;
-  background: color-mix(in srgb, Canvas 76%, #5fcf00 10%);
+  background: color-mix(in srgb, Canvas 76%, var(--ht-colour-interactive) 10%);
 }
 
 .playstyle-surface__icon img {
@@ -112,11 +112,11 @@
 .playstyle-surface__drawer-toggle:hover,
 .playstyle-surface__drawer-toggle:focus-visible,
 .playstyle-surface__drawer-toggle--open {
-  background: color-mix(in srgb, #5fcf00 9%, Canvas 84%);
+  background: color-mix(in srgb, var(--ht-colour-interactive) 9%, Canvas 84%);
 }
 
 .playstyle-surface__drawer-toggle:focus-visible {
-  outline: 2px solid color-mix(in srgb, #5fcf00 70%, currentColor 18%);
+  outline: 2px solid color-mix(in srgb, var(--ht-colour-interactive) 70%, currentColor 18%);
   outline-offset: -0.2rem;
 }
 
@@ -187,9 +187,9 @@
 .playstyle-surface__apply {
   min-height: 2.35rem;
   padding: 0 1rem;
-  border: 1px solid color-mix(in srgb, #5fcf00 58%, currentColor 18%);
+  border: 1px solid color-mix(in srgb, var(--ht-colour-interactive) 58%, currentColor 18%);
   border-radius: 0.45rem;
-  background: color-mix(in srgb, #5fcf00 25%, Canvas 76%);
+  background: color-mix(in srgb, var(--ht-colour-interactive) 25%, Canvas 76%);
   color: inherit;
   font: inherit;
   font-weight: 800;
@@ -198,8 +198,8 @@
 
 .playstyle-surface__apply:hover,
 .playstyle-surface__apply:focus-visible {
-  background: color-mix(in srgb, #5fcf00 34%, Canvas 66%);
-  outline: 2px solid color-mix(in srgb, #5fcf00 70%, currentColor 18%);
+  background: color-mix(in srgb, var(--ht-colour-interactive) 34%, Canvas 66%);
+  outline: 2px solid color-mix(in srgb, var(--ht-colour-interactive) 70%, currentColor 18%);
   outline-offset: 0.12rem;
 }
 
