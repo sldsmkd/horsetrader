@@ -6,12 +6,17 @@
  * scrub retires. As of 4f the focus is the view centre itself — there is no
  * separate cursor; panning *is* re-focusing.
  *
- * It owns the **transient interaction-state** — the pan offset — and writes it
- * **straight to the DOM** (a CSS transform), emitting the view-centre date via
- * `onView` for the menubar + minimap window. There is deliberately no broadcast
+ * It owns the **transient interaction-state** — the pan offset and zoom scale — and
+ * writes it **straight to the DOM** (a CSS transform), emitting the view-centre date
+ * via `onView` for the menubar + minimap window. There is deliberately no broadcast
  * `subscribe` here, so a 60 Hz pan **structurally cannot** enter the render path
- * (docs/frontend/interaction.md, the two-tier change model). The render path is
- * the separate `layout()`, driven by the coordinator subscription.
+ * (docs/frontend/interaction.md, the two-tier change model). The render path is the
+ * separate `layout()`, driven by the coordinator subscription.
+ *
+ * This file is the pan/zoom/momentum state machine; the cohesive pieces live beside
+ * it: `timeline/constants.ts` (feel knobs), `timeline/types.ts` (public contract),
+ * `timeline/motion.ts` (pure math), `timeline/culling.ts` (the scene → live-DOM
+ * layer + churn meter).
  */
 
 import "./timeline.css";
@@ -22,194 +27,47 @@ import type { Axis } from "../axis.ts";
 import { addDays } from "../../core/projection/dates.ts";
 import type { CalendarDate } from "../../core/projection/dates.ts";
 
-/** Px per day — the fixed true-to-date scale (ui.md principle 2). We don't zoom
- *  beyond browser ctrl-+/-, so this is a constant, not view-state. A date-gap
- *  should read as room, not a crush: at this scale a 2-day gap (240px) clears a
- *  full + compact card pair (collision ~220px) so the slimmer card sits flush. */
-const PX_PER_DAY = 120;
-/** Breathing room (days) padded either side of the data extent — the prototype's
- *  fixed buffer before the first card and after the last. */
-const PAD_DAYS = 3;
+import {
+  AXIS_COMMIT_PX,
+  FRICTION_PER_MS,
+  MIN_FLING_V,
+  MIN_GLIDE_V,
+  OVERSCAN_VIEWPORTS,
+  PAD_DAYS,
+  PX_PER_DAY,
+  SPRING_EASE,
+  SPRING_SNAP_PX,
+  STALE_RELEASE_MS,
+  TRACK_CAPTURE_PX,
+  TRACK_DERAIL_BIAS,
+  TRACK_DERAIL_PX,
+  TRACK_GRIP_FALLOFF_PX,
+  TRACK_GRIP_MIN,
+  TRACK_MIN_TRAVEL_VIEWPORT,
+  TRACK_RAIL_VISUAL_PX,
+  TRACK_RETURN_MAX_EASE,
+  TRACK_RETURN_SPEED_PX_PER_MS,
+  WHEEL_ZOOM_SENSITIVITY,
+  Z_MAX,
+  Z_MIN,
+} from "./timeline/constants.ts";
+import { clampDate, easeInOutSmootherstep, rubber, warpDuration } from "./timeline/motion.ts";
+import { createCulling } from "./timeline/culling.ts";
+import type { Extent, Timeline, TimelineHandlers } from "./timeline/types.ts";
 
-/** Pan momentum, tuned for feel: per-ms velocity decay, the flick floor to start
- *  a glide at release, the floor at which the glide ends, and the pause-before-
- *  release window past which a lift is not a flick. */
-const FRICTION_PER_MS = 0.9975;
-const MIN_FLING_V = 0.05; // px/ms
-const MIN_GLIDE_V = 0.015; // px/ms
-const STALE_RELEASE_MS = 60;
-
-/** Elastic walls: the rubber-band tension when dragging past an end (lower =
- *  stiffer), the per-frame ease fraction the spring-back uses to recentre on the
- *  wall, and the px within which the spring snaps home. */
-const RUBBER_TENSION = 0.55;
-const SPRING_EASE = 0.18;
-const SPRING_SNAP_PX = 0.5;
-
-/** Axis-intent lock: a drag commits to horizontal after this much travel. The
- *  railtrack constants below decide when a vertical gesture deliberately derails. */
-const AXIS_COMMIT_PX = 8;
-/** The centre line is a railtrack, not a spring: it takes a deliberate vertical
- *  shove to derail, and once derailed the lane offset persists. Passing back
- *  through the capture band snaps onto the rail again. */
-const TRACK_DERAIL_PX = 42;
-const TRACK_CAPTURE_PX = 2;
-const TRACK_RAIL_VISUAL_PX = 32;
-const TRACK_DERAIL_BIAS = 1.15;
-const TRACK_MIN_TRAVEL_VIEWPORT = 0.35;
-const TRACK_RETURN_SPEED_PX_PER_MS = 2.4;
-const TRACK_RETURN_MAX_EASE = 0.11;
-const TRACK_GRIP_FALLOFF_PX = 320;
-const TRACK_GRIP_MIN = 0.32;
-
-/** Deliberate navigation ("warp") timing. Short hops should feel crisp; long
- *  jumps should visibly travel without making the user wait through the whole
- *  distance. The exponential distance curve approaches the max instead of
- *  growing without bound. */
-const WARP_MIN_MS = 650;
-const WARP_MAX_MS = 1500;
-const WARP_DISTANCE_SCALE_PX = 4000;
-
-/** Spatial culling overscan (Trackblazer): how far past each viewport edge a card
- *  stays mounted, as a multiple of the viewport width. One viewport each side is
- *  the measured near-band (appendix), so the live set is the gating measurement's
- *  visible + near (~35 at the worst frame) — generous enough that a sub-card error
- *  in a card's measured world bounds can never pop a card in late under a pan. This
- *  serves the *pan* path; warp transit is a separate concern (design.md Culling). */
-const OVERSCAN_VIEWPORTS = 1;
-
-type Extent = readonly [CalendarDate, CalendarDate] | null;
-
-/**
- * The gating measurement (see trackblazer/design.md): of the mounted cards, how
- * many fall inside the viewport, in the near-band overscan, or fully offscreen.
- * Counts are over rendered rects, so the camera transform (pan + future zoom) is
- * already baked in — no need to reason about `panX` here.
- */
-export interface VisibilityStats {
-  total: number;
-  visible: number;
-  near: number;
-  offscreen: number;
-}
-
-/**
- * The pairing the shell hands the substrate to arm spatial culling: a stable id
- * (the card/group key) and its built element. The timeline measures each element's
- * world bounds once (at arm time, after the packer has settled heights/nudges) and
- * thereafter mounts only the slice inside the viewport + overscan, keying the live
- * set by id so a pan that shifts every card reconciles by membership, not position.
- */
-export interface SceneCard {
-  id: string;
-  el: HTMLElement;
-}
-
-/** A scene object's retained element plus its measured world-x bounds (content
- *  space, camera-independent). The known-scene layer between selectors and the
- *  live DOM: the element exists whether or not it is currently mounted. */
-interface SceneObject {
-  id: string;
-  el: HTMLElement;
-  left: number;
-  right: number;
-}
-
-export interface Timeline {
-  /** The always-mounted canvas viewport. */
-  readonly el: HTMLElement;
-  /**
-   * (Re)lay the substrate for a balance-series extent and `today`: size the
-   * content, reposition the static markers, clamp the cursor into range, and
-   * re-emit the cursor date so chrome reflects the current projection.
-   * Called on mount and after every recompute — the render path. Rare.
-   */
-  layout(extent: Extent, today: CalendarDate): void;
-  /**
-   * The axis the last `layout` built (origin/scale), or `null` before the first
-   * layout / on an empty extent. The **shared seam**: the shell reads it so the
-   * card selectors position on the *same* true-date axis the substrate draws.
-   */
-  axis(): Axis | null;
-  /**
-   * Mount positioned card elements into the panning content layer, so they pan
-   * with the world. The shell builds them from selectors + card views; the
-   * timeline only hosts them (it stays dumb about what a card is).
-   */
-  setCards(elements: HTMLElement[]): void;
-  /**
-   * Arm spatial culling: record each card's world-x bounds (measured once, now, so
-   * the packer's settled heights/nudges are already baked in) and reconcile the live
-   * set down to the viewport + overscan slice. Call **after** `setCards` mounted the
-   * full set and the packer ran — the measure needs the cards laid out. From here the
-   * camera path (`applyPan`) keeps the mounted set in step with the viewport by key,
-   * so a 618-card world only ever paints its visible neighbourhood (~35 cards).
-   */
-  setScene(cards: SceneCard[]): void;
-  /**
-   * Report how far the packed cards reach above and below the centre line (px),
-   * measured after a pack. Sets the dynamic vertical roof/floor — only the depth
-   * past the viewport half becomes a peekable region.
-   */
-  setContentDepth(above: number, below: number): void;
-  /**
-   * Pan so `date` sits at the viewport centre, clamped to the walls — the minimap
-   * seek's target. Halts any glide so the navigation is authoritative; emits the
-   * new view date through `onView` (via the pan), closing the two-way binding.
-   */
-  centerOn(date: CalendarDate): void;
-  /**
-   * Smoothly travel so `date` sits at the viewport centre. This is the shared
-   * deliberate-navigation primitive for Home, bookmarks, and search: accelerated,
-   * bounded by distance, and still cheap-path only.
-   */
-  warpTo(date: CalendarDate): void;
-  /**
-   * Count the mounted cards by where they fall relative to the viewport — the
-   * Trackblazer gating measurement. `overscanPx` is the near-band buffer each side
-   * (default: one viewport width); cards inside it but off the visible rect count
-   * as `near`, everything beyond as `offscreen`. A cheap-enough diagnostic read
-   * (one batched reflow); call it off the HUD sample tick, not per frame.
-   */
-  visibility(overscanPx?: number): VisibilityStats;
-  /**
-   * Read and reset the DOM node churn (nodes added + removed under the card host)
-   * accumulated since the last call. The HUD calls this once per frame to bucket
-   * churn by frame for its high-watermark / percentile pass. Pre-culling it reads 0
-   * during pan/warp — the baseline the cull/pool path must not regress.
-   */
-  drainChurn(): number;
-}
-
-export interface TimelineHandlers {
-  /**
-   * Fired when the *view centre* moves (any pan: drag, glide, layout, seek) — the
-   * date at the middle of the viewport, which is the focus, plus the vertical
-   * well offset in `[-1, 1]` for the minimap window. The shell turns the date into
-   * a `balanceAt` + menubar write and routes both values to the minimap window.
-   * Cheap path, deduped by date + vertical offset; never broadcasts.
-   */
-  onView(date: CalendarDate, verticalOffset: number): void;
-}
-
-/** Clamp a calendar date into `[lo, hi]` — lexical compare is correct for `YYYY-MM-DD`. */
-function clampDate(date: CalendarDate, [lo, hi]: readonly [CalendarDate, CalendarDate]): CalendarDate {
-  return date < lo ? lo : date > hi ? hi : date;
-}
-
-function easeInOutSmootherstep(t: number): number {
-  return t * t * t * (t * (t * 6 - 15) + 10);
-}
-
-function warpDuration(distancePx: number): number {
-  const scaled = 1 - Math.exp(-Math.abs(distancePx) / WARP_DISTANCE_SCALE_PX);
-  return WARP_MIN_MS + (WARP_MAX_MS - WARP_MIN_MS) * scaled;
-}
+export type { Extent, SceneCard, Timeline, TimelineHandlers, VisibilityStats } from "./timeline/types.ts";
 
 export function timeline({ onView }: TimelineHandlers): Timeline {
   // Transient interaction-state, owned here and written directly — never broadcast.
   let panX = 0;
   let panY = 0; // vertical peek offset; rests at 0 (the line recentred)
+  let z = 1; // camera scale (zoom.md): apparent altitude, world layout is fixed
+  // The commit/measurement window (setCards → pack → setScene) renders unscaled so
+  // every `getBoundingClientRect` in the packer reads true geometry, not z-scaled
+  // rects — otherwise a recompute while zoomed (e.g. starring a card) mis-packs and
+  // mis-bounds the whole timeline. `z` is restored at setScene. It never paints
+  // mid-window (the sequence is synchronous), so the unscaled frame is invisible.
+  let measuring = false;
   let axis: Axis | null = null;
   let extent: Extent = null;
   let viewDate: CalendarDate | null = null; // last emitted view-centre date, for dedupe
@@ -220,62 +78,44 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
   // The dynamic roof and floor: only the overflow past the viewport half is pannable.
   let aboveDepth = 0;
   let belowDepth = 0;
-  // The known scene + the live mounted set. `scene` holds every card's retained
-  // element and world-x bounds; `mountedIds` is which of them are currently in the
-  // DOM. Empty `scene` = culling disarmed (raw `setCards` mode, every element
-  // mounted) so `reconcile` is inert until `setScene` arms it.
-  let scene: SceneObject[] = [];
-  const mountedIds = new Set<string>();
 
+  const culling = createCulling(); // owns the card host, the known scene, and the churn meter
   const line = h("div", { class: "timeline__line" });
   const today = h("div", { class: "timeline__today" });
-  const cards = h("div", { class: "timeline__cards" }); // hosts the positioned card views
-  const content = h("div", { class: "timeline__content" }, line, today, cards);
-
-  // Churn meter: count DOM nodes added/removed under the card host. Pre-culling this
-  // reads ~0 on the camera path — pan/warp are pure transforms, they don't touch
-  // childList — so it establishes the "no churn while panning" baseline the cull/pool
-  // work must not regress. A domain recompute's `setCards` replaceChildren spikes it
-  // (the expensive commit path, expected). The HUD drains this once per frame so the
-  // count buckets by frame; `subtree` catches in-place card-internal rebuilds too.
-  let pendingChurn = 0;
-  new MutationObserver((records) => {
-    for (const r of records) pendingChurn += r.addedNodes.length + r.removedNodes.length;
-  }).observe(cards, { childList: true, subtree: true });
+  const content = h("div", { class: "timeline__content" }, line, today, culling.host);
   const rail = h("div", { class: "timeline__rail", attr: { "aria-hidden": "true" } });
   const el = h("section", { class: "timeline", attr: { "aria-label": "Timeline" } }, rail, content);
   el.style.setProperty("--timeline-rail-height", `${TRACK_RAIL_VISUAL_PX}px`);
 
-  // Spatial culling (Trackblazer). Mount exactly the scene objects whose world-x
-  // bounds intersect the viewport + overscan, keyed by id so a pan that shifts the
-  // whole world only touches the cards crossing an edge — not every shell. Pure
-  // arithmetic against precomputed bounds + a few appendChild/remove; it reads no
-  // geometry, so it forces no reflow and stays on the cheap camera path. Inert until
-  // `setScene` arms it (empty scene = raw all-mounted mode). The DOM mutations it
-  // makes are the cull turnover the churn meter now measures on the camera path.
+  // Screen↔content axis mapping under the camera transform (zoom.md conversion
+  // spine). The axis primitive works in content space and never sees `z`; every
+  // screen-space measurement routes through here so a single `scale(z)` stays
+  // consistent. At `z === 1` this collapses to the old `- panX` arithmetic.
+  const screenToContentX = (sx: number) => (sx - panX) / z;
+  // Convert the viewport (+ overscan) to a content-space window and reconcile the
+  // live set against it. The viewport spans `clientWidth / z` of world, so the
+  // overscan span scales with altitude too (zoom.md). Pure arithmetic — no reflow.
   const reconcile = () => {
-    if (scene.length === 0) return;
-    const overscan = el.clientWidth * OVERSCAN_VIEWPORTS;
-    const left = -panX - overscan;
-    const right = -panX + el.clientWidth + overscan;
-    for (const o of scene) {
-      const inWindow = o.right >= left && o.left <= right;
-      const mounted = mountedIds.has(o.id);
-      if (inWindow && !mounted) {
-        cards.appendChild(o.el); // zIndex is set per-card by the packer, so DOM order is free
-        mountedIds.add(o.id);
-      } else if (!inWindow && mounted) {
-        o.el.remove();
-        mountedIds.delete(o.id);
-      }
-    }
+    const overscan = (el.clientWidth / z) * OVERSCAN_VIEWPORTS;
+    culling.reconcile(screenToContentX(0) - overscan, screenToContentX(el.clientWidth) + overscan);
   };
 
   const applyPan = () => {
-    content.style.transform = `translate(${panX}px, ${panY}px)`;
+    // `scale(z)` reaches exactly the cards + in-world markers inside content and
+    // nothing mounted as a sibling (zoom.md Model). `--zoom` lets infinitely-thin
+    // elements (home row, stems) counter-scale their cross-axis thickness so a 1px
+    // tick stays 1px on screen at every altitude. During the measurement window the
+    // effective scale is forced to 1 so the packer measures true geometry — but this
+    // is a transient *visual* render only; the camera's logical zoom stays `z`.
+    const az = measuring ? 1 : z;
+    content.style.transform = `translate(${panX}px, ${panY}px) scale(${az})`;
+    content.style.setProperty("--zoom", `${az}`);
     // Track the exact content-space x under the viewport middle, so a resize can
-    // re-centre on it (grow out from the centre, not pad the right edge).
-    centerX = el.clientWidth / 2 - panX;
+    // re-centre on it (grow out from the centre, not pad the right edge). Uses the
+    // real `z`, never `az`: this is where the camera points, independent of the
+    // measurement render — otherwise the centre date (and the scenario art it drives)
+    // would flip on every recompute.
+    centerX = screenToContentX(el.clientWidth / 2);
     // The view centre *is* the focus: its date drives the menubar and the minimap
     // window (cheap path, deduped). There is no separate cursor — the anchor is
     // always the middle of the view. Guarded by the axis; clamped into the extent.
@@ -306,11 +146,41 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
   let lastMoveT = 0;
   let anim = 0; // requestAnimationFrame handle; 0 when idle
 
+  // --- pinch-zoom: a second pointer promotes the gesture from pan to two-pointer
+  // zoom (zoom.md Input). `pointers` tracks every live pointer so the existing
+  // single-pointer pan and the two-pointer pinch share one capture set. Pinch derives
+  // `z` from the pointer-distance ratio and anchors the content point under the
+  // gesture midpoint, which also lets the two fingers pan together. ---
+  const pointers = new Map<number, { x: number; y: number }>();
+  let pinching = false;
+  let pinchDist0 = 1; // pointer separation at pinch start
+  let pinchZ0 = 1; // z at pinch start
+  let pinchCx = 0; // content-x under the midpoint at pinch start (held fixed)
+  let pinchCyc = 0; // content-y offset (from centre) under the midpoint at pinch start
+  let pinchRectLeft = 0; // viewport's screen-left, for clientX → local x
+  let pinchRectTop = 0; // viewport's screen-top, for clientY → local y
+  const beginPinch = () => {
+    pinching = true;
+    dragging = false; // a pan in progress yields to the pinch
+    stopAnim();
+    const [a, b] = [...pointers.values()];
+    const rect = el.getBoundingClientRect();
+    pinchRectLeft = rect.left;
+    pinchRectTop = rect.top;
+    pinchDist0 = Math.hypot(a.x - b.x, a.y - b.y) || 1;
+    pinchZ0 = z;
+    pinchCx = screenToContentX((a.x + b.x) / 2 - pinchRectLeft);
+    pinchCyc = screenToContentYOffset((a.y + b.y) / 2 - pinchRectTop);
+    el.classList.add("timeline--grabbing");
+  };
+
   // The horizontal pan range that keeps content on screen: 0 holds the start edge
   // at the viewport's left; the (negative) min holds the end edge at its right.
   // Content narrower than the viewport has no travel — both clamp to 0.
   const panBounds = () => {
-    const min = Math.min(0, el.clientWidth - content.offsetWidth);
+    // `offsetWidth` is the unscaled layout width; the on-screen world is `z` times
+    // that, so the wall that holds the end edge at the viewport right scales too.
+    const min = Math.min(0, el.clientWidth - z * content.offsetWidth);
     return { min, max: 0 };
   };
   // The vertical well. Lane overflow can extend it, but it always has a minimum
@@ -319,16 +189,20 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
   const panBoundsY = () => {
     const half = el.clientHeight / 2;
     const minTravel = Math.max(TRACK_DERAIL_PX + TRACK_RAIL_VISUAL_PX / 2, el.clientHeight * TRACK_MIN_TRAVEL_VIEWPORT);
-    return { min: -Math.max(minTravel, belowDepth - half), max: Math.max(minTravel, aboveDepth - half) };
+    // The vertical drag range is the default-zoom (z=1) range, scaled by `z` — so
+    // the well stretches/contracts in proportion to altitude rather than re-deriving
+    // a different overflow at each zoom. The minTravel floor is part of the base
+    // range, so it scales too (stays well above the derail threshold across the
+    // narrow z span).
+    const maxBase = Math.max(minTravel, aboveDepth - half);
+    const minBase = Math.max(minTravel, belowDepth - half);
+    return { min: -z * minBase, max: z * maxBase };
   };
   const verticalOffset = () => {
     const { min, max } = panBoundsY();
     const range = panY >= 0 ? max : -min;
     return range > 0 ? Math.max(-1, Math.min(1, panY / range)) : 0;
   };
-  // Diminishing-returns overscroll: the further past a wall, the less it gives —
-  // an asymptote at `dim`, so the wall stiffens but never locks.
-  const rubber = (over: number, dim: number) => (1 - 1 / ((over / (dim || 1)) * RUBBER_TENSION + 1)) * dim;
   // Map an intended pan to its applied value, rubber-damped beyond the walls.
   const dampWith = (raw: number, min: number, max: number, dim: number) => {
     if (raw > max) return max + rubber(raw - max, dim);
@@ -363,7 +237,33 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
   const targetPanForDate = (date: CalendarDate) => {
     if (!axis) return null;
     const { min, max } = panBounds();
-    return Math.max(min, Math.min(max, el.clientWidth / 2 - axis.xForDate(date)));
+    // Put the date's content-x under the viewport centre: solve contentToScreenX(cx)
+    // = clientWidth/2 for panX (so the `z` term rides along).
+    return Math.max(min, Math.min(max, el.clientWidth / 2 - z * axis.xForDate(date)));
+  };
+  const clampZ = (raw: number) => Math.max(Z_MIN, Math.min(Z_MAX, raw));
+  const clampPanX = (raw: number) => {
+    const { min, max } = panBounds();
+    return Math.max(min, Math.min(max, raw));
+  };
+  // Content-y offset from the centre line under a viewport-local y, given the
+  // current camera. Vertical scaling pivots about the centre line (transform-origin
+  // `0 50%`), so screen_y = panY + half + z·cyc; this inverts it for the anchor.
+  const screenToContentYOffset = (sy: number) => (sy - panY - el.clientHeight / 2) / z;
+  // Zoom anchored under a viewport-local point: hold the content point currently
+  // beneath the anchor fixed across the scale change — on *both* axes, so zooming
+  // toward the cursor keeps the card under it pinned rather than letting it balloon
+  // out of the centre-line origin (zoom.md Anchor + Vertical). Hard-clamps pan (no
+  // rubber) — zoom is a deliberate camera move, not a drag.
+  const setZoom = (nextZ: number, anchorScreenX: number, anchorScreenY: number) => {
+    const clamped = clampZ(nextZ);
+    if (clamped === z) return;
+    const cx = screenToContentX(anchorScreenX); // content point under the anchor, before
+    const cyc = screenToContentYOffset(anchorScreenY);
+    z = clamped;
+    panX = clampPanX(anchorScreenX - z * cx); // keep that point under the anchor, after
+    panY = clampY(anchorScreenY - el.clientHeight / 2 - z * cyc);
+    applyPan();
   };
   // Horizontal animation: past a wall it eases home (killing momentum), within
   // bounds it coasts on friction until it stalls or hits a wall. If the timeline
@@ -400,6 +300,12 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
 
   el.addEventListener("pointerdown", (ev) => {
     stopAnim(); // grabbing the world halts any glide/spring in progress
+    pointers.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
+    el.setPointerCapture(ev.pointerId);
+    if (pointers.size >= 2) {
+      beginPinch(); // second finger down → promote to pinch-zoom
+      return;
+    }
     // Resync the readout on every grab: clear the `onView` dedupe sentinel so the
     // first `applyPan` of this gesture re-emits the centre date even if it rounds
     // to the same day. Belt-and-braces against a rare drift where `viewDate` falls
@@ -416,10 +322,23 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
     velocity = 0;
     lastMoveX = ev.clientX;
     lastMoveT = performance.now();
-    el.setPointerCapture(ev.pointerId);
     el.classList.add("timeline--grabbing");
   });
   el.addEventListener("pointermove", (ev) => {
+    if (pointers.has(ev.pointerId)) pointers.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
+    if (pinching && pointers.size >= 2) {
+      // Two-pointer transform: scale from the live distance ratio, and slide pan so
+      // the start midpoint's content-x stays under the live midpoint (zoom.md Anchor).
+      const [a, b] = [...pointers.values()];
+      const dist = Math.hypot(a.x - b.x, a.y - b.y) || 1;
+      const midX = (a.x + b.x) / 2 - pinchRectLeft;
+      const midY = (a.y + b.y) / 2 - pinchRectTop;
+      z = clampZ(pinchZ0 * (dist / pinchDist0));
+      panX = clampPanX(midX - z * pinchCx);
+      panY = clampY(midY - el.clientHeight / 2 - z * pinchCyc);
+      applyPan();
+      return;
+    }
     if (dragging) {
       const dx = ev.clientX - grabX;
       const dy = ev.clientY - grabY;
@@ -467,9 +386,32 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
     // A bare hover does nothing: the focus is the view centre, not the pointer.
   });
   const endDrag = (ev: PointerEvent) => {
+    pointers.delete(ev.pointerId);
+    if (el.hasPointerCapture(ev.pointerId)) el.releasePointerCapture(ev.pointerId);
+    if (pinching) {
+      // A pinch ends when the second finger lifts. If one finger remains, hand the
+      // gesture back to pan — re-grab from where that pointer is now so there's no
+      // jump — otherwise the gesture is over.
+      if (pointers.size >= 2) return; // still pinching with a leftover pointer set
+      pinching = false;
+      const remaining = [...pointers.values()][0];
+      if (remaining) {
+        dragging = true;
+        axisLock = Math.abs(panY) > TRACK_CAPTURE_PX ? "free" : "none";
+        grabX = remaining.x;
+        grabY = remaining.y;
+        grabPanY = panY;
+        velocity = 0;
+        lastMoveX = remaining.x;
+        lastMoveT = performance.now();
+        viewDate = null;
+      } else {
+        el.classList.remove("timeline--grabbing");
+      }
+      return;
+    }
     if (!dragging) return;
     dragging = false;
-    el.releasePointerCapture(ev.pointerId);
     el.classList.remove("timeline--grabbing");
     // Carry a horizontal fling only when the release follows live motion (not a
     // pause-lift); otherwise rest. Any Y return is driven by that sideways glide.
@@ -481,58 +423,51 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
   el.addEventListener("pointerup", endDrag);
   el.addEventListener("pointercancel", endDrag);
 
+  // Ctrl/Cmd + wheel zooms about the pointer (zoom.md Input). Plain wheel is left
+  // alone — the timeline has no native scroll to hijack. `passive: false` so the
+  // browser's own ctrl+wheel page zoom is preempted on the timeline.
+  el.addEventListener(
+    "wheel",
+    (ev) => {
+      if (!ev.ctrlKey && !ev.metaKey) return;
+      ev.preventDefault();
+      stopAnim();
+      const rect = el.getBoundingClientRect();
+      setZoom(z * Math.exp(-ev.deltaY * WHEEL_ZOOM_SENSITIVITY), ev.clientX - rect.left, ev.clientY - rect.top);
+    },
+    { passive: false },
+  );
+
   return {
     el,
     axis: () => axis,
     setCards: (elements) => {
       // Raw all-mounted mode: the shell needs every card laid out so the packer can
-      // measure it. Disarm culling (empty scene) until `setScene` re-arms it, so an
-      // applyPan during the measure window doesn't reconcile against a stale scene.
-      scene = [];
-      mountedIds.clear();
-      cards.replaceChildren(...elements);
+      // measure it. The culler disarms (empty scene) until `setScene` re-arms it.
+      // Enter the unscaled measurement window (only when there's something to
+      // measure — an empty set has no setScene to restore zoom) and render it now so
+      // the packer's getBoundingClientRect reads true, un-zoomed geometry.
+      culling.mountAll(elements);
+      measuring = elements.length > 0;
+      applyPan();
     },
     setScene(sceneCards) {
-      // Measure each element's world-x bounds once, now — the packer has settled
-      // stem heights / group nudges, and the element is mounted, so its rect is
-      // final. Subtracting the content layer's own rect cancels the pan transform,
-      // giving camera-independent content-space bounds. One viewport of overscan
-      // dwarfs any sub-card centring error, so DOM-measured bounds are plenty exact.
-      const contentLeft = content.getBoundingClientRect().left;
-      scene = sceneCards.map(({ id, el: cardEl }) => {
-        const r = cardEl.getBoundingClientRect();
-        return { id, el: cardEl, left: r.left - contentLeft, right: r.right - contentLeft };
-      });
-      // Everything is mounted right now (from setCards); cull down to the window.
-      mountedIds.clear();
-      for (const { id } of sceneCards) mountedIds.add(id);
-      reconcile();
+      // Arm culling: the packer has settled stem heights / group nudges, the elements
+      // are mounted, and the content layer is still rendered unscaled (the measurement
+      // window), so the measured rects are true content space. Leave the measurement
+      // window (restore real scale(z)) and let applyPan cull down to the window.
+      culling.arm(sceneCards, content.getBoundingClientRect().left);
+      measuring = false;
+      applyPan();
     },
     visibility(overscanPx) {
-      // The gating measurement, computed over the *known scene* (not the mounted
-      // DOM), so it stays correct once culling has unmounted the offscreen cards.
-      // Horizontal basis, matching the horizontal cull: a card counts visible when
-      // its world-x bounds intersect the viewport, near when within overscan. Pure
-      // arithmetic against precomputed bounds — no reflow, safe off the sample tick.
-      if (scene.length === 0) return { total: 0, visible: 0, near: 0, offscreen: 0 };
-      const overscan = overscanPx ?? el.clientWidth;
-      const viewLeft = -panX;
-      const viewRight = -panX + el.clientWidth;
-      let visible = 0;
-      let near = 0;
-      let offscreen = 0;
-      for (const o of scene) {
-        if (o.right >= viewLeft && o.left <= viewRight) visible += 1;
-        else if (o.right >= viewLeft - overscan && o.left <= viewRight + overscan) near += 1;
-        else offscreen += 1;
-      }
-      return { total: scene.length, visible, near, offscreen };
+      // Work in content space (where the scene bounds live): convert the screen-px
+      // overscan and the viewport edges through the camera so the count stays right
+      // once zoom has changed how much world the viewport spans.
+      const overscan = (overscanPx ?? el.clientWidth) / z;
+      return culling.visibility(screenToContentX(0), screenToContentX(el.clientWidth), overscan);
     },
-    drainChurn() {
-      const n = pendingChurn;
-      pendingChurn = 0;
-      return n;
-    },
+    drainChurn: () => culling.drainChurn(),
     setContentDepth: (above, below) => {
       aboveDepth = above;
       belowDepth = below;
@@ -593,7 +528,7 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
         centerX = axis.xForDate(todayDate);
         centered = true;
       }
-      panX = el.clientWidth / 2 - centerX;
+      panX = el.clientWidth / 2 - z * centerX;
       const { min, max } = panBounds();
       panX = Math.max(min, Math.min(max, panX)); // clamp inside the walls (hard, no spring)
       // Force `onView` to re-fire even if the centre date is unchanged: a resize

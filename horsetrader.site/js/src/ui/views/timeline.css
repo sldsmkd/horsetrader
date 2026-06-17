@@ -51,6 +51,11 @@
   left: 0;
   /* width is set inline from the axis extent */
   will-change: transform;
+  /* Zoom pivots about the left edge horizontally (so contentToScreenX stays
+     `panX + z·cx`) and the centre line vertically (so the rail stays pinned under
+     vertical scale) — zoom.md Vertical. `--zoom` (set inline alongside the
+     transform) lets thin terrain counter-scale its thickness. */
+  transform-origin: 0 50%;
 }
 
 /* The home row: the line has gravity (ui.md EC1). */
@@ -59,7 +64,10 @@
   left: 0;
   right: 0;
   top: 50%;
-  height: 2px;
+  /* Position scales with the world; thickness must not — counter-scale by --zoom so
+     the home row stays a constant ~2px screen rule at every altitude (zoom.md
+     Infinitely-thin elements). */
+  height: calc(2px / var(--zoom, 1));
   background: color-mix(in srgb, currentColor 40%, transparent);
 }
 
@@ -67,9 +75,12 @@
 .timeline__today {
   position: absolute;
   top: 50%;
-  width: 10px;
-  height: 10px;
-  margin: -5px 0 0 -5px;
+  /* A constant-size map marker: counter-scale the size and the centring margin so
+     the dot stays put on its tick and the same screen size at every altitude
+     (zoom.md: the today dot pinned as a map marker). */
+  width: calc(10px / var(--zoom, 1));
+  height: calc(10px / var(--zoom, 1));
+  margin: calc(-5px / var(--zoom, 1)) 0 0 calc(-5px / var(--zoom, 1));
   border-radius: 50%;
   background: currentColor;
 }

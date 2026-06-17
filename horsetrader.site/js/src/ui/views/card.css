@@ -21,7 +21,10 @@
    half-device-pixel straddle composited those into a faint "double line". An
    opaque stem at the same perceived weight overlaps cleanly. */
 .card__stem {
-  width: 2px;
+  /* The stem's length scales with the world (the packer grows it to drop the body
+     to its row), but its thickness must stay a constant ~2px tick — counter-scale
+     by --zoom inherited from the content layer (zoom.md Infinitely-thin elements). */
+  width: calc(2px / var(--zoom, 1));
   height: 1.1rem;
   background: color-mix(in srgb, currentColor 50%, Canvas);
 }
