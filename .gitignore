@@ -14,6 +14,7 @@ __pycache__/
 # Node / frontend build tooling (horsetrader.site)
 node_modules/
 .wrangler/
+.dev.vars
 
 # Local config
 .env

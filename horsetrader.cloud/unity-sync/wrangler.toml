@@ -1,0 +1,20 @@
+# unity-sync — Unity's cloud Worker (auth now; R2 sync to follow in this service).
+name = "unity-sync"
+main = "src/index.ts"
+compatibility_date = "2026-06-01"
+workers_dev = true   # gives a https://unity-sync.<subdomain>.workers.dev URL for standalone smoke tests
+
+# Same-origin production routing: the Worker owns `/api/*` on the site host so the
+# Pages site and this Worker share an origin — the FE calls relative `/api/*` with
+# no CORS and a first-party cookie. The route takes precedence over Pages for
+# matching paths on the zone. (Top-level key — must sit ABOVE the [vars] table, or
+# TOML folds it into vars.)
+routes = [
+  { pattern = "horsetrader.site/api/*", zone_name = "horsetrader.site" },
+]
+
+# Public, safe to commit (the OAuth client *secret* is a Worker secret, set via
+# `wrangler secret put GOOGLE_CLIENT_SECRET`; the session-signing key likewise
+# `wrangler secret put SESSION_SECRET`).
+[vars]
+GOOGLE_CLIENT_ID = "716114571605-3un6rq8bp1fjq4aprmuoc3uq737t57kv.apps.googleusercontent.com"

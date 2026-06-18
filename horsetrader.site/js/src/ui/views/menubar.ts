@@ -16,7 +16,7 @@ import { pressedGroup } from "../widgets/pressedGroup.ts";
 
 /** A member of the right-hand surface group. The left group (identity) is a
  *  single button, so it takes a plain boolean. */
-export type RightSurface = "resources" | "tazuna";
+export type RightSurface = "resources" | "tazuna" | "beta";
 
 export interface Menubar {
   readonly el: HTMLElement;
@@ -48,6 +48,7 @@ export interface MenubarOpts {
   onPlan: () => void;
   onResources: () => void;
   onTazuna: () => void;
+  onBeta: () => void;
   search: SearchIndex;
   onSearch: (result: SearchResult) => void;
 }
@@ -102,6 +103,17 @@ export function menubar(opts: MenubarOpts): Menubar {
   );
   const plan = menuButton("Plan", opts.onPlan);
   const tazuna = menuButton("Tazuna", opts.onTazuna);
+  // Beta (🔨): the WIP isolation chamber (Unity auth/sync proves out here). Icon
+  // button so it reads as a distinct "workshop" entry next to the named surfaces.
+  const beta = h(
+    "button",
+    {
+      class: "menubar__item menubar__button menubar__beta",
+      attr: { type: "button", "aria-label": "Beta", title: "Beta" },
+      on: { click: opts.onBeta },
+    },
+    h("img", { class: "menubar__beta-icon", attr: { src: "/icons/gold_hammer.png", alt: "", width: 24, height: 24 } }),
+  );
   // Plan is not built yet — keep it visibly inert rather than letting a click
   // tear down the real cards. Flip this off when the planner surface lands.
   plan.disabled = true;
@@ -126,7 +138,7 @@ export function menubar(opts: MenubarOpts): Menubar {
       identity,
     ),
     search,
-    h("div", { class: "menubar__cluster menubar__cluster--right" }, plan, balance, tazuna),
+    h("div", { class: "menubar__cluster menubar__cluster--right" }, plan, balance, tazuna, beta),
   );
 
   // Two independent highlight groups: the left group is the single identity
@@ -136,6 +148,7 @@ export function menubar(opts: MenubarOpts): Menubar {
     new Map<RightSurface, HTMLElement>([
       ["resources", balance],
       ["tazuna", tazuna],
+      ["beta", beta],
     ]),
     "menubar__button--active",
   );
@@ -150,7 +163,7 @@ export function menubar(opts: MenubarOpts): Menubar {
   // The surface spawners a shield locks — every *live* menu item that opens a
   // same-layer surface (not home/search, which are navigation). Plan is inert for
   // now, so there's nothing to lock there.
-  const lockable: HTMLButtonElement[] = [identity, balance, tazuna];
+  const lockable: HTMLButtonElement[] = [identity, balance, tazuna, beta];
   function setShielded(shielded: boolean): void {
     for (const button of lockable) {
       button.disabled = shielded;

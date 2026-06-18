@@ -1,0 +1,49 @@
+.beta-surface {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-height: 26rem; /* sized like a real side panel, matching tazuna */
+  max-width: 22rem;
+}
+
+.beta-surface__group {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.beta-surface__note {
+  margin: 0;
+  font-size: 0.8rem;
+  opacity: 0.55;
+  line-height: 1.4;
+}
+
+.beta-surface__row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.beta-surface__btn {
+  font: inherit;
+  padding: 0.45rem 0.7rem;
+  border-radius: 0.4rem;
+  border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+  background: color-mix(in srgb, currentColor 6%, transparent);
+  cursor: pointer;
+  text-align: left;
+}
+
+.beta-surface__btn:hover {
+  background: color-mix(in srgb, currentColor 12%, transparent);
+}
+
+.beta-surface__status {
+  margin: 0;
+  padding: 0.6rem;
+  border-radius: 0.4rem;
+  background: color-mix(in srgb, currentColor 8%, transparent);
+  font-size: 0.8rem;
+  white-space: pre-wrap;
+  word-break: break-all;
+}

@@ -95,6 +95,14 @@
   object-fit: cover;
 }
 
+.menubar__beta-icon {
+  display: block;
+  flex: none;
+  width: 1.4rem;
+  height: 1.4rem;
+  object-fit: contain;
+}
+
 .menubar__identity-name {
   overflow: hidden;
   font-weight: 600;

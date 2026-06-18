@@ -39,6 +39,7 @@ import { commitShield, commitTitle } from "./views/commitShield.ts";
 import { commitContext } from "./select/commit.ts";
 import type { CommitBinding } from "./views/bannerGroup.ts";
 import { tazunaSurface } from "./views/tazunaSurface.ts";
+import { betaSurface } from "./views/betaSurface.ts";
 import { bookmarks } from "./views/bookmarks.ts";
 import { bookmarkRows, nextBookmarkDate } from "./select/bookmarks.ts";
 import { plannerRows } from "./select/planner.ts";
@@ -249,6 +250,7 @@ export function mountApp(
     onPlan: () => {}, // inert until the planner surface lands
     onResources: () => toggleRight("resources"),
     onTazuna: () => toggleRight("tazuna"),
+    onBeta: () => toggleRight("beta"),
     search,
     onSearch: (result) => {
       view.set({ search: result.label, selection: result.id });
@@ -503,6 +505,15 @@ export function mountApp(
       });
       if (anyShield) suspendOverlay(tazunaCard);
       children.push(tazunaCard);
+    } else if (right === "beta") {
+      const betaCard = overlay({
+        title: "Beta",
+        placement: "right",
+        body: betaSurface(),
+        onClose: () => view.set({ right: null }),
+      });
+      if (anyShield) suspendOverlay(betaCard);
+      children.push(betaCard);
     }
 
     // The commit shield: spawned at source from a banner readout, independent of
