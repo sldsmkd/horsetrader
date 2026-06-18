@@ -19,6 +19,25 @@ export type AuthState =
   | { authenticated: true; identity: CloudIdentity }
   | { authenticated: false };
 
+/**
+ * A connectable cloud provider. `id` is the Worker's auth slug (`/api/auth/<id>/start`)
+ * AND the `provider` string the session echoes back — they're the same key, so the
+ * shield can label a connected identity from this list. Google ships now; Discord is
+ * the planned second ([[project_unity_save_load]]), so the picker is list-driven —
+ * adding it is one entry here plus the Worker route, no UI change. `icon` is a glyph
+ * for the shield (no asset pipeline for a two-item list).
+ */
+export interface CloudProvider {
+  id: string;
+  label: string;
+  icon: string;
+}
+
+export const CLOUD_PROVIDERS: readonly CloudProvider[] = [
+  { id: "google", label: "Google", icon: "G" },
+  { id: "discord", label: "Discord", icon: "D" },
+];
+
 /** Who is this session? Resolves to signed-out on any error (network, 401, …). */
 export async function fetchAuth(): Promise<AuthState> {
   try {
@@ -34,9 +53,10 @@ export async function fetchAuth(): Promise<AuthState> {
   }
 }
 
-/** Kick off the OAuth redirect (full-page navigation — the Worker drives it). */
-export function startGoogleSignIn(): void {
-  window.location.assign("/api/auth/google/start");
+/** Kick off the OAuth redirect for a provider (full-page navigation — the Worker
+ *  drives it). `providerId` is a {@link CloudProvider.id} / Worker auth slug. */
+export function startSignIn(providerId: string): void {
+  window.location.assign(`/api/auth/${providerId}/start`);
 }
 
 /** Clear the cloud session. Best-effort; never throws. */

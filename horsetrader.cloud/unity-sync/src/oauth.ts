@@ -1,10 +1,10 @@
 /**
- * Google OAuth2 authorization-code flow with PKCE. Deliberately built from
- * `fetch` (auth-code "is just fetch calls" — design.md §6), so the only auth
- * dependency is `jose`, used to verify the returned id_token's signature against
- * Google's JWKS. We pick auth-code (not the GIS id_token shortcut) because it's
- * the ONE mechanism that also covers Discord later — see the spike-surfaced fork
- * in [[project_unity_save_load]].
+ * Google's OAuth2 primitives — the OIDC half of the provider registry
+ * (providers.ts; Discord's plain-OAuth2 identify lives there too). Deliberately
+ * built from `fetch` (auth-code "is just fetch calls" — design.md §6), so the only
+ * auth dependency is `jose`, used to verify the returned id_token's signature
+ * against Google's JWKS. Auth-code (not the GIS id_token shortcut) is the ONE
+ * mechanism that also covers Discord — see [[project_unity_save_load]].
  */
 import { createRemoteJWKSet, jwtVerify } from "jose";
 import { b64urlEncode } from "./encoding.ts";

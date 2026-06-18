@@ -4,6 +4,8 @@ import assert from "node:assert/strict";
 import type { ConfigBundle } from "../bundle/config.gen.ts";
 import type { EventsBundle } from "../bundle/events.gen.ts";
 import { memoryStore } from "../persistence/storage.ts";
+import { save } from "../persistence/index.ts";
+import { CURRENT_VERSION } from "../persistence/document.ts";
 import { cal } from "../projection/dates.ts";
 import { createCoordinator } from "./coordinator.ts";
 import { buildRegistry, DEFAULT_STREAMS } from "./registry.ts";
@@ -281,6 +283,23 @@ test("sync meta: mutations set dirty, markSynced clears + records the rev", () =
   // dirty + etag persist across reload (local.sync round-trips).
   coord.commit("banner-kita", 50);
   assert.deepEqual(createCoordinator({ bundle: bundle(), config: config(), now: NOW, store }).syncMeta(), { etag: '"abc123"', dirty: true });
+});
+
+test("never-synced plan loads DIRTY iff it holds content — so first connect can push it up", () => {
+  // A pre-Unity / never-synced save has no `local.sync`; a populated one must read dirty
+  // so Sync is enabled and a populated browser can seed an empty cloud (the reported bug:
+  // the empty browser couldn't pull until the populated one was edited to flip dirty).
+  const populated = memoryStore();
+  save({ local: {}, remote: { version: CURRENT_VERSION, commitments: { "banner-kita": 50 } } }, populated);
+  assert.equal(createCoordinator({ bundle: bundle(), config: config(), now: NOW, store: populated }).syncMeta().dirty, true);
+
+  // An empty never-synced plan stays clean — a blank browser offers no spurious push.
+  const empty = memoryStore();
+  save({ local: {}, remote: { version: CURRENT_VERSION } }, empty);
+  assert.deepEqual(createCoordinator({ bundle: bundle(), config: config(), now: NOW, store: empty }).syncMeta(), {
+    etag: null,
+    dirty: false,
+  });
 });
 
 test("adoptRemote swaps the plan + records the rev, bringing the cloud's trainer name across", () => {

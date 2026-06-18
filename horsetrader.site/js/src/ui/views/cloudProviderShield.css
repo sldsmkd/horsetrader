@@ -1,0 +1,147 @@
+/* Cloud Provider — a modal scrim + centred card, sibling to the cloud conflict modal. */
+.cloud-provider {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+  padding: 1.5rem;
+}
+
+.cloud-provider__card {
+  width: 100%;
+  max-width: 26rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  padding: 1.4rem 1.5rem;
+  border-radius: 0.6rem;
+  background: #242a33;
+  color: #e6e9ee;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 1.5rem 3rem rgba(0, 0, 0, 0.5);
+}
+
+.cloud-provider__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.cloud-provider__title {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.cloud-provider__close {
+  font: inherit;
+  line-height: 1;
+  padding: 0.25rem 0.45rem;
+  border-radius: 0.35rem;
+  border: 1px solid transparent;
+  background: transparent;
+  color: inherit;
+  opacity: 0.6;
+  cursor: pointer;
+}
+
+.cloud-provider__close:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.cloud-provider__intro {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  opacity: 0.7;
+}
+
+.cloud-provider__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.cloud-provider__option {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.8rem 0.9rem;
+  border-radius: 0.45rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.cloud-provider__option:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* The provider glyph — a square chip so a one-letter mark reads as a logo slot. */
+.cloud-provider__icon {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 0.3rem;
+  background: rgba(255, 255, 255, 0.1);
+  font-weight: 700;
+}
+
+.cloud-provider__option-label {
+  font-weight: 600;
+}
+
+/* Connected state: the identity line, then the disconnect action. */
+.cloud-provider__identity {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: 0.45rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.cloud-provider__identity-label {
+  font-weight: 600;
+}
+
+.cloud-provider__identity-sub {
+  font-size: 0.8rem;
+  opacity: 0.6;
+  word-break: break-all;
+}
+
+.cloud-provider__btn {
+  font: inherit;
+  padding: 0.5rem 1.2rem;
+  border-radius: 0.4rem;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.06);
+  color: inherit;
+  cursor: pointer;
+}
+
+.cloud-provider__btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.cloud-provider__btn--danger {
+  align-self: flex-start;
+  border-color: rgba(234, 107, 107, 0.5);
+  color: #ea8a8a;
+}
+
+.cloud-provider__btn--danger:hover {
+  background: rgba(234, 107, 107, 0.12);
+}

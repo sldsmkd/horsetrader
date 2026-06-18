@@ -177,6 +177,20 @@ function trainerNameOf(doc: PlanDocument): string {
   return typeof name === "string" && name.trim() ? name : "";
 }
 
+/** Does the plan hold anything worth syncing? Judged by CONTENT — commitments,
+ *  favourites, rushed flags, a snapshot, or a trainer name — not mere object
+ *  presence, so a fresh empty plan does NOT read dirty (no spurious first-connect
+ *  push from a blank browser). */
+function planHasContent(doc: PlanDocument): boolean {
+  return (
+    Object.keys(doc.commitments ?? {}).length > 0 ||
+    Object.keys(doc.favourites ?? {}).length > 0 ||
+    Object.keys(doc.rushed ?? {}).length > 0 ||
+    doc.snapshot != null ||
+    trainerNameOf(doc) !== ""
+  );
+}
+
 /** One derivation's outputs — swapped whole on every write (immutable value). */
 interface Derived {
   world: SettledEvent[];
@@ -192,9 +206,16 @@ export function createCoordinator(options: CoordinatorOptions): Coordinator {
   const gacha = gachaOf(config);
 
   const loaded = load(store);
-  // `sync` is normalised present so every persist carries it (never-synced = etag null).
-  let local: LocalState = { ...loaded.envelope.local, sync: loaded.envelope.local.sync ?? { etag: null, dirty: false } };
   let doc = pruneStale(loaded.envelope.remote, bundle, now, timeZone);
+  // `sync` is normalised present so every persist carries it (never-synced = etag null).
+  // A never-synced plan that ALREADY holds content loads DIRTY, so the first connect can
+  // push it up: otherwise Sync stays disabled until an edit, and a populated browser can
+  // never seed an empty cloud — the reported "empty browser can't pull until the
+  // populated one is edited" chain. Emptiness is content-judged (planHasContent).
+  let local: LocalState = {
+    ...loaded.envelope.local,
+    sync: loaded.envelope.local.sync ?? { etag: null, dirty: planHasContent(doc) },
+  };
   const persist = (): void => save({ local, remote: doc }, store);
   // Write back once on load if the stored shape was upgraded (legacy→envelope or a
   // remote-version migration) or stale entries were pruned — so the migration is

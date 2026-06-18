@@ -3,10 +3,10 @@
  * save/load UI proves out here before graduating to the main menubar. Two buttons,
  * separated by concern:
  *
- *   [ Cloud ] — connect: opens a panel listing providers (Google for now). The
- *               richer connected-state flow (status, disconnect options) is
- *               deferred — for now it's a provider list plus a stopgap Sign out so
- *               the connect path is re-testable in the chamber.
+ *   [ Cloud ] — connect: opens the cloud provider shield (cloudProviderShield.ts) —
+ *               a modal provider picker when signed out, the identity + disconnect
+ *               when signed in. The write half of "connect a cloud"; sign-out lands
+ *               back here via `onSignedOut`.
  *   [ Sync ]  — the data action, and only that. Greyed until connected (and until
  *               there are local changes). Runs the real reconcile (`syncNow`): clean
  *               → fast-forward, dirty → conditional push, and a true conflict (both
@@ -23,15 +23,15 @@
 import "./betaSurface.css";
 
 import { h } from "../h.ts";
-import { fetchAuth, startGoogleSignIn, signOut } from "../../core/cloud/client.ts";
+import { fetchAuth } from "../../core/cloud/client.ts";
 import type { AuthState } from "../../core/cloud/client.ts";
 import { syncNow } from "../../core/cloud/sync.ts";
 import { presentCloudConflict } from "./cloudConflict.ts";
+import { presentCloudProviderShield } from "./cloudProviderShield.ts";
 import type { Coordinator } from "../../core/engine/index.ts";
 
 // Module-scoped so it survives the app's rebuild-on-notify.
 let auth: AuthState = { authenticated: false };
-let panelOpen = false;
 let lastSyncOutcome = "no sync yet";
 // The currently-mounted surface + its coordinator. A rebuild replaces `liveRoot`;
 // `rerender` rebuilds whatever is live now, so an async outcome lands on the
@@ -76,10 +76,17 @@ export function betaSurface(coord: Coordinator): HTMLElement {
 function build(coord: Coordinator): Node[] {
   const connected = auth.authenticated;
 
-  const cloud = button("Cloud", () => {
-    panelOpen = !panelOpen;
-    rerender();
-  });
+  // Cloud opens the provider shield (connect a provider when signed out, identity +
+  // disconnect when signed in). Sign-out lands back here via `onSignedOut`.
+  const cloud = button("Cloud", () =>
+    presentCloudProviderShield({
+      auth,
+      onSignedOut: () => {
+        auth = { authenticated: false };
+        rerender();
+      },
+    }),
+  );
   // Sync lights up only when connected AND there's something to send. The signal we
   // have client-side is `dirty` (local diverged since the last sync) — we can't know
   // the cloud advanced without a GET, so "no changes" means "no local changes".
@@ -101,23 +108,6 @@ function build(coord: Coordinator): Node[] {
     ),
     h("div", { class: "beta-surface__row beta-surface__row--inline" }, sync, cloud),
   ];
-
-  if (panelOpen) {
-    const panel = h("div", { class: "beta-surface__panel" });
-    if (connected) {
-      panel.append(
-        h("p", { class: "beta-surface__note" }, `Connected — ${auth.identity.provider}:${auth.identity.sub}`),
-        // Disconnect flow is deferred; this is the chamber stopgap so connect is re-testable.
-        button("Sign out", () => void doSignOut()),
-      );
-    } else {
-      panel.append(
-        h("p", { class: "beta-surface__note" }, "Pick a cloud to connect:"),
-        button("Google", startGoogleSignIn),
-      );
-    }
-    children.push(panel);
-  }
 
   children.push(
     h("pre", { class: "beta-surface__status" }, `${lastSyncOutcome}\n\n${JSON.stringify(planSummary(coord), null, 2)}`),
@@ -141,11 +131,5 @@ async function doSync(coord: Coordinator): Promise<void> {
     return;
   }
   lastSyncOutcome = `sync → ${JSON.stringify(result)}`;
-  rerender();
-}
-
-async function doSignOut(): Promise<void> {
-  await signOut();
-  auth = { authenticated: false };
   rerender();
 }

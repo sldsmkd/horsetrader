@@ -53,15 +53,6 @@
   text-align: center;
 }
 
-.beta-surface__panel {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  padding: 0.6rem;
-  border-radius: 0.4rem;
-  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
-}
-
 .beta-surface__status {
   margin: 0;
   padding: 0.6rem;

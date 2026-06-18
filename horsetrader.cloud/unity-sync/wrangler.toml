@@ -20,8 +20,9 @@ routes = [
 binding = "BUCKET"
 bucket_name = "unity-saves"
 
-# Public, safe to commit (the OAuth client *secret* is a Worker secret, set via
-# `wrangler secret put GOOGLE_CLIENT_SECRET`; the session-signing key likewise
-# `wrangler secret put SESSION_SECRET`).
+# Public, safe to commit (the OAuth client *secrets* are Worker secrets, set via
+# `wrangler secret put GOOGLE_CLIENT_SECRET` / `DISCORD_CLIENT_SECRET`; the
+# session-signing key likewise `wrangler secret put SESSION_SECRET`).
 [vars]
 GOOGLE_CLIENT_ID = "716114571605-3un6rq8bp1fjq4aprmuoc3uq737t57kv.apps.googleusercontent.com"
+DISCORD_CLIENT_ID = "1517243554492059790"

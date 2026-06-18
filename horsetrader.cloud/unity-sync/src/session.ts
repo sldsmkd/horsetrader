@@ -40,9 +40,10 @@ export async function verify<T>(token: string, secret: string): Promise<T | null
   }
 }
 
-/** The signed session payload — identity only, no PII (design.md §7). */
+/** The signed session payload — identity only, no PII (design.md §7). `provider`
+ *  is a registry key (providers.ts): `google`, `discord`, … */
 export interface Session {
-  provider: "google";
+  provider: string;
   sub: string;
   exp: number; // unix seconds
 }

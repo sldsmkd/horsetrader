@@ -1,35 +1,45 @@
 # unity-sync
 
-Unity's cloud Worker. **This cut: auth only** — Google OAuth2 authorization-code
-round-trip + a stateless signed-cookie session. R2 plan sync (`/api/sync`) lands
-in this same Worker next. See [unity/design.md](../../unity/design.md).
+Unity's cloud Worker. **This cut: auth only** — multi-provider OAuth2
+authorization-code round-trip + a stateless signed-cookie session. R2 plan sync
+(`/api/sync`) lands in this same Worker next. See [unity/design.md](../../unity/design.md).
 
 ## Endpoints
 
+The auth routes are provider-generic — `:provider` is a key in the registry
+(`src/providers.ts`): `google` and `discord`.
+
 | Method | Path | Purpose |
 | --- | --- | --- |
-| GET | `/api/auth/google/start` | 302 → Google (state + nonce + PKCE) |
-| GET | `/api/auth/google/callback` | code→token exchange, verify id_token, set session, 302 home |
+| GET | `/api/auth/:provider/start` | 302 → the provider (state + nonce + PKCE) |
+| GET | `/api/auth/:provider/callback` | code→token exchange, identify, set session, 302 home |
 | GET | `/api/me` | `{ authenticated, provider?, sub? }` |
 | POST | `/api/auth/logout` | clear the session cookie |
 | GET | `/` | tiny smoke page (dev affordance) |
 
-No server-side state: the OAuth transaction (state/nonce/PKCE verifier) rides a
-short-lived signed cookie across the redirect; the session is a signed cookie
-holding **identity only** — `{ provider, sub }`, no PII (design.md §7). Signing is
-Web Crypto HMAC-SHA256 (no dep); the only dependency is `jose` (id_token/JWKS
-verification). Auth-code, not the GIS id_token shortcut, because it's the one
-mechanism that also covers Discord later.
+No server-side state: the OAuth transaction (provider + state/nonce/PKCE verifier)
+rides a short-lived signed cookie across the redirect; the session is a signed
+cookie holding **identity only** — `{ provider, sub }`, no PII (design.md §7).
+Signing is Web Crypto HMAC-SHA256 (no dep); the only dependency is `jose`, used to
+verify Google's id_token. The two providers diverge only at *identify*: Google is
+OIDC (verify the `id_token` JWT against the JWKS), Discord is plain OAuth2 (exchange
+for an `access_token`, then `users/@me` → `id`). Auth-code throughout — the one
+mechanism that covers both.
 
 ## Secrets & config
 
-Public config is in `wrangler.toml` `[vars]` (`GOOGLE_CLIENT_ID`). Two **secrets**
-must be set before deploy:
+Public config is in `wrangler.toml` `[vars]` (`GOOGLE_CLIENT_ID`,
+`DISCORD_CLIENT_ID`). Three **secrets** must be set before deploy:
 
 ```sh
-wrangler secret put GOOGLE_CLIENT_SECRET   # from LastPass (the OAuth client secret)
-wrangler secret put SESSION_SECRET         # a long random string, e.g. `openssl rand -base64 48`
+wrangler secret put GOOGLE_CLIENT_SECRET    # from LastPass (the Google OAuth client secret)
+wrangler secret put DISCORD_CLIENT_SECRET   # Discord Developer Portal → Application → OAuth2
+wrangler secret put SESSION_SECRET          # a long random string, e.g. `openssl rand -base64 48`
 ```
+
+Register the callback URL in the Discord Developer Portal (**Application → OAuth2 →
+Redirects**), same shape as Google: `https://<host>/api/auth/discord/callback` (both
+the workers.dev smoke host and the production `horsetrader.site` host).
 
 ## Deploy & test
 
