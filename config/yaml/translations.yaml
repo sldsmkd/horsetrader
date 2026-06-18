@@ -36,7 +36,7 @@ translate-mission-mecha-launch:
   en: { name: "Run, Mecha Umamusume! Missions" }
 translate-mission-food-festival:
   jp: { name: "収穫ッ！満腹ッ！大豊食祭 公開記念ミッション" }
-  en: { name: "Great Food Festial Missions" }
+  en: { name: "Great Food Festival Missions" }
 translate-mission-new-scenario:
   jp: { name: "新育成シナリオ公開記念ミッション" }
   en: { name: "Design Your Island Missions" }
