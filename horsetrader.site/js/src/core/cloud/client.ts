@@ -47,3 +47,50 @@ export async function signOut(): Promise<void> {
     /* signed-out is signed-out — ignore transport errors */
   }
 }
+
+// ── plan sync: the ETag-CAS transport over `/api/sync` ──────────────────────
+// The Worker stores one save object per account; its ETag is the rev. The sync
+// layer (lastSyncedEtag/dirty, triggers, conflict dialog) builds on these two
+// primitives — they only move bytes + the ETag, no reconciliation policy here.
+
+/** Pull result: `exists:false` is the empty-cloud case (Worker 404), not an error. */
+export type PullResult =
+  | { exists: true; etag: string | null; doc: unknown }
+  | { exists: false };
+
+/** Pull the account's save blob + its rev. The Worker carries the etag in the BODY
+ *  (not the `ETag` header — a CDN may weaken that, breaking the next push's CAS). */
+export async function pullSave(): Promise<PullResult> {
+  const res = await fetch("/api/sync", { credentials: "include" });
+  if (res.status === 404) return { exists: false };
+  if (!res.ok) throw new Error(`pull failed: ${res.status}`);
+  const body = (await res.json()) as { etag: string | null; plan: unknown };
+  return { exists: true, etag: body.etag, doc: body.plan };
+}
+
+/** Push outcome: a 412 is the CAS reject = conflict, surfaced as data not a throw. */
+export type PushResult =
+  | { ok: true; etag: string | null }
+  | { ok: false; conflict: boolean; status: number };
+
+/**
+ * Conditionally push the save. `baseEtag` = the rev we believe we're updating:
+ * a string → `If-Match` (fast-forward); `null` → `If-None-Match: *` (first write).
+ * Anything but success returns `{ ok:false }`; `conflict` flags the 412 CAS reject.
+ */
+export async function pushSave(doc: unknown, baseEtag: string | null): Promise<PushResult> {
+  const headers: Record<string, string> = { "content-type": "application/json" };
+  if (baseEtag) headers["If-Match"] = baseEtag;
+  else headers["If-None-Match"] = "*";
+  const res = await fetch("/api/sync", {
+    method: "PUT",
+    credentials: "include",
+    headers,
+    body: JSON.stringify(doc),
+  });
+  if (res.ok) {
+    const body = (await res.json()) as { etag: string | null };
+    return { ok: true, etag: body.etag };
+  }
+  return { ok: false, conflict: res.status === 412, status: res.status };
+}

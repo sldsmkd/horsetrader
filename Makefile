@@ -31,7 +31,7 @@ PYTHON ?= venv/bin/python
 PYTHON_REPORT ?= python
 ANNIVERSARY_FLAGS ?=
 
-.PHONY: all seed bake types build dev serve deploy deploy-nobake security security-deps security-sast security-secrets security-report report-anniversary-economy report-anniversary-plot report-anniversary-equivalent-economy report-anniversary-equivalent-plot report-anniversary-equivalent report-anniversary reports clean
+.PHONY: all seed bake types build dev serve deploy deploy-nobake deploy-cloud security security-deps security-sast security-secrets security-report report-anniversary-economy report-anniversary-plot report-anniversary-equivalent-economy report-anniversary-equivalent-plot report-anniversary-equivalent report-anniversary reports clean
 
 # Full pipeline, sequenced (recursive $(MAKE) keeps order even under `make -j`).
 all:
@@ -119,6 +119,17 @@ deploy: all
 deploy-nobake: seed types build
 	$(MAKE) security
 	npm --prefix $(SITE) run deploy
+
+# Publish the cloud Worker(s) — every service under horsetrader.cloud/{service}
+# via its own `deploy` script (wrangler), so the folder + wrangler project name
+# stay in each service's own config, never typed by hand. Security-gated like the
+# site deploys. Run after editing a Worker (e.g. unity-sync auth/sync).
+deploy-cloud:
+	$(MAKE) security
+	@for svc in $(CLOUD_SERVICES); do \
+	  echo "==> deploy $$svc"; \
+	  npm --prefix $$svc run deploy || exit 1; \
+	done
 
 # Local analysis reports. Outputs are intentionally gitignored.
 reports:

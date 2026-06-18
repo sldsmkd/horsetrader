@@ -3,8 +3,6 @@ import { resolveClub } from "../../core/identity/clubrank.ts";
 import type { ClubIdentity, ClubRankTier } from "../../core/identity/clubrank.ts";
 import { resolvePlayStyle } from "../../core/playstyle/index.ts";
 import type { PlayStyleKey, PlayStyleSettings } from "../../core/playstyle/index.ts";
-import { loadSupporters, verifySupporter } from "./supporters.ts";
-import type { SupporterRegistry } from "./supporters.ts";
 import type { OshiOption, OshiSearchIndex } from "../query/index.ts";
 import type { Coordinator } from "../../core/engine/index.ts";
 import type { Bundle } from "../bundle/access.ts";
@@ -17,9 +15,6 @@ export interface MenuIdentity {
 export interface IdentityController {
   menuIdentity(): MenuIdentity;
   trainerName(): string;
-  trainerId(): string;
-  /** True iff this trainer's ID + name match a published supporter entry. */
-  isSupporter(): Promise<boolean>;
   currentOshi(): OshiOption;
   oshiSearch(): OshiSearchIndex;
   /** The trainer's club, or `null` when they aren't in one. */
@@ -28,7 +23,6 @@ export interface IdentityController {
   savedPlayStyleSettings(): PlayStyleSettings;
   commitPlayStyle(key: PlayStyleKey, settings: PlayStyleSettings): void;
   setTrainerName(name: string): void;
-  setTrainerId(id: string): void;
   setOshiId(id: string): void;
   /** Join or update the club (a non-empty name is membership). */
   setClub(name: string, rank: ClubRankTier): void;
@@ -38,7 +32,6 @@ export interface IdentityController {
 
 export function createIdentityController(coord: Coordinator, bundle: Bundle): IdentityController {
   const _oshiSearch = createOshiIndex(bundle);
-  let _supporters: Promise<SupporterRegistry> | undefined;
 
   function identityConfig(): Record<string, unknown> {
     const config = coord.document().config;
@@ -48,15 +41,10 @@ export function createIdentityController(coord: Coordinator, bundle: Bundle): Id
       : {};
   }
 
-
+  // The username is never-synced local state (not plan config) — read it straight
+  // off the coordinator's local tree.
   function trainerName(): string {
-    const name = identityConfig()["trainerName"];
-    return typeof name === "string" && name.trim() ? name : "Unknown";
-  }
-
-  function trainerId(): string {
-    const id = identityConfig()["trainerId"];
-    return typeof id === "string" ? id.replace(/\D/g, "").slice(0, 12) : "";
+    return coord.username().trim() ? coord.username() : "Unknown";
   }
 
   function oshiId(): string {
@@ -87,19 +75,13 @@ export function createIdentityController(coord: Coordinator, bundle: Bundle): Id
     },
 
     trainerName,
-    trainerId,
-    async isSupporter() {
-      _supporters ??= loadSupporters();
-      return verifySupporter(await _supporters, trainerId(), trainerName());
-    },
     currentOshi,
     oshiSearch: () => _oshiSearch,
     club: () => resolveClub(coord.document().config),
     savedPlayStyleKey: playStyleKey,
     savedPlayStyleSettings: playStyleSettings,
     commitPlayStyle,
-    setTrainerName: (name) => coord.patchIdentity({ trainerName: name }),
-    setTrainerId: (id) => coord.patchIdentity({ trainerId: id }),
+    setTrainerName: (name) => coord.setUsername(name),
     setOshiId: (id) => coord.patchIdentity({ oshiId: id }),
     setClub: (name, rank) => coord.setClub(name, rank),
     leaveClub: () => coord.setClub("", null),

@@ -110,14 +110,17 @@ favourites — see [appendix.md](appendix.md) §A). Consequences:
   for it. A one-`if` Worker reject above ~5 MB is cheap wallet-insurance against a
   hand-crafted request that bypasses the local store; it never touches a real user.
 
-**The one local-only exception (username).** The username
-(`config.identity.trainerName`) **never goes to the cloud** (PII-minimisation):
-- **on push:** strip it — omit the key or substitute `CLOUDUSER`; the cloud copy is
-  identity-anonymous.
-- **on pull:** re-decorate the local username over the pulled plan (local wins).
-- Generalises to a minimal **"local-only keys" allowlist** (just `trainerName`
-  today). This is the *only* dent in whole-blob-push — a fixed 1-key mask, not a diff
-  protocol. The simplification holds.
+**No local-only exception — the whole blob syncs, display name included** (reversed
+2026-06-18). Earlier drafts masked the username (`config.identity.trainerName`) out
+of the cloud copy for PII-minimisation (strip-on-push / re-decorate-on-pull, or a
+local-only-keys allowlist). That's gone: the display name **syncs with the plan**. A
+name that reappears on a second device is the human-legible "sync worked" signal,
+and an invisible-username sync is confusing. So there is no mask, no allowlist, no
+per-key dent in whole-blob-push — the cloud blob is *exactly* the serialised
+`PlanDocument`. The only device-local state left is the sync bookkeeping
+(last-synced etag + `dirty`), which is meaningless on another device. The `{ local,
+remote }` envelope split stays real, but it now divides *sync meta* from *plan*, not
+*identity* from *plan*.
 
 ---
 
@@ -253,9 +256,12 @@ the server rather than accumulating it.**
   to sync/mask/strip) and retires the trainer-id privacy design
   ([[project_trainer_id_privacy]]). *Downstream cleanup at integration:* remove the
   config field, its single render site, the masking plumbing.
-- **Username: local-only** (§4) — the cloud copy is identity-anonymous.
-- **No PII in the cloud blob.** The cloud knows *what you're planning*, not *who you
-  are*.
+- **Username: syncs** (reversed 2026-06-18, see §4) — a self-assigned display handle,
+  not real PII, and a name crossing devices is the "sync worked" signal. This is a
+  deliberate, scoped dent in the posture, not a drift.
+- **No *account* PII in the cloud blob.** Real identity (email, provider id) stays
+  with the OAuth provider and the signed session, never the plan. The cloud knows
+  *what you're planning* and *the handle you chose*, not *who you are*.
 
 ---
 

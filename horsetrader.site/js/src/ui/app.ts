@@ -40,6 +40,8 @@ import { commitContext } from "./select/commit.ts";
 import type { CommitBinding } from "./views/bannerGroup.ts";
 import { tazunaSurface } from "./views/tazunaSurface.ts";
 import { betaSurface } from "./views/betaSurface.ts";
+import { pullOnLoad } from "../core/cloud/sync.ts";
+import { presentCloudConflict } from "./views/cloudConflict.ts";
 import { bookmarks } from "./views/bookmarks.ts";
 import { bookmarkRows, nextBookmarkDate } from "./select/bookmarks.ts";
 import { plannerRows } from "./select/planner.ts";
@@ -509,7 +511,7 @@ export function mountApp(
       const betaCard = overlay({
         title: "Beta",
         placement: "right",
-        body: betaSurface(),
+        body: betaSurface(coord),
         onClose: () => view.set({ right: null }),
       });
       if (anyShield) suspendOverlay(betaCard);
@@ -575,4 +577,20 @@ export function mountApp(
   refresh();
   renderOverlay();
   renderBookmarks();
+
+  // Load-time auto-pull (design.md §5 trigger 1, Unity's first behaviour on the main
+  // load path): the UI is already live off localStorage; reconcile against the cloud
+  // in the background. A clean device fast-forwards (adopt → notify → re-render); a
+  // real divergence (local edits AND the cloud moved) raises the pick-a-side conflict
+  // dialog right here on load, rather than waiting for a manual Sync to discover it.
+  // Non-blocking and fail-soft — a signed-out 401 or a network failure just leaves
+  // the local plan in place. It never auto-pushes (push cadence stays user-initiated).
+  void (async () => {
+    const result = await pullOnLoad(coord);
+    // Chamber diagnostics: the path is otherwise silent, so a "nothing happened" is
+    // hard to tell from a failure. Logs the decision (noop = clean+unchanged, or the
+    // /api/sync 404 when not reachable e.g. the dev server; error = network/401).
+    console.info("[unity] load sync:", result.kind, result);
+    if (result.kind === "conflict") presentCloudConflict(coord, result.conflict);
+  })();
 }

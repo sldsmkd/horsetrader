@@ -252,6 +252,67 @@ test("commit(key, 0) clears the claim", () => {
 
 // ── the boundary (typed mutators, observe, toggles) ─────────────────────────
 
+test("a legacy flat v1 save is durably migrated to the envelope on load (not deferred)", () => {
+  const store = memoryStore();
+  store.write(
+    "horsetrader.plan",
+    JSON.stringify({ version: 1, config: { identity: { trainerName: "Xelene", trainerId: "123456789012", oshiId: "char-orfevre" } } }),
+  );
+  // Construct + immediately discard — loading alone must rewrite the store.
+  createCoordinator({ bundle: bundle(), config: config(), now: NOW, store });
+  const written = JSON.parse(store.read("horsetrader.plan") as string);
+  assert.equal(written.remote.version, 2);
+  // The display name now syncs — it stays in the remote plan; only the retired
+  // Trainer ID is stripped, and nothing lands in local.
+  assert.equal(written.remote.config.identity.trainerName, "Xelene");
+  assert.equal(JSON.stringify(written.remote).includes("trainerId"), false);
+  assert.equal("username" in written.local, false);
+  assert.equal(written.remote.config.identity.oshiId, "char-orfevre");
+});
+
+test("sync meta: mutations set dirty, markSynced clears + records the rev", () => {
+  const store = memoryStore();
+  const coord = createCoordinator({ bundle: bundle(), config: config(), now: NOW, store });
+  assert.deepEqual(coord.syncMeta(), { etag: null, dirty: false });
+  coord.commit("banner-kita", 100); // any plan mutation diverges from the cloud
+  assert.equal(coord.syncMeta().dirty, true);
+  coord.markSynced('"abc123"');
+  assert.deepEqual(coord.syncMeta(), { etag: '"abc123"', dirty: false });
+  // dirty + etag persist across reload (local.sync round-trips).
+  coord.commit("banner-kita", 50);
+  assert.deepEqual(createCoordinator({ bundle: bundle(), config: config(), now: NOW, store }).syncMeta(), { etag: '"abc123"', dirty: true });
+});
+
+test("adoptRemote swaps the plan + records the rev, bringing the cloud's trainer name across", () => {
+  const store = memoryStore();
+  const coord = createCoordinator({ bundle: bundle(), config: config(), now: NOW, store });
+  coord.setUsername("Local");
+  coord.commit("banner-kita", 100);
+  assert.equal(Object.keys(coord.document().commitments ?? {}).length, 1);
+  // Adopt a cloud plan that carries its own (synced) trainer name.
+  coord.adoptRemote({ version: 2, config: { identity: { trainerName: "Cloud" } } }, '"cloud-rev"');
+  assert.deepEqual(coord.document().commitments ?? {}, {});
+  assert.deepEqual(coord.syncMeta(), { etag: '"cloud-rev"', dirty: false });
+  assert.equal(coord.username(), "Cloud"); // the name rode in with the plan — the "sync worked" signal
+});
+
+test("the trainer name lives in the synced plan: rides in document(), persists, diverges the rev", () => {
+  const store = memoryStore();
+  const coord = createCoordinator({ bundle: bundle(), config: config(), now: NOW, store });
+  coord.setUsername("Xelene");
+  assert.equal(coord.username(), "Xelene");
+  // It lives IN the syncable plan (document() is the `remote` half) so it syncs,
+  // and setting it diverges the cloud rev like any plan edit.
+  assert.equal(JSON.stringify(coord.document()).includes("Xelene"), true);
+  assert.equal(coord.syncMeta().dirty, true);
+  // Survives a fresh coordinator over the same store.
+  const reloaded = createCoordinator({ bundle: bundle(), config: config(), now: NOW, store });
+  assert.equal(reloaded.username(), "Xelene");
+  // Empty clears it.
+  reloaded.setUsername("");
+  assert.equal(reloaded.username(), "");
+});
+
 test("mutators notify once per write; reads never notify", () => {
   const coord = coordinator();
   let fired = 0;

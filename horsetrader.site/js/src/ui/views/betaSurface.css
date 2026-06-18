@@ -34,8 +34,32 @@
   text-align: left;
 }
 
-.beta-surface__btn:hover {
+.beta-surface__btn:hover:not(:disabled) {
   background: color-mix(in srgb, currentColor 12%, transparent);
+}
+
+.beta-surface__btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* The Cloud/Sync pair sits side by side; their drop-down panel stacks below. */
+.beta-surface__row--inline {
+  flex-direction: row;
+}
+
+.beta-surface__row--inline .beta-surface__btn {
+  flex: 1;
+  text-align: center;
+}
+
+.beta-surface__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.6rem;
+  border-radius: 0.4rem;
+  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
 }
 
 .beta-surface__status {

@@ -38,6 +38,38 @@ Presentation **Settings** are a separate bucket if/when they need persistence:
 theme, animation preference, and similar UI behavior. They do not feed
 projection and should not be filed under account Configuration.
 
+## The on-disk envelope: `{ local, remote }`
+
+The stored artifact wraps the plan in a thin envelope that separates **what
+syncs** from **what never leaves the device**:
+
+```
+{ local: { username? }, remote: <the versioned PlanDocument> }
+```
+
+- **`remote`** is the four-section `PlanDocument` above — the versioned,
+  migratable unit, and the *exact* blob Unity (cloud sync) GET/PUTs to R2. The
+  coordinator, projection, and every downstream consumer read `remote` as "the
+  plan"; the envelope is invisible to them (`coordinator.document()` returns it).
+- **`local`** holds never-synced device state. Today that's just the trainer
+  **username** (a display name — PII-minimisation keeps it off the cloud, so the
+  cloud copy is identity-anonymous). The Unity sync layer adds its bookkeeping
+  here next (`sync?: { etag, dirty }`).
+
+This **structural** split is what makes cloud sync trivial: there is exactly one
+thing to sync (`remote`), with no per-push "strip the username / re-decorate on
+pull" masking. The cloud holds *what you're planning*, never *who you are*. The
+seam lives only at the persistence boundary (`core/persistence/index.ts`
+`load`/`save`); `local` is read/written through dedicated coordinator methods
+(`username()` / `setUsername()`), which persist + notify but never re-derive
+(local state is fold-inert).
+
+> The old 12-digit **Trainer ID** (a feature-gating hook + its supporter
+> detection) was deleted here entirely — the `v1 → v2` migration strips both
+> `trainerName` and `trainerId` from the plan's `config.identity` (lifting the
+> name to `local.username`). Auth identity supersedes it; any future gating goes
+> server-side (a Patreon integration), never a client-side allowlist.
+
 ## Principles
 
 ### One thin storage module — synchronous, simple
@@ -127,8 +159,10 @@ seam is designed once, not three times:
   requirement**: with no account, the URL *is* the transport. Same serialise
   machinery.
 - **App-meta** — small app-tracked values that are **not** plan input (e.g. the
-  what's-new "last seen version"). Stored through the same module but kept
-  **distinct from the four input sections** and outside the migratable plan shape.
+  what's-new "last seen version"). Kept **distinct from the four input sections**
+  and outside the migratable plan shape — its natural home is the envelope's
+  `local` tree (beside the username + sync metadata), since none of it should
+  ride to the cloud.
 
 A shared link is **untrusted ingress** — a pasted/shared URL is user-controlled,
 so it is validated like any other user input (see

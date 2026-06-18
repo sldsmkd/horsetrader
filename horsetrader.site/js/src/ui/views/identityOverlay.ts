@@ -28,7 +28,6 @@ export function buildTrainerCard(
     placement: "left",
     body: identitySurface({
       trainerName: identity.trainerName(),
-      trainerId: identity.trainerId(),
       oshiName: oshi.name,
       oshiPortrait: oshi.portrait,
       club: identity.club(),
@@ -36,7 +35,6 @@ export function buildTrainerCard(
       savedPlayStyleKey: identity.savedPlayStyleKey(),
       playStyleStrings: strings.playStyle,
       onTrainerNameChange: (name) => identity.setTrainerName(name),
-      onTrainerIdChange: (id) => identity.setTrainerId(id),
       onOshiSelect: on.onOshiSelect,
       onClubSelect: on.onClubSelect,
       onPlayStylePreview: on.onPlayStylePreview,

@@ -13,6 +13,13 @@ routes = [
   { pattern = "horsetrader.site/api/*", zone_name = "horsetrader.site" },
 ]
 
+# The plan store: one PRIVATE R2 bucket, never browser-facing — reached only
+# through this Worker's `env.BUCKET` binding (design.md §3). No public bucket/domain.
+# Create once with `wrangler r2 bucket create unity-saves`.
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "unity-saves"
+
 # Public, safe to commit (the OAuth client *secret* is a Worker secret, set via
 # `wrangler secret put GOOGLE_CLIENT_SECRET`; the session-signing key likewise
 # `wrangler secret put SESSION_SECRET`).

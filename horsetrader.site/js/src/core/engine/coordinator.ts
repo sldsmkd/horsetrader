@@ -20,8 +20,8 @@ import type { ConfigBundle } from "../bundle/config.gen.ts";
 import type { EventsBundle } from "../bundle/events.gen.ts";
 import { resolveClub } from "../identity/clubrank.ts";
 import type { ClubRankTier } from "../identity/clubrank.ts";
-import type { Snapshot } from "../persistence/document.ts";
-import type { PlanDocument } from "../persistence/index.ts";
+import type { Snapshot, SyncMeta } from "../persistence/document.ts";
+import type { LocalState, PlanDocument } from "../persistence/index.ts";
 import { load, save } from "../persistence/index.ts";
 import type { KeyValueStore } from "../persistence/storage.ts";
 import { defaultStore } from "../persistence/storage.ts";
@@ -57,8 +57,12 @@ export interface Coordinator {
    *  earlier-by-start claim, self-excluded (a P_income query, never P_final).
    *  `undefined` when the event carries no claim. */
   availableFor(eventKey: string): ResourceVector | undefined;
-  /** The persisted account state (read-only view). */
+  /** The persisted account state (read-only view) — the syncable `remote` plan. */
   document(): PlanDocument;
+  /** The trainer's display name (lives in the synced plan now), "" when unset. */
+  username(): string;
+  /** Cloud-sync bookkeeping: last-synced rev + whether local has diverged since. */
+  syncMeta(): SyncMeta;
   /** Every stream and its ephemeral toggle state. */
   streams(): StreamState[];
   /** True when the stored account state was unreadable and a clean one began. */
@@ -80,8 +84,18 @@ export interface Coordinator {
   setRushed(eventKey: string, on: boolean): void;
   /** Bookmark an entity (view-only; no money effect). */
   setFavourite(id: string, on: boolean, note?: string): void;
-  /** View-identity fields (trainer name/id, oshi) — persisted, fold-inert. */
+  /** View-identity fields (oshi, club) — persisted in the plan, fold-inert. */
   patchIdentity(patch: Record<string, unknown>): void;
+  /** Set the trainer's display name (synced plan state; "" clears it). */
+  setUsername(name: string): void;
+  /** Record a successful sync: adopt the new cloud rev, clear `dirty`. Local-only. */
+  markSynced(etag: string | null): void;
+  /**
+   * Replace the local plan with a pulled cloud `remote` and record its rev. NAIVE:
+   * adopts unconditionally — the dirty/conflict gate is the next flow to design
+   * (the site isn't released; data loss is acceptable while we shake this out).
+   */
+  adoptRemote(remote: PlanDocument, etag: string | null): void;
   /** Ephemeral dev toggle: drop a stream from the fold. Never persisted. */
   setEnabled(streamId: string, on: boolean): void;
 
@@ -152,6 +166,17 @@ function pruneStale(doc: PlanDocument, bundle: EventsBundle, now: CalendarDate, 
   return next;
 }
 
+/** The trainer's display name out of the synced plan (config.identity.trainerName),
+ *  or "" when unset. It rides in `remote` so it syncs (the "sync worked" signal). */
+function trainerNameOf(doc: PlanDocument): string {
+  const identity = doc.config?.["identity"];
+  const name =
+    typeof identity === "object" && identity !== null && !Array.isArray(identity)
+      ? (identity as Record<string, unknown>)["trainerName"]
+      : undefined;
+  return typeof name === "string" && name.trim() ? name : "";
+}
+
 /** One derivation's outputs — swapped whole on every write (immutable value). */
 interface Derived {
   world: SettledEvent[];
@@ -167,8 +192,14 @@ export function createCoordinator(options: CoordinatorOptions): Coordinator {
   const gacha = gachaOf(config);
 
   const loaded = load(store);
-  let doc = pruneStale(loaded.doc, bundle, now, timeZone);
-  if (doc !== loaded.doc) save(doc, store);
+  // `sync` is normalised present so every persist carries it (never-synced = etag null).
+  let local: LocalState = { ...loaded.envelope.local, sync: loaded.envelope.local.sync ?? { etag: null, dirty: false } };
+  let doc = pruneStale(loaded.envelope.remote, bundle, now, timeZone);
+  const persist = (): void => save({ local, remote: doc }, store);
+  // Write back once on load if the stored shape was upgraded (legacy→envelope or a
+  // remote-version migration) or stale entries were pruned — so the migration is
+  // durable, not deferred to the next mutation.
+  if (loaded.migrated || doc !== loaded.envelope.remote) persist();
 
   const toggles = new Map<string, boolean>(registry.streams.map((s) => [s.id, true]));
   const listeners = new Set<() => void>();
@@ -224,7 +255,9 @@ export function createCoordinator(options: CoordinatorOptions): Coordinator {
    *  sugar over this (commit pity ≡ change a slider — same operation). */
   function update(patch: Partial<Pick<PlanDocument, "snapshot" | "config" | "commitments" | "favourites" | "rushed">>): void {
     doc = { ...doc, ...patch };
-    save(doc, store);
+    // Any change to the syncable plan diverges it from the last-synced cloud rev.
+    local = { ...local, sync: { etag: local.sync?.etag ?? null, dirty: true } };
+    persist();
     current = derive();
     notify();
   }
@@ -242,6 +275,8 @@ export function createCoordinator(options: CoordinatorOptions): Coordinator {
     balanceAt: (date) => current.projection.series.balanceAt(date),
     availableFor: (eventKey) => current.available.get(eventKey),
     document: () => doc,
+    username: () => trainerNameOf(doc),
+    syncMeta: () => local.sync ?? { etag: null, dirty: false },
     streams: () => registry.streams.map((s) => ({ id: s.id, enabled: toggles.get(s.id) !== false })),
     recovered: () => loaded.recovered,
 
@@ -286,6 +321,27 @@ export function createCoordinator(options: CoordinatorOptions): Coordinator {
       update({ favourites: next });
     },
     patchIdentity: patchIdentitySection,
+    setUsername(name) {
+      // The display name lives in the synced plan (config.identity.trainerName), so
+      // a change diverges the cloud rev like any plan edit — route it through the
+      // identity patch (update → dirty → re-derive → notify). Empty clears it.
+      patchIdentitySection({ trainerName: name.trim() ? name : "" });
+    },
+    markSynced(etag) {
+      // A clean push/pull: the local plan now matches this cloud rev. Local-only,
+      // no re-derive (the plan itself didn't change).
+      local = { ...local, sync: { etag, dirty: false } };
+      persist();
+      notify();
+    },
+    adoptRemote(remote, etag) {
+      // Pull-adopt: swap the plan wholesale, prune stale entries, record the rev.
+      doc = pruneStale(remote, bundle, now, timeZone);
+      local = { ...local, sync: { etag, dirty: false } };
+      persist();
+      current = derive();
+      notify();
+    },
     setEnabled(streamId, on) {
       if (!toggles.has(streamId)) return; // unknown stream — nothing to toggle
       toggles.set(streamId, on);

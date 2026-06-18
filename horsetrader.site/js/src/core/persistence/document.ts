@@ -3,14 +3,22 @@
  * derived (per-banner totals, the resource curve, the minimap line are all
  * recomputed by projection — see docs/frontend/persistence.md).
  *
+ * On disk the document is wrapped in a `StoredEnvelope` that splits device-local
+ * sync bookkeeping from the syncable plan: `{ local, remote }` (see bottom of
+ * file). `remote` IS the `PlanDocument` below — the versioned, migratable,
+ * cloud-synced unit; `local` holds only the cloud-rev metadata (etag/dirty) that
+ * is meaningless on another device. The trainer's display name lives IN `remote`
+ * (config.identity.trainerName) so it syncs — a name that crosses devices is the
+ * human-legible "sync worked" signal. The split stays real for the sync meta.
+ *
  * The document is versioned and migratable. Field-level schemas of the four
  * sections are intentionally minimal/structural for now — they settle as the
  * projection engine and UI land. The machinery that reads, validates, migrates
  * and stores this document is the contract; the exact field lists are not yet.
  */
 
-/** Bump when the on-disk shape changes; pair with a migration in `migrations`. */
-export const CURRENT_VERSION = 1;
+/** Bump when the `remote` plan shape changes; pair with a migration in `migrations`. */
+export const CURRENT_VERSION = 2;
 
 /** A resource reading is a keyed vector — free/paid carats, tickets, shards, … */
 export type ResourceVector = { [resource: string]: number };
@@ -83,4 +91,40 @@ export interface PlanDocument {
 /** A clean document for a first-time user or after a fail-soft recovery. */
 export function emptyDocument(): PlanDocument {
   return { version: CURRENT_VERSION };
+}
+
+/**
+ * Cloud-sync bookkeeping (Unity) — local-only, never pushed. `etag` is the R2 rev
+ * of the last successfully-synced `remote` (the CAS base for the next push); null
+ * = never synced. `dirty` = local `remote` has changed since that sync.
+ */
+export interface SyncMeta {
+  etag: string | null;
+  dirty: boolean;
+}
+
+/**
+ * Never-synced, device-local state — deliberately OUTSIDE the syncable `remote`
+ * plan. Holds only `sync`, the cloud-rev bookkeeping (the last-synced etag + dirty
+ * flag), which is per-device and meaningless elsewhere. The trainer's display name
+ * is NOT here — it syncs, so it lives in `remote` (config.identity.trainerName).
+ */
+export interface LocalState {
+  sync?: SyncMeta;
+}
+
+/**
+ * The on-disk artifact: device-local sync meta beside the syncable plan. `remote`
+ * is the exact blob Unity GET/PUTs to R2 — including the trainer's display name,
+ * which deliberately syncs (a name appearing on a second device is *the* signal a
+ * pull worked). `local` carries only the cloud-rev bookkeeping, which can't travel.
+ */
+export interface StoredEnvelope {
+  local: LocalState;
+  remote: PlanDocument;
+}
+
+/** A clean envelope for a first-time user or after a fail-soft recovery. */
+export function emptyEnvelope(): StoredEnvelope {
+  return { local: {}, remote: emptyDocument() };
 }

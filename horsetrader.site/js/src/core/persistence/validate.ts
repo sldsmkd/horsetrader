@@ -15,6 +15,7 @@ import type {
   Config,
   Favourites,
   FavouriteEntry,
+  LocalState,
   PlanDocument,
   ResourceVector,
   Rushed,
@@ -23,6 +24,22 @@ import type {
 
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/**
+ * Validate the never-synced local state. Tiny by design — `local` holds only the
+ * cloud-rev bookkeeping (`sync`); the display name now syncs and lives in `remote`.
+ * Anything malformed is simply dropped; a corrupt `local` must never brick the app.
+ * (A legacy `local.username` is folded into `remote` by `load`, not read here.)
+ */
+export function validateLocal(value: unknown): LocalState {
+  const local: LocalState = {};
+  if (!isObject(value)) return local;
+  const sync = value["sync"];
+  if (isObject(sync) && (sync["etag"] === null || typeof sync["etag"] === "string")) {
+    local.sync = { etag: sync["etag"], dirty: sync["dirty"] === true };
+  }
+  return local;
 }
 
 /**
