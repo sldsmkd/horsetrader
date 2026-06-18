@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Unity — Google OAuth spike</title>
+<!-- Google Identity Services: gives us the standard "Sign in with Google"
+     button + popup, the UX users already recognise. -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+  body { font: 15px/1.5 system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; color: #1a1a1a; }
+  h1 { font-size: 1.3rem; }
+  .card { border: 1px solid #ddd; border-radius: 8px; padding: 1rem 1.25rem; margin: 1rem 0; }
+  .muted { color: #666; }
+  pre { background: #f5f5f7; border-radius: 6px; padding: .75rem; overflow-x: auto; font-size: 13px; white-space: pre-wrap; word-break: break-all; }
+  .key { color: #b00; }
+  button { font: inherit; padding: .5rem .9rem; border-radius: 6px; border: 1px solid #ccc; background: #fff; cursor: pointer; }
+  .warn { background: #fff8e1; border-color: #ffe082; }
+</style>
+</head>
+<body>
+<h1>Unity — local Google OAuth spike</h1>
+<p class="muted">
+  Proves the provider is set up and shows what comes back. This is a
+  <strong>de-risking spike</strong>, not the production flow: Unity's real auth is a
+  confidential-client auth-code exchange done <em>in the Worker</em> (the client
+  <em>secret</em> never touches this file). Here we just confirm the round-trip and
+  inspect the identity claims — chiefly <code>sub</code>, the
+  <code>(provider, providerUserId)</code> Unity keys a save on.
+</p>
+
+<div class="card warn" id="config-warning" hidden>
+  <strong>Set your Client ID first.</strong> Edit <code>CLIENT_ID</code> at the top of
+  this file with the OAuth <em>Web application</em> client ID from Google Cloud Console,
+  then reload. Register <code>http://localhost:8000</code> as an authorised JavaScript
+  origin (and <code>http://localhost:8000/</code> as a redirect URI).
+</div>
+
+<div class="card">
+  <h2 style="font-size:1rem;margin-top:0">1. Sign in (id_token — the identity)</h2>
+  <p class="muted">The standard button + popup. Returns a signed JWT (id_token).</p>
+  <div id="gbtn"></div>
+</div>
+
+<div class="card">
+  <h2 style="font-size:1rem;margin-top:0">2. Get an access token (bearer — optional)</h2>
+  <p class="muted">A separate popup that yields an OAuth2 access/bearer token (for
+    calling Google APIs). Unity doesn't need this — identity is enough — but you asked
+    to see a bearer token.</p>
+  <button id="tokenBtn" disabled>Request access token</button>
+</div>
+
+<div class="card" id="out" hidden>
+  <h2 style="font-size:1rem;margin-top:0">Result</h2>
+  <div id="result"></div>
+</div>
+
+<script>
+  // ─────────────────────────────────────────────────────────────────────────
+  // EDIT THIS: the OAuth "Web application" Client ID from Google Cloud Console.
+  // It is public (safe in client code). The client SECRET does NOT go here.
+  const CLIENT_ID = "716114571605-5s0a3fbbamr38t4mhtbrmokje6smkbsj.apps.googleusercontent.com";
+  // ─────────────────────────────────────────────────────────────────────────
+
+  const out = document.getElementById("out");
+  const result = document.getElementById("result");
+  const show = (title, obj) => {
+    out.hidden = false;
+    const div = document.createElement("div");
+    div.innerHTML = `<p><strong>${title}</strong></p><pre>${
+      typeof obj === "string" ? obj : JSON.stringify(obj, null, 2)
+    }</pre>`;
+    result.prepend(div);
+  };
+
+  // Decode a JWT payload (no verification — display only; the Worker verifies for real).
+  const decodeJwt = (jwt) => {
+    const [, payload] = jwt.split(".");
+    return JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/")));
+  };
+
+  function onCredential(response) {
+    const claims = decodeJwt(response.credential);
+    show("id_token claims (identity)", {
+      sub: claims.sub,              // ← Unity's providerUserId
+      email: claims.email,
+      email_verified: claims.email_verified,
+      name: claims.name,
+      iss: claims.iss,
+      aud: claims.aud,
+      exp: new Date(claims.exp * 1000).toISOString(),
+    });
+    show("raw id_token (JWT)", response.credential);
+  }
+
+  function init() {
+    if (CLIENT_ID.startsWith("PASTE_")) {
+      document.getElementById("config-warning").hidden = false;
+      return;
+    }
+    // (1) Standard Sign-in button + popup → id_token.
+    google.accounts.id.initialize({
+      client_id: CLIENT_ID,
+      callback: onCredential,
+      ux_mode: "popup",
+    });
+    google.accounts.id.renderButton(document.getElementById("gbtn"), {
+      theme: "outline", size: "large", text: "signin_with",
+    });
+
+    // (2) Optional access/bearer token via popup.
+    const tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: CLIENT_ID,
+      scope: "openid email profile",
+      callback: (resp) => show("access (bearer) token", {
+        access_token: resp.access_token,
+        token_type: resp.token_type,
+        scope: resp.scope,
+        expires_in: resp.expires_in,
+      }),
+    });
+    const tbtn = document.getElementById("tokenBtn");
+    tbtn.disabled = false;
+    tbtn.onclick = () => tokenClient.requestAccessToken();
+  }
+
+  // GIS script is async; poll until it's ready.
+  (function wait() {
+    if (window.google?.accounts) init();
+    else setTimeout(wait, 50);
+  })();
+</script>
+</body>
+</html>

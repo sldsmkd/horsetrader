@@ -1,0 +1,26 @@
+# Secret-scan leg of the security stage (Unity, unity/design.md §2).
+#
+# Unlike audit/SAST (scoped to the JS/Worker surface), secret scanning runs over
+# the WHOLE tree on purpose: a leaked OAuth client secret or session-signing key
+# is harmful in any file regardless of language, and the repo is published. Cheap
+# to scan everything; expensive to miss one.
+[extend]
+useDefault = true   # gitleaks' built-in ruleset (AWS/GCP keys, JWTs, PEMs, ...)
+
+[allowlist]
+description = "Generated/vendored/build paths + domain false-positives (this codebase uses 'key' for stable-keys, which trips the generic-api-key heuristic)."
+paths = [
+  '''node_modules/''',
+  '''static/''',         # gitignored build output (re-derived)
+  '''venv/''',
+  '''\.cache/''',
+  '''horsetrader\.site/package-lock\.json''',
+  '''__pycache__/''',    # compiled bytecode, not source
+  '''\.pyc$''',
+  '''.*\.test\.ts$''',   # test fixtures (frozen hash vectors, sample stable-keys) — not secrets
+]
+regexes = [
+  # Domain STABLE-KEY shapes, not credentials (e.g. _ANCHOR_KEY = "anniversary-3_0").
+  '''anniversary-\d''',
+  '''factorstudies-\d''',
+]

@@ -7,15 +7,16 @@
     "analyze:anniversaries:matrix": "node --no-warnings scripts/anniversary-economy.ts --matrix",
     "check": "tsc --noEmit",
     "test": "node --test \"js/src/**/*.test.ts\"",
+    "security:audit": "npm audit --omit=dev --audit-level=high",
     "dev": "cp index.html ../static/ && esbuild js/src/main.ts --bundle --sourcemap --outfile=../static/js/app.js --serve=localhost:3000 --servedir=../static",
     "build": "cp index.html ../static/ && esbuild js/src/main.ts --bundle --minify --outfile=../static/js/app.js",
     "deploy": "wrangler pages deploy ../static --project-name ${CLOUDFLARE_PAGES_PROJECT_NAME:-horsetrader-site}"
   },
   "devDependencies": {
-    "@types/node": "^25.9.1",
-    "esbuild": "^0.25.0",
-    "json-schema-to-typescript": "^15.0.4",
-    "typescript": "^5.7.0",
-    "wrangler": "^4.0.0"
+    "@types/node": "25.9.3",
+    "esbuild": "0.25.12",
+    "json-schema-to-typescript": "15.0.4",
+    "typescript": "5.9.3",
+    "wrangler": "4.101.0"
   }
 }

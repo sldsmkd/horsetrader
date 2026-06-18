@@ -20,11 +20,18 @@
 SITE   := horsetrader.site
 STATIC := static
 REPORTS := reports
+
+# Cloud services live one-per-dir under horsetrader.cloud/{service}, each a
+# self-contained npm project (own package.json, lockfile, pinned deps, wrangler
+# + eslint config). The security stage discovers them here and runs each one's
+# `security:audit` + `security:sast` scripts — so a new service is covered the
+# moment it adopts the per-service template (see horsetrader.cloud/README.md).
+CLOUD_SERVICES := $(wildcard horsetrader.cloud/*/)
 PYTHON ?= venv/bin/python
 PYTHON_REPORT ?= python
 ANNIVERSARY_FLAGS ?=
 
-.PHONY: all seed bake types build dev serve deploy deploy-nobake report-anniversary-economy report-anniversary-plot report-anniversary-equivalent-economy report-anniversary-equivalent-plot report-anniversary-equivalent report-anniversary reports clean
+.PHONY: all seed bake types build dev serve deploy deploy-nobake security security-deps security-sast security-secrets security-report report-anniversary-economy report-anniversary-plot report-anniversary-equivalent-economy report-anniversary-equivalent-plot report-anniversary-equivalent report-anniversary reports clean
 
 # Full pipeline, sequenced (recursive $(MAKE) keeps order even under `make -j`).
 all:
@@ -58,8 +65,51 @@ build:
 dev serve:
 	npm --prefix $(SITE) run dev
 
-# Publish the assembled static/ root to Cloudflare Pages.
+# Security stage (Unity). The trust-model flip — first server, first secrets,
+# first external deps (unity/design.md §2) — earns the project's first security
+# gate. Three legs, scoped to the new public boundary (NOT the local Python ETL):
+#   deps    — npm audit on RUNTIME/shipped deps (--omit=dev). Today the site has
+#             no runtime deps (0 vulns); the future Worker's vetted deps land
+#             here. Dev-toolchain noise (wrangler/miniflare) is advisory only via
+#             `make security-report`, never a deploy gate.
+#   sast    — eslint-plugin-security over the Worker surface (untrusted ingress).
+#   secrets — gitleaks over the whole tree (a leaked secret harms in any file).
+# Gates `deploy` and `deploy-nobake` so nothing ships without passing.
+security: security-secrets security-deps security-sast
+
+# deps — supply-chain audit of every npm-built artifact we publish: the site
+# bundle (shipped to users via Pages) + each cloud service (runs on Workers).
+security-deps:
+	npm --prefix $(SITE) run security:audit
+	@for svc in $(CLOUD_SERVICES); do \
+	  echo "==> audit $$svc"; \
+	  npm --prefix $$svc run security:audit || exit 1; \
+	done
+
+# sast — code-smell scan of the untrusted-ingress surface = the cloud services
+# ONLY (design.md §2: harden the new public boundary, don't retrofit the site or
+# the Python ETL). Empty until the first service lands.
+security-sast:
+	@for svc in $(CLOUD_SERVICES); do \
+	  echo "==> sast $$svc"; \
+	  npm --prefix $$svc run security:sast || exit 1; \
+	done
+
+security-secrets:
+	@command -v gitleaks >/dev/null 2>&1 || { \
+	  echo "ERROR: gitleaks not installed — required for the secret-scan leg."; \
+	  echo "  install: https://github.com/gitleaks/gitleaks/releases"; \
+	  echo "           (e.g. 'brew install gitleaks', 'yay -S gitleaks', or the static binary)"; \
+	  exit 1; }
+	gitleaks dir . --no-banner --redact
+
+# Advisory only (never gates): full audit incl. the dev toolchain.
+security-report:
+	-npm --prefix $(SITE) audit
+
+# Publish the assembled static/ root to Cloudflare Pages. Security-gated.
 deploy: all
+	$(MAKE) security
 	npm --prefix $(SITE) run deploy
 
 # Publish without re-baking: re-seed/type/build over the existing static/json/ +
@@ -67,6 +117,7 @@ deploy: all
 # and you only want to push site (js/css/html) changes. Requires a prior full
 # `make` to have populated the baked data — don't `make clean` before this.
 deploy-nobake: seed types build
+	$(MAKE) security
 	npm --prefix $(SITE) run deploy
 
 # Local analysis reports. Outputs are intentionally gitignored.
