@@ -22,7 +22,7 @@ export interface ViewState {
   bookmarks: boolean;
   /** Which face the Favourites/Planner drawer is showing. */
   bookmarksFace: "favourites" | "planner";
-  /** The open member of the RIGHT surface group (`"resources"` | `"tazuna"`),
+  /** The open member of the RIGHT surface group (`"resources"`),
    *  or `null`. Surfaces split into a left group (the identity machine, which
    *  owns its own state — not here) and a right group (this); each holds at most
    *  one surface + its children, and the two groups are independent — a left and

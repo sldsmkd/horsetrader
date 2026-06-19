@@ -16,7 +16,7 @@ import { pressedGroup } from "../widgets/pressedGroup.ts";
 
 /** A member of the right-hand surface group. The left group (identity) is a
  *  single button, so it takes a plain boolean. */
-export type RightSurface = "resources" | "tazuna" | "beta";
+export type RightSurface = "resources" | "beta";
 
 export interface Menubar {
   readonly el: HTMLElement;
@@ -25,7 +25,7 @@ export interface Menubar {
   setIdentity(identity: MenubarIdentity): void;
   /** Highlight the left group (identity) as open or not. */
   setLeftActive(active: boolean): void;
-  /** Highlight which right-group surface is open (balance/tazuna), or none. */
+  /** Highlight which right-group surface is open (balance), or none. */
   setRightActive(member: RightSurface | null): void;
   /** Lock the surface-spawning buttons while a shield (modal child window) is up.
    *  Navigation (home, search) stays live; so do the independent higher layers
@@ -45,26 +45,12 @@ export interface MenubarOpts {
   identity: MenubarIdentity;
   onHome: () => void;
   onIdentity: () => void;
-  onPlan: () => void;
   onResources: () => void;
-  onTazuna: () => void;
   /** Parked: the beta chamber renders no entry right now, so this is currently unused —
    *  kept as the seam for when the chamber is revived for the next graduating feature. */
   onBeta: () => void;
   search: SearchIndex;
   onSearch: (result: SearchResult) => void;
-}
-
-function menuButton(label: string, onClick: () => void): HTMLButtonElement {
-  return h(
-    "button",
-    {
-      class: "menubar__item menubar__button",
-      attr: { type: "button" },
-      on: { click: onClick },
-    },
-    label,
-  );
 }
 
 export function menubar(opts: MenubarOpts): Menubar {
@@ -103,17 +89,11 @@ export function menubar(opts: MenubarOpts): Menubar {
     identityIcon,
     identityName,
   );
-  const plan = menuButton("Plan", opts.onPlan);
-  const tazuna = menuButton("Tazuna", opts.onTazuna);
   // Beta (🔨): the WIP isolation chamber is PARKED — its first tenant (Unity cloud
   // auth/sync) has graduated onto the trainer card, so the chamber is empty. We keep the
   // surface plumbing (RightSurface "beta", onBeta, the renderOverlay branch) but render
   // no entry, so it's inactive + hidden until the next big feature graduates through it;
   // reviving it is just re-adding the icon button below to the right cluster.
-  // Plan is not built yet — keep it visibly inert rather than letting a click
-  // tear down the real cards. Flip this off when the planner surface lands.
-  plan.disabled = true;
-  plan.title = "Coming soon";
 
   const el = h(
     "nav",
@@ -134,7 +114,7 @@ export function menubar(opts: MenubarOpts): Menubar {
       identity,
     ),
     search,
-    h("div", { class: "menubar__cluster menubar__cluster--right" }, plan, balance, tazuna),
+    h("div", { class: "menubar__cluster menubar__cluster--right" }, balance),
   );
 
   // Two independent highlight groups: the left group is the single identity
@@ -143,7 +123,6 @@ export function menubar(opts: MenubarOpts): Menubar {
   const setRightPressed = pressedGroup(
     new Map<RightSurface, HTMLElement>([
       ["resources", balance],
-      ["tazuna", tazuna],
       // "beta" is parked (no entry rendered) — omitted until the chamber is revived.
     ]),
     "menubar__button--active",
@@ -157,9 +136,8 @@ export function menubar(opts: MenubarOpts): Menubar {
   setRightPressed(null);
 
   // The surface spawners a shield locks — every *live* menu item that opens a
-  // same-layer surface (not home/search, which are navigation). Plan is inert for
-  // now, so there's nothing to lock there.
-  const lockable: HTMLButtonElement[] = [identity, balance, tazuna];
+  // same-layer surface (not home/search, which are navigation).
+  const lockable: HTMLButtonElement[] = [identity, balance];
   function setShielded(shielded: boolean): void {
     for (const button of lockable) {
       button.disabled = shielded;

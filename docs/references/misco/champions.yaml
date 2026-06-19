@@ -1,0 +1,98 @@
+- name: Taurus Cup
+  notes: not entered, before I started playing
+  date: 2025-08-27
+  type: championship
+
+- name: Gemini Cup
+  notes: Just started playing, clutched a Bronze
+  date: 2025-09-17
+  type: championship
+  rewards:
+    carats_free: 700 # quali gems not tracked
+    support_tickets: 1
+    character_tickets: 1
+
+- name: Cancer Cup
+  notes: 1600m Tokyo, Seiun Sky was all cocky and Angling and Scheming; "I've won this she grinned to herself". Taishin put her phone down and crushed her by 7 lengths from the back of the field on a Mile.
+  date: 2025-10-16
+  type: championship
+  rewards:
+    carats_free: 1200 # quali gems not tracked
+    support_tickets: 3
+    character_tickets: 3
+
+- name: Leo Cup
+  notes: Medium distance, accidentally got promoted to Group A; Daiwa Scarlet won Group B.
+  date: 2025-11-09
+  type: championship
+  rewards:
+    carats_free: 1200 # quali gems not tracked
+    support_tickets: 3
+    character_tickets: 3
+
+- name: Virgo Cup
+  date: 2025-11-26
+  type: championship
+  notes: Won Group A final with Vodka
+  rewards:
+    carats_free: 2500 # quali gems not tracked
+    support_tickets: 5
+    character_tickets: 5
+
+- name: Libra Cup
+  date: 2025-12-17
+  type: championship
+  notes: Qualified for Group A final - Goldship (mostly) and Mayano Top Gun wins so far
+  rewards:
+    carats_free: 2185 # from qualifying carats # minimum +1200 for third place in Group A final + 3 each tickets, 2nd in final
+    support_tickets: 4
+    character_tickets: 4
+
+- name: Scorpio Cup
+  date: 2026-01-06 # actual completion date
+  notes: McQueen / Nice Nature / Suzuka possibly - not yet started
+  type: championship
+  rewards:
+    carats_free: 1665 # Round 1 day 1. (40,20,20,-10) Round 1 day 2. (30,30,30,-15), Round 2 day 1. (30,20,0,20), Round 2 day 2. (40, 150!, 30, 30) # final to come
+    # fucked up and used gems instead of free entries!
+    support_tickets: 3
+    character_tickets: 3
+
+- name: Sagittarius Cup
+  date: 2026-01-27
+  notes: didn't really train for this; golshi jammied 2nd place in Group A
+  type: championship
+  rewards:
+    carats_free: 2200 # didn't fully track about 400 from qualifying +1800 for 2nd place in final
+    support_tickets: 4
+    character_tickets: 4
+
+- name: Capricorn Cup
+  date: 2026-02-17
+  notes: 1200m Chukyo; high variance all RNG - didn't make it out of Group B; but won that with Curren Chan
+  type: championship
+  rewards:
+    carats_free: 1600 # 1200 for winning Group B + 400 ish from qualifying
+    support_tickets: 3
+    character_tickets: 3
+
+- name: Pisces Cup
+  date: 2026-03-26
+  notes: 3200m Hanshin in the rain. Group A 2nd place with Taishin. Golshi should have won it but got blocked by my Kitasan
+  type: championship
+  rewards:
+    carats_free: 2200 # Again not fully tracked, but +1800 for 2nd place in Group A final + 400 ish from qualifying
+    support_tickets: 4
+    character_tickets: 4
+
+- name: Aries Cup (CM12)
+  date: ??
+  notes: 2000m Nakayama or Hanshin cant remember. It's a Christmas Oguri meta. Chocobon was strong and drag raced Oguri down the backstraigh retaking first from a Pace Chaser but couldn't quite hold it and lost by a nose.
+
+- name: Taurus Cup (CM13)
+  date: ??
+  notes: 2400m Tokyo, Spring, Firm. Group A win with Ayabe. She rocketed out on the final straight and got boxed in by the fronts; then jinked right at the end and overtook the lead for the win!
+
+- name: Gemini Cup (CM14)
+  date: ??
+  notes: 1600m Tokyo, Spring. Group A win with a Medium Bourbon which was mad

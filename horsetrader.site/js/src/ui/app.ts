@@ -38,7 +38,6 @@ import { resourcesEditor } from "./views/resourcesEditor.ts";
 import { commitShield, commitTitle } from "./views/commitShield.ts";
 import { commitContext } from "./select/commit.ts";
 import type { CommitBinding } from "./views/bannerGroup.ts";
-import { tazunaSurface } from "./views/tazunaSurface.ts";
 import { betaSurface } from "./views/betaSurface.ts";
 import { reconcileOnLoad, fetchAuth, syncNow } from "../core/cloud/index.ts";
 import type { AuthState, SyncResult } from "../core/cloud/index.ts";
@@ -252,9 +251,7 @@ export function mountApp(
     identity: identity.menuIdentity(),
     onHome: () => tl.warpTo(now),
     onIdentity: () => sendIdentityEvent({ type: "toggle-identity" }),
-    onPlan: () => {}, // inert until the planner surface lands
     onResources: () => toggleRight("resources"),
-    onTazuna: () => toggleRight("tazuna"),
     onBeta: () => toggleRight("beta"),
     search,
     onSearch: (result) => {
@@ -562,15 +559,6 @@ export function mountApp(
           }),
         );
       }
-    } else if (right === "tazuna") {
-      const tazunaCard = overlay({
-        title: "Tazuna",
-        placement: "right",
-        body: tazunaSurface(),
-        onClose: () => view.set({ right: null }),
-      });
-      if (anyShield) suspendOverlay(tazunaCard);
-      children.push(tazunaCard);
     } else if (right === "beta") {
       const betaCard = overlay({
         title: "Beta",

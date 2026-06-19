@@ -145,9 +145,13 @@ Both bars should float (fixed/overlay) so content scrolls beneath them rather th
 
 Audit and unify all editing affordances. Pencil icons are doing the job but are visual noise — establish one consistent pattern and drop the icons where they're not carrying their weight.
 
-## Rushed state signifier
+## Rushed state signifier — post-launch parked
 
-Kale juice is the wrong icon for rushed. Replace with sprinting shoes (or similar speed/urgency metaphor). Add an orange flash tab on the card as a secondary signifier so rushed events are scannable at a glance.
+~~Kale juice is the wrong icon for rushed. Replace with sprinting shoes (or similar speed/urgency metaphor). Add an orange flash tab on the card as a secondary signifier so rushed events are scannable at a glance.~~
+
+Parked out of Debut: the current rushed control can hang around in code, but the
+concept may come back post-launch under a new guise. Do not spend launch polish
+budget on the existing kale-juice treatment.
 
 ## ✅ Commit trigger — remove dartboard
 
@@ -173,18 +177,22 @@ other income recipes rather than in TS.
 
 ## Menubar carats notifier
 
-Fix the carats display in the menubar. Replace the text label with Tazuna's face as the icon/avatar.
+Fix the carats display in the menubar.
 
 Progress: carats display fixed — the balance button now shows carats only and is
 single-height again (dropped the trainee/support ticket sub-line, which read a
-confusing negative). Still TODO: the Tazuna-face avatar swap. Related: the
-Resources surface now floors non-free-carat resources at 0, so a committed
-shortfall stops reading as negative stock (free carats stay signed — the
-overflow release valve).
+confusing negative). The Tazuna-face avatar swap was retired with the Tazuna menu
+entry. Related: the Resources surface now floors non-free-carat resources at 0,
+so a committed shortfall stops reading as negative stock (free carats stay signed
+— the overflow release valve).
 
-## Remove Plan from menu
+## ✅ Remove Plan from menu
 
-Drop the Plan entry from the navigation menu.
+~~Drop the Plan entry from the navigation menu.~~
+
+Done: the menu now exposes the live timeline controls only. The Favourites drawer
+can still flip to its Planner face; this removed only the dead top-level menu
+entry.
 
 ## ✅ Banner card icons
 
