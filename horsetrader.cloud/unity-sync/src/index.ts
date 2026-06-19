@@ -107,11 +107,11 @@ export default {
         return json({ error: "oauth_exchange_failed", detail: String(err) }, { status: 502 });
       }
       const session: Session = { provider: providerId, sub, exp: Math.floor(Date.now() / 1000) + SESSION_TTL };
-      // Land back on the site with a one-shot connect marker: the FE runs a FULL sync on
-      // connect (design.md §5 trigger 4 — first-auth migration: push a local plan up / pull
-      // a cloud one down), then strips the param. Auth itself is read from `/api/me`; the
-      // marker only flags "this load is a fresh connect".
-      const headers = new Headers({ location: `${origin}/?unity=connected` });
+      // Land back on the site clean — no connect marker. The FE runs a full sync on EVERY
+      // load (design.md §5: the bounded free-credit reconcile), so first-auth migration
+      // (push a local plan up / pull a cloud one down) just happens on this reload like any
+      // other; auth is read from `/api/me`. No state needs to ride in the URL.
+      const headers = new Headers({ location: `${origin}/` });
       headers.append("set-cookie", serializeCookie(SESSION_COOKIE, await sign(session, env.SESSION_SECRET), secureCookie({ maxAge: SESSION_TTL, path: "/" })));
       // Burn the one-shot transaction cookie.
       headers.append("set-cookie", serializeCookie(OAUTH_COOKIE, "", secureCookie({ maxAge: 0, path: "/api/auth" })));

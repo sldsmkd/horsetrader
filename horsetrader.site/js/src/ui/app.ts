@@ -40,8 +40,11 @@ import { commitContext } from "./select/commit.ts";
 import type { CommitBinding } from "./views/bannerGroup.ts";
 import { tazunaSurface } from "./views/tazunaSurface.ts";
 import { betaSurface } from "./views/betaSurface.ts";
-import { reconcileOnLoad } from "../core/cloud/index.ts";
+import { reconcileOnLoad, fetchAuth, syncNow } from "../core/cloud/index.ts";
+import type { AuthState, SyncResult } from "../core/cloud/index.ts";
 import { presentCloudConflict } from "./views/cloudConflict.ts";
+import { presentCloudProviderShield } from "./views/cloudProviderShield.ts";
+import { cloudControls } from "./views/cloudControls.ts";
 import { bookmarks } from "./views/bookmarks.ts";
 import { bookmarkRows, nextBookmarkDate } from "./select/bookmarks.ts";
 import { plannerRows } from "./select/planner.ts";
@@ -358,6 +361,62 @@ export function mountApp(
     sendIdentityEvent({ type: key === "custom" ? "commit-playstyle-stay" : "commit-playstyle" });
   };
 
+  // Unity cloud — the trainer card's Cloud Save controls. Auth + last-sync state live
+  // here (closure state, fetched ONCE at startup) rather than in the card, so the card's
+  // frequent rebuilds (every coord notify, via renderOverlay) never re-hit /api/me. Each
+  // state change re-renders the card through renderOverlay, the same path identity uses.
+  let cloudAuth: AuthState = { authenticated: false };
+  let cloudSyncing = false;
+  let cloudOutcome: string | null = null;
+  const cloudOutcomeLabel = (result: SyncResult): string => {
+    switch (result.kind) {
+      case "pushed":
+        return "Synced to cloud ✓";
+      case "fast-forwarded":
+        return "Updated from cloud ✓";
+      case "noop":
+        return "Already up to date ✓";
+      case "throttled":
+        return "Just synced — give it a few seconds";
+      case "error":
+        return "Sync failed — try again";
+      default:
+        return "";
+    }
+  };
+  const onCloud = (): void => {
+    if (shieldOpen()) return; // same belt-and-braces spawn guard as the other surfaces
+    presentCloudProviderShield({
+      coord,
+      auth: cloudAuth,
+      onSignedOut: () => {
+        cloudAuth = { authenticated: false };
+        cloudOutcome = null;
+        renderOverlay();
+      },
+    });
+  };
+  const runSync = async (): Promise<void> => {
+    if (cloudSyncing) return;
+    cloudSyncing = true;
+    cloudOutcome = "Syncing…";
+    renderOverlay();
+    const result = await syncNow(coord);
+    cloudSyncing = false;
+    if (result.kind === "conflict") {
+      cloudOutcome = "Conflict — choose a version to keep";
+      renderOverlay();
+      presentCloudConflict(coord, result.conflict, (outcome) => {
+        cloudOutcome = `Resolved — ${outcome}`;
+        renderOverlay();
+      });
+      return;
+    }
+    cloudOutcome = cloudOutcomeLabel(result);
+    renderOverlay();
+  };
+  const onSync = (): void => void runSync();
+
 
   // Live read of "is a shield (modal child window) up?" — the fallback guard for
   // every spawn control. Suspension already makes the controls unreachable; this
@@ -425,28 +484,40 @@ export function mountApp(
     // Rebuilt below if the Resources card is in this frame; the pan path checks it.
     liveResources = null;
 
+    // The Cloud Save controls on the trainer card — built fresh each frame off the live
+    // cloud state. Only one left-group branch runs per frame, so this single node mounts
+    // at most once. `dirty` drives the Sync button's lit state.
+    const cloud = cloudControls({
+      auth: cloudAuth,
+      dirty: coord.syncMeta().dirty,
+      syncing: cloudSyncing,
+      outcome: cloudOutcome,
+      onCloud,
+      onSync,
+    });
+
     if (left === "identity") {
-      children.push(buildTrainerCard(identity, strings, { suspended: anyShield }, trainerCardOn));
+      children.push(buildTrainerCard(identity, strings, { suspended: anyShield, cloud }, trainerCardOn));
     } else if (left === "oshi") {
       children.push(
-        buildTrainerCard(identity, strings, { suspended: true }, trainerCardOn),
+        buildTrainerCard(identity, strings, { suspended: true, cloud }, trainerCardOn),
         buildOshiSelectorOverlay(identity, { onClose: closeOshiSelector }),
       );
     } else if (left === "club") {
       children.push(
-        buildTrainerCard(identity, strings, { suspended: true }, trainerCardOn),
+        buildTrainerCard(identity, strings, { suspended: true, cloud }, trainerCardOn),
         buildClubSelectorOverlay(identity, { onClose: closeClubSelector }),
       );
     } else if (left === "playstyle") {
-      children.push(buildPlayStyleOverlay(identity, strings, identityUi, { suspended: anyShield }, playStyleOn));
+      children.push(buildPlayStyleOverlay(identity, strings, identityUi, { suspended: anyShield, cloud }, playStyleOn));
     } else if (left === "playstyle-oshi") {
       children.push(
-        buildPlayStyleOverlay(identity, strings, identityUi, { suspended: true }, playStyleOn),
+        buildPlayStyleOverlay(identity, strings, identityUi, { suspended: true, cloud }, playStyleOn),
         buildOshiSelectorOverlay(identity, { onClose: closeOshiSelector }),
       );
     } else if (left === "playstyle-club") {
       children.push(
-        buildPlayStyleOverlay(identity, strings, identityUi, { suspended: true }, playStyleOn),
+        buildPlayStyleOverlay(identity, strings, identityUi, { suspended: true, cloud }, playStyleOn),
         buildClubSelectorOverlay(identity, { onClose: closeClubSelector }),
       );
     }
@@ -511,7 +582,7 @@ export function mountApp(
       const betaCard = overlay({
         title: "Beta",
         placement: "right",
-        body: betaSurface(coord),
+        body: betaSurface(),
         onClose: () => view.set({ right: null }),
       });
       if (anyShield) suspendOverlay(betaCard);
@@ -578,10 +649,16 @@ export function mountApp(
   renderOverlay();
   renderBookmarks();
 
+  // Resolve the cloud session once, in the background, then re-render so the trainer
+  // card's Cloud button reflects connected/disconnected. Signed-out on any error.
+  void (async () => {
+    cloudAuth = await fetchAuth();
+    renderOverlay();
+  })();
+
   // Load-time cloud reconcile (design.md §5) — non-blocking + fail-soft: the UI is
   // already live off localStorage, and a signed-out 401 / network failure just leaves the
-  // local plan in place. The service decides flavour (fresh-connect full reconcile vs a
-  // normal-load pull) off the `?unity=connected` marker.
+  // local plan in place. One bounded "free credit" reconcile per load (push-on-open).
   void (async () => {
     const result = await reconcileOnLoad(coord);
     // Chamber diagnostics: the path is otherwise silent, so a "nothing happened" is

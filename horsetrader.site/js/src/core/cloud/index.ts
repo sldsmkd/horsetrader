@@ -8,8 +8,8 @@
  * Three layers, this file being the top:
  *   transport ([client.ts](client.ts)) — the raw `/api/*` endpoints (auth, pull, push,
  *                                         delete) + the OAuth redirect.
- *   reconcile ([sync.ts](sync.ts))      — the resolution.md state table (pullOnLoad,
- *                                         syncNow, keep-local/keep-cloud).
+ *   reconcile ([sync.ts](sync.ts))      — the resolution.md state table (syncNow,
+ *                                         keep-local/keep-cloud).
  *   service (here)                      — account lifecycle that composes the two with
  *                                         browser navigation (the connect marker).
  *
@@ -19,8 +19,8 @@
  */
 
 import { deleteSave, signOut, startSignIn } from "./client.ts";
-import { pullOnLoad, syncNow } from "./sync.ts";
-import type { LoadSyncResult, SyncResult } from "./sync.ts";
+import { syncNow } from "./sync.ts";
+import type { SyncResult } from "./sync.ts";
 import type { Coordinator } from "../engine/index.ts";
 
 // ── account lifecycle ───────────────────────────────────────────────────────
@@ -55,21 +55,21 @@ export async function switchProvider(coord: Coordinator, toProviderId: string): 
 // ── sync ────────────────────────────────────────────────────────────────────
 
 /**
- * Load-time reconcile (design.md §5). A fresh connect — the OAuth callback lands with a
- * one-shot `?unity=connected` — runs the FULL reconcile (`syncNow`) so a local plan
- * migrates UP to an empty cloud / a cloud plan comes DOWN / both-moved raises a conflict;
- * every other load is pull-only (`pullOnLoad`, push cadence stays user-initiated, §10).
- * The marker is stripped so a later refresh doesn't re-fire a connect-sync.
+ * Load-time reconcile (design.md §5) — runs the full `syncNow` once per app load.
+ *
+ * This is the bounded push-on-OPEN compromise (a variant of §5's push-on-close): an
+ * ordinary connected load spends a single "free credit" — if local is dirty it pushes
+ * UP (CAS), so a user opening the planner on a second device sees a reassuringly-current
+ * plan without lifting a finger; mostly a placebo for peace of mind. Clean local just
+ * fast-forwards a moved cloud; both-moved raises a conflict. The cap is structural —
+ * exactly ONE reconcile per load — so this never broadens into always-push (§10, the $0
+ * keystone). A fresh connect (the OAuth callback) takes this same path — first-auth
+ * migration just rides the post-redirect reload, no URL marker needed. Signed-out fails
+ * soft (a 401 surfaces as `error`, no push lands), so the "if connected" gate is implicit
+ * in the transport.
  */
-export async function reconcileOnLoad(coord: Coordinator): Promise<LoadSyncResult | SyncResult> {
-  const justConnected = new URLSearchParams(window.location.search).get("unity") === "connected";
-  if (justConnected) {
-    const url = new URL(window.location.href);
-    url.searchParams.delete("unity");
-    window.history.replaceState(null, "", url);
-    return syncNow(coord);
-  }
-  return pullOnLoad(coord);
+export async function reconcileOnLoad(coord: Coordinator): Promise<SyncResult> {
+  return syncNow(coord);
 }
 
 // ── re-exports: the rest of the cloud surface, one import path for the UI ──────
@@ -80,4 +80,4 @@ export type { AuthState, CloudProvider } from "./client.ts";
 
 /** The manual reconcile (the Sync button) + pick-a-side conflict resolution. */
 export { syncNow, keepCloud, keepLocal } from "./sync.ts";
-export type { CloudConflict, PlanFacts, SyncResult, LoadSyncResult } from "./sync.ts";
+export type { CloudConflict, PlanFacts, SyncResult } from "./sync.ts";

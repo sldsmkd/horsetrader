@@ -140,9 +140,11 @@ export function presentCloudConflict(
         keepCloud(coord, conflict.cloudDoc, conflict.cloudEtag);
         done("kept cloud");
       } else {
-        void keepLocal(coord, conflict.cloudEtag).then((push) =>
-          done(push.ok ? "kept local (pushed up)" : `keep-local failed (status ${push.status})`),
-        );
+        void keepLocal(coord, conflict.cloudEtag)
+          .then((push) => done(push.ok ? "kept local (pushed up)" : `keep-local failed (status ${push.status})`))
+          // The egress shape gate (assertPlausiblePlan) rejects a malformed plan before the
+          // push — resolve the dialog rather than leak an unhandled rejection.
+          .catch((err: unknown) => done(`keep-local blocked — ${String(err)}`));
       }
     },
     onCancel: () => done("cancelled (local kept, not synced)"),

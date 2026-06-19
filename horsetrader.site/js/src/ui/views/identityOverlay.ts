@@ -14,7 +14,7 @@ import type { UiStrings } from "../strings.ts";
 export function buildTrainerCard(
   identity: IdentityController,
   strings: UiStrings,
-  opts: { suspended?: boolean; previewPlayStyleKey?: PlayStyleKey },
+  opts: { suspended?: boolean; previewPlayStyleKey?: PlayStyleKey; cloud?: Node | undefined },
   on: {
     onOshiSelect: () => void;
     onClubSelect: () => void;
@@ -34,6 +34,7 @@ export function buildTrainerCard(
       playStyleKey: opts.previewPlayStyleKey ?? identity.savedPlayStyleKey(),
       savedPlayStyleKey: identity.savedPlayStyleKey(),
       playStyleStrings: strings.playStyle,
+      cloud: opts.cloud,
       onTrainerNameChange: (name) => identity.setTrainerName(name),
       onOshiSelect: on.onOshiSelect,
       onClubSelect: on.onClubSelect,
@@ -85,7 +86,7 @@ export function buildPlayStyleOverlay(
   identity: IdentityController,
   strings: UiStrings,
   state: PlayStyleMachineState,
-  opts: { suspended?: boolean },
+  opts: { suspended?: boolean; cloud?: Node | undefined },
   on: {
     onOshiSelect: () => void;
     onClubSelect: () => void;
@@ -127,7 +128,7 @@ export function buildPlayStyleOverlay(
   const identityCard = buildTrainerCard(
     identity,
     strings,
-    { previewPlayStyleKey: playStyleKey, ...(opts.suspended ? { suspended: true } : {}) },
+    { previewPlayStyleKey: playStyleKey, cloud: opts.cloud, ...(opts.suspended ? { suspended: true } : {}) },
     { onOshiSelect: on.onOshiSelect, onClubSelect: on.onClubSelect, onPlayStylePreview: on.onPlayStylePreview, onClose: on.onTrainerClose },
   );
 

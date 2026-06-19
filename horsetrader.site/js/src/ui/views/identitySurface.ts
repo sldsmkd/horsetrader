@@ -15,6 +15,9 @@ export interface IdentitySurfaceOpts {
   playStyleKey: PlayStyleKey;
   savedPlayStyleKey: PlayStyleKey;
   playStyleStrings: PlayStyleStrings;
+  /** The Unity cloud controls, slotted between club info and play style. Optional so the
+   *  surface renders standalone (tests / future contexts) without a cloud shell. */
+  cloud?: Node | undefined;
   onTrainerNameChange: (name: string) => void;
   onOshiSelect: () => void;
   onClubSelect: () => void;
@@ -167,6 +170,13 @@ export function identitySurface(opts: IdentitySurfaceOpts): HTMLElement {
         ),
       ),
     ),
+    opts.cloud &&
+      h(
+        "div",
+        { class: "identity-surface__cloud" },
+        h("span", { class: "identity-surface__label" }, "Cloud Save"),
+        opts.cloud,
+      ),
     h(
       "div",
       { class: "identity-surface__playstyle" },

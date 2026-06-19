@@ -1,8 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { load, save } from "./index.ts";
-import { CURRENT_VERSION } from "./document.ts";
+import { assertPlausiblePlan, load, save } from "./index.ts";
+import { CURRENT_VERSION, emptyDocument } from "./document.ts";
 import { DOCUMENT_KEY, memoryStore } from "./storage.ts";
 
 /** Silence the intentional warn/error logging the drop/recovery paths emit. */
@@ -171,4 +171,29 @@ test("a document newer than this app understands fails soft rather than misreads
   const { recovered, backupKey } = quietly(() => load(store));
   assert.equal(recovered, true);
   assert.ok(backupKey);
+});
+
+test("the egress shape gate passes a real plan and rejects obvious garbage", () => {
+  // A clean document and a fully-populated one both pass.
+  assert.doesNotThrow(() => assertPlausiblePlan(emptyDocument()));
+  assert.doesNotThrow(() =>
+    assertPlausiblePlan({
+      version: CURRENT_VERSION,
+      snapshot: { date: "2026-06-19", recordedAt: "2026-06-19T00:00:00.000Z", resources: { free_carats: 1 } },
+      config: { identity: { trainerName: "X" } },
+      commitments: { "30096": 50 },
+      favourites: { "108301": {} },
+      rushed: { "banner-30096": "2026-06-08T11:30:00.000Z" },
+    }),
+  );
+
+  // Not our document at all → throws (the load pipeline would never produce these).
+  assert.throws(() => assertPlausiblePlan(null));
+  assert.throws(() => assertPlausiblePlan("a plan, honest"));
+  assert.throws(() => assertPlausiblePlan({ commitments: {} })); // no version
+  assert.throws(() => assertPlausiblePlan({ version: CURRENT_VERSION + 1 })); // we never push a future version
+  assert.throws(() => assertPlausiblePlan({ version: 0 }));
+  // Right top-level key, wrong shape (array / primitive where an object belongs).
+  assert.throws(() => assertPlausiblePlan({ version: CURRENT_VERSION, commitments: [] }));
+  assert.throws(() => assertPlausiblePlan({ version: CURRENT_VERSION, snapshot: { resources: {} } })); // no date
 });

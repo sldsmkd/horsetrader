@@ -10,6 +10,7 @@
  * all — the load pipeline turns that throw into fail-soft recovery.
  */
 
+import { CURRENT_VERSION } from "./document.ts";
 import type {
   Commitments,
   Config,
@@ -49,6 +50,33 @@ export function validateLocal(value: unknown): LocalState {
  */
 export function isVersioned(value: unknown): value is { version: number } {
   return isObject(value) && typeof value["version"] === "number" && Number.isFinite(value["version"]);
+}
+
+/**
+ * Egress shape gate (Unity defence-in-depth — TODO §egress, the client-side twin of the
+ * Worker's planned "is this plausibly one of our saves"). A cheap structural assert run on
+ * a plan *before* we spend a network push: a bug producing a malformed in-memory document
+ * must not ship garbage to the cloud — from where it would sync down and corrupt every
+ * other device. Sanity, not full validation: `validateDocument` is the deep per-entry
+ * clean at ingress; this only checks the TOP-LEVEL shape we're about to PUT. We push
+ * current-versioned data, so an out-of-range version is itself a bug-signal. Throws on
+ * anything implausible; `syncNow` turns the throw into an `error` result and sends nothing.
+ */
+export function assertPlausiblePlan(value: unknown): asserts value is PlanDocument {
+  if (!isVersioned(value)) throw new Error("egress: not a plan document (no numeric version)");
+  if (!Number.isInteger(value.version) || value.version < 1 || value.version > CURRENT_VERSION) {
+    throw new Error(`egress: implausible plan version ${value.version}`);
+  }
+  const obj = value as Record<string, unknown>;
+  for (const key of ["snapshot", "config", "commitments", "favourites", "rushed"] as const) {
+    if (obj[key] !== undefined && !isObject(obj[key])) {
+      throw new Error(`egress: plan field "${key}" is not an object`);
+    }
+  }
+  const snapshot = obj["snapshot"];
+  if (isObject(snapshot) && typeof snapshot["date"] !== "string") {
+    throw new Error("egress: plan snapshot has no string date");
+  }
 }
 
 function numberVector(value: unknown): ResourceVector {

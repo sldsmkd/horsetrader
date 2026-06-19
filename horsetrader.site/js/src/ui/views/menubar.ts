@@ -48,6 +48,8 @@ export interface MenubarOpts {
   onPlan: () => void;
   onResources: () => void;
   onTazuna: () => void;
+  /** Parked: the beta chamber renders no entry right now, so this is currently unused —
+   *  kept as the seam for when the chamber is revived for the next graduating feature. */
   onBeta: () => void;
   search: SearchIndex;
   onSearch: (result: SearchResult) => void;
@@ -103,17 +105,11 @@ export function menubar(opts: MenubarOpts): Menubar {
   );
   const plan = menuButton("Plan", opts.onPlan);
   const tazuna = menuButton("Tazuna", opts.onTazuna);
-  // Beta (🔨): the WIP isolation chamber (Unity auth/sync proves out here). Icon
-  // button so it reads as a distinct "workshop" entry next to the named surfaces.
-  const beta = h(
-    "button",
-    {
-      class: "menubar__item menubar__button menubar__beta",
-      attr: { type: "button", "aria-label": "Beta", title: "Beta" },
-      on: { click: opts.onBeta },
-    },
-    h("img", { class: "menubar__beta-icon", attr: { src: "/icons/gold_hammer.png", alt: "", width: 24, height: 24 } }),
-  );
+  // Beta (🔨): the WIP isolation chamber is PARKED — its first tenant (Unity cloud
+  // auth/sync) has graduated onto the trainer card, so the chamber is empty. We keep the
+  // surface plumbing (RightSurface "beta", onBeta, the renderOverlay branch) but render
+  // no entry, so it's inactive + hidden until the next big feature graduates through it;
+  // reviving it is just re-adding the icon button below to the right cluster.
   // Plan is not built yet — keep it visibly inert rather than letting a click
   // tear down the real cards. Flip this off when the planner surface lands.
   plan.disabled = true;
@@ -138,7 +134,7 @@ export function menubar(opts: MenubarOpts): Menubar {
       identity,
     ),
     search,
-    h("div", { class: "menubar__cluster menubar__cluster--right" }, plan, balance, tazuna, beta),
+    h("div", { class: "menubar__cluster menubar__cluster--right" }, plan, balance, tazuna),
   );
 
   // Two independent highlight groups: the left group is the single identity
@@ -148,7 +144,7 @@ export function menubar(opts: MenubarOpts): Menubar {
     new Map<RightSurface, HTMLElement>([
       ["resources", balance],
       ["tazuna", tazuna],
-      ["beta", beta],
+      // "beta" is parked (no entry rendered) — omitted until the chamber is revived.
     ]),
     "menubar__button--active",
   );
@@ -163,7 +159,7 @@ export function menubar(opts: MenubarOpts): Menubar {
   // The surface spawners a shield locks — every *live* menu item that opens a
   // same-layer surface (not home/search, which are navigation). Plan is inert for
   // now, so there's nothing to lock there.
-  const lockable: HTMLButtonElement[] = [identity, balance, tazuna, beta];
+  const lockable: HTMLButtonElement[] = [identity, balance, tazuna];
   function setShielded(shielded: boolean): void {
     for (const button of lockable) {
       button.disabled = shielded;

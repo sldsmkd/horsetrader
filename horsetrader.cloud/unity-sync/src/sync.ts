@@ -34,6 +34,22 @@ export interface SyncEnv {
 // hand-crafted request that bypasses localStorage (design.md §4).
 const MAX_BLOB_BYTES = 5 * 1024 * 1024;
 
+/**
+ * Cheap plausibility sniff — the ingress twin of the client's `assertPlausiblePlan`
+ * (defence in depth, TODO §ingress). NOT validation: the blob is opaque to us by design
+ * (design.md §4), and fully parsing a multi-MB JSON tree at the edge to vet an opaque
+ * payload is overkill. We only confirm the body is plausibly one of *our* saves so R2
+ * stores plans, not a PDF / random junk someone POSTs to burn storage: it must open as a
+ * JSON object and carry `"version"` — the one always-present PlanDocument key. The size
+ * cap (above) is the real DoS gate and runs first, so this decode is already bounded; a
+ * substring scan never builds a parse tree. A determined forger can still craft a
+ * plausible-looking blob — that's fine, this is sanity, not a schema.
+ */
+function looksLikePlan(body: ArrayBuffer): boolean {
+  const text = new TextDecoder().decode(body).trimStart();
+  return text.startsWith("{") && text.includes('"version"');
+}
+
 /** The R2 key for an account — one object holds the whole save. Identity = (provider, sub), no linking (design.md §6). */
 const saveKey = (s: Session): string => `${s.provider}:${s.sub}`;
 
@@ -81,8 +97,14 @@ export async function handleSync(request: Request, env: SyncEnv, session: Sessio
     }
 
     const body = await request.arrayBuffer();
+    // Cheap gates, in cost order: reject oversize WITHOUT looking at content, then a
+    // bounded plausibility sniff (it must look like one of our plans) before we spend an
+    // R2 write. Neither fully parses the opaque blob.
     if (body.byteLength > MAX_BLOB_BYTES) {
       return json({ error: "blob_too_large", limit: MAX_BLOB_BYTES }, { status: 413 });
+    }
+    if (!looksLikePlan(body)) {
+      return json({ error: "implausible_plan" }, { status: 422 });
     }
 
     const result = await env.BUCKET.put(key, body, {

@@ -202,6 +202,12 @@
   object-fit: contain;
 }
 
+.identity-surface__cloud {
+  display: grid;
+  gap: 0.45rem;
+  padding-top: 0.05rem;
+}
+
 .identity-surface__playstyle {
   display: grid;
   gap: 0.45rem;

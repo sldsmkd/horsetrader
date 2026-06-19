@@ -26,6 +26,8 @@ import { isVersioned, validateDocument, validateLocal } from "./validate.ts";
 
 export type { PlanDocument, LocalState, StoredEnvelope } from "./document.ts";
 export { emptyDocument, emptyEnvelope } from "./document.ts";
+/** Egress shape gate — assert a plan is plausibly ours before a network push (Unity). */
+export { assertPlausiblePlan } from "./validate.ts";
 
 /** A plain object guard (a local copy keeps this module free of validate's internals). */
 function isObject(value: unknown): value is Record<string, unknown> {

@@ -1,0 +1,45 @@
+.cloud-controls {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.cloud-controls__row {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.cloud-controls__btn {
+  flex: 1;
+  font: inherit;
+  font-weight: 700;
+  padding: 0.45rem 0.7rem;
+  border-radius: 0.4rem;
+  border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+  background: color-mix(in srgb, currentColor 6%, transparent);
+  color: inherit;
+  cursor: pointer;
+  text-align: center;
+}
+
+.cloud-controls__btn:hover:not(:disabled),
+.cloud-controls__btn:focus-visible {
+  background: color-mix(in srgb, currentColor 12%, transparent);
+  outline: 0;
+}
+
+.cloud-controls__btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Connected: tint the Cloud button with the interactive accent so the link reads as live. */
+.cloud-controls__btn--connected {
+  border-color: color-mix(in srgb, var(--ht-colour-interactive) 55%, transparent);
+  background: color-mix(in srgb, var(--ht-colour-interactive) 14%, transparent);
+}
+
+.cloud-controls__status {
+  margin: 0;
+  font-size: 0.78rem;
+  opacity: 0.65;
+}
