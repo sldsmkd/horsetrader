@@ -4,7 +4,10 @@
  * It is sized to its content, so the live canvas shows through everywhere else. */
 .bookmarks {
   position: fixed;
-  top: 4.5rem;
+  /* Drop below the floating bar (same rail as its dropdowns) so the bar's controls
+     stay clear, and cap to the room between the two floating bars so the list never
+     runs past the minimap. */
+  top: calc(var(--timeline-chrome-top) + var(--timeline-chrome-height) + var(--timeline-chrome-gap));
   left: 0.75rem;
   display: flex;
   flex-direction: column;
@@ -12,7 +15,7 @@
   gap: 0.35rem;
   width: 24rem;
   max-width: calc(100vw - 1.5rem);
-  max-height: calc(100vh - 5.25rem - var(--minimap-h));
+  max-height: var(--chrome-dropdown-max-height);
 }
 
 .bookmarks__header {
