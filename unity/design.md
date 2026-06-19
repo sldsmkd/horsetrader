@@ -88,8 +88,13 @@ no hand-rolled counter, no DO, no SQL.
   conditional write. Thin authenticated proxy over a **private** bucket; R2
   credentials never leave the Worker.
 
-> **VERIFY before prototyping:** R2 `onlyIf` conditional-write shape (Workers
-> binding); R2 + Workers free-tier limits.
+> **VERIFIED (2026-06-19, in production):** R2 `onlyIf` conditional writes work as
+> designed — `If-None-Match: *` first-write and `If-Match: <etag>` fast-forward both
+> CAS correctly, a failed precondition returns no result (→ our `412`). One gotcha
+> surfaced and is handled: a CDN weakens the response `ETag` header to `W/"…"`, so the
+> rev rides the response **body** instead ([[etag_in_body_not_header]], sync.ts). R2 +
+> Workers free-tier limits hold at the modelled scale (appendix.md); a manual Sync is one
+> request, and load spends at most one reconcile (the bounded free-credit, §5).
 
 ---
 
@@ -155,14 +160,16 @@ cases are not conflicts: cloud-moved + local-clean = silent fast-forward; local-
 **Resolution = pick-a-side (Steam-style)** — local vs cloud, with enough metadata to
 choose. Merge stays off the table.
 
-**OPEN QUESTION — push cadence (cloud only; local autosave stays automatic+free).**
-Lean: **user-initiated** (the sync button), to conserve the request budget — and the
-binding reason is the **$0 keystone** (§10): every push is a Worker request against
-the 100k/day free cap. Secondary: fewer cloud advances → fewer conflicts; clear
-intentional sync points. Counter (why auto might win): Steam-Cloud transparency
-(forget to sync, open other device → stale). Likely compromise: **push-on-close**
-(one push/session at unload) as a cheap automatic safety net. **Decide against real
-usage; don't lock on paper.**
+**DECIDED (2026-06-19) — push cadence (cloud only; local autosave stays automatic+free).**
+**User-initiated** (the Sync button) is the cadence, for the $0 keystone (§10): every push
+is a Worker request against the 100k/day free cap, and user-initiated gives fewer cloud
+advances → fewer conflicts → clear intentional sync points. The Steam-Cloud "forgot to
+sync → stale on the other device" gap is covered NOT by push-on-close but by a bounded
+**push-on-OPEN**: an ordinary connected load spends exactly ONE "free credit" reconcile
+(`reconcileOnLoad` → `syncNow`), so opening on a second device is reassuringly current
+without lifting a finger. The cap is structural (one reconcile per load) so it never
+broadens into always-push; client egress is further choked to one sync / 5s. Net: at most
+one push per load + explicit Syncs, all within budget.
 
 **DEFERRED to the weeds:** versioning / "which-is-right" logic; dialog metadata
 (timestamps, device labels, value summary); exact resolution flow; sync-button

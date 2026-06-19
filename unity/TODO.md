@@ -67,12 +67,24 @@
 
 ## Also spotted on the 2026-06-19 pass (lower priority / may be moot)
 
-- [ ] **README stale.** `horsetrader.cloud/unity-sync/README.md` still says "auth only /
-      sync lands next", but `/api/sync` is wired. Add sync endpoints + R2-binding/secrets.
-- [ ] **U0 clean-push skip** (`resolution.md`): may already be covered — `syncNow` clean
-      does a pull and returns `noop` if unchanged. Confirm or close.
-- [ ] **VERIFY note still open on paper** (`design.md §3`): record that R2 `onlyIf` +
-      free-tier limits were verified.
-- [ ] **Graduate the conflict dialog** out of the beta chamber to an app-level modal;
-      device labels + real plan-mtime (`resolution.md` deferred polish).
-- [ ] **Decide push cadence** (`design.md §5`): user-initiated vs push-on-close.
+- [x] **README stale.** **DONE 2026-06-19.** `unity-sync/README.md` now reads "auth + plan
+      sync": added the `/api/sync` GET/PUT/DELETE rows, a "Plan sync" section (ETag-CAS,
+      etag-in-body, the size cap + plausibility sniff), and the `BUCKET` R2 binding in
+      config. Stale "beta surface" reference dropped.
+- [x] **U0 clean-push skip.** **RESOLVED 2026-06-19.** Confirmed + recorded in
+      `resolution.md`: a clean `syncNow` never spends a PUT — it does one GET to
+      fast-forward a moved cloud (P3) and returns `noop` when unchanged. The "skip the
+      wasteful push" intent is met; the GET is the deliberate fast-forward, not a no-op.
+- [x] **VERIFY note (`design.md §3`).** **DONE 2026-06-19.** Marked VERIFIED in production:
+      R2 `onlyIf` first-write/fast-forward CAS works; the CDN weak-ETag gotcha is handled
+      (rev in body); free-tier limits hold at modelled scale (≤1 reconcile/load + manual).
+- [x] **Graduate the conflict dialog.** **DONE 2026-06-19** (fell out of the beta
+      teardown): `presentCloudConflict` is app-level — raised from both the load reconcile
+      and the trainer card's Sync, both in `app.ts`; no beta chamber involved. Device
+      labels + real plan-mtime stay **deferred by design** (§5): we have no plan-level
+      mtime, so the dialog shows value-based `PlanFacts` (name/commitments/favourites/
+      rushed/snapshot) instead — the more useful discriminator. Closed; metadata polish is
+      a future nicety, not a gap.
+- [x] **Decide push cadence (`design.md §5`).** **DECIDED + SHIPPED 2026-06-19.**
+      User-initiated Sync + a bounded **push-on-open** free credit (≤1 reconcile/load,
+      egress choked to 1/5s); not push-on-close. Recorded in design.md §5.

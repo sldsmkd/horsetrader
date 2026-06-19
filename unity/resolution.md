@@ -135,23 +135,22 @@ is *clearer* than any merge the user can't inspect. One blob, one CAS, one dialo
 
 - **Push** implements U1–U5 (conditional PUT, 412-as-data); U5 recreates from local
   on an empty cloud (`syncNow`), with a racing create falling through to a P6 fork.
-  Only **U0** is missing — a manual push while clean should skip rather than spend a
-  request (cheap nicety; the button can still force).
-- **Load-time auto-pull** (`cloud/sync.ts` `pullOnLoad`, fired from `app.ts`, design
-  §5 trigger 1) does GET-and-compare: clean + cloud-moved → fast-forward (P3); **dirty
-  + cloud-moved → CONFLICT, dialog raised right on load** (the fork is no longer
-  discovered only on a manual Sync); cloud∅/unchanged/local-only-edits → no-op. Never
-  auto-pushes (push cadence stays user-initiated, §10). Non-blocking + fail-soft: a
-  signed-out 401 or network failure falls through to local. This is Unity's first
-  behaviour on the main (non-beta) load path.
-- **Sync-on-connect** (design §5 trigger 4, first-auth migration). The OAuth callback
-  lands with a one-shot `?unity=connected`; `app.ts` strips it and runs the **full**
-  reconcile (`syncNow`, not `pullOnLoad`) for that load only. A connect is an explicit
-  action, so an auto-push is justified — this is the one load that pushes UP: local plan
-  + cloud∅ → create (the migration push-up row); cloud present + clean → pull down; both
-  moved → conflict. Normal loads stay pull-only.
-- **Manual reconcile** (`syncNow`, the beta Sync button) implements the full table:
-  clean → fast-forward; dirty → conditional push (CAS), and a 412 (P6) → fetch the
+  **U0 RESOLVED** — a clean sync never spends a PUT; it does one GET to fast-forward a
+  moved cloud (P3) and returns `noop` when unchanged. The "skip the wasteful push" intent
+  is met (the GET is the deliberate fast-forward opportunity, not a no-op write).
+- **Load-time reconcile** (`cloud/index.ts` `reconcileOnLoad` → `syncNow`, fired from
+  `app.ts`, design §5). Every load runs the full reconcile once: clean + cloud-moved →
+  fast-forward (P3); **dirty + cloud-moved → CONFLICT, dialog raised right on load**;
+  clean dirty + cloud-unchanged → a bounded **free-credit push-on-open** (§5). The cap is
+  structural (one reconcile per load) so it never broadens into always-push; client egress
+  is further choked to one sync / 5s. Non-blocking + fail-soft: a signed-out 401 or network
+  failure falls through to local.
+- **Connect** (design §5, first-auth migration). The OAuth callback redirects to a clean
+  `/` (the old one-shot `?unity=connected` marker is gone — every load runs `syncNow`
+  anyway, so the first-auth migration just rides the post-redirect reload): local plan +
+  cloud∅ → create (push-up); cloud present + clean → pull down; both moved → conflict.
+- **Manual reconcile** (`syncNow`, the trainer card's Sync button) implements the full
+  table: clean → fast-forward; dirty → conditional push (CAS), and a 412 (P6) → fetch the
   cloud side and raise the **pick-a-side dialog**. The grading P4/P5-vs-P6 falls out:
   a clean push succeeds (no dialog); only a 412 forks.
 - **Resolution** (`keepCloud`/`keepLocal` + `ui/views/cloudConflict.ts`

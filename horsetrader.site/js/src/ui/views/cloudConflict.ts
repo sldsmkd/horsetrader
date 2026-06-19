@@ -117,10 +117,10 @@ export function cloudConflictDialog(opts: CloudConflictOpts): HTMLElement {
 /**
  * Mount the conflict dialog for a detected `CloudConflict`, wire pick-a-side to the
  * resolution helpers, and tear it down on choice/cancel. The single place both the
- * load-time path (app.ts) and the manual Sync (betaSurface) raise the prompt, so the
- * mounting + resolution glue isn't duplicated. `onResolved` reports a short outcome
- * string (for the beta status line); the coordinator notify it triggers re-renders
- * the rest of the app.
+ * load-time path and the manual Sync (the trainer card's Cloud Save controls) raise the
+ * prompt — both in `app.ts` — so the mounting + resolution glue isn't duplicated.
+ * `onResolved` reports a short outcome string (surfaced as the card's sync status); the
+ * coordinator notify it triggers re-renders the rest of the app.
  */
 export function presentCloudConflict(
   coord: Coordinator,
