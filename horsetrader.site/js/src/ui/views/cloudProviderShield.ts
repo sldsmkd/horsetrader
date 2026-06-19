@@ -1,8 +1,8 @@
 /**
  * The Cloud Provider shield — the write half of "connect a cloud" (the editor-as-shield
  * tenet — [[feedback_shield_vs_unfold]]; the cloud conflict dialog is the sibling
- * cloud modal). The beta surface's Cloud button reads a connection; *changing* it
- * (connect a provider / disconnect) is a deliberate action, so it gets a modal, not an
+ * cloud modal). The trainer card's Cloud button reads a connection; *changing* it
+ * (connect a provider / disconnect) is a deliberate action, so it gets a shield, not an
  * inline unfold.
  *
  * One radio-style toggle list, one row per {@link CLOUD_PROVIDERS} entry (Google now,
@@ -17,8 +17,11 @@
  *     destructive confirm) then redirect to the new provider's OAuth. No linking, so a
  *     switch is a clean break, not a merge.
  *
- * Self-contained modal: fixed scrim + centred card, mounted on `document.body` and torn
- * down on close. `presentCloudProviderShield` is the single mount/teardown entry.
+ * Behaves like every other shield (oshi/club/balance/commit): a plain BODY rendered into
+ * the overlay layer by the app shell, tracked in view-state (`cloudConnecting`) so it
+ * suspends the trainer card behind it and locks the menu spawners — no self-mounted scrim,
+ * so the timeline stays live behind it (ui.md principle 1). The `onClose` it returns
+ * through is the shell's view-state reset.
  */
 
 import "./cloudProviderShield.css";
@@ -36,6 +39,8 @@ export interface CloudProviderShieldOpts {
   /** Fired when the user ends up signed out (disconnect-and-stay) — the caller refreshes
    *  its auth state. A switch redirects to the new provider instead, so it skips this. */
   onSignedOut: () => void;
+  /** Close the shield (the shell clears `cloudConnecting`). Called by the overlay's own
+   *  close control AND after a completed disconnect. */
   onClose: () => void;
 }
 
@@ -103,39 +108,8 @@ export function cloudProviderShield(opts: CloudProviderShieldOpts): HTMLElement 
     });
   }
 
-  return h(
-    "div",
-    {
-      class: "cloud-provider",
-      attr: { role: "dialog", "aria-modal": "true", "aria-label": "Cloud provider" },
-      // Click the scrim (but not the card) to dismiss.
-      on: { click: (e) => e.target === e.currentTarget && opts.onClose() },
-    },
-    h(
-      "div",
-      { class: "cloud-provider__card" },
-      h(
-        "div",
-        { class: "cloud-provider__header" },
-        h("h2", { class: "cloud-provider__title" }, "Cloud Save"),
-        h(
-          "button",
-          { class: "cloud-provider__close", attr: { type: "button", "aria-label": "Close" }, on: { click: opts.onClose } },
-          "✕",
-        ),
-      ),
-      intro,
-      list,
-    ),
-  );
-}
-
-/** Mount the shield, wire teardown into both exits, and append it to the document.
- *  The single place the beta surface (and, when Unity graduates, the menubar) raises
- *  the connect/disconnect modal — so the mount/teardown glue isn't duplicated. */
-export function presentCloudProviderShield(opts: Omit<CloudProviderShieldOpts, "onClose">): void {
-  let shield: HTMLElement;
-  const close = (): void => shield.remove();
-  shield = cloudProviderShield({ ...opts, onClose: close });
-  document.body.appendChild(shield);
+  // The shield BODY only — the app shell wraps it in `overlay({ title:"Cloud Save",
+  // placement:"center" })`, which supplies the header + close control + non-blocking
+  // chrome, exactly like the oshi/club/balance shields.
+  return h("div", { class: "cloud-provider" }, intro, list);
 }

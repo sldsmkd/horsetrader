@@ -43,7 +43,7 @@ import { betaSurface } from "./views/betaSurface.ts";
 import { reconcileOnLoad, fetchAuth, syncNow } from "../core/cloud/index.ts";
 import type { AuthState, SyncResult } from "../core/cloud/index.ts";
 import { presentCloudConflict } from "./views/cloudConflict.ts";
-import { presentCloudProviderShield } from "./views/cloudProviderShield.ts";
+import { cloudProviderShield } from "./views/cloudProviderShield.ts";
 import { cloudControls } from "./views/cloudControls.ts";
 import { bookmarks } from "./views/bookmarks.ts";
 import { bookmarkRows, nextBookmarkDate } from "./select/bookmarks.ts";
@@ -386,15 +386,7 @@ export function mountApp(
   };
   const onCloud = (): void => {
     if (shieldOpen()) return; // same belt-and-braces spawn guard as the other surfaces
-    presentCloudProviderShield({
-      coord,
-      auth: cloudAuth,
-      onSignedOut: () => {
-        cloudAuth = { authenticated: false };
-        cloudOutcome = null;
-        renderOverlay();
-      },
-    });
+    view.set({ cloudConnecting: true }); // tracked like every other shield → suspends + locks
   };
   const runSync = async (): Promise<void> => {
     if (cloudSyncing) return;
@@ -430,7 +422,8 @@ export function mountApp(
       left === "club" ||
       left === "playstyle-club" ||
       view.get().resourcesEditing ||
-      view.get().committing !== null
+      view.get().committing !== null ||
+      view.get().cloudConnecting
     );
   };
 
@@ -587,6 +580,30 @@ export function mountApp(
       });
       if (anyShield) suspendOverlay(betaCard);
       children.push(betaCard);
+    }
+
+    // The Cloud provider shield: spawned from the trainer card's Cloud button,
+    // independent of the left/right groups. A shield like the commit/balance ones — it
+    // sits in `anyShield` above (suspending the other surfaces + locking the menu) and
+    // the timeline behind it stays live. Disconnect resets the app's cloud auth in place.
+    if (view.get().cloudConnecting) {
+      const closeCloud = (): void => view.set({ cloudConnecting: false });
+      children.push(
+        overlay({
+          title: "Cloud Save",
+          placement: "center",
+          body: cloudProviderShield({
+            coord,
+            auth: cloudAuth,
+            onSignedOut: () => {
+              cloudAuth = { authenticated: false };
+              cloudOutcome = null;
+            },
+            onClose: closeCloud,
+          }),
+          onClose: closeCloud,
+        }),
+      );
     }
 
     // The commit shield: spawned at source from a banner readout, independent of

@@ -38,6 +38,10 @@ export interface ViewState {
    *  to every other spawnable window (feedback_shield_vs_unfold). Independent of
    *  the left/right surface groups; the timeline behind it stays live. */
   committing: string | null;
+  /** Whether the Cloud provider shield is up (connect / disconnect / switch). A shield
+   *  like the others — spawned from the trainer card's Cloud button, modal to every
+   *  spawnable window, the timeline behind it stays live (feedback_shield_vs_unfold). */
+  cloudConnecting: boolean;
 }
 
 export interface ViewStore {
@@ -57,6 +61,7 @@ const INITIAL: ViewState = {
   right: null,
   resourcesEditing: false,
   committing: null,
+  cloudConnecting: false,
 };
 
 export function createViewStore(initial: Partial<ViewState> = {}): ViewStore {
