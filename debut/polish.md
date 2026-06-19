@@ -19,10 +19,6 @@ new subsystem work should graduate out of this file.
 > club selector, confirm shield, and the cloud shields (cloud is a *deliberate*
 > hold — leave as-is unless asked). See done.md for the full receipt + the rules.
 
-- **Brand the cloud provider buttons.** The Unity provider picker works, but the
-  Google / Discord rows still read as generic glyph chips. Replace the placeholder
-  `"G"` / `"D"` treatment with permitted provider-brand button styles and real
-  marks. Source: [unity/TODO.md](../unity/TODO.md).
 - **Pity shield copy and completeness.** Representation DONE: tickets/paid carats
   floor at 0, free carats read negative (release valve) and redden, and the pity
   box reuses the timeline colour bands. REMAINING: concise copy for the

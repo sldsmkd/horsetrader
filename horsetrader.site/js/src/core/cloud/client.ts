@@ -24,18 +24,18 @@ export type AuthState =
  * AND the `provider` string the session echoes back — they're the same key, so the
  * shield can label a connected identity from this list. Google ships now; Discord is
  * the planned second ([[project_unity_save_load]]), so the picker is list-driven —
- * adding it is one entry here plus the Worker route, no UI change. `icon` is a glyph
- * for the shield (no asset pipeline for a two-item list).
+ * adding it is one entry here plus the Worker route, no UI change. `brand` selects the
+ * shield mark/style without coupling the transport client to any DOM implementation.
  */
 export interface CloudProvider {
   id: string;
   label: string;
-  icon: string;
+  brand: "google" | "discord";
 }
 
 export const CLOUD_PROVIDERS: readonly CloudProvider[] = [
-  { id: "google", label: "Google", icon: "G" },
-  { id: "discord", label: "Discord", icon: "D" },
+  { id: "google", label: "Google", brand: "google" },
+  { id: "discord", label: "Discord", brand: "discord" },
 ];
 
 /** Who is this session? Resolves to signed-out on any error (network, 401, …). */

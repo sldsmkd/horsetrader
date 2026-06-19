@@ -5,6 +5,18 @@ Completed items from the Debut readiness pass. This is the little receipt pile:
 
 ## 2026-06-19
 
+### Cloud provider buttons branded
+
+Replaced the Unity cloud provider picker placeholder glyphs with actual provider
+marks and provider-coloured row accents:
+
+- `CLOUD_PROVIDERS` now carries a `brand` key rather than `"G"` / `"D"` text.
+- The cloud provider shield renders inline Google and Discord SVG marks.
+- Hover and connected states tint from each provider brand while keeping the
+  existing one-provider radio/toggle behaviour intact.
+
+Verification: `npm run check` passed from `horsetrader.site/`.
+
 ### Identity surfaces design language established
 
 The trainer card + play-style card now set Debut's glass-table surface language,

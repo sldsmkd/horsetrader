@@ -29,8 +29,10 @@ import "./cloudProviderShield.css";
 import { h } from "../h.ts";
 import { presentConfirmShield } from "./confirmShield.ts";
 import { CLOUD_PROVIDERS, connect, disconnect, switchProvider } from "../../core/cloud/index.ts";
-import type { AuthState } from "../../core/cloud/index.ts";
+import type { AuthState, CloudProvider } from "../../core/cloud/index.ts";
 import type { Coordinator } from "../../core/engine/index.ts";
+
+const SVG_NS = "http://www.w3.org/2000/svg";
 
 export interface CloudProviderShieldOpts {
   /** The account state the lifecycle ops act on (disconnect/switch touch its sync meta). */
@@ -63,11 +65,11 @@ export function cloudProviderShield(opts: CloudProviderShieldOpts): HTMLElement 
       h(
         "button",
         {
-          class: `cloud-provider__option${on ? " cloud-provider__option--on" : ""}`,
+          class: `cloud-provider__option cloud-provider__option--${provider.brand}${on ? " cloud-provider__option--on" : ""}`,
           attr: { type: "button", role: "radio", "aria-checked": on },
           on: { click: () => onToggle(provider.id, on) },
         },
-        h("span", { class: "cloud-provider__icon" }, provider.icon),
+        h("span", { class: "cloud-provider__icon" }, providerMark(provider)),
         h("span", { class: "cloud-provider__option-label" }, provider.label),
         on && h("span", { class: "cloud-provider__state" }, "Connected"),
       ),
@@ -112,4 +114,60 @@ export function cloudProviderShield(opts: CloudProviderShieldOpts): HTMLElement 
   // placement:"center" })`, which supplies the header + close control + non-blocking
   // chrome, exactly like the oshi/club/balance shields.
   return h("div", { class: "cloud-provider" }, intro, list);
+}
+
+function providerMark(provider: CloudProvider): SVGSVGElement {
+  switch (provider.brand) {
+    case "google":
+      return googleMark();
+    case "discord":
+      return discordMark();
+  }
+}
+
+function googleMark(): SVGSVGElement {
+  return svg(
+    "svg",
+    { class: "cloud-provider__mark", viewBox: "0 0 24 24", "aria-hidden": "true", focusable: "false" },
+    svg("path", {
+      fill: "#4285f4",
+      d: "M23.5 12.3c0-.8-.1-1.5-.2-2.2H12v4.2h6.5c-.3 1.5-1.1 2.8-2.3 3.6v3h3.7c2.2-2 3.6-5 3.6-8.6z",
+    }),
+    svg("path", {
+      fill: "#34a853",
+      d: "M12 24c3.2 0 5.9-1.1 7.9-2.9l-3.7-3c-1 .7-2.4 1.1-4.2 1.1-3.1 0-5.7-2.1-6.6-4.9H1.6v3.1C3.5 21.3 7.5 24 12 24z",
+    }),
+    svg("path", {
+      fill: "#fbbc05",
+      d: "M5.4 14.3c-.2-.7-.4-1.5-.4-2.3s.1-1.6.4-2.3V6.6H1.6C.6 8.2 0 10 0 12s.6 3.8 1.6 5.4l3.8-3.1z",
+    }),
+    svg("path", {
+      fill: "#ea4335",
+      d: "M12 4.8c1.7 0 3.3.6 4.5 1.8L19.9 3C17.9 1.1 15.2 0 12 0 7.5 0 3.5 2.7 1.6 6.6l3.8 3.1C6.3 6.9 8.9 4.8 12 4.8z",
+    }),
+  );
+}
+
+function discordMark(): SVGSVGElement {
+  return svg(
+    "svg",
+    { class: "cloud-provider__mark", viewBox: "0 0 24 24", "aria-hidden": "true", focusable: "false" },
+    svg("path", {
+      fill: "currentColor",
+      d: "M20.3 4.4A19 19 0 0 0 15.5 3l-.2.4c1.7.5 2.5 1.2 2.5 1.2A16.5 16.5 0 0 0 12 3.5a16.5 16.5 0 0 0-5.8 1.1s.8-.7 2.6-1.2L8.5 3a19 19 0 0 0-4.8 1.4C.7 8.9-.1 13.3.3 17.7A19.4 19.4 0 0 0 6.2 21l.7-1.2c-1.3-.5-2-1.3-2-1.3l.5.3c.1.1.2.1.3.2A13.7 13.7 0 0 0 12 20.4a13.7 13.7 0 0 0 6.3-1.4l.3-.2.5-.3s-.7.8-2 1.3l.7 1.2a19.4 19.4 0 0 0 5.9-3.3c.5-5.1-.8-9.5-3.4-13.3zM8.5 15.3c-1.1 0-2-1-2-2.2s.9-2.2 2-2.2 2 1 2 2.2-.9 2.2-2 2.2zm7 0c-1.1 0-2-1-2-2.2s.9-2.2 2-2.2 2 1 2 2.2-.9 2.2-2 2.2z",
+    }),
+  );
+}
+
+function svg<K extends keyof SVGElementTagNameMap>(
+  tag: K,
+  attrs: Record<string, string | number>,
+  ...children: SVGElement[]
+): SVGElementTagNameMap[K] {
+  const el = document.createElementNS(SVG_NS, tag);
+  for (const [name, value] of Object.entries(attrs)) {
+    el.setAttribute(name, String(value));
+  }
+  for (const child of children) el.append(child);
+  return el;
 }
