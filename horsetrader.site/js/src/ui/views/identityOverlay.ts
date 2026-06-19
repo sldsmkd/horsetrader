@@ -26,6 +26,7 @@ export function buildTrainerCard(
   const card = overlay({
     title: "Trainer Card",
     placement: "left",
+    headerless: true,
     body: identitySurface({
       trainerName: identity.trainerName(),
       oshiName: oshi.name,
@@ -39,6 +40,7 @@ export function buildTrainerCard(
       onOshiSelect: on.onOshiSelect,
       onClubSelect: on.onClubSelect,
       onPlayStylePreview: on.onPlayStylePreview,
+      onClose: on.onClose,
     }),
     onClose: on.onClose,
   });
@@ -112,6 +114,7 @@ export function buildPlayStyleOverlay(
 
   const playStyleCard = overlay({
     title: strings.playStyle.presets[playStyleKey].name,
+    headerless: true,
     body: playStyleSurface({
       playStyleKey,
       savedPlayStyleKey,

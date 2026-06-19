@@ -524,11 +524,13 @@ export function mountApp(
         onEdit: () => {
           if (!shieldOpen()) view.set({ resourcesEditing: true });
         },
+        onClose: () => view.set({ right: null, resourcesEditing: false }),
       });
       liveResources = resources; // the pan path refreshes this card in place
       const resourcesCard = overlay({
         title: "Resources",
         placement: "right",
+        headerless: true,
         body: resources.el,
         // Closing the surface tears the editor shield down with it.
         onClose: () => view.set({ right: null, resourcesEditing: false }),
@@ -539,25 +541,25 @@ export function mountApp(
       children.push(resourcesCard);
 
       if (editing) {
-        children.push(
-          overlay({
-            title: "Edit Balance",
-            placement: "center",
-            body: resourcesEditor({
-              snapshot: coord.document().snapshot,
-              dailyPack: (coord.document().config?.["dailyPack"] as string | undefined) ?? null,
-              trainingPass: coord.document().config?.["trainingPass"] === true,
-              onCommit: ({ snapshot, dailyPack, trainingPass }) => {
-                // The pack date and premium toggle are subscriptions (account-level
-                // config), not part of the resource reading — two typed writes.
-                coord.saveSnapshot(snapshot);
-                coord.setSubscriptions({ dailyPack, trainingPass });
-              },
-              onClose: () => view.set({ resourcesEditing: false }),
-            }),
+        const balanceCard = overlay({
+          title: "Record Balance",
+          placement: "center",
+          headerless: true,
+          body: resourcesEditor({
+            snapshot: coord.document().snapshot,
+            dailyPack: (coord.document().config?.["dailyPack"] as string | undefined) ?? null,
+            trainingPass: coord.document().config?.["trainingPass"] === true,
+            onCommit: ({ snapshot, dailyPack, trainingPass }) => {
+              // The pack date and premium toggle are subscriptions (account-level
+              // config), not part of the resource reading — two typed writes.
+              coord.saveSnapshot(snapshot);
+              coord.setSubscriptions({ dailyPack, trainingPass });
+            },
             onClose: () => view.set({ resourcesEditing: false }),
           }),
-        );
+          onClose: () => view.set({ resourcesEditing: false }),
+        });
+        children.push(balanceCard);
       }
     } else if (right === "beta") {
       const betaCard = overlay({
@@ -607,20 +609,20 @@ export function mountApp(
         balanceAt: (date) => coord.availableFor(committing) ?? coord.balanceAt(date),
         commitments: coord.document().commitments ?? {},
       });
-      children.push(
-        overlay({
-          title: commitTitle(ctx), // kind + run; the artwork is dropped from the body
-          placement: "center",
-          body: commitShield({
-            context: ctx,
-            // Persist the pity as the unit of account; the carat cost stays derived
-            // (principle 10). A null clears the commitment (0 through `commit`).
-            onCommit: (pity) => coord.commit(committing, pity ?? 0),
-            onClose: () => view.set({ committing: null }),
-          }),
+      const commitCard = overlay({
+        title: commitTitle(ctx), // kept as the dialog aria-label; the body renders its own title hero
+        placement: "center",
+        headerless: true,
+        body: commitShield({
+          context: ctx,
+          // Persist the pity as the unit of account; the carat cost stays derived
+          // (principle 10). A null clears the commitment (0 through `commit`).
+          onCommit: (pity) => coord.commit(committing, pity ?? 0),
           onClose: () => view.set({ committing: null }),
         }),
-      );
+        onClose: () => view.set({ committing: null }),
+      });
+      children.push(commitCard);
     }
 
     overlayLayer.replaceChildren(...children);

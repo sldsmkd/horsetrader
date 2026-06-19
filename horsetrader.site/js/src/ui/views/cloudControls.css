@@ -5,14 +5,21 @@
 
 .cloud-controls__row {
   display: flex;
+  /* Centred, auto-width buttons — the shared surface button pattern, not a
+     full-width split bar. */
+  justify-content: center;
   gap: 0.4rem;
 }
 
 .cloud-controls__btn {
-  flex: 1;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.35rem;
   font: inherit;
   font-weight: 700;
-  padding: 0.45rem 0.7rem;
+  padding: 0 1rem;
   border-radius: var(--ht-control-radius);
   border: 1px solid var(--ht-control-border);
   background: var(--ht-control-bg-subtle);

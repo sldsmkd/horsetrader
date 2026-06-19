@@ -23,7 +23,10 @@ import "./commitShield.css";
 import { h } from "../h.ts";
 import { formatBalance, formatDate } from "../format.ts";
 import { reserve, type CommitContext, type CommitAtom } from "../select/commit.ts";
+import { PITY_WASTE_ABOVE } from "../select/aboveLane.ts";
 import { forecastWidget } from "../widgets/forecast.ts";
+import { pityBand } from "../widgets/pityBand.ts";
+import { surfaceActions } from "./surfaceActions.ts";
 
 export interface CommitShieldOpts {
   context: CommitContext;
@@ -66,11 +69,20 @@ function featuredCard(atom: CommitAtom): HTMLElement {
   );
 }
 
-/** Write an "after" value, reddening it when the reservation has gone negative — an
- *  overcommitment (you've planned more than the predicted balance covers). */
-function setAfter(el: HTMLElement, value: number): void {
-  el.textContent = formatBalance(value);
-  el.classList.toggle("commit-shield__impact-value--negative", value < 0);
+/** Display floor, mirroring the resources surface: non-free-carat resources read a
+ *  floor of 0 (you can't hold negative stock); only free carats — the overflow
+ *  release valve — may read negative (project_spend_model). */
+function floorDisplay(value: number, freeCarats: boolean): number {
+  return freeCarats ? value : Math.max(0, value);
+}
+
+/** Write an "after" value, reddening free carats when the reservation has driven them
+ *  negative — an overcommitment (you've planned more than the predicted balance
+ *  covers). Other sources floor at 0, so they never redden. */
+function setAfter(el: HTMLElement, value: number, freeCarats: boolean): void {
+  const shown = floorDisplay(value, freeCarats);
+  el.textContent = formatBalance(shown);
+  el.classList.toggle("commit-shield__impact-value--negative", shown < 0);
 }
 
 /** One Resource Impact line — icon, before → after (after re-rendered on commit). */
@@ -93,6 +105,9 @@ export function commitShield(opts: CommitShieldOpts): HTMLElement {
 
   // YOUR PLAN — the stepper read-backs.
   const pityValue = h("span", { class: "commit-shield__pity-value" }, String(pity));
+  // The pity box wears the shared pity-band fill (grey/green/purple/red), same rule
+  // as the timeline commitment badge — recoloured as pity changes in render().
+  const pityBox = h("div", { class: "commit-shield__pity" }, pityValue);
   const committedLabel = h("span", { class: "commit-shield__plan-heading" });
   const reservedLabel = h("p", { class: "commit-shield__reserved" });
 
@@ -110,10 +125,11 @@ export function commitShield(opts: CommitShieldOpts): HTMLElement {
     committedLabel.textContent = `${formatBalance(pity)} PITY COMMITTED`;
     reservedLabel.textContent = `${formatBalance(pity * ctx.sparkThreshold)} pulls reserved for this banner`;
     const after = reserve(ctx, pity);
-    setAfter(afterFree, after.freeCarats);
-    setAfter(afterPaid, after.paidCarats);
-    setAfter(afterTickets, after.tickets);
-    setAfter(afterGiftPulls, after.freePulls);
+    setAfter(afterFree, after.freeCarats, true);
+    setAfter(afterPaid, after.paidCarats, false);
+    setAfter(afterTickets, after.tickets, false);
+    setAfter(afterGiftPulls, after.freePulls, false);
+    pityBox.className = `commit-shield__pity pity-band--${pityBand(pity, after.freeCarats < 0, PITY_WASTE_ABOVE[ctx.kind])}`;
     forecast.update(pity);
   };
 
@@ -128,8 +144,17 @@ export function commitShield(opts: CommitShieldOpts): HTMLElement {
     "section",
     { class: "commit-shield" },
 
-    // FEATURED CARDS: the hero answer to "what am I pulling for?" (identity now
-    // lives in the overlay title; the artwork is gone — the player just clicked it).
+    // Title hero — kind + run, self-rendered (the window title bar is dropped like
+    // the other surfaces; Cancel handles dismissal).
+    h(
+      "header",
+      { class: "commit-shield__mast" },
+      h("h2", { class: "commit-shield__title" }, TITLE[ctx.kind]),
+      h("p", { class: "commit-shield__dates" }, `${formatDate(ctx.start)} – ${formatDate(ctx.end)}`),
+    ),
+
+    // FEATURED CARDS: the hero answer to "what am I pulling for?" (the banner
+    // artwork is gone — the player just clicked it).
     h(
       "div",
       { class: "commit-shield__featured" },
@@ -155,7 +180,7 @@ export function commitShield(opts: CommitShieldOpts): HTMLElement {
           "div",
           { class: "commit-shield__stepper" },
           h("button", { class: "commit-shield__step", attr: { type: "button", "aria-label": "Less pity" }, on: { click: () => step(-1) } }, "−"),
-          h("div", { class: "commit-shield__pity" }, pityValue),
+          pityBox,
           h("button", { class: "commit-shield__step", attr: { type: "button", "aria-label": "More pity" }, on: { click: () => step(1) } }, "+"),
         ),
         reservedLabel,
@@ -180,10 +205,10 @@ export function commitShield(opts: CommitShieldOpts): HTMLElement {
           "div",
           { class: "commit-shield__impact-col" },
           h("span", { class: "commit-shield__impact-heading" }, "Predicted Available"),
-          impactLine("🎁", "Gift Pulls", h("span", { class: "commit-shield__impact-value" }, formatBalance(ctx.freePulls))),
-          impactLine("/icons/carat.png", "Carats", h("span", { class: "commit-shield__impact-value" }, formatBalance(ctx.freeCarats))),
-          impactLine(`/icons/${ctx.kind}_ticket.png`, TICKET_LABEL[ctx.kind], h("span", { class: "commit-shield__impact-value" }, formatBalance(ctx.tickets))),
-          impactLine("/icons/carat.png", "Paid Carats", h("span", { class: "commit-shield__impact-value" }, formatBalance(ctx.paidCarats))),
+          impactLine("🎁", "Gift Pulls", h("span", { class: "commit-shield__impact-value" }, formatBalance(floorDisplay(ctx.freePulls, false)))),
+          impactLine("/icons/carat.png", "Carats", h("span", { class: "commit-shield__impact-value" }, formatBalance(floorDisplay(ctx.freeCarats, true)))),
+          impactLine(`/icons/${ctx.kind}_ticket.png`, TICKET_LABEL[ctx.kind], h("span", { class: "commit-shield__impact-value" }, formatBalance(floorDisplay(ctx.tickets, false)))),
+          impactLine("/icons/carat.png", "Paid Carats", h("span", { class: "commit-shield__impact-value" }, formatBalance(floorDisplay(ctx.paidCarats, false)))),
         ),
         h("span", { class: "commit-shield__impact-arrow", attr: { "aria-hidden": "true" } }, "→"),
         h(
@@ -199,9 +224,7 @@ export function commitShield(opts: CommitShieldOpts): HTMLElement {
     ),
 
     // Save writes the pity through to the commitments map; 0 clears it.
-    h(
-      "footer",
-      { class: "commit-shield__actions" },
+    surfaceActions(
       h("button", { class: "commit-shield__cancel", attr: { type: "button" }, on: { click: opts.onClose } }, "Cancel"),
       h(
         "button",

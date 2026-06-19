@@ -2,6 +2,8 @@ import "./playStyleSurface.css";
 
 import { h } from "../h.ts";
 import { checkbox } from "./checkbox.ts";
+import { collapsePill } from "./collapsePill.ts";
+import { surfaceActions } from "./surfaceActions.ts";
 import { discreteSlider } from "./discreteSlider.ts";
 import { PLAY_STYLES } from "./playStylePreset.ts";
 import type { PlayStyleKey } from "./playStylePreset.ts";
@@ -282,19 +284,19 @@ export function playStyleSurface(opts: PlayStyleSurfaceOpts): HTMLElement {
   );
   syncApply(); // initial enabled/disabled state
 
-  const dismissButton = h(
-    "button",
-    {
-      class: "playstyle-surface__dismiss",
-      attr: { type: "button" },
-      on: { click: opts.onDismiss },
-    },
-    "Dismiss",
-  );
+  // Directional collapse affordance: chevrons point left, back toward the trainer
+  // card this surface folds into.
+  const collapse = collapsePill({
+    direction: "left",
+    float: true,
+    label: "Collapse back to trainer card",
+    onClick: opts.onDismiss,
+  });
 
   return h(
     "section",
     { class: "playstyle-surface" },
+    collapse,
     h(
       "div",
       { class: "playstyle-surface__mast" },
@@ -319,6 +321,6 @@ export function playStyleSurface(opts: PlayStyleSurfaceOpts): HTMLElement {
         : "Preset values are read-only. Open a drawer to see exactly what this preset counts.",
     ),
     drawers,
-    h("div", { class: "playstyle-surface__actions" }, dismissButton, applyButton),
+    surfaceActions(applyButton),
   );
 }

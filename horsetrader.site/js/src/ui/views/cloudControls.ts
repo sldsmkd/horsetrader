@@ -29,11 +29,13 @@ function controlButton(label: string, onClick: () => void): HTMLButtonElement {
 export function cloudControls(opts: CloudControlsOpts): HTMLElement {
   const connected = opts.auth.authenticated;
 
-  const cloud = controlButton(connected ? "Cloud ✓" : "Connect cloud", opts.onCloud);
+  // Rough placeholder art (emoji) until real icons land — a cloud for the
+  // connection, a recycle glyph for sync.
+  const cloud = controlButton(connected ? "☁️ Cloud ✓" : "☁️ Cloud", opts.onCloud);
   cloud.title = connected ? "Manage your cloud connection" : "Connect a cloud save";
   cloud.classList.toggle("cloud-controls__btn--connected", connected);
 
-  const sync = controlButton(opts.syncing ? "Syncing…" : "Sync", opts.onSync);
+  const sync = controlButton(opts.syncing ? "🔄 Syncing…" : "🔄 Sync", opts.onSync);
   sync.disabled = !connected || !opts.dirty || opts.syncing;
   sync.title = !connected
     ? "Connect a cloud first"

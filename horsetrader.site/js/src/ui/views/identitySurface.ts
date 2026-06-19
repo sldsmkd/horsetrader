@@ -1,6 +1,7 @@
 import "./identitySurface.css";
 
 import { h } from "../h.ts";
+import { collapsePill } from "./collapsePill.ts";
 import { playStylePresetGrid } from "./playStylePreset.ts";
 import { clubRankIcon } from "./clubSelector.ts";
 import type { PlayStyleKey } from "./playStylePreset.ts";
@@ -22,6 +23,8 @@ export interface IdentitySurfaceOpts {
   onOshiSelect: () => void;
   onClubSelect: () => void;
   onPlayStylePreview: (key: PlayStyleKey) => void;
+  /** Collapse/put-away affordance — the pill in the mast dismisses the card. */
+  onClose?: (() => void) | undefined;
 }
 
 // Trainer name entry is clamped at the keystroke: at most 24 *grapheme clusters*
@@ -45,18 +48,15 @@ function sanitizeTrainerName(raw: string): string {
   return graphemes(kept).slice(0, NAME_MAX_GRAPHEMES).join("");
 }
 
-function identityRow(label: string, value: string, detail?: string): HTMLElement {
-  return h(
-    "div",
-    { class: "identity-surface__row" },
-    h("span", { class: "identity-surface__label" }, label),
-    h(
-      "span",
-      { class: "identity-surface__value" },
-      value,
-      detail && h("span", { class: "identity-surface__detail" }, detail),
-    ),
-  );
+// The Matikane stable names — Matikanetannhauser and Matikanefukukitaru — are the
+// only oshi names long enough to overrun the portrait. They're a family prefix
+// ("Matikane") run together with a given name; split them so the overlay wraps at
+// a real space (and the given name reads Ucfirst'd) instead of breaking mid-word.
+function displayOshiName(name: string): string {
+  const prefix = "Matikane";
+  if (name.length <= prefix.length || !name.startsWith(prefix)) return name;
+  const given = name.slice(prefix.length);
+  return `${prefix} ${given[0]!.toUpperCase()}${given.slice(1)}`;
 }
 
 // The club row is a single click target that opens the club shield (name + rank),
@@ -111,21 +111,11 @@ function editableTrainerName(opts: IdentitySurfaceOpts): HTMLElement {
   };
   input.addEventListener("change", commit);
   input.addEventListener("blur", commit);
+  // No pencil: the input edits in place, with a hover/focus highlight that reads
+  // as editable the same way the club row does.
+  input.title = "Edit trainer name";
 
-  return h(
-    "label",
-    { class: "identity-surface__editable" },
-    input,
-    h(
-      "button",
-      {
-        class: "identity-surface__edit",
-        attr: { type: "button", "aria-label": "Edit trainer name", title: "Edit trainer name" },
-        on: { click: () => input.focus() },
-      },
-      "✏️",
-    ),
-  );
+  return input;
 }
 
 function playStyle(opts: IdentitySurfaceOpts): HTMLElement {
@@ -141,6 +131,14 @@ export function identitySurface(opts: IdentitySurfaceOpts): HTMLElement {
   return h(
     "section",
     { class: "identity-surface" },
+    // Mast: the trainer name promoted to the card title, with the put-away pill
+    // trailing. Replaces the old window title bar.
+    h(
+      "div",
+      { class: "identity-surface__mast" },
+      h("div", { class: "identity-surface__title" }, editableTrainerName(opts)),
+      opts.onClose ? collapsePill({ direction: "up", label: "Close trainer card", onClick: opts.onClose }) : null,
+    ),
     h(
       "div",
       { class: "identity-surface__card" },
@@ -153,30 +151,32 @@ export function identitySurface(opts: IdentitySurfaceOpts): HTMLElement {
         },
         h("img", { attr: { src: opts.oshiPortrait, alt: "", width: 256, height: 512 } }),
         h("span", { class: "identity-surface__portrait-edit", attr: { "aria-hidden": "true" } }, "✏️"),
+        h("span", { class: "identity-surface__portrait-name" }, displayOshiName(opts.oshiName)),
       ),
+      // Right panel: club + oshi up top, cloud save filling the space the name
+      // used to occupy.
       h(
         "div",
         { class: "identity-surface__details" },
         h(
           "div",
-          { class: "identity-surface__title" },
-          editableTrainerName(opts),
-        ),
-        h(
-          "div",
           { class: "identity-surface__section" },
           clubRow(opts),
-          identityRow("Oshi", opts.oshiName),
         ),
+        opts.cloud &&
+          h(
+            "div",
+            { class: "identity-surface__cloud" },
+            h("span", { class: "identity-surface__label" }, "Cloud Save"),
+            h(
+              "p",
+              { class: "identity-surface__cloud-note" },
+              "Sign in to back up your plan and pick it up on any device.",
+            ),
+            opts.cloud,
+          ),
       ),
     ),
-    opts.cloud &&
-      h(
-        "div",
-        { class: "identity-surface__cloud" },
-        h("span", { class: "identity-surface__label" }, "Cloud Save"),
-        opts.cloud,
-      ),
     h(
       "div",
       { class: "identity-surface__playstyle" },

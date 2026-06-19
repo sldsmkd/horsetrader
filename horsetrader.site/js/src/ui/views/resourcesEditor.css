@@ -5,6 +5,22 @@
   min-width: 22rem;
 }
 
+/* Title hero — replaces the window title bar, like the other surfaces. */
+.resources-editor__title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: var(--ht-type-surface-title-weight);
+  line-height: 1.1;
+}
+
+.resources-editor__intro {
+  margin: -0.5rem 0 0;
+  max-width: 34rem;
+  font-size: var(--ht-type-caption-size);
+  line-height: var(--ht-type-caption-line);
+  opacity: 0.7;
+}
+
 .resources-editor__cell {
   display: flex;
   flex-direction: column;
@@ -36,21 +52,16 @@
   display: none;
 }
 
-.resources-editor__pack-date {
+.resources-editor__pack-days {
+  width: 3.5rem;
   font: inherit;
   font-size: var(--ht-type-caption-size);
+  text-align: center;
   color: inherit;
   background: color-mix(in srgb, currentColor 8%, transparent);
   border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
   border-radius: var(--ht-control-radius);
   padding: 0.2rem 0.4rem;
-}
-
-.resources-editor__actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
-  margin-top: 0.25rem;
 }
 
 .resources-editor__cancel,
@@ -65,8 +76,8 @@
   cursor: pointer;
 }
 
-.resources-editor__cancel {
-  opacity: 0.6;
+.resources-editor__cancel:hover {
+  background: var(--ht-control-bg-hover-subtle);
 }
 
 .resources-editor__save {

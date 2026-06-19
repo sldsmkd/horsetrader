@@ -13,6 +13,7 @@ import "./resourcesEditor.css";
 
 import { h } from "../h.ts";
 import { RESOURCE_ROWS, cellHeading, resourceGrid, type Cell } from "./resourceLayout.ts";
+import { surfaceActions } from "./surfaceActions.ts";
 import type { ResourceVector } from "../../core/projection/index.ts";
 import type { Snapshot } from "../../core/persistence/document.ts";
 
@@ -35,6 +36,16 @@ export interface ResourcesEditorOpts {
   onClose: () => void;
 }
 
+const MS_PER_DAY = 86_400_000;
+
+/** The days-to-top-up countdown for a stored cycle-boundary date, "" when unset. */
+function daysUntil(dateStr: string | null): string {
+  if (!dateStr) return "";
+  const todayUTC = Date.parse(`${new Date().toISOString().slice(0, 10)}T00:00:00Z`);
+  const target = Date.parse(`${dateStr}T00:00:00Z`);
+  return String(Math.max(0, Math.round((target - todayUTC) / MS_PER_DAY)));
+}
+
 export function resourcesEditor(opts: ResourcesEditorOpts): HTMLElement {
   const values = opts.snapshot?.resources ?? {};
   const inputs = new Map<string, HTMLInputElement>();
@@ -49,23 +60,25 @@ export function resourcesEditor(opts: ResourcesEditorOpts): HTMLElement {
   };
 
   // "Dolphin mode": the Daily Carat Pack as an always-on subscription. The checkbox
-  // enables it and reveals the one input it needs — the validity date straight off the
-  // game's UI ("additional purchase available from …"), a cycle boundary we phase the
-  // 30-day billing cadence off. Income (50 free/day + 500 paid/cycle) is synthesised by
-  // the daily-pack channel; here we only transcribe the subscription's existence + date.
+  // enables it and reveals the one input it needs. The game shows the cycle boundary
+  // as a countdown ("In 20d" / "additional purchase available from …"), so we take the
+  // days-to-top-up straight off that and derive the stored date. Income (50 free/day +
+  // 500 paid/cycle) is synthesised by the daily-pack channel; here we only transcribe
+  // the subscription's existence + when the next cycle opens.
   const packToggle = h("input", {
     attr: opts.dailyPack ? { type: "checkbox", checked: "" } : { type: "checkbox" },
     on: { change: () => syncPack() },
   });
-  const packDate = h("input", {
-    class: "resources-editor__pack-date",
-    attr: { type: "date", value: opts.dailyPack ?? "" },
+  const packDays = h("input", {
+    class: "resources-editor__pack-days",
+    attr: { type: "number", min: "0", step: "1", inputmode: "numeric", value: daysUntil(opts.dailyPack) },
   });
   const packDateField = h(
     "label",
     { class: "resources-editor__pack-date-field" },
-    "Next purchase date",
-    packDate,
+    "Top up in",
+    packDays,
+    "days",
   );
   const syncPack = (): void => {
     packDateField.hidden = !packToggle.checked;
@@ -91,13 +104,28 @@ export function resourcesEditor(opts: ResourcesEditorOpts): HTMLElement {
     }
     const recordedAt = new Date().toISOString();
     const snapshot: Snapshot = { date: recordedAt.slice(0, 10), recordedAt, resources };
-    const dailyPack = packToggle.checked && packDate.value ? packDate.value : null;
+    // Derive the stored cycle-boundary date from the days-to-top-up countdown,
+    // relative to the moment we're recording (UTC day).
+    let dailyPack: string | null = null;
+    if (packToggle.checked && packDays.value !== "") {
+      const days = Math.max(0, Math.round(packDays.valueAsNumber || 0));
+      const boundary = new Date(`${recordedAt.slice(0, 10)}T00:00:00Z`);
+      boundary.setUTCDate(boundary.getUTCDate() + days);
+      dailyPack = boundary.toISOString().slice(0, 10);
+    }
     return { snapshot, dailyPack, trainingPass: passToggle.checked };
   };
 
   return h(
     "section",
     { class: "resources-editor" },
+    h("h2", { class: "resources-editor__title" }, "Record Balance"),
+    h(
+      "p",
+      { class: "resources-editor__intro" },
+      "Copy your current totals straight from the game. The whole timeline projects " +
+        "forward from this snapshot, so re-record it whenever your real balance drifts.",
+    ),
     resourceGrid(editCell),
     h(
       "label",
@@ -112,9 +140,7 @@ export function resourcesEditor(opts: ResourcesEditorOpts): HTMLElement {
       passToggle,
       "I buy the Training Pass premium track",
     ),
-    h(
-      "footer",
-      { class: "resources-editor__actions" },
+    surfaceActions(
       h(
         "button",
         { class: "resources-editor__cancel", attr: { type: "button" }, on: { click: opts.onClose } },

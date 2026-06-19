@@ -5,6 +5,29 @@
   min-width: 20rem;
 }
 
+/* Title hero — centred on the same spine as the rest of the shield, replacing the
+   window title bar. */
+.commit-shield__mast {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  text-align: center;
+}
+
+.commit-shield__title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: var(--ht-type-surface-title-weight);
+  line-height: 1.1;
+}
+
+.commit-shield__dates {
+  margin: 0;
+  font-size: var(--ht-type-caption-size);
+  line-height: var(--ht-type-caption-line);
+  opacity: 0.6;
+}
+
 .commit-shield__section-label {
   display: block;
   font-size: var(--ht-type-micro-size);
@@ -152,7 +175,7 @@
   padding: 0.2rem 0.8rem;
   border-radius: 0.4rem;
   border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
-  background: Canvas;
+  /* Fill comes from the shared pity-band--* class (set per pity in render). */
 }
 .commit-shield__pity-value {
   font-size: var(--ht-type-number-large-size);
@@ -259,12 +282,8 @@
 
 /* 5 — FORECAST: the target-copy distribution lives in widgets/forecast.css. */
 
-/* FOOTER ACTIONS */
-.commit-shield__actions {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.5rem;
-}
+/* FOOTER ACTIONS — the centred container is shared (surfaceActions); these style
+   the buttons themselves. */
 .commit-shield__cancel,
 .commit-shield__save {
   font: inherit;
@@ -276,8 +295,8 @@
   color: inherit;
   cursor: pointer;
 }
-.commit-shield__cancel {
-  opacity: 0.6;
+.commit-shield__cancel:hover {
+  background: var(--ht-control-bg-hover-subtle);
 }
 .commit-shield__save {
   background: var(--ht-control-commit-bg);

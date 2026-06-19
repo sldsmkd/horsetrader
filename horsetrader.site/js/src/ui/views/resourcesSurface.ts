@@ -17,6 +17,7 @@
 import "./resourcesSurface.css";
 
 import { h } from "../h.ts";
+import { collapsePill } from "./collapsePill.ts";
 import { formatBalance, formatDate } from "../format.ts";
 import { limitBreaker } from "./limitBreaker.ts";
 import type { ResourceVector } from "../../core/projection/index.ts";
@@ -28,6 +29,8 @@ export interface ResourcesSurfaceOpts {
   snapshot: Snapshot | undefined;
   now: string;
   onEdit: () => void;
+  /** Collapse the surface — wired to the up-chevron pill, replacing the window x. */
+  onClose: () => void;
 }
 
 /** The live readout the surface follows as the view date pans. */
@@ -98,8 +101,7 @@ function footer(opts: ResourcesSurfaceOpts): HTMLElement {
         attr: { type: "button" },
         on: { click: opts.onEdit },
       },
-      h("span", { class: "resources-surface__edit-icon", attr: { "aria-hidden": "true" } }, "✏️"),
-      "Update Actual Balance",
+      "Record Balance",
     ),
   );
 }
@@ -115,19 +117,6 @@ function readout(viewDate: string, p: ResourceVector): HTMLElement {
     h(
       "div",
       { class: "resources-surface__predicted" },
-      h(
-        "div",
-        { class: "resources-surface__label-row" },
-        h("span", { class: "resources-surface__label" }, "Predicted"),
-        h(
-          "span",
-          {
-            class: "resources-surface__info",
-            attr: { title: "Projected forward from your last recorded balance to the current view date." },
-          },
-          "ⓘ",
-        ),
-      ),
       h(
         "div",
         { class: "resources-surface__carats" },
@@ -179,7 +168,15 @@ function readout(viewDate: string, p: ResourceVector): HTMLElement {
 
 export function resourcesSurface(opts: ResourcesSurfaceOpts): ResourcesSurfaceHandle {
   let live = readout(opts.viewDate, opts.projected);
-  const el = h("section", { class: "resources-surface" }, live, footer(opts));
+  // Floating up-chevron pill: this panel collapses upward toward the carats chip
+  // in the menu. Static, so it sits outside the live readout the pan path replaces.
+  const collapse = collapsePill({
+    direction: "up",
+    float: true,
+    label: "Collapse resources",
+    onClick: opts.onClose,
+  });
+  const el = h("section", { class: "resources-surface" }, collapse, live, footer(opts));
 
   return {
     el,

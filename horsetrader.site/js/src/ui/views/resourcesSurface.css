@@ -1,4 +1,5 @@
 .resources-surface {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -27,12 +28,8 @@
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
-}
-
-.resources-surface__label-row {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
+  /* Keep the hero headline clear of the collapse pill at the top-right. */
+  padding-right: 2.75rem;
 }
 
 .resources-surface__label {
@@ -42,12 +39,6 @@
   line-height: var(--ht-type-label-line);
   text-transform: uppercase;
   opacity: 0.55;
-}
-
-.resources-surface__info {
-  font-size: var(--ht-type-caption-size);
-  opacity: 0.4;
-  cursor: help;
 }
 
 .resources-surface__carats {
@@ -165,15 +156,17 @@
 }
 
 .resources-surface__edit {
+  /* Centred, auto width — the play-style card's button pattern, not a full-width
+     bar. */
+  align-self: center;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.35rem;
-  width: 100%;
+  min-height: 2.35rem;
   font: inherit;
   font-size: var(--ht-type-control-size);
   font-weight: var(--ht-type-control-weight);
-  padding: 0.55rem 0.7rem;
+  padding: 0 1rem;
   border-radius: var(--ht-control-radius);
   border: 1px solid var(--ht-control-border);
   background: transparent;
@@ -183,8 +176,4 @@
 
 .resources-surface__edit:hover {
   background: var(--ht-control-bg-hover-subtle);
-}
-
-.resources-surface__edit-icon {
-  font-size: var(--ht-type-control-size);
 }

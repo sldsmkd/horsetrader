@@ -2,6 +2,7 @@ import "./commitmentBadge.css";
 
 import { h } from "../h.ts";
 import { formatBalance } from "../format.ts";
+import { pityBand } from "./pityBand.ts";
 
 export interface CommitmentBadgeOpts {
   pity: number;
@@ -18,7 +19,7 @@ export function commitmentBadge({ pity, unfundable = false, wasteAbove = 3, onOp
   return h(
     "button",
     {
-      class: `commitment-badge${unfundable ? " commitment-badge--unfundable" : ""}${pity === 0 ? " commitment-badge--empty" : ""}${pity > wasteAbove ? " commitment-badge--waste" : ""}`,
+      class: `commitment-badge pity-band--${pityBand(pity, unfundable, wasteAbove)}`,
       attr: { type: "button", "aria-label": pity > 0 ? `Edit ${formatBalance(pity)} pity commitment` : "Plan a pull" },
       on: {
         pointerdown: (ev) => ev.stopPropagation(),

@@ -6,9 +6,10 @@ Debut is not the feature-completion spike. Horsetrader became feature-complete
 with Eclipse: the economic engine works, the planner has its core shape, and the
 site can answer the question it exists to answer.
 
-Debut is the backstage moment after that: sorting out the makeup, pinning the
-costume in place, checking the lights, and feeling the anxiety/excitement before
-stepping onto the stage.
+The debut race is already won. *Make Debut!* is the winners' concert song, and
+Debut is the backstage moment before that concert: sorting out the makeup,
+pinning the costume so nothing slips on stage, checking the lights, and feeling
+the anxiety/excitement before stepping out in front of everyone to be seen.
 
 It is a readiness pass for being seen.
 

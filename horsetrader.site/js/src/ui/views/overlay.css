@@ -43,12 +43,23 @@
 
 .overlay-book > .overlay--playstyle > .overlay__body {
   display: flex;
+  /* Column so the surface's flex:1 drives its HEIGHT (fills the card), not its
+     width. Without this the surface only stretched on the cross axis and left
+     its actions stranded mid-card when the card is height-matched to the
+     trainer card. */
+  flex-direction: column;
   min-height: 0;
   overflow: hidden;
 }
 
-.overlay--playstyle .overlay__header {
-  display: none;
+/* Headerless overlays render their own title hero (set via overlay({ headerless }));
+   the window header is simply not rendered. In the grid-based placements (book
+   columns, centred shields) the card would otherwise drop its single body child
+   into the `auto` header row and leave the `1fr` row empty as a gap below — so
+   collapse those to one fill row. */
+.overlay-book > .overlay--headerless,
+.overlay--center.overlay--headerless {
+  grid-template-rows: minmax(0, 1fr);
 }
 
 .overlay--suspended {

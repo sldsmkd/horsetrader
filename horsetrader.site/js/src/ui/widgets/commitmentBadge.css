@@ -1,18 +1,11 @@
-/* Pity-band grammar: 0 = grey (no commitment), within target = green (a sensible
-   commit toward the guarantee/MLB), past target = purple (overspending — wasted
-   rolls), unfundable = red (can't afford it). The "past target" line is
-   kind-dependent and set by the caller (PITY_WASTE_ABOVE: trainee guarantees at
-   1, support wants ~3) via the --waste class. Bands layer by source order so the
-   more urgent state wins the cascade: green base → purple waste → grey empty →
-   red unfundable (last, always wins). */
+/* Layout only — the pity-band fill (grey/green/purple/red) is the shared
+   pity-band--* grammar in widgets/pityBand.css, picked by pityBand(). */
 .commitment-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 0;
   border: 0;
-  background: color-mix(in srgb, var(--ht-colour-commit-positive) 80%, Canvas);
-  color: var(--ht-colour-text-on-accent);
   font: inherit;
   font-weight: var(--ht-type-surface-title-weight);
   line-height: var(--ht-type-number-line);
@@ -23,14 +16,4 @@
 .commitment-badge:focus-visible {
   filter: brightness(1.12);
   outline: 0;
-}
-.commitment-badge--waste {
-  background: color-mix(in srgb, var(--ht-colour-commit-waste) 78%, Canvas);
-}
-.commitment-badge--empty {
-  background: color-mix(in srgb, currentColor 12%, Canvas);
-  color: color-mix(in srgb, currentColor 72%, Canvas);
-}
-.commitment-badge--unfundable {
-  background: color-mix(in srgb, var(--ht-colour-commit-unfundable) 78%, Canvas);
 }

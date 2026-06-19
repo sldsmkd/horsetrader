@@ -1,6 +1,24 @@
 .identity-surface {
+  position: relative;
   display: grid;
   gap: 0.8rem;
+}
+
+/* Mast: promoted trainer name as the card title + put-away pill, replacing the
+   old window title bar. */
+.identity-surface__mast {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.identity-surface__mast .identity-surface__title {
+  flex: 1;
+}
+
+.identity-surface__mast .identity-surface__name-input {
+  font-size: 1.5rem;
+  line-height: 1.1;
 }
 
 .identity-surface__card {
@@ -59,6 +77,26 @@
   pointer-events: none;
 }
 
+/* Oshi name overlaid along the bottom of the portrait — the portrait already is
+   the oshi picker, so her name belongs on it rather than in a details row. */
+.identity-surface__portrait-name {
+  position: absolute;
+  left: 0;
+  right: 0.28rem;
+  bottom: 0;
+  padding: 1.4rem 0.7rem 0.55rem;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.78), transparent);
+  color: #fff;
+  font-size: var(--ht-type-surface-title-size);
+  font-weight: var(--ht-type-surface-title-weight);
+  line-height: 1.15;
+  text-shadow: 0 0.1rem 0.4rem rgba(0, 0, 0, 0.6);
+  /* The longest oshi names (e.g. Matikanetannhauser) overrun the portrait — let
+     them break across lines instead of clipping. */
+  overflow-wrap: anywhere;
+  pointer-events: none;
+}
+
 .identity-surface__portrait:hover img,
 .identity-surface__portrait:focus-visible img {
   transform: scale(1.025);
@@ -70,8 +108,8 @@
 }
 
 .identity-surface__details {
-  display: grid;
-  align-content: start;
+  display: flex;
+  flex-direction: column;
   gap: 0.9rem;
   min-width: 0;
   padding: 1rem;
@@ -95,49 +133,30 @@
   text-transform: uppercase;
 }
 
-.identity-surface__editable {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 0.4rem;
-  min-width: 0;
-}
-
 .identity-surface__name-input {
+  width: 100%;
   min-width: 0;
+  padding: 0.1rem 0.35rem;
+  margin-left: -0.35rem;
   border: 0;
-  border-radius: 0.25rem;
+  border-radius: 0.3rem;
   background: transparent;
   color: inherit;
   font: inherit;
-  font-size: var(--ht-type-surface-title-size);
   font-weight: var(--ht-type-surface-title-weight);
-  line-height: var(--ht-type-surface-title-line);
-}
-
-.identity-surface__name-input:focus {
-  background: color-mix(in srgb, Canvas 72%, var(--ht-colour-interactive) 10%);
-  outline: 2px solid color-mix(in srgb, var(--ht-colour-interactive) 70%, currentColor 18%);
-  outline-offset: 0.16rem;
-}
-
-.identity-surface__edit {
-  display: inline-grid;
-  place-items: center;
-  width: 2rem;
-  aspect-ratio: 1;
-  border: 0;
-  border-radius: 50%;
-  background: transparent;
-  color: inherit;
-  font-size: var(--ht-type-control-size);
   cursor: pointer;
 }
 
-.identity-surface__edit:hover,
-.identity-surface__edit:focus-visible {
+/* Reads as editable on hover, the same affordance as the club row. */
+.identity-surface__name-input:hover {
   background: color-mix(in srgb, Canvas 68%, currentColor 12%);
-  outline: 0;
+}
+
+.identity-surface__name-input:focus {
+  cursor: text;
+  background: color-mix(in srgb, Canvas 72%, var(--ht-colour-interactive) 10%);
+  outline: 2px solid color-mix(in srgb, var(--ht-colour-interactive) 70%, currentColor 18%);
+  outline-offset: 0.16rem;
 }
 
 .identity-surface__section {
@@ -206,7 +225,16 @@
 .identity-surface__cloud {
   display: grid;
   gap: 0.45rem;
-  padding-top: 0.05rem;
+  /* Sits at the bottom of the right panel, filling the space the promoted name
+     vacated. */
+  margin-top: auto;
+}
+
+.identity-surface__cloud-note {
+  margin: 0;
+  font-size: var(--ht-type-caption-size);
+  line-height: var(--ht-type-caption-line);
+  opacity: 0.6;
 }
 
 .identity-surface__playstyle {

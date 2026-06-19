@@ -1,0 +1,49 @@
+.collapse-pill {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--ht-control-border);
+  border-radius: 999px;
+  background: var(--ht-control-bg-subtle);
+  color: inherit;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.collapse-pill:hover,
+.collapse-pill:focus-visible {
+  background: var(--ht-control-bg-hover-subtle);
+  outline: 2px solid color-mix(in srgb, currentColor 42%, transparent);
+  outline-offset: 0.12rem;
+}
+
+.collapse-pill__chevrons {
+  font-size: var(--ht-type-body-size);
+  font-weight: var(--ht-type-surface-title-weight);
+  letter-spacing: -0.04em;
+}
+
+/* Horizontal pill — « already points left. */
+.collapse-pill--left {
+  min-height: 1.6rem;
+  padding: 0 0.7rem;
+}
+
+/* Vertical pill — rotate the glyph so the double chevron points up. */
+.collapse-pill--up {
+  min-height: 2.6rem;
+  padding: 0.5rem 0.4rem;
+}
+
+.collapse-pill--up .collapse-pill__chevrons {
+  transform: rotate(90deg);
+}
+
+/* Floating placement: top-right of a position:relative surface. */
+.collapse-pill--float {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 1;
+}

@@ -18,6 +18,10 @@ export interface OverlayOpts {
   title: string;
   body: Node;
   placement?: "left" | "right" | "center";
+  /** Drop the window title bar (title text + ✕). The surface renders its own title
+   *  hero and provides its own dismiss (collapse pill / Cancel); `title` is still
+   *  used as the dialog's accessible name. The Debut glass-table surfaces use this. */
+  headerless?: boolean;
   onClose: () => void;
 }
 
@@ -32,19 +36,23 @@ export function overlay(opts: OverlayOpts): HTMLElement {
   return h(
     "div",
     {
-      class: `overlay overlay--${opts.placement ?? "right"}`,
+      class: `overlay overlay--${opts.placement ?? "right"}${opts.headerless ? " overlay--headerless" : ""}`,
       attr: { role: "dialog", "aria-label": opts.title },
     },
-    h(
-      "header",
-      { class: "overlay__header" },
-      h("span", { class: "overlay__title" }, opts.title),
-      h(
-        "button",
-        { class: "overlay__close", attr: { type: "button", "aria-label": "Close" }, on: { click: opts.onClose } },
-        "✕",
-      ),
-    ),
+    // Headerless surfaces render their own title hero; the dialog stays named via
+    // aria-label above. Otherwise the standard window title bar + ✕ close.
+    opts.headerless
+      ? null
+      : h(
+          "header",
+          { class: "overlay__header" },
+          h("span", { class: "overlay__title" }, opts.title),
+          h(
+            "button",
+            { class: "overlay__close", attr: { type: "button", "aria-label": "Close" }, on: { click: opts.onClose } },
+            "✕",
+          ),
+        ),
     h("div", { class: "overlay__body" }, opts.body),
   );
 }
