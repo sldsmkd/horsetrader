@@ -1,13 +1,13 @@
 /**
- * The cloud transport seam — the browser's thin client for the unity-sync Worker.
- * Same-origin in production (the Worker is routed on the site host), so every
- * call is a relative `/api/*` with `credentials: "include"` to carry the
- * first-party session cookie. This is the ONLY place the FE knows the cloud API
- * shape; auth lives here now, plan sync (`/api/sync`) will join it.
+ * The cloud transport seam — the browser's thin client for the unity-sync Worker, and
+ * the ONLY place the FE knows the cloud API shape. Same-origin in production (the Worker
+ * is routed on the site host), so every call is a relative `/api/*` with
+ * `credentials: "include"` to carry the first-party session cookie. Covers the whole
+ * surface: auth (`/api/auth/*`, `/api/me`), plan sync (`/api/sync` GET/PUT), and delete.
  *
- * Unproven / un-graduated: only the beta surface uses this today (design.md §9 —
- * Unity stays in the isolation chamber until it earns the main path). Nothing
- * here touches the persistence coordinator.
+ * Internal to the cloud service: the UI imports the facade ([index.ts](index.ts)), not
+ * this module — these are the raw endpoints the facade and the reconcile policy compose.
+ * Nothing here touches the persistence coordinator.
  */
 
 export interface CloudIdentity {

@@ -25,14 +25,14 @@ import "./cloudProviderShield.css";
 
 import { h } from "../h.ts";
 import { presentConfirmShield } from "./confirmShield.ts";
-import { CLOUD_PROVIDERS, deleteSave, signOut, startSignIn } from "../../core/cloud/client.ts";
-import type { AuthState } from "../../core/cloud/client.ts";
+import { CLOUD_PROVIDERS, connect, disconnect, switchProvider } from "../../core/cloud/index.ts";
+import type { AuthState } from "../../core/cloud/index.ts";
+import type { Coordinator } from "../../core/engine/index.ts";
 
 export interface CloudProviderShieldOpts {
+  /** The account state the lifecycle ops act on (disconnect/switch touch its sync meta). */
+  coord: Coordinator;
   auth: AuthState;
-  /** Fired the moment the cloud save is deleted (disconnect AND switch both delete it) —
-   *  the caller forgets the local sync baseline so what's local now needs a fresh push. */
-  onCloudDeleted: () => void;
   /** Fired when the user ends up signed out (disconnect-and-stay) — the caller refreshes
    *  its auth state. A switch redirects to the new provider instead, so it skips this. */
   onSignedOut: () => void;
@@ -71,23 +71,12 @@ export function cloudProviderShield(opts: CloudProviderShieldOpts): HTMLElement 
 
   // Radio semantics: at most one ON. Clicking the ON row toggles off (disconnect);
   // clicking another while one is on switches; clicking any while none is on connects.
+  // The destructive paths confirm first; all three are cloud-service operations — this
+  // view only renders + routes.
   function onToggle(id: string, on: boolean): void {
     if (on) confirmDisconnect(labelOf(id));
     else if (connected) confirmSwitch(connected, id);
-    else startSignIn(id); // first connect — non-destructive, straight to OAuth.
-  }
-
-  // Disconnect deletes the cloud save (design.md §7), so the delete must land before we
-  // clear the session: a failed delete throws (keeping the confirm open to retry) rather
-  // than orphaning the blob behind a cleared session. localStorage is never touched —
-  // signing out keeps the local copy (design.md loose-ends).
-  async function disconnect(): Promise<void> {
-    if (!(await deleteSave())) throw new Error("Couldn't delete the cloud save — try again.");
-    await signOut();
-    // The blob we were synced to is gone — forget the baseline so local reads as needing
-    // a fresh push. Critical for SWITCH: without it the new provider's empty cloud sees a
-    // clean local and no-ops, stranding the plan in no cloud at all.
-    opts.onCloudDeleted();
+    else connect(id); // first connect — non-destructive, straight to OAuth.
   }
 
   function confirmDisconnect(label: string): void {
@@ -97,27 +86,20 @@ export function cloudProviderShield(opts: CloudProviderShieldOpts): HTMLElement 
       confirmLabel: "Disconnect",
       danger: true,
       onConfirm: async () => {
-        await disconnect();
+        await disconnect(opts.coord); // a failed delete throws → confirm stays open to retry
         opts.onSignedOut();
         opts.onClose();
       },
     });
   }
 
-  // Switch = a clean break (no linking, design.md §6): fully disconnect the current
-  // provider — deleting its save and clearing the session — then redirect to the new
-  // one's OAuth. Clearing first means an abandoned OAuth lands back signed-out and clean,
-  // never half-switched.
   function confirmSwitch(fromId: string, toId: string): void {
     presentConfirmShield({
       title: "Switch cloud provider",
       message: `Switch to ${labelOf(toId)}? This disconnects ${labelOf(fromId)} and deletes its cloud save, then signs you in with ${labelOf(toId)}. Your local plan stays on this device.`,
       confirmLabel: `Switch to ${labelOf(toId)}`,
       danger: true,
-      onConfirm: async () => {
-        await disconnect();
-        startSignIn(toId); // full-page redirect — tears the page (and this modal) down.
-      },
+      onConfirm: () => switchProvider(opts.coord, toId), // disconnects then redirects (tears the page down)
     });
   }
 

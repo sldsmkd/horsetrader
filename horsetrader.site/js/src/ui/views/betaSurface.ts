@@ -23,9 +23,8 @@
 import "./betaSurface.css";
 
 import { h } from "../h.ts";
-import { fetchAuth } from "../../core/cloud/client.ts";
-import type { AuthState } from "../../core/cloud/client.ts";
-import { syncNow } from "../../core/cloud/sync.ts";
+import { fetchAuth, syncNow } from "../../core/cloud/index.ts";
+import type { AuthState } from "../../core/cloud/index.ts";
 import { presentCloudConflict } from "./cloudConflict.ts";
 import { presentCloudProviderShield } from "./cloudProviderShield.ts";
 import type { Coordinator } from "../../core/engine/index.ts";
@@ -80,11 +79,8 @@ function build(coord: Coordinator): Node[] {
   // disconnect when signed in). Sign-out lands back here via `onSignedOut`.
   const cloud = button("Cloud", () =>
     presentCloudProviderShield({
+      coord,
       auth,
-      // Disconnect/switch deleted the cloud blob — drop the now-dangling sync baseline so
-      // what's local needs a fresh push (a reconnect/switch re-creates cleanly instead of
-      // If-Match-ing a deleted rev, U5).
-      onCloudDeleted: () => coord.forgetCloud(),
       onSignedOut: () => {
         auth = { authenticated: false };
         rerender();

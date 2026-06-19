@@ -40,7 +40,7 @@ import { commitContext } from "./select/commit.ts";
 import type { CommitBinding } from "./views/bannerGroup.ts";
 import { tazunaSurface } from "./views/tazunaSurface.ts";
 import { betaSurface } from "./views/betaSurface.ts";
-import { pullOnLoad, syncNow } from "../core/cloud/sync.ts";
+import { reconcileOnLoad } from "../core/cloud/index.ts";
 import { presentCloudConflict } from "./views/cloudConflict.ts";
 import { bookmarks } from "./views/bookmarks.ts";
 import { bookmarkRows, nextBookmarkDate } from "./select/bookmarks.ts";
@@ -578,24 +578,12 @@ export function mountApp(
   renderOverlay();
   renderBookmarks();
 
-  // Load-time cloud reconcile (design.md §5). Two flavours off one load:
-  //   - fresh connect (the OAuth callback lands with `?unity=connected`) → run the FULL
-  //     reconcile (`syncNow`, trigger 4): an explicit connect justifies an auto-push, so
-  //     a local plan migrates UP to an empty cloud / a cloud plan comes DOWN / both-moved
-  //     raises the conflict. The marker is one-shot — strip it so a later refresh doesn't
-  //     re-fire a connect-sync.
-  //   - normal load (trigger 1) → pull-only (`pullOnLoad`): reconcile in the background,
-  //     never auto-push (push cadence stays user-initiated).
-  // Both non-blocking and fail-soft: the UI is already live off localStorage, and a
-  // signed-out 401 / network failure just leaves the local plan in place.
+  // Load-time cloud reconcile (design.md §5) — non-blocking + fail-soft: the UI is
+  // already live off localStorage, and a signed-out 401 / network failure just leaves the
+  // local plan in place. The service decides flavour (fresh-connect full reconcile vs a
+  // normal-load pull) off the `?unity=connected` marker.
   void (async () => {
-    const justConnected = new URLSearchParams(location.search).get("unity") === "connected";
-    if (justConnected) {
-      const url = new URL(location.href);
-      url.searchParams.delete("unity");
-      history.replaceState(null, "", url);
-    }
-    const result = justConnected ? await syncNow(coord) : await pullOnLoad(coord);
+    const result = await reconcileOnLoad(coord);
     // Chamber diagnostics: the path is otherwise silent, so a "nothing happened" is
     // hard to tell from a failure. Logs the decision (noop = clean+unchanged, or the
     // /api/sync 404 when not reachable e.g. the dev server; error = network/401).

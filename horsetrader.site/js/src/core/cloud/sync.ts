@@ -1,6 +1,8 @@
 /**
- * The sync orchestrator — joins the cloud transport ([client.ts](client.ts)) to
- * the coordinator's plan + sync bookkeeping. Entry points:
+ * The reconcile policy — joins the cloud transport ([client.ts](client.ts)) to the
+ * coordinator's plan + sync bookkeeping. Internal to the cloud service: the UI reaches
+ * these through the facade ([index.ts](index.ts)), which also owns account lifecycle
+ * (connect/disconnect/switch) and the load-time trigger. Entry points:
  *
  *   pullOnLoad — the load-time auto-pull (resolution.md trigger 1). GET + compare:
  *                clean + cloud-moved → fast-forward; dirty + cloud-moved → CONFLICT
