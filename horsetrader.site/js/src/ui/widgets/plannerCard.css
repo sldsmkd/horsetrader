@@ -47,8 +47,8 @@
 
 .planner-card__date {
   color: color-mix(in srgb, currentColor 72%, transparent);
-  font-size: 0.72rem;
-  font-weight: 700;
+  font-size: var(--ht-type-label-size);
+  font-weight: var(--ht-type-label-weight);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   text-align: right;
@@ -68,7 +68,7 @@
   min-width: 2.4rem;
   min-height: 1.6rem;
   border-radius: 0.25rem;
-  font-size: 1rem;
+  font-size: var(--ht-type-body-size);
   font-variant-numeric: tabular-nums;
 }
 

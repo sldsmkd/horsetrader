@@ -55,7 +55,7 @@
   border-radius: 50%;
   background: color-mix(in srgb, Canvas 82%, transparent);
   box-shadow: 0 0.35rem 1rem rgba(0, 0, 0, 0.28);
-  font-size: 0.9rem;
+  font-size: var(--ht-type-control-size);
   pointer-events: none;
 }
 
@@ -89,8 +89,9 @@
 
 .identity-surface__eyebrow,
 .identity-surface__label {
-  font-size: 0.76rem;
-  font-weight: 700;
+  font-size: var(--ht-type-label-size);
+  font-weight: var(--ht-type-label-weight);
+  line-height: var(--ht-type-label-line);
   text-transform: uppercase;
 }
 
@@ -109,9 +110,9 @@
   background: transparent;
   color: inherit;
   font: inherit;
-  font-size: 1.45rem;
-  font-weight: 800;
-  line-height: 1.05;
+  font-size: var(--ht-type-surface-title-size);
+  font-weight: var(--ht-type-surface-title-weight);
+  line-height: var(--ht-type-surface-title-line);
 }
 
 .identity-surface__name-input:focus {
@@ -129,7 +130,7 @@
   border-radius: 50%;
   background: transparent;
   color: inherit;
-  font-size: 0.9rem;
+  font-size: var(--ht-type-control-size);
   cursor: pointer;
 }
 
@@ -157,12 +158,12 @@
   justify-content: flex-end;
   gap: 0.45rem;
   text-align: right;
-  font-weight: 700;
+  font-weight: var(--ht-type-label-weight);
   white-space: nowrap;
 }
 
 .identity-surface__detail {
-  font-weight: 600;
+  font-weight: var(--ht-type-control-weight);
 }
 
 .identity-surface__club {
@@ -174,7 +175,7 @@
   background: transparent;
   color: inherit;
   font: inherit;
-  font-weight: 700;
+  font-weight: var(--ht-type-label-weight);
   cursor: pointer;
 }
 
@@ -192,7 +193,7 @@
 
 .identity-surface__club-empty {
   color: color-mix(in srgb, currentColor 55%, transparent);
-  font-weight: 600;
+  font-weight: var(--ht-type-control-weight);
   font-style: italic;
 }
 

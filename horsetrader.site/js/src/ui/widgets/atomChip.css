@@ -3,12 +3,12 @@
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  padding: 0.15rem 0.35rem 0.15rem 0.25rem;
+  padding: 0.15rem 0.3rem;
   max-width: 100%;
   border-radius: 999px;
   border: 1px solid currentColor;
-  font-size: 0.7rem;
-  line-height: 1.2;
+  font-size: var(--ht-type-chip-size);
+  line-height: var(--ht-type-chip-line);
   list-style: none;
   background: color-mix(in srgb, currentColor 12%, transparent);
   background-origin: padding-box, border-box;
@@ -57,7 +57,7 @@
   padding: 0;
   cursor: pointer;
   pointer-events: auto;
-  font-size: 0.8rem;
+  font-size: var(--ht-type-caption-size);
   line-height: 1;
   color: inherit;
   opacity: 0.5;

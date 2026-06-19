@@ -27,7 +27,7 @@
   border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
   border-radius: 0.4rem;
   background: Canvas;
-  font-size: 0.8rem;
+  font-size: var(--ht-type-caption-size);
   overflow: hidden;
 }
 
@@ -118,7 +118,7 @@
   z-index: 2;
   color: var(--ht-colour-text-on-accent);
   font-size: calc(var(--timeline-card-w) * 0.1);
-  font-weight: 900;
+  font-weight: var(--ht-type-surface-title-weight);
   line-height: 1;
   pointer-events: none;
   text-shadow:
@@ -132,7 +132,7 @@
 
 .card__label {
   padding: 0.4rem 0.5rem 0.35rem;
-  line-height: 1.35;
+  line-height: var(--ht-type-caption-line);
   overflow-wrap: anywhere;
 }
 
@@ -206,7 +206,7 @@
   min-height: 4.1rem;
   padding: 0.52rem 0.6rem 0.4rem 0.45rem;
   overflow: hidden;
-  line-height: 1.36;
+  line-height: var(--ht-type-caption-line);
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }

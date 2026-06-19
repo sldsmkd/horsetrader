@@ -8,12 +8,12 @@
 
 .beta-surface__group {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: var(--ht-type-number-size);
 }
 
 .beta-surface__note {
   margin: 0;
-  font-size: 0.8rem;
+  font-size: var(--ht-type-caption-size);
   opacity: 0.55;
-  line-height: 1.4;
+  line-height: var(--ht-type-caption-line);
 }

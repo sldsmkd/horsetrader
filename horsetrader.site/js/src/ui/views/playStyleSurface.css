@@ -1,7 +1,8 @@
 .playstyle-surface {
-  display: grid;
-  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+  display: flex;
+  flex-direction: column;
   gap: 0.85rem;
+  flex: 1;
   height: 100%;
   min-height: 0;
   min-width: 0;
@@ -10,7 +11,7 @@
 .playstyle-surface__mast {
   display: grid;
   grid-template-columns: 3.25rem minmax(0, 1fr);
-  align-items: center;
+  align-items: start;
   gap: 0.75rem;
 }
 
@@ -34,46 +35,51 @@
 
 .playstyle-surface__copy {
   display: grid;
-  gap: 0.15rem;
+  gap: 0.25rem;
+  align-self: center;
   min-width: 0;
 }
 
 .playstyle-surface__title {
   margin: 0;
   font: inherit;
-  font-size: 1.35rem;
-  font-weight: 850;
-  line-height: 1.05;
+  font-size: var(--ht-type-surface-title-size);
+  font-weight: var(--ht-type-surface-title-weight);
+  line-height: var(--ht-type-surface-title-line);
   text-transform: uppercase;
 }
 
 .playstyle-surface__motto,
 .playstyle-surface__shape {
   margin: 0;
-  color: color-mix(in srgb, currentColor 76%, transparent);
 }
 
 .playstyle-surface__motto {
-  font-size: 0.86rem;
-  font-weight: 650;
+  color: color-mix(in srgb, currentColor 88%, transparent);
+  font-size: var(--ht-type-panel-title-size);
+  font-weight: var(--ht-type-panel-title-weight);
+  line-height: var(--ht-type-panel-title-line);
 }
 
 .playstyle-surface__shape {
   padding-block: 0.15rem;
-  font-size: 0.9rem;
+  color: color-mix(in srgb, currentColor 70%, transparent);
+  font-size: var(--ht-type-control-size);
+  line-height: var(--ht-type-caption-line);
 }
 
 .playstyle-surface__lock-note {
   margin: 0;
   color: color-mix(in srgb, currentColor 62%, transparent);
-  font-size: 0.78rem;
-  line-height: 1.35;
+  font-size: var(--ht-type-caption-size);
+  line-height: var(--ht-type-caption-line);
 }
 
 .playstyle-surface__drawers {
   display: flex;
   flex-direction: column;
   gap: 0.55rem;
+  flex: 1 1 auto;
   min-height: 0;
   overflow: auto;
   padding-right: 0.15rem;
@@ -83,8 +89,8 @@
   /* No width:100% — the flex column already stretches each drawer to full
      width via align-items, and an explicit content-box 100% + 1px borders
      overflowed the list by 2px (a stray horizontal scrollbar). */
-  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
-  border-radius: 0.45rem;
+  border: 1px solid var(--ht-control-border-quiet);
+  border-radius: var(--ht-control-radius-soft);
   background: color-mix(in srgb, Canvas 82%, currentColor 4%);
   overflow: hidden;
   /* Keep natural height so an open drawer pushes the rest down (and the list
@@ -112,7 +118,7 @@
 .playstyle-surface__drawer-toggle:hover,
 .playstyle-surface__drawer-toggle:focus-visible,
 .playstyle-surface__drawer-toggle--open {
-  background: color-mix(in srgb, var(--ht-colour-interactive) 9%, Canvas 84%);
+  background: var(--ht-control-selected-bg);
 }
 
 .playstyle-surface__drawer-toggle:focus-visible {
@@ -140,21 +146,22 @@
 }
 
 .playstyle-surface__drawer-title {
-  font-size: 0.78rem;
-  font-weight: 850;
-  letter-spacing: 0.08em;
+  font-size: var(--ht-type-label-size);
+  font-weight: var(--ht-type-surface-title-weight);
+  letter-spacing: var(--ht-type-label-spacing);
+  line-height: var(--ht-type-label-line);
 }
 
 .playstyle-surface__drawer-description {
   color: color-mix(in srgb, currentColor 58%, transparent);
-  font-size: 0.75rem;
-  line-height: 1.25;
+  font-size: var(--ht-type-caption-size);
+  line-height: var(--ht-type-caption-line);
 }
 
 .playstyle-surface__drawer-note {
   color: color-mix(in srgb, currentColor 56%, transparent);
-  font-size: 0.78rem;
-  font-weight: 650;
+  font-size: var(--ht-type-caption-size);
+  font-weight: var(--ht-type-control-weight);
   white-space: nowrap;
 }
 
@@ -180,32 +187,52 @@
 
 .playstyle-surface__actions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: auto;
   padding-top: 0.1rem;
 }
 
+.playstyle-surface__dismiss,
 .playstyle-surface__apply {
   min-height: 2.35rem;
   padding: 0 1rem;
-  border: 1px solid color-mix(in srgb, var(--ht-colour-interactive) 58%, currentColor 18%);
-  border-radius: 0.45rem;
-  background: color-mix(in srgb, var(--ht-colour-interactive) 25%, Canvas 76%);
   color: inherit;
   font: inherit;
-  font-weight: 800;
   cursor: pointer;
+}
+
+.playstyle-surface__dismiss {
+  border: 1px solid var(--ht-control-border);
+  border-radius: var(--ht-control-radius-soft);
+  background: var(--ht-control-bg-subtle);
+  font-weight: var(--ht-type-control-weight);
+}
+
+.playstyle-surface__dismiss:hover,
+.playstyle-surface__dismiss:focus-visible {
+  background: var(--ht-control-bg-hover-subtle);
+  outline: 2px solid color-mix(in srgb, currentColor 42%, transparent);
+  outline-offset: 0.12rem;
+}
+
+.playstyle-surface__apply {
+  border: 1px solid var(--ht-control-primary-border);
+  border-radius: var(--ht-control-radius-soft);
+  background: var(--ht-control-primary-bg);
+  font-weight: var(--ht-type-surface-title-weight);
 }
 
 .playstyle-surface__apply:hover,
 .playstyle-surface__apply:focus-visible {
-  background: color-mix(in srgb, var(--ht-colour-interactive) 34%, Canvas 66%);
+  background: var(--ht-control-primary-bg-hover);
   outline: 2px solid color-mix(in srgb, var(--ht-colour-interactive) 70%, currentColor 18%);
   outline-offset: 0.12rem;
 }
 
 .playstyle-surface__apply:disabled,
 .playstyle-surface__apply--disabled {
-  border-color: color-mix(in srgb, currentColor 24%, transparent);
+  border-color: var(--ht-control-border);
   background: color-mix(in srgb, Canvas 78%, currentColor 8%);
   color: color-mix(in srgb, currentColor 48%, transparent);
   cursor: default;

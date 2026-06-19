@@ -30,21 +30,23 @@
 
 .confirm-shield__title {
   margin: 0;
-  font-size: 1.1rem;
+  font-size: var(--ht-type-panel-title-size);
+  font-weight: var(--ht-type-panel-title-weight);
+  line-height: var(--ht-type-panel-title-line);
 }
 
 .confirm-shield__message {
   margin: 0;
-  font-size: 0.9rem;
-  line-height: 1.5;
+  font-size: var(--ht-type-control-size);
+  line-height: var(--ht-type-body-line);
   opacity: 0.85;
 }
 
 .confirm-shield__error {
   margin: 0;
-  font-size: 0.82rem;
-  line-height: 1.45;
-  color: #ea8a8a;
+  font-size: var(--ht-type-caption-size);
+  line-height: var(--ht-type-caption-line);
+  color: var(--ht-colour-danger);
 }
 
 .confirm-shield__actions {
@@ -56,27 +58,27 @@
 .confirm-shield__btn {
   font: inherit;
   padding: 0.5rem 1.2rem;
-  border-radius: 0.4rem;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  background: rgba(255, 255, 255, 0.06);
+  border-radius: var(--ht-control-radius);
+  border: 1px solid var(--ht-control-border);
+  background: var(--ht-control-bg-subtle);
   color: inherit;
   cursor: pointer;
 }
 
 .confirm-shield__btn:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--ht-control-bg-hover-subtle);
 }
 
 .confirm-shield__btn--danger {
-  border-color: rgba(234, 107, 107, 0.5);
-  color: #ea8a8a;
+  border-color: var(--ht-control-danger-border);
+  color: var(--ht-colour-danger);
 }
 
 .confirm-shield__btn--danger:hover {
-  background: rgba(234, 107, 107, 0.12);
+  background: var(--ht-control-danger-bg-hover);
 }
 
 .confirm-shield__btn:disabled {
-  opacity: 0.5;
+  opacity: var(--ht-control-disabled-opacity);
   cursor: default;
 }

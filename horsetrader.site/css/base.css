@@ -3,7 +3,7 @@
    tokens more than one component reads. */
 :root {
   color-scheme: dark;
-  font-family: system-ui, sans-serif;
+  font-family: var(--ht-font-family-ui);
   --minimap-h: 64px; /* shared: the minimap strip height; the readout lifts clear of it */
 }
 
@@ -19,7 +19,9 @@ body {
   background: var(--ht-colour-surface-page);
   color: var(--ht-colour-text-primary);
   overflow: hidden; /* the canvas owns scrolling (pan) — the page never scrolls */
-  line-height: 1.5;
+  font-size: var(--ht-type-body-size);
+  font-weight: var(--ht-type-body-weight);
+  line-height: var(--ht-type-body-line);
 }
 
 /* The app is one full-viewport canvas world (ui.md principle 1): the timeline

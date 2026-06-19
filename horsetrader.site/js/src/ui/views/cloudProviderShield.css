@@ -9,8 +9,8 @@
 
 .cloud-provider__intro {
   margin: 0;
-  font-size: 0.85rem;
-  line-height: 1.5;
+  font-size: var(--ht-type-caption-size);
+  line-height: var(--ht-type-caption-line);
   opacity: 0.7;
 }
 
@@ -25,9 +25,9 @@
   align-items: center;
   gap: 0.8rem;
   padding: 0.8rem 0.9rem;
-  border-radius: 0.45rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.03);
+  border-radius: var(--ht-control-radius-soft);
+  border: 1px solid var(--ht-control-border-quiet);
+  background: var(--ht-control-bg-subtle);
   color: inherit;
   font: inherit;
   text-align: left;
@@ -35,30 +35,31 @@
 }
 
 .cloud-provider__option:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--ht-control-bg-hover-subtle);
 }
 
 /* ON = the connected provider: a pushed-in radio toggle — accent border, lit fill, and
    an inset shadow so it reads as depressed rather than raised. */
 .cloud-provider__option--on {
-  border-color: rgba(120, 170, 255, 0.6);
-  background: rgba(120, 170, 255, 0.14);
+  border-color: var(--ht-control-cloud-border);
+  background: var(--ht-control-cloud-bg);
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.35);
 }
 
 .cloud-provider__option--on:hover {
-  background: rgba(120, 170, 255, 0.2);
+  background: var(--ht-control-cloud-bg-hover);
 }
 
 /* "Connected" pill, pushed to the right edge of the ON row. */
 .cloud-provider__state {
   margin-left: auto;
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  font-size: var(--ht-type-label-size);
+  font-weight: var(--ht-type-label-weight);
+  letter-spacing: var(--ht-type-label-spacing);
+  line-height: var(--ht-type-label-line);
   text-transform: uppercase;
   opacity: 0.85;
-  color: #9cc0ff;
+  color: color-mix(in srgb, var(--ht-colour-cloud) 82%, var(--ht-colour-text-on-accent));
 }
 
 /* The provider glyph — a square chip so a one-letter mark reads as a logo slot. */
@@ -71,9 +72,9 @@
   height: 1.6rem;
   border-radius: 0.3rem;
   background: rgba(255, 255, 255, 0.1);
-  font-weight: 700;
+  font-weight: var(--ht-type-label-weight);
 }
 
 .cloud-provider__option-label {
-  font-weight: 600;
+  font-weight: var(--ht-type-control-weight);
 }

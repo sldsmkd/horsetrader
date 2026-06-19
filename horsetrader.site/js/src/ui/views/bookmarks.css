@@ -25,9 +25,9 @@
 .bookmarks--open .bookmarks__header {
   width: 100%;
   gap: 0;
-  border: 1px solid color-mix(in srgb, currentColor 24%, transparent);
+  border: 1px solid var(--ht-control-border);
   border-bottom: 0;
-  border-radius: 0.45rem 0.45rem 0 0;
+  border-radius: var(--ht-control-radius-soft) var(--ht-control-radius-soft) 0 0;
   background: Canvas;
   box-shadow: 0 0.35rem 1.4rem color-mix(in srgb, var(--ht-colour-shadow) 18%, transparent);
 }
@@ -41,8 +41,8 @@
   width: 2.6rem;
   min-height: 7.2rem;
   padding: 0.65rem 0;
-  border: 1px solid color-mix(in srgb, currentColor 24%, transparent);
-  border-radius: 0.45rem;
+  border: 1px solid var(--ht-control-border);
+  border-radius: var(--ht-control-radius-soft);
   background: Canvas;
   box-shadow: 0 0.35rem 1.4rem color-mix(in srgb, var(--ht-colour-shadow) 18%, transparent);
   color: inherit;
@@ -51,7 +51,7 @@
 }
 
 .bookmarks__tab:hover {
-  background: color-mix(in srgb, Canvas 62%, currentColor 10%);
+  background: var(--ht-control-bg-hover);
 }
 
 .bookmarks--open .bookmarks__tab {
@@ -80,8 +80,8 @@
   color: inherit;
   cursor: pointer;
   font: inherit;
-  font-size: 1.35rem;
-  font-weight: 800;
+  font-size: var(--ht-type-surface-title-size);
+  font-weight: var(--ht-type-surface-title-weight);
   line-height: 1;
   opacity: 0.9;
 }
@@ -98,7 +98,7 @@
   align-items: center;
   overflow: hidden;
   min-height: 2rem;
-  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  border: 1px solid var(--ht-control-border-quiet);
   border-radius: 0.35rem;
 }
 
@@ -111,11 +111,11 @@
   min-height: 2rem;
   padding: 0 0.7rem;
   border: 0;
-  border-right: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  border-right: 1px solid var(--ht-control-border-quiet);
   background: transparent;
   color: inherit;
   font: inherit;
-  font-weight: 700;
+  font-weight: var(--ht-type-label-weight);
   cursor: pointer;
 }
 
@@ -125,7 +125,7 @@
 
 .bookmarks__face-tab:hover,
 .bookmarks__face-tab:focus-visible {
-  background: color-mix(in srgb, Canvas 62%, currentColor 10%);
+  background: var(--ht-control-bg-hover);
   outline: 0;
 }
 
@@ -134,12 +134,12 @@
 }
 
 .bookmarks__face-tab[aria-selected="true"] {
-  background: color-mix(in srgb, Canvas 84%, currentColor 10%);
+  background: var(--ht-control-active-bg);
 }
 
 .bookmarks__chevron {
   display: inline-block;
-  font-size: 1.1rem;
+  font-size: var(--ht-type-panel-title-size);
   line-height: 1;
   transition: transform 0.12s ease;
 }
@@ -153,7 +153,7 @@
 }
 
 .bookmarks__tab-icon--plan {
-  font-size: 0.92rem;
+  font-size: var(--ht-type-control-size);
 }
 
 .bookmarks__panel {
@@ -163,7 +163,7 @@
   /* Vertical scroll only — rows are width-bounded, so a horizontal scrollbar here
      only ever means a row mis-measured; never let it chase the panel wider. */
   overflow: hidden auto;
-  border: 1px solid color-mix(in srgb, currentColor 24%, transparent);
+  border: 1px solid var(--ht-control-border);
   border-top: 0;
   border-radius: 0 0 0.45rem 0.45rem;
   background: Canvas;
@@ -187,8 +187,8 @@
   margin: 0;
   padding: 0.85rem;
   color: color-mix(in srgb, currentColor 68%, transparent);
-  font-size: 0.84rem;
-  line-height: 1.35;
+  font-size: var(--ht-type-caption-size);
+  line-height: var(--ht-type-caption-line);
 }
 
 .bookmark-row {

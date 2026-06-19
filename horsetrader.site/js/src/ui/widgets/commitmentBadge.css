@@ -14,8 +14,8 @@
   background: color-mix(in srgb, var(--ht-colour-commit-positive) 80%, Canvas);
   color: var(--ht-colour-text-on-accent);
   font: inherit;
-  font-weight: 800;
-  line-height: 1;
+  font-weight: var(--ht-type-surface-title-weight);
+  line-height: var(--ht-type-number-line);
   cursor: pointer;
   pointer-events: auto;
 }

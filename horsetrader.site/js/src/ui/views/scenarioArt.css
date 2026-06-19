@@ -44,8 +44,8 @@
   border-radius: 0.35rem 0 0 0;
   background: color-mix(in srgb, Canvas 68%, transparent);
   color: color-mix(in srgb, currentColor 86%, transparent);
-  font-size: 0.78rem;
-  line-height: 1.2;
+  font-size: var(--ht-type-caption-size);
+  line-height: var(--ht-type-caption-line);
   opacity: var(--scenario-art-visibility);
   text-align: right;
   transition: opacity 180ms ease;

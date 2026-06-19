@@ -8,6 +8,8 @@
 
 // Global shell + tokens; each view co-locates its own styles (ui/**/*.css).
 import "../../css/palette.css";
+import "../../css/typography.css";
+import "../../css/controls.css";
 import "../../css/base.css";
 import "../../css/timelineSizing.css";
 

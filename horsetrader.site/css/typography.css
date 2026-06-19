@@ -1,0 +1,46 @@
+/* Shared type tokens. Components should use semantic roles before inventing
+   local font metrics, the same way colour flows through palette.css. */
+:root {
+  --ht-font-family-ui: system-ui, sans-serif;
+
+  --ht-type-body-size: 1rem;
+  --ht-type-body-line: 1.5;
+  --ht-type-body-weight: 400;
+
+  --ht-type-panel-title-size: 1.1rem;
+  --ht-type-panel-title-line: 1.1;
+  --ht-type-panel-title-weight: 750;
+
+  --ht-type-surface-title-size: 1.45rem;
+  --ht-type-surface-title-line: 1.05;
+  --ht-type-surface-title-weight: 800;
+
+  --ht-type-label-size: 0.72rem;
+  --ht-type-label-line: 1.15;
+  --ht-type-label-weight: 700;
+  --ht-type-label-spacing: 0;
+
+  --ht-type-caption-size: 0.8rem;
+  --ht-type-caption-line: 1.35;
+  --ht-type-caption-weight: 400;
+
+  --ht-type-chip-size: 0.7rem;
+  --ht-type-chip-line: 1.2;
+
+  --ht-type-micro-size: 0.68rem;
+  --ht-type-micro-line: 1.2;
+  --ht-type-micro-weight: 600;
+
+  --ht-type-number-size: 0.95rem;
+  --ht-type-number-line: 1;
+  --ht-type-number-weight: 700;
+
+  --ht-type-number-large-size: 1.7rem;
+  --ht-type-number-large-weight: 650;
+
+  --ht-type-number-display-size: 3.25rem;
+  --ht-type-number-display-weight: 700;
+
+  --ht-type-control-size: 0.9rem;
+  --ht-type-control-weight: 600;
+}

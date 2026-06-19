@@ -17,8 +17,8 @@ function attributeIcon(attribute: string): HTMLElement {
   });
 }
 
-/** A banner-content pill chip: rarity border grammar (crystal/gold), attribute icon
- *  (supports only), name, and a persisted favourite star (☆/★). */
+/** A banner-content pill chip: favourite action, name, and support attribute as
+ *  trailing metadata inside the rarity border grammar (crystal/gold). */
 export function atomChip(atom: BannerAtom, fav: FavouriteBinding): HTMLElement {
   const on = fav.isFavourited(atom.id);
 
@@ -46,8 +46,8 @@ export function atomChip(atom: BannerAtom, fav: FavouriteBinding): HTMLElement {
   return h(
     "li",
     { class: `atom-chip atom-chip--${atom.rarityTier}` },
-    atom.attribute ? attributeIcon(atom.attribute) : null,
-    h("span", { class: "atom-chip__name" }, atom.name),
     star,
+    h("span", { class: "atom-chip__name" }, atom.name),
+    atom.attribute ? attributeIcon(atom.attribute) : null,
   );
 }

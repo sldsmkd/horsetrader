@@ -37,8 +37,8 @@
   place-items: center;
   border: 1px solid color-mix(in srgb, currentColor 16%, transparent);
   color: color-mix(in srgb, currentColor 66%, transparent);
-  font-size: 1.05rem;
-  font-weight: 800;
+  font-size: var(--ht-type-panel-title-size);
+  font-weight: var(--ht-type-surface-title-weight);
 }
 
 .bookmark-card--trainee .bookmark-card__image {
@@ -75,9 +75,9 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 0.86rem;
-  font-weight: 700;
-  line-height: 1.2;
+  font-size: var(--ht-type-control-size);
+  font-weight: var(--ht-type-label-weight);
+  line-height: var(--ht-type-chip-line);
 }
 
 .bookmark-card__subtext,
@@ -85,8 +85,8 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 0.72rem;
-  line-height: 1.2;
+  font-size: var(--ht-type-label-size);
+  line-height: var(--ht-type-label-line);
   color: color-mix(in srgb, currentColor 62%, transparent);
 }
 
@@ -95,8 +95,8 @@
 }
 
 .bookmark-card__date {
-  font-size: 0.72rem;
-  font-weight: 700;
+  font-size: var(--ht-type-label-size);
+  font-weight: var(--ht-type-label-weight);
   font-variant-numeric: tabular-nums;
   color: color-mix(in srgb, currentColor 70%, transparent);
 }

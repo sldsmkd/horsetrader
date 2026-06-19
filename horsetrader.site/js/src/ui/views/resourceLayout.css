@@ -14,9 +14,10 @@
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  font-size: 0.65rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
+  font-size: var(--ht-type-micro-size);
+  font-weight: var(--ht-type-micro-weight);
+  letter-spacing: var(--ht-type-label-spacing);
+  line-height: var(--ht-type-micro-line);
   text-transform: uppercase;
   opacity: 0.5;
 }
@@ -29,13 +30,13 @@
 }
 
 .resource-field__value {
-  font-size: 0.95rem;
+  font-size: var(--ht-type-number-size);
   font-variant-numeric: tabular-nums;
 }
 
 .resource-field__input {
   font: inherit;
-  font-size: 0.95rem;
+  font-size: var(--ht-type-number-size);
   font-variant-numeric: tabular-nums;
   width: 100%;
   background: transparent;

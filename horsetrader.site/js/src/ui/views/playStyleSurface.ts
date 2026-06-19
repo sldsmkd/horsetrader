@@ -130,6 +130,7 @@ export interface PlayStyleSurfaceOpts {
   strings: PlayStyleStrings;
   onSettingsChange: (settings: PlayStyleSettings) => void;
   onApply: (key: PlayStyleKey, settings: PlayStyleSettings) => void;
+  onDismiss: () => void;
 }
 
 function selectedStyle(key: PlayStyleKey): (typeof PLAY_STYLES)[number] {
@@ -281,6 +282,16 @@ export function playStyleSurface(opts: PlayStyleSurfaceOpts): HTMLElement {
   );
   syncApply(); // initial enabled/disabled state
 
+  const dismissButton = h(
+    "button",
+    {
+      class: "playstyle-surface__dismiss",
+      attr: { type: "button" },
+      on: { click: opts.onDismiss },
+    },
+    "Dismiss",
+  );
+
   return h(
     "section",
     { class: "playstyle-surface" },
@@ -308,6 +319,6 @@ export function playStyleSurface(opts: PlayStyleSurfaceOpts): HTMLElement {
         : "Preset values are read-only. Open a drawer to see exactly what this preset counts.",
     ),
     drawers,
-    h("div", { class: "playstyle-surface__actions" }, applyButton),
+    h("div", { class: "playstyle-surface__actions" }, dismissButton, applyButton),
   );
 }

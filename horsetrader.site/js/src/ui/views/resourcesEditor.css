@@ -15,7 +15,8 @@
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  font-size: 0.85rem;
+  font-size: var(--ht-type-caption-size);
+  line-height: var(--ht-type-caption-line);
   opacity: 0.8;
   cursor: pointer;
 }
@@ -24,7 +25,8 @@
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  font-size: 0.85rem;
+  font-size: var(--ht-type-caption-size);
+  line-height: var(--ht-type-caption-line);
   opacity: 0.8;
   margin-top: -0.5rem;
   margin-left: 1.4rem;
@@ -36,11 +38,11 @@
 
 .resources-editor__pack-date {
   font: inherit;
-  font-size: 0.85rem;
+  font-size: var(--ht-type-caption-size);
   color: inherit;
   background: color-mix(in srgb, currentColor 8%, transparent);
   border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
-  border-radius: 0.3rem;
+  border-radius: var(--ht-control-radius);
   padding: 0.2rem 0.4rem;
 }
 
@@ -54,9 +56,9 @@
 .resources-editor__cancel,
 .resources-editor__save {
   font: inherit;
-  font-size: 0.85rem;
+  font-size: var(--ht-type-control-size);
   padding: 0.35rem 0.9rem;
-  border-radius: 0.35rem;
+  border-radius: var(--ht-control-radius);
   border: 1px solid currentColor;
   background: transparent;
   color: inherit;
@@ -68,10 +70,10 @@
 }
 
 .resources-editor__save {
-  background: color-mix(in srgb, currentColor 15%, transparent);
-  font-weight: 600;
+  background: var(--ht-control-bg-hover-subtle);
+  font-weight: var(--ht-type-control-weight);
 }
 
 .resources-editor__save:hover {
-  background: color-mix(in srgb, currentColor 25%, transparent);
+  background: color-mix(in srgb, currentColor 18%, transparent);
 }

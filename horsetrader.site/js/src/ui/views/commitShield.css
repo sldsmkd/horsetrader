@@ -7,9 +7,10 @@
 
 .commit-shield__section-label {
   display: block;
-  font-size: 0.62rem;
+  font-size: var(--ht-type-micro-size);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: var(--ht-type-label-spacing);
+  line-height: var(--ht-type-micro-line);
   opacity: 0.55;
   margin-bottom: 0.4rem;
   /* Every section label rides the same centred spine — labels, cards, panels and the
@@ -75,9 +76,9 @@
   position: absolute;
   top: 0;
   left: 0;
-  font-size: 0.5rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
+  font-size: var(--ht-type-micro-size);
+  font-weight: var(--ht-type-label-weight);
+  letter-spacing: var(--ht-type-label-spacing);
   padding: 0.05rem 0.25rem;
   border-bottom-right-radius: 0.3rem;
   background: color-mix(in srgb, currentColor 65%, transparent);
@@ -99,9 +100,9 @@
   background: color-mix(in srgb, Canvas 60%, transparent);
 }
 .commit-shield__card-name {
-  font-size: 0.62rem;
+  font-size: var(--ht-type-micro-size);
   text-align: center;
-  line-height: 1.1;
+  line-height: var(--ht-type-micro-line);
   opacity: 0.85;
 }
 
@@ -119,9 +120,9 @@
   margin-bottom: 0;
 }
 .commit-shield__plan-heading {
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
+  font-size: var(--ht-type-control-size);
+  font-weight: var(--ht-type-label-weight);
+  letter-spacing: var(--ht-type-label-spacing);
 }
 .commit-shield__stepper {
   display: flex;
@@ -130,7 +131,8 @@
 }
 .commit-shield__step {
   font: inherit;
-  font-size: 1.4rem;
+  font-size: var(--ht-type-surface-title-size);
+  font-weight: var(--ht-type-control-weight);
   line-height: 1;
   width: 2.6rem;
   border-radius: 0.4rem;
@@ -153,13 +155,14 @@
   background: Canvas;
 }
 .commit-shield__pity-value {
-  font-size: 1.7rem;
-  font-weight: 600;
+  font-size: var(--ht-type-number-large-size);
+  font-weight: var(--ht-type-number-large-weight);
   font-variant-numeric: tabular-nums;
 }
 .commit-shield__reserved {
   margin: 0;
-  font-size: 0.72rem;
+  font-size: var(--ht-type-label-size);
+  line-height: var(--ht-type-label-line);
   opacity: 0.7;
 }
 
@@ -213,8 +216,8 @@
   border: 1px solid color-mix(in srgb, currentColor 15%, transparent);
 }
 .commit-shield__impact-heading {
-  font-size: 0.66rem;
-  font-weight: 600;
+  font-size: var(--ht-type-micro-size);
+  font-weight: var(--ht-type-micro-weight);
   text-align: center;
   opacity: 0.7;
   margin-bottom: 0.2rem;
@@ -233,11 +236,11 @@
   justify-content: center;
   width: 26px;
   height: 26px;
-  font-size: 1rem;
+  font-size: var(--ht-type-body-size);
 }
 .commit-shield__impact-value {
-  font-size: 0.95rem;
-  font-weight: 600;
+  font-size: var(--ht-type-number-size);
+  font-weight: var(--ht-type-number-weight);
   font-variant-numeric: tabular-nums;
 }
 /* Overcommitted: the reservation ran the balance negative — flag it red. */
@@ -245,11 +248,12 @@
   color: var(--ht-colour-commit-unfundable);
 }
 .commit-shield__impact-label {
-  font-size: 0.66rem;
+  font-size: var(--ht-type-micro-size);
+  line-height: var(--ht-type-micro-line);
   opacity: 0.6;
 }
 .commit-shield__impact-arrow {
-  font-size: 1.1rem;
+  font-size: var(--ht-type-panel-title-size);
   opacity: 0.5;
 }
 
@@ -264,9 +268,9 @@
 .commit-shield__cancel,
 .commit-shield__save {
   font: inherit;
-  font-size: 0.9rem;
+  font-size: var(--ht-type-control-size);
   padding: 0.5rem 1.4rem;
-  border-radius: 0.4rem;
+  border-radius: var(--ht-control-radius);
   border: 1px solid currentColor;
   background: transparent;
   color: inherit;
@@ -276,10 +280,10 @@
   opacity: 0.6;
 }
 .commit-shield__save {
-  background: color-mix(in srgb, var(--ht-colour-commit-action) 35%, transparent);
-  border-color: color-mix(in srgb, var(--ht-colour-commit-action) 60%, currentColor);
-  font-weight: 600;
+  background: var(--ht-control-commit-bg);
+  border-color: var(--ht-control-commit-border);
+  font-weight: var(--ht-type-control-weight);
 }
 .commit-shield__save:hover {
-  background: color-mix(in srgb, var(--ht-colour-commit-action) 50%, transparent);
+  background: var(--ht-control-commit-bg-hover);
 }

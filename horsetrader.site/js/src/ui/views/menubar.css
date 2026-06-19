@@ -27,8 +27,8 @@
 .menubar__item {
   pointer-events: auto;
   min-height: 2.35rem;
-  border: 1px solid color-mix(in srgb, currentColor 24%, transparent);
-  border-radius: 0.45rem;
+  border: 1px solid var(--ht-control-border);
+  border-radius: var(--ht-control-radius-soft);
   background: color-mix(in srgb, Canvas 78%, transparent);
   box-shadow: 0 0.35rem 1.4rem rgba(0, 0, 0, 0.18);
   color: inherit;
@@ -47,7 +47,7 @@
 
 .menubar__button:hover,
 .menubar__button--active {
-  background: color-mix(in srgb, Canvas 62%, currentColor 10%);
+  background: var(--ht-control-bg-hover);
 }
 
 /* Inert: a button that can't act right now because a shield locks its surface.
@@ -62,7 +62,7 @@
 .menubar__home {
   width: 2.35rem;
   padding: 0;
-  font-size: 1.1rem;
+  font-size: var(--ht-type-panel-title-size);
 }
 
 .menubar__identity {
@@ -105,7 +105,7 @@
 
 .menubar__identity-name {
   overflow: hidden;
-  font-weight: 600;
+  font-weight: var(--ht-type-control-weight);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -136,7 +136,7 @@
 
 .menubar__balance-value {
   font-variant-numeric: tabular-nums;
-  font-weight: 700;
+  font-weight: var(--ht-type-number-weight);
 }
 
 .menubar__balance-unit {

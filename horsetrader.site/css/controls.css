@@ -1,0 +1,38 @@
+/* Shared control tokens: buttons, option rows, segmented tabs, and editable
+   action surfaces. Layout stays with each component; state language lives here. */
+:root {
+  --ht-control-radius: 0.4rem;
+  --ht-control-radius-soft: 0.45rem;
+  --ht-control-padding-block: 0.5rem;
+  --ht-control-padding-inline: 0.9rem;
+
+  --ht-control-border: color-mix(in srgb, currentColor 24%, transparent);
+  --ht-control-border-quiet: color-mix(in srgb, currentColor 18%, transparent);
+  --ht-control-bg: color-mix(in srgb, Canvas 86%, transparent);
+  --ht-control-bg-subtle: color-mix(in srgb, currentColor 6%, transparent);
+  --ht-control-bg-hover: color-mix(in srgb, Canvas 62%, currentColor 10%);
+  --ht-control-bg-hover-subtle: color-mix(in srgb, currentColor 12%, transparent);
+
+  --ht-control-primary-border: color-mix(in srgb, var(--ht-colour-interactive) 58%, currentColor 24%);
+  --ht-control-primary-bg: color-mix(in srgb, Canvas 66%, var(--ht-colour-interactive) 16%);
+  --ht-control-primary-bg-hover: color-mix(in srgb, Canvas 58%, var(--ht-colour-interactive) 24%);
+
+  --ht-control-selected-border: color-mix(in srgb, var(--ht-colour-interactive) 58%, currentColor 24%);
+  --ht-control-selected-bg: color-mix(in srgb, Canvas 68%, var(--ht-colour-interactive) 13%);
+  --ht-control-active-bg: color-mix(in srgb, Canvas 84%, currentColor 10%);
+
+  --ht-control-danger-border: color-mix(in srgb, var(--ht-colour-danger) 50%, currentColor 22%);
+  --ht-control-danger-bg: color-mix(in srgb, Canvas 78%, var(--ht-colour-danger) 10%);
+  --ht-control-danger-bg-hover: color-mix(in srgb, Canvas 68%, var(--ht-colour-danger) 16%);
+
+  --ht-control-commit-border: color-mix(in srgb, var(--ht-colour-commit-action) 60%, currentColor);
+  --ht-control-commit-bg: color-mix(in srgb, var(--ht-colour-commit-action) 35%, transparent);
+  --ht-control-commit-bg-hover: color-mix(in srgb, var(--ht-colour-commit-action) 50%, transparent);
+
+  --ht-control-cloud-border: color-mix(in srgb, var(--ht-colour-cloud) 62%, currentColor 18%);
+  --ht-control-cloud-bg: color-mix(in srgb, var(--ht-colour-cloud) 14%, transparent);
+  --ht-control-cloud-bg-strong: color-mix(in srgb, var(--ht-colour-cloud) 72%, Canvas);
+  --ht-control-cloud-bg-hover: color-mix(in srgb, var(--ht-colour-cloud) 22%, transparent);
+
+  --ht-control-disabled-opacity: 0.4;
+}

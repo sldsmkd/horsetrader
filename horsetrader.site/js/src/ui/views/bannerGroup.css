@@ -199,7 +199,7 @@
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  font-size: 0.95rem;
+  font-size: var(--ht-type-number-size);
 }
 
 /* The greeble is a fixture on the card, not a floating control, so a hot banner's
@@ -247,7 +247,7 @@
   column-gap: 0;
   margin-top: auto;
   padding: 0;
-  font-size: 0.68rem;
+  font-size: var(--ht-type-micro-size);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   overflow: hidden;
@@ -270,7 +270,7 @@
 .banner__pull-total {
   grid-column: 1;
   flex: none;
-  font-weight: 700;
+  font-weight: var(--ht-type-number-weight);
   padding-left: 0.35rem;
   padding-right: 0.45rem;
 }
@@ -322,7 +322,7 @@
   /* Cleared past the commit circle straddling the bottom-right corner. */
   right: 2.4rem;
   bottom: 0.3rem;
-  font-size: 0.65rem;
+  font-size: var(--ht-type-micro-size);
   font-variant-numeric: tabular-nums;
   opacity: 0.7;
 }

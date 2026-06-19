@@ -14,15 +14,6 @@ new subsystem work should graduate out of this file.
   Google / Discord rows still read as generic glyph chips. Replace the placeholder
   `"G"` / `"D"` treatment with permitted provider-brand button styles and real
   marks. Source: [unity/TODO.md](../unity/TODO.md).
-- **Audit button design language.** Unify shape, size, weight, and interaction
-  states across shields, trainer card, cloud controls, plan/favourites, and menu
-  surfaces. Source: [TODO.md](../TODO.md).
-- **Typography pass.** Do the type equivalent of the palette pass: centralise and
-  normalise text semantics so components reference roles rather than ad hoc
-  `font-size` / `font-weight` choices. Cover dense chrome, card labels, numeric
-  readouts, panel headings, helper copy, and tabular-number treatment. Source:
-  user note, following the semantic palette pass in
-  [palette.css](../horsetrader.site/css/palette.css).
 - **Pity shield copy and completeness.** Check that paid carats / free carats /
   tickets are represented correctly, then add concise copy for the reserve-up-front
   / pay-at-end model so the numbers do not read like magic. Source:

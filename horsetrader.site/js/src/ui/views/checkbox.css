@@ -6,7 +6,7 @@
   min-width: 0;
   padding: 0.5rem 0.6rem;
   border: 0;
-  background: color-mix(in srgb, Canvas 88%, transparent);
+  background: var(--ht-control-bg);
   color: inherit;
   font: inherit;
   text-align: left;
@@ -19,7 +19,7 @@
 }
 
 .checkbox:not(.checkbox--locked):hover {
-  background: color-mix(in srgb, var(--ht-colour-interactive) 9%, Canvas 84%);
+  background: var(--ht-control-selected-bg);
 }
 
 .checkbox:not(.checkbox--locked):focus-visible {
@@ -68,8 +68,9 @@
   min-width: 0;
   overflow: hidden;
   color: color-mix(in srgb, currentColor 78%, transparent);
-  font-size: 0.74rem;
-  font-weight: 700;
+  font-size: var(--ht-type-label-size);
+  font-weight: var(--ht-type-label-weight);
+  line-height: var(--ht-type-label-line);
   text-transform: uppercase;
   text-overflow: ellipsis;
   white-space: nowrap;

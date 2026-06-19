@@ -10,20 +10,21 @@
 
 .club-selector__label {
   color: color-mix(in srgb, currentColor 66%, transparent);
-  font-size: 0.76rem;
-  font-weight: 700;
+  font-size: var(--ht-type-label-size);
+  font-weight: var(--ht-type-label-weight);
+  line-height: var(--ht-type-label-line);
   text-transform: uppercase;
 }
 
 .club-selector__name {
   min-width: 0;
   padding: 0.6rem 0.75rem;
-  border: 1px solid color-mix(in srgb, currentColor 24%, transparent);
-  border-radius: 0.4rem;
-  background: color-mix(in srgb, Canvas 86%, transparent);
+  border: 1px solid var(--ht-control-border);
+  border-radius: var(--ht-control-radius);
+  background: var(--ht-control-bg);
   color: inherit;
   font: inherit;
-  font-weight: 700;
+  font-weight: var(--ht-type-label-weight);
 }
 
 .club-selector__name:focus {
@@ -44,9 +45,9 @@
   gap: 0.25rem;
   min-width: 0;
   padding: 0.55rem 0.35rem;
-  border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
-  border-radius: 0.45rem;
-  background: color-mix(in srgb, Canvas 88%, transparent);
+  border: 1px solid var(--ht-control-border-quiet);
+  border-radius: var(--ht-control-radius-soft);
+  background: var(--ht-control-bg);
   color: inherit;
   font: inherit;
   text-align: center;
@@ -56,8 +57,8 @@
 .club-selector__option:hover,
 .club-selector__option:focus-visible,
 .club-selector__option--selected {
-  border-color: color-mix(in srgb, var(--ht-colour-interactive) 58%, currentColor 24%);
-  background: color-mix(in srgb, Canvas 68%, var(--ht-colour-interactive) 13%);
+  border-color: var(--ht-control-selected-border);
+  background: var(--ht-control-selected-bg);
   outline: 0;
 }
 
@@ -68,8 +69,9 @@
 }
 
 .club-selector__rank {
-  font-size: 0.72rem;
-  font-weight: 800;
+  font-size: var(--ht-type-label-size);
+  font-weight: var(--ht-type-surface-title-weight);
+  line-height: var(--ht-type-label-line);
 }
 
 .club-selector__actions {
@@ -81,31 +83,31 @@
 .club-selector__leave {
   margin-right: auto;
   padding: 0.55rem 0.9rem;
-  border: 1px solid color-mix(in srgb, var(--ht-colour-danger) 50%, currentColor 22%);
-  border-radius: 0.4rem;
-  background: color-mix(in srgb, Canvas 78%, var(--ht-colour-danger) 10%);
+  border: 1px solid var(--ht-control-danger-border);
+  border-radius: var(--ht-control-radius);
+  background: var(--ht-control-danger-bg);
   color: inherit;
   font: inherit;
-  font-weight: 700;
+  font-weight: var(--ht-type-label-weight);
   cursor: pointer;
 }
 
 .club-selector__leave:hover,
 .club-selector__leave:focus-visible {
   border-color: color-mix(in srgb, var(--ht-colour-danger) 70%, currentColor 18%);
-  background: color-mix(in srgb, Canvas 68%, var(--ht-colour-danger) 16%);
+  background: var(--ht-control-danger-bg-hover);
   outline: 0;
 }
 
 .club-selector__ok {
   min-width: 5.5rem;
   padding: 0.55rem 0.9rem;
-  border: 1px solid color-mix(in srgb, var(--ht-colour-interactive) 58%, currentColor 24%);
-  border-radius: 0.4rem;
-  background: color-mix(in srgb, Canvas 66%, var(--ht-colour-interactive) 16%);
+  border: 1px solid var(--ht-control-primary-border);
+  border-radius: var(--ht-control-radius);
+  background: var(--ht-control-primary-bg);
   color: inherit;
   font: inherit;
-  font-weight: 800;
+  font-weight: var(--ht-type-surface-title-weight);
   cursor: pointer;
 }
 

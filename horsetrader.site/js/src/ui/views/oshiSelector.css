@@ -7,9 +7,9 @@
   width: 100%;
   min-width: 0;
   padding: 0.6rem 0.75rem;
-  border: 1px solid color-mix(in srgb, currentColor 24%, transparent);
-  border-radius: 0.4rem;
-  background: color-mix(in srgb, Canvas 86%, transparent);
+  border: 1px solid var(--ht-control-border);
+  border-radius: var(--ht-control-radius);
+  background: var(--ht-control-bg);
   color: inherit;
   font: inherit;
 }
@@ -35,9 +35,9 @@
   min-width: 0;
   min-height: 7rem;
   padding: 0.65rem 0.45rem;
-  border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
-  border-radius: 0.45rem;
-  background: color-mix(in srgb, Canvas 88%, transparent);
+  border: 1px solid var(--ht-control-border-quiet);
+  border-radius: var(--ht-control-radius-soft);
+  background: var(--ht-control-bg);
   color: inherit;
   font: inherit;
   text-align: center;
@@ -47,8 +47,8 @@
 .oshi-selector__option:hover,
 .oshi-selector__option:focus-visible,
 .oshi-selector__option--selected {
-  border-color: color-mix(in srgb, var(--ht-colour-interactive) 58%, currentColor 24%);
-  background: color-mix(in srgb, Canvas 68%, var(--ht-colour-interactive) 13%);
+  border-color: var(--ht-control-selected-border);
+  background: var(--ht-control-selected-bg);
   outline: 0;
 }
 
@@ -62,9 +62,9 @@
 .oshi-selector__name {
   min-width: 0;
   max-width: 100%;
-  font-size: 0.72rem;
-  font-weight: 700;
-  line-height: 1.15;
+  font-size: var(--ht-type-label-size);
+  font-weight: var(--ht-type-label-weight);
+  line-height: var(--ht-type-label-line);
 }
 
 .oshi-selector__actions {
@@ -75,12 +75,12 @@
 .oshi-selector__ok {
   min-width: 5.5rem;
   padding: 0.55rem 0.9rem;
-  border: 1px solid color-mix(in srgb, var(--ht-colour-interactive) 58%, currentColor 24%);
-  border-radius: 0.4rem;
-  background: color-mix(in srgb, Canvas 66%, var(--ht-colour-interactive) 16%);
+  border: 1px solid var(--ht-control-primary-border);
+  border-radius: var(--ht-control-radius);
+  background: var(--ht-control-primary-bg);
   color: inherit;
   font: inherit;
-  font-weight: 800;
+  font-weight: var(--ht-type-surface-title-weight);
   cursor: pointer;
 }
 

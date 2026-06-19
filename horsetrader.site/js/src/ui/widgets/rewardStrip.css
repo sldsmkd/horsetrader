@@ -9,7 +9,7 @@
   padding: 0.25rem 0.5rem;
   border-top: 1px solid color-mix(in srgb, currentColor 18%, transparent);
   background: color-mix(in srgb, currentColor 6%, Canvas);
-  font-size: 0.68rem;
+  font-size: var(--ht-type-micro-size);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -29,7 +29,7 @@
 }
 
 .reward-strip__amount {
-  font-weight: 600;
+  font-weight: var(--ht-type-micro-weight);
 }
 
 .reward-strip__separator {
@@ -38,7 +38,7 @@
 
 .reward-strip__fallback-label {
   color: color-mix(in srgb, currentColor 68%, transparent);
-  font-size: 0.68rem;
-  line-height: 1.1;
+  font-size: var(--ht-type-micro-size);
+  line-height: var(--ht-type-micro-line);
   text-transform: uppercase;
 }

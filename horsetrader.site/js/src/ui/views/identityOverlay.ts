@@ -111,7 +111,7 @@ export function buildPlayStyleOverlay(
       : playStyleSettingsForPreset(playStyleKey));
 
   const playStyleCard = overlay({
-    title: strings.playStyle.title,
+    title: strings.playStyle.presets[playStyleKey].name,
     body: playStyleSurface({
       playStyleKey,
       savedPlayStyleKey,
@@ -120,6 +120,7 @@ export function buildPlayStyleOverlay(
       strings: strings.playStyle,
       onSettingsChange: on.onSettingsChange,
       onApply: on.onApply,
+      onDismiss: on.onDiscard,
     }),
     onClose: on.onDiscard,
   });

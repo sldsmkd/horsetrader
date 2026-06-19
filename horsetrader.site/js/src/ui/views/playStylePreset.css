@@ -11,9 +11,9 @@
   gap: 0.55rem;
   min-height: 4rem;
   padding: 0.45rem 0.6rem 0.45rem 0.45rem;
-  border: 1px solid color-mix(in srgb, currentColor 22%, transparent);
-  border-radius: 0.45rem;
-  background: color-mix(in srgb, Canvas 86%, transparent);
+  border: 1px solid var(--ht-control-border);
+  border-radius: var(--ht-control-radius-soft);
+  background: var(--ht-control-bg);
   color: inherit;
   font: inherit;
   text-align: left;
@@ -22,7 +22,7 @@
 
 .playstyle-preset:hover,
 .playstyle-preset--selected {
-  border-color: color-mix(in srgb, var(--ht-colour-interactive) 62%, currentColor 22%);
+  border-color: var(--ht-control-selected-border);
 }
 
 .playstyle-preset--selected {
@@ -30,8 +30,8 @@
 }
 
 .playstyle-preset--active {
-  background: color-mix(in srgb, Canvas 66%, var(--ht-colour-interactive) 14%);
-  border-color: color-mix(in srgb, var(--ht-colour-interactive) 54%, currentColor 24%);
+  background: var(--ht-control-selected-bg);
+  border-color: var(--ht-control-selected-border);
 }
 
 .playstyle-preset--locked {
@@ -58,8 +58,8 @@
 }
 
 .playstyle-preset--locked:hover {
-  background: color-mix(in srgb, Canvas 86%, transparent);
-  border-color: color-mix(in srgb, currentColor 22%, transparent);
+  background: var(--ht-control-bg);
+  border-color: var(--ht-control-border);
   box-shadow: none;
 }
 
@@ -84,16 +84,16 @@
 }
 
 .playstyle-preset__name {
-  font-weight: 800;
-  line-height: 1.05;
+  font-weight: var(--ht-type-surface-title-weight);
+  line-height: var(--ht-type-surface-title-line);
   text-transform: uppercase;
 }
 
 .playstyle-preset__caption {
   min-width: 0;
   color: color-mix(in srgb, currentColor 64%, transparent);
-  font-size: 0.68rem;
-  line-height: 1.15;
+  font-size: var(--ht-type-micro-size);
+  line-height: var(--ht-type-micro-line);
   text-transform: uppercase;
 }
 

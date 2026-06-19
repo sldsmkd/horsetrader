@@ -30,11 +30,11 @@
   border-radius: 0.3rem;
   background: var(--ht-colour-card-accent-compete-pvp);
   color: var(--ht-colour-text-on-accent);
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
+  font-size: var(--ht-type-micro-size);
+  font-weight: var(--ht-type-label-weight);
+  letter-spacing: var(--ht-type-label-spacing);
   text-transform: uppercase;
-  line-height: 1.5;
+  line-height: var(--ht-type-micro-line);
 }
 
 .rushed-toggle--on .rushed-toggle__pill {

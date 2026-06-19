@@ -36,15 +36,16 @@
 }
 
 .resources-surface__label {
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.07em;
+  font-size: var(--ht-type-label-size);
+  font-weight: var(--ht-type-label-weight);
+  letter-spacing: var(--ht-type-label-spacing);
+  line-height: var(--ht-type-label-line);
   text-transform: uppercase;
   opacity: 0.55;
 }
 
 .resources-surface__info {
-  font-size: 0.8rem;
+  font-size: var(--ht-type-caption-size);
   opacity: 0.4;
   cursor: help;
 }
@@ -63,19 +64,21 @@
 }
 
 .resources-surface__carat-total {
-  font-size: 3.25rem;
-  font-weight: 700;
-  line-height: 1;
+  font-size: var(--ht-type-number-display-size);
+  font-weight: var(--ht-type-number-display-weight);
+  line-height: var(--ht-type-number-line);
   font-variant-numeric: tabular-nums;
 }
 
 .resources-surface__carat-split {
-  font-size: 0.85rem;
+  font-size: var(--ht-type-caption-size);
+  line-height: var(--ht-type-caption-line);
   opacity: 0.5;
 }
 
 .resources-surface__projected-on {
-  font-size: 0.85rem;
+  font-size: var(--ht-type-caption-size);
+  line-height: var(--ht-type-caption-line);
   opacity: 0.45;
 }
 
@@ -101,8 +104,8 @@
 }
 
 .resources-surface__ticket-count {
-  font-size: 1.1rem;
-  font-weight: 700;
+  font-size: var(--ht-type-panel-title-size);
+  font-weight: var(--ht-type-number-weight);
   font-variant-numeric: tabular-nums;
 }
 
@@ -139,7 +142,7 @@
   height: 2rem;
   border-radius: 50%;
   background: color-mix(in srgb, currentColor 10%, transparent);
-  font-size: 0.9rem;
+  font-size: var(--ht-type-control-size);
   filter: grayscale(1);
   opacity: 0.7;
 }
@@ -147,8 +150,8 @@
 .resources-surface__footer-text {
   flex: 1;
   margin: 0;
-  font-size: 0.8rem;
-  line-height: 1.4;
+  font-size: var(--ht-type-caption-size);
+  line-height: var(--ht-type-caption-line);
   opacity: 0.6;
 }
 
@@ -158,7 +161,7 @@
 }
 
 .resources-surface__updated--stale {
-  font-weight: 600;
+  font-weight: var(--ht-type-control-weight);
 }
 
 .resources-surface__edit {
@@ -168,20 +171,20 @@
   gap: 0.35rem;
   width: 100%;
   font: inherit;
-  font-size: 0.85rem;
-  font-weight: 600;
+  font-size: var(--ht-type-control-size);
+  font-weight: var(--ht-type-control-weight);
   padding: 0.55rem 0.7rem;
-  border-radius: 0.4rem;
-  border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
+  border-radius: var(--ht-control-radius);
+  border: 1px solid var(--ht-control-border);
   background: transparent;
   color: inherit;
   cursor: pointer;
 }
 
 .resources-surface__edit:hover {
-  background: color-mix(in srgb, currentColor 10%, transparent);
+  background: var(--ht-control-bg-hover-subtle);
 }
 
 .resources-surface__edit-icon {
-  font-size: 0.85rem;
+  font-size: var(--ht-type-control-size);
 }

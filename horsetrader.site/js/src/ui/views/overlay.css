@@ -42,8 +42,13 @@
 }
 
 .overlay-book > .overlay--playstyle > .overlay__body {
+  display: flex;
   min-height: 0;
   overflow: hidden;
+}
+
+.overlay--playstyle .overlay__header {
+  display: none;
 }
 
 .overlay--suspended {
@@ -86,13 +91,15 @@
 }
 
 .overlay__title {
-  font-weight: 600;
+  font-size: var(--ht-type-panel-title-size);
+  font-weight: var(--ht-type-panel-title-weight);
+  line-height: var(--ht-type-panel-title-line);
 }
 
 .overlay__close {
   font: inherit;
-  font-size: 1rem;
-  line-height: 1;
+  font-size: var(--ht-type-body-size);
+  line-height: var(--ht-type-number-line);
   background: transparent;
   border: 0;
   color: inherit;
