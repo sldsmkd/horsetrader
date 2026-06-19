@@ -6,6 +6,18 @@
   pointer-events: none;
 }
 
+/* The menubar's dropdown rail: a layer sized + centred exactly like the floating
+   bar, so its surfaces anchor to the bar's own left/right edges and float just
+   under it. Surfaces inside still own their interactivity; the layer is inert. */
+.chrome-dropdowns {
+  position: absolute;
+  top: calc(var(--timeline-chrome-top) + var(--timeline-chrome-height) + var(--timeline-chrome-gap));
+  left: 50%;
+  width: min(var(--timeline-chrome-width), var(--timeline-chrome-max-width), calc(100vw - 1.5rem));
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
 .overlay {
   pointer-events: auto;
   position: absolute;
@@ -20,13 +32,13 @@
 .overlay-book {
   pointer-events: none;
   position: absolute;
-  top: 4.5rem;
-  left: 0.75rem;
+  top: 0;
+  left: 0;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, min(35rem, calc((100vw - 2rem) / 2))));
   align-items: start;
   gap: 0.5rem;
-  max-height: calc(100vh - 5.25rem);
+  max-height: var(--chrome-dropdown-max-height);
 }
 
 .overlay-book > .overlay {
@@ -70,6 +82,29 @@
 
 .overlay--right {
   right: 2rem;
+}
+
+/* On the dropdown rail the surfaces hug the layer's own edges (which are the bar's
+   edges) and drop from its top, instead of the viewport corners. */
+.chrome-dropdowns > .overlay {
+  top: 0;
+  max-height: var(--chrome-dropdown-max-height);
+}
+
+/* Shrink each card off the edge it's pinned to, so it stays glued to the bar's
+   left/right while it scales. The book is a left-group surface, so it shares the
+   left card's top-left origin. */
+.chrome-dropdowns > .overlay-book,
+.chrome-dropdowns > .overlay--left {
+  left: 0;
+  transform: scale(var(--chrome-dropdown-scale));
+  transform-origin: top left;
+}
+
+.chrome-dropdowns > .overlay--right {
+  right: 0;
+  transform: scale(var(--chrome-dropdown-scale));
+  transform-origin: top right;
 }
 
 .overlay--center {

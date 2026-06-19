@@ -16,21 +16,6 @@ new subsystem work should graduate out of this file.
 > shield, oshi selector, and club selector. Cloud modals are a deliberate hold —
 > leave as-is unless asked. See done.md for the receipt and reusable surface tools.
 
-## Timeline and glass-table chrome
-
-- **Float the menubar and minimap.** These are core visual-identity instruments,
-  not page bars. They should read as glass-table chrome floating over the live
-  timeline rather than occupying document flow. Confirm the current layout before
-  changing code. Source: [TODO.md](../TODO.md), user note.
-- **Responsive zoom limits.** Re-check timeline zoom bounds on devices below a
-  1440p-style viewport, especially phones. The current limits can get silly on
-  narrow screens; tune or make them viewport-sensitive so zoom remains useful
-  without losing the scene. Source: user note.
-- **Phone containment media queries.** Add only the media-query fallbacks needed
-  for phone layout to fail in a contained way: hide, collapse, or simplify
-  nonessential chrome instead of stacking broken extra content over the timeline.
-  Coaxing the phone experience into real life is a later project, not Debut.
-  Source: user note.
 ## Icons and visual signifiers
 
 - **Favourites star fruit.** Replace the emoji favourite marker with custom star
@@ -41,12 +26,6 @@ new subsystem work should graduate out of this file.
   proper transparent item icons: resize to the intended UI scale, remove the
   button-like background/frame, and keep only the item/readable symbol itself.
   Source: user note.
-
-## Date and copy details
-
-- **Grouped banner mixed-end copy.** Groups are keyed on shared start, but rare
-  groups have mixed end dates. Decide whether to keep max-end span, show a range
-  only when all ends agree, or render per-banner ends. Source: [TODO.md](../TODO.md).
 
 ## Public-facing hygiene
 

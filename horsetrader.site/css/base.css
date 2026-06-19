@@ -4,7 +4,24 @@
 :root {
   color-scheme: dark;
   font-family: var(--ht-font-family-ui);
-  --minimap-h: 64px; /* shared: the minimap strip height; the readout lifts clear of it */
+  /* Floating timeline chrome knobs: top menu + bottom minimap/nav. */
+  --timeline-chrome-width: 85vw;
+  --timeline-chrome-max-width: 160rem; /* guard against ultrawide only; 85vw governs on real monitors */
+  --timeline-chrome-top: 5vh;
+  --timeline-chrome-bottom: 5vh;
+  --timeline-chrome-height: 64px;
+  --timeline-chrome-gap: 0.5rem; /* drop between the bar's bottom edge and its dropdowns */
+  --chrome-dropdown-scale: 0.8; /* shrink the rail cards, pinned to the bar's edges */
+  --timeline-chrome-radius: 0.65rem;
+  --timeline-chrome-bg: color-mix(in srgb, Canvas 82%, transparent);
+  --timeline-chrome-border: color-mix(in srgb, currentColor 20%, transparent);
+  --timeline-chrome-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.28);
+  --minimap-h: var(--timeline-chrome-height); /* shared: minimap + readout clearance */
+  /* Vertical room a dropdown has between the top bar and the bottom minimap chrome. */
+  --chrome-dropdown-max-height: calc(
+    100vh - var(--timeline-chrome-top) - var(--timeline-chrome-height) - var(--timeline-chrome-gap)
+      - var(--timeline-chrome-bottom) - var(--timeline-chrome-height) - 0.5rem
+  );
 }
 
 html {

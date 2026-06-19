@@ -345,6 +345,11 @@ export function mountApp(
   // The view-state-driven layer: which overlay is open is a discrete change, so
   // it flows through `subscribe` and re-renders here (the render path).
   const overlayLayer = h("div", { class: "overlay-layer" });
+  // The menubar's dropdown rail: a layer that mirrors the floating bar's geometry so
+  // its surfaces drop in under the bar's own edges (left book off the left edge, right
+  // resources off the right). Sibling to the bar today; the coherent-scale wrapper folds
+  // both together next.
+  const chromeDropdowns = h("div", { class: "chrome-dropdowns" });
   const closeOshiSelector = () => sendIdentityEvent({ type: "close-oshi" });
   const closeClubSelector = () => sendIdentityEvent({ type: "close-club" });
   const previewPlayStyle = (key: PlayStyleKey): void => sendIdentityEvent({ type: "preview-playstyle", key });
@@ -627,7 +632,17 @@ export function mountApp(
       children.push(commitCard);
     }
 
-    overlayLayer.replaceChildren(...children);
+    // Two destinations: menubar-spawned dropdowns (left book, right resources) hang
+    // off the bar's rail in `chromeDropdowns`; viewport-centered shields stay in the
+    // `overlayLayer`. The `overlay--center` class is the marker — every shield carries
+    // it, every dropdown doesn't.
+    const rail: Node[] = [];
+    const shields: Node[] = [];
+    for (const node of children) {
+      (node instanceof HTMLElement && node.classList.contains("overlay--center") ? shields : rail).push(node);
+    }
+    chromeDropdowns.replaceChildren(...rail);
+    overlayLayer.replaceChildren(...shields);
   }
   view.subscribe(renderOverlay);
   coord.subscribe(renderOverlay);
@@ -653,7 +668,7 @@ export function mountApp(
   // drawer, then the overlay layer (paints over the drawer where they share the
   // top-left zone), with the menubar/minimap lifted above all of it (their own
   // z-index) so the always-reachable chrome is never occluded.
-  root.replaceChildren(menu.el, scen.el, tl.el, book.el, mini.el, overlayLayer, hud.el);
+  root.replaceChildren(menu.el, scen.el, tl.el, book.el, mini.el, chromeDropdowns, overlayLayer, hud.el);
   refresh();
   renderOverlay();
   renderBookmarks();

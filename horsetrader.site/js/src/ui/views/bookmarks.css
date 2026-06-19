@@ -194,3 +194,11 @@
 .bookmark-row {
   display: block;
 }
+
+/* Phone: drop the bookmarks drawer entirely — the screen has no room for layer-2
+   chrome, so contain it out rather than stack it over the timeline. */
+@media (max-width: 620px) {
+  .bookmarks {
+    display: none;
+  }
+}

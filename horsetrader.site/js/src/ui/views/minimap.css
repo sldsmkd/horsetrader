@@ -1,19 +1,24 @@
 /* The minimap — the fret-lined balance instrument and primary navigation
-   (ui.md "The minimap, consolidated"). A fixed strip along the bottom edge; it
-   is interactive (it's navigation), so it owns its pointer events. */
+   (ui.md "The minimap, consolidated"). It floats as bottom chrome over the live
+   timeline rather than docking to the page edge. */
 .minimap {
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  left: 50%;
+  bottom: var(--timeline-chrome-bottom);
   height: var(--minimap-h);
+  width: min(var(--timeline-chrome-width), var(--timeline-chrome-max-width), calc(100vw - 1.5rem));
+  box-sizing: border-box;
   z-index: 3; /* above the timeline canvas */
-  background: color-mix(in srgb, Canvas 82%, transparent);
-  border-top: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  background: var(--timeline-chrome-bg);
+  border: 1px solid var(--timeline-chrome-border);
+  border-radius: var(--timeline-chrome-radius);
+  box-shadow: var(--timeline-chrome-shadow);
   cursor: grab;
   touch-action: none;
   user-select: none;
   overflow: hidden;
+  transform: translateX(-50%);
+  backdrop-filter: blur(6px);
 }
 .minimap--grabbing {
   cursor: grabbing;
@@ -116,4 +121,11 @@
   background: color-mix(in srgb, currentColor 8%, transparent);
   pointer-events: none; /* the strip owns the gesture; the window just reflects it */
   z-index: 2;
+}
+
+@media (max-width: 620px) {
+  .minimap {
+    bottom: max(0.75rem, calc(var(--timeline-chrome-bottom) / 2));
+    width: calc(100vw - 1.5rem);
+  }
 }

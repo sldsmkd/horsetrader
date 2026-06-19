@@ -2,15 +2,24 @@
    strip and item sequence; individual surfaces mount through the overlay layer. */
 .menubar {
   position: absolute;
-  top: 0.75rem;
-  left: 0.75rem;
-  right: 0.75rem;
+  top: var(--timeline-chrome-top);
+  left: 50%;
   z-index: 3;
   display: grid;
   grid-template-columns: auto minmax(12rem, 28rem) auto;
   align-items: center;
   gap: 0.5rem;
+  box-sizing: border-box;
+  width: min(var(--timeline-chrome-width), var(--timeline-chrome-max-width), calc(100vw - 1.5rem));
+  min-height: var(--timeline-chrome-height);
+  padding: 0.45rem 0.55rem;
+  border: 1px solid var(--timeline-chrome-border);
+  border-radius: var(--timeline-chrome-radius);
+  background: var(--timeline-chrome-bg);
+  box-shadow: var(--timeline-chrome-shadow);
   pointer-events: none;
+  transform: translateX(-50%);
+  backdrop-filter: blur(6px);
 }
 
 .menubar__cluster {
@@ -29,8 +38,8 @@
   min-height: 2.35rem;
   border: 1px solid var(--ht-control-border);
   border-radius: var(--ht-control-radius-soft);
-  background: color-mix(in srgb, Canvas 78%, transparent);
-  box-shadow: 0 0.35rem 1.4rem rgba(0, 0, 0, 0.18);
+  background: color-mix(in srgb, Canvas 64%, transparent);
+  box-shadow: none;
   color: inherit;
 }
 
@@ -163,6 +172,8 @@
   .menubar {
     grid-template-columns: 1fr auto;
     align-items: start;
+    top: max(0.75rem, calc(var(--timeline-chrome-top) / 2));
+    width: calc(100vw - 1.5rem);
   }
 
   .search-box {

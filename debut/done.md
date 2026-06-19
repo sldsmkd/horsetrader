@@ -5,6 +5,41 @@ Completed items from the Debut readiness pass. This is the little receipt pile:
 
 ## 2026-06-19
 
+### Initial menubar and minimap float implemented
+
+Converted the persistent top menu and bottom minimap/nav from edge-docked page bars
+into floating glass-table chrome over the live timeline. The shared knobs live in
+`css/base.css`: width, max-width, top offset, bottom offset, height, radius,
+background, border, and shadow. Initial values are 80vw width, 5vh from the top
+for the menu, and 5vh from the bottom for the minimap. This is not closed until
+the layout blast damage is contained; the follow-up project is active in
+polish.md.
+
+### Menubar dropdowns re-anchored to the floating bar
+
+Floating the bar had severed its dropdowns: the trainer book and resources card
+were still pinned to the viewport corners, so on a wide screen the bar floated
+inward while its menus stayed jammed against the edges. Added a `.chrome-dropdowns`
+rail layer sized and centred with the same knobs as the bar, so its surfaces drop
+in under the bar's own edges (left book off the left edge, right resources off the
+right). Routing splits by the `overlay--center` marker — dropdowns hang on the
+rail, viewport-centred shields stay in the overlay layer. Cards carry a
+`--chrome-dropdown-scale` knob (0.8) and scale from the edge they're pinned to, so
+they shrink inward instead of colliding. Bar width went to 85vw with the max-width
+cap lifted to 160rem (ultrawide guard only). Known jank: `transform: scale` shrinks
+the render but not the layout box, so card spacing reads slightly off — left in
+polish.md for a later trim-vs-scale decision.
+
+### Phone containment for Debut (contained, usable)
+
+The phone portrait layout now fails in a contained way rather than stacking broken
+chrome over the timeline. The menubar stacks cleanly (home + identity + carats,
+search on its own row) and the bookmarks drawer is killed below 620px — which also
+closes the can't-close trap, since the drawer's only opener (its chevron tab) lives
+inside the container that gets `display: none`. Usable in portrait, which is the
+Debut bar; coaxing the phone experience into real life is parked as a post-launch
+project.
+
 ### Generic overlay close chrome retired
 
 Removed the generic overlay title-bar close path entirely. Overlays still use

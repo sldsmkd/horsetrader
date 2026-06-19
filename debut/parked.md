@@ -25,6 +25,20 @@ new functionality or later product directions, not readiness polish.
   context, clear banner art, dates, pity counts, and a small callback/attribution to
   `horsetrader.site` so the image can travel outside the app and still point home.
   This is a project, not Debut polish. Source: user note.
+- **Floating timeline chrome + mobile (project in its own right).** The glass-table
+  chrome is good enough for launch: the menubar/minimap float over the timeline, the
+  dropdown rail re-anchors to the bar's edges with a `--chrome-dropdown-scale` knob,
+  and the phone layout is contained (stacked bar, drawer killed, usable in portrait —
+  see done.md). Picking it up properly post-launch is one project covering: the scale
+  jank (transform shrinks render not layout box — trim-vs-scale decision), the rest of
+  the blast-damage containment (overlap with timeline cards, scenario art, the bottom
+  minimap), responsive zoom limits on sub-1440p/narrow viewports, and the real mobile
+  experience (touch ergonomics, deliberate layouts rather than collapsed desktop
+  chrome). Source: [TODO.md](../TODO.md), user note.
+- **Grouped banner mixed-end copy.** Groups are keyed on shared start, but rare
+  groups have mixed end dates. Decide whether to keep max-end span, show a range
+  only when all ends agree, or render per-banner ends. Not launch-critical. Source:
+  [TODO.md](../TODO.md).
 - **Favourites / Plan / Identity layering.** Re-think how the Favourites/Plan drawer
   and Identity surface coexist: clipping, overlap, z-order, shadows, and whether
   an opened identity card should partially cover, push, dim, or otherwise negotiate
