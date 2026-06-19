@@ -16,6 +16,7 @@ import type { Axis } from "../axis.ts";
 import type { Bundle } from "../bundle/access.ts";
 import type { SettledEvent } from "../../core/engine/index.ts";
 import type { ResourceVector, Commitments } from "../../core/persistence/document.ts";
+import { commitmentPity, commitmentUsePaid } from "../../core/persistence/document.ts";
 import { pullCapacity, remainingAfterSpend, remainingCapacityAfterSpend, bannerDays } from "../../core/projection/pulls.ts";
 import type { CalendarDate } from "../../core/projection/dates.ts";
 
@@ -168,11 +169,13 @@ export function aboveLaneGroups(
       freeCarats: balance.free_carats ?? 0,
       paidCarats: balance.paid_carats ?? 0,
     };
-    const committedPity = inputs.commitments[ev.key] ?? null;
-    const remainingSources = committedPity === null ? null : remainingAfterSpend(pullSources, pullCaps, sparkThreshold, committedPity);
+    const commitment = inputs.commitments[ev.key];
+    const committedPity = commitment === undefined ? null : commitmentPity(commitment);
+    const committedUsePaid = commitment === undefined ? false : commitmentUsePaid(commitment);
+    const remainingSources = committedPity === null ? null : remainingAfterSpend(pullSources, pullCaps, sparkThreshold, committedPity, committedUsePaid);
     // The card gutter shows what remains available on this banner after its own
     // commitment, but each source floors at zero: you cannot use negative tickets.
-    const capacity = committedPity === null ? pullCapacity(pullSources, pullCaps) : remainingCapacityAfterSpend(pullSources, pullCaps, sparkThreshold, committedPity);
+    const capacity = committedPity === null ? pullCapacity(pullSources, pullCaps) : remainingCapacityAfterSpend(pullSources, pullCaps, sparkThreshold, committedPity, committedUsePaid);
     group.banners.push({
       key: ev.key,
       kind: record.type,

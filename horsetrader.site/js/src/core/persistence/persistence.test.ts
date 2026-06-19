@@ -143,6 +143,41 @@ test("non-finite resource and commitment values are dropped, not kept", () => {
   assert.deepEqual(envelope.remote.commitments, { "30096": 50 });
 });
 
+test("a commitment loads as a flat integer or a { number, use_paid } entry", () => {
+  const store = memoryStore();
+  store.write(
+    DOCUMENT_KEY,
+    JSON.stringify({
+      version: 1,
+      commitments: {
+        flat: 50, // the common case — bare pity, paid spend off
+        paid: { number: 30, use_paid: true }, // the opt-in entry
+      },
+    }),
+  );
+  const { envelope } = load(store);
+  assert.equal(envelope.remote.commitments?.["flat"], 50);
+  assert.deepEqual(envelope.remote.commitments?.["paid"], { number: 30, use_paid: true });
+});
+
+test("a commitment entry missing number or use_paid is dropped", () => {
+  const store = memoryStore();
+  store.write(
+    DOCUMENT_KEY,
+    JSON.stringify({
+      version: 1,
+      commitments: {
+        good: { number: 30, use_paid: false },
+        noFlag: { number: 30 }, // missing use_paid
+        noNumber: { use_paid: true }, // missing number
+        badFlag: { number: 30, use_paid: "yes" }, // use_paid not a boolean
+      },
+    }),
+  );
+  const { envelope } = quietly(() => load(store));
+  assert.deepEqual(envelope.remote.commitments, { good: { number: 30, use_paid: false } });
+});
+
 test("a note-less favourite is stored bare ({}), never as an empty note", () => {
   const store = memoryStore();
   store.write(

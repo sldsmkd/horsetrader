@@ -76,8 +76,15 @@ export interface SpendDebit {
 
 /** Cover `pity × sparkThreshold` pulls cheapest-first (free pulls → tickets → daily paid
  *  → free carats) and return what each pool gave up. The single source of truth for both
- *  the shield's "after" (balance − debit) and the projection's spend emission (−debit). */
-export function spend(s: PullSources, c: PullCaps, sparkThreshold: number, pity: number): SpendDebit {
+ *  the shield's "after" (balance − debit) and the projection's spend emission (−debit).
+ *
+ *  `usePaid` opts into spending owned paid carats at FULL price (150, like free — not the
+ *  50 discount) once the cheap sources run out (issue #65). With it on, the tail is:
+ *  burn free carats down to the `< 150` remainder, then burn paid carats at full price
+ *  toward the target, then surge any still-unmet need negative on free carats. With it
+ *  off, paid only ever leaves through the daily window and free carats absorb the whole
+ *  remainder (going negative — the release valve). */
+export function spend(s: PullSources, c: PullCaps, sparkThreshold: number, pity: number, usePaid: boolean): SpendDebit {
   const cap = pullCapacity(s, c);
   let need = Math.max(0, pity) * sparkThreshold;
   need -= Math.min(cap.freePulls, need); // free pulls evaporate into the need (banner-local)
@@ -85,11 +92,30 @@ export function spend(s: PullSources, c: PullCaps, sparkThreshold: number, pity:
   need -= ticketsUsed;
   const dailyUsed = Math.min(cap.dailyPaid, need);
   need -= dailyUsed;
+
+  if (!usePaid) {
+    return {
+      // Whatever's left is full-price free carats — can exceed the pool (overcommit short).
+      freeCarats: need * c.caratsPerPull,
+      // Paid carats only leave through the daily window; the rest banks forward.
+      paidCarats: dailyUsed * c.paidDailyPull,
+      tickets: ticketsUsed,
+    };
+  }
+
+  // Free carats first, floored at the un-spendable remainder (no full pull from `< 150`).
+  const freeCaratPulls = Math.min(cap.freeCaratPulls, need);
+  need -= freeCaratPulls;
+  // Paid carats left after the daily window, spent at full price toward the target.
+  const paidLeft = Math.max(0, s.paidCarats - dailyUsed * c.paidDailyPull);
+  const paidFullPulls = Math.min(Math.floor(paidLeft / c.caratsPerPull), need);
+  need -= paidFullPulls;
   return {
-    // Whatever's left is full-price free carats — can exceed the pool (overcommit short).
-    freeCarats: need * c.caratsPerPull,
-    // Paid carats only leave through the daily window; the rest banks forward.
-    paidCarats: dailyUsed * c.paidDailyPull,
+    // The floored free spend plus the surge for whatever paid couldn't cover — the surge
+    // takes free carats negative (the pressure dimension stays on free).
+    freeCarats: (freeCaratPulls + need) * c.caratsPerPull,
+    // Daily-window paid (50 each) plus the full-price paid pulls (150 each).
+    paidCarats: dailyUsed * c.paidDailyPull + paidFullPulls * c.caratsPerPull,
     tickets: ticketsUsed,
   };
 }
@@ -98,9 +124,9 @@ export function spend(s: PullSources, c: PullCaps, sparkThreshold: number, pity:
  *  cheapest-first spend. This is the read model for surfaces that want "free
  *  after plan" rather than "available before plan"; projection still emits only
  *  banked resource debits, while UI can also show banner-local free pulls. */
-export function remainingAfterSpend(s: PullSources, c: PullCaps, sparkThreshold: number, pity: number): PullSources {
+export function remainingAfterSpend(s: PullSources, c: PullCaps, sparkThreshold: number, pity: number, usePaid: boolean): PullSources {
   const pullsNeeded = Math.max(0, pity) * sparkThreshold;
-  const debit = spend(s, c, sparkThreshold, pity);
+  const debit = spend(s, c, sparkThreshold, pity, usePaid);
   return {
     freePulls: Math.max(0, s.freePulls - pullsNeeded),
     tickets: s.tickets - debit.tickets,
@@ -112,8 +138,8 @@ export function remainingAfterSpend(s: PullSources, c: PullCaps, sparkThreshold:
 /** Pull capacity left on the same banner after reserving a pity commitment.
  *  This is the card-gutter read: the commitment consumes its own gift pulls and
  *  account sources, then `pullCapacity` floors each remaining source at zero. */
-export function remainingCapacityAfterSpend(s: PullSources, c: PullCaps, sparkThreshold: number, pity: number): PullCapacity {
-  return pullCapacity(remainingAfterSpend(s, c, sparkThreshold, pity), c);
+export function remainingCapacityAfterSpend(s: PullSources, c: PullCaps, sparkThreshold: number, pity: number, usePaid: boolean): PullCapacity {
+  return pullCapacity(remainingAfterSpend(s, c, sparkThreshold, pity, usePaid), c);
 }
 
 /** Banner duration in whole days (`end − start`), the daily-pull cap. At least 1 — a

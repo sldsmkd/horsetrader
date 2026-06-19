@@ -69,8 +69,9 @@ export interface Coordinator {
   recovered(): boolean;
 
   // ── Write: typed intent, one private path ─────────────────────────────────
-  /** Raise/adjust a claim against an event (0 clears it). */
-  commit(eventKey: string, pity: number): void;
+  /** Raise/adjust a claim against an event (0 clears it). `usePaid` opts the claim
+   *  into spending owned paid carats at full price beyond the daily window (#65). */
+  commit(eventKey: string, pity: number, usePaid: boolean): void;
   /** The account's play-style — engagement levels the play streams grade by. */
   setPlay(key: PlayStyleKey, settings: PlayStyleSettings): void;
   /** Join/update the club (a non-empty name is membership); null rank leaves. */
@@ -305,10 +306,12 @@ export function createCoordinator(options: CoordinatorOptions): Coordinator {
     streams: () => registry.streams.map((s) => ({ id: s.id, enabled: toggles.get(s.id) !== false })),
     recovered: () => loaded.recovered,
 
-    commit(eventKey, pity) {
+    commit(eventKey, pity, usePaid) {
       const next = { ...(doc.commitments ?? {}) };
-      if (pity > 0) next[eventKey] = pity;
-      else delete next[eventKey]; // 0 clears — sparse by construction
+      // Store the dict form only when the paid-spend flag is on; a bare commitment
+      // stays the flat integer (sparse by construction, like favourites/rushed).
+      if (pity > 0) next[eventKey] = usePaid ? { number: pity, use_paid: true } : pity;
+      else delete next[eventKey]; // 0 clears
       update({ commitments: next });
     },
     setPlay(key, settings) {

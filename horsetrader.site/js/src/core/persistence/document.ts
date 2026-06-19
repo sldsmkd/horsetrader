@@ -48,11 +48,39 @@ export interface Snapshot {
 export type Config = { [setting: string]: unknown };
 
 /**
- * Per-banner committed pities (the unit of account) — keyed by banner id. The
- * carat cost is *derived* from the pity intent, never stored (see
+ * A per-banner commitment carrying the paid-spend opt-in. The `number` is the
+ * committed pity (the unit of account); `use_paid` opts into spending owned paid
+ * carats at full price beyond the daily-discount window (issue #65). Stored only
+ * when the flag is meaningful — a bare commitment persists as the flat integer.
+ */
+export interface CommitmentEntry {
+  number: number;
+  use_paid: boolean;
+}
+
+/**
+ * A stored commitment: either a flat pity integer (the common case — paid spend
+ * off) or the full entry when the player opted into paid spend. Read it through
+ * `commitmentPity` / `commitmentUsePaid` so consumers never branch on the shape.
+ */
+export type Commitment = number | CommitmentEntry;
+
+/**
+ * Per-banner commitments (the unit of account) — keyed by banner id. The carat
+ * cost is *derived* from the pity intent, never stored (see
  * docs/frontend/projection.md).
  */
-export type Commitments = { [bannerId: string]: number };
+export type Commitments = { [bannerId: string]: Commitment };
+
+/** The committed pity, whichever storage form the commitment took. */
+export function commitmentPity(commitment: Commitment): number {
+  return typeof commitment === "number" ? commitment : commitment.number;
+}
+
+/** Whether this commitment opts into spending owned paid carats at full price. */
+export function commitmentUsePaid(commitment: Commitment): boolean {
+  return typeof commitment === "number" ? false : commitment.use_paid;
+}
 
 /**
  * A favourited entity. Sparse by construction: a bare favourite is `{}` (the

@@ -15,6 +15,7 @@
 
 import type { Bundle } from "../bundle/access.ts";
 import type { ResourceVector, Commitments } from "../../core/persistence/document.ts";
+import { commitmentPity, commitmentUsePaid } from "../../core/persistence/document.ts";
 import { atomOf, type BannerAtom, type BannerKind, type RarityTier } from "./aboveLane.ts";
 import { remainingAfterSpend, bannerDays, type PullSources } from "../../core/projection/pulls.ts";
 import type { CalendarDate } from "../../core/projection/dates.ts";
@@ -50,6 +51,8 @@ export interface CommitContext {
   bannerDays: number;
   /** The currently committed pity, or null when nothing is committed yet. */
   committedPity: number | null;
+  /** Whether the stored commitment opts into spending paid carats at full price (#65). */
+  committedUsePaid: boolean;
   /** Pulls per guaranteed pity — the spark threshold (`pulls = pity × this`). */
   sparkThreshold: number;
   /** Carat cost of one full-price pull — the free-carat substrate the reservation reads. */
@@ -95,6 +98,9 @@ export function commitContext(bundle: Bundle, bannerKey: string, inputs: CommitI
   // pulls, free pulls, tickets) has settled by then (project_spend_model).
   const v = inputs.balanceAt(ev.end);
   const freePulls = typeof ev.rewards?.pulls === "number" ? ev.rewards.pulls : 0;
+  const commitment = inputs.commitments[bannerKey];
+  const committedPity = commitment == null ? null : commitmentPity(commitment);
+  const committedUsePaid = commitment == null ? false : commitmentUsePaid(commitment);
 
   const atoms = ev.contents
     .map((id): CommitAtom | null => {
@@ -119,7 +125,8 @@ export function commitContext(bundle: Bundle, bannerKey: string, inputs: CommitI
     tickets: (kind === "support" ? v.support_tickets : v.trainee_tickets) ?? 0,
     freePulls,
     bannerDays: bannerDays(ev.start, ev.end),
-    committedPity: inputs.commitments[bannerKey] ?? null,
+    committedPity,
+    committedUsePaid,
     sparkThreshold,
     caratsPerPull,
     paidDailyPull,
@@ -137,18 +144,21 @@ export function commitContext(bundle: Bundle, bannerKey: string, inputs: CommitI
  *   2. tickets (1 pull each),
  *   3. daily paid pulls (50 paid carats each, duration-capped),
  *   4. free carats (150 each) — the full-price remainder.
- * Tickets bottom out at 0 and paid carats only ever spend through the daily window (so
- * any the cap can't absorb stay banked — never drained at full price). **Free carats
- * absorb the whole leftover and go negative** — an overcommitment reads as a negative
- * carat balance (the view reds it). NB the *debit forward* (Part 2) isn't wired yet.
+ * Tickets bottom out at 0. With `usePaid` off, paid carats only ever spend through the
+ * daily window (any the cap can't absorb stay banked) and **free carats absorb the whole
+ * leftover and go negative**. With `usePaid` on (#65), owned paid carats spend at full
+ * price after free carats floor at their `< 150` remainder, and only the still-unmet need
+ * surges free carats negative. Either way an overcommitment reads as a negative carat
+ * balance (the view reds it).
  */
 export type ReservedBalance = PullSources;
 
-export function reserve(ctx: CommitContext, pity: number): ReservedBalance {
+export function reserve(ctx: CommitContext, pity: number, usePaid: boolean): ReservedBalance {
   return remainingAfterSpend(
     { freePulls: ctx.freePulls, tickets: ctx.tickets, freeCarats: ctx.freeCarats, paidCarats: ctx.paidCarats },
     { caratsPerPull: ctx.caratsPerPull, paidDailyPull: ctx.paidDailyPull, bannerDays: ctx.bannerDays },
     ctx.sparkThreshold,
     pity,
+    usePaid,
   );
 }

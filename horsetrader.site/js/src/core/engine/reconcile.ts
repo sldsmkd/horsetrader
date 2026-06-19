@@ -27,6 +27,7 @@
 import type { CalendarDate } from "../projection/dates.ts";
 import type { ResourceVector, StreamEmission } from "../projection/ledger.ts";
 import { bannerDays, spend } from "../projection/pulls.ts";
+import { commitmentPity, commitmentUsePaid, type Commitments } from "../persistence/document.ts";
 import type { SettledEvent } from "./stream.ts";
 
 /** The ledger stream tag of the reconciliation tail — positional provenance. */
@@ -57,19 +58,20 @@ const ticketKeyOf = (kind: string): "support_tickets" | "trainee_tickets" =>
  * spend is in the snapshot reading; re-debiting would double-count.
  */
 export function reconcile(
-  commitments: Record<string, number>,
+  commitments: Commitments,
   byKey: ReadonlyMap<string, SettledEvent>,
   incomeBalanceAt: (date: CalendarDate) => ResourceVector,
   gacha: Gacha,
   after: CalendarDate,
 ): ReconcileResult {
-  const referents: { event: SettledEvent; pity: number }[] = [];
-  for (const [key, pity] of Object.entries(commitments)) {
+  const referents: { event: SettledEvent; pity: number; usePaid: boolean }[] = [];
+  for (const [key, commitment] of Object.entries(commitments)) {
+    const pity = commitmentPity(commitment);
     if (!pity) continue; // unset or 0 — no claim
     const event = byKey.get(key);
     if (!event) throw new Error(`reconcile: commitment against unknown event "${key}"`);
     if (event.start <= after) continue; // already open — its spend is in the snapshot
-    referents.push({ event, pity });
+    referents.push({ event, pity, usePaid: commitmentUsePaid(commitment) });
   }
   referents.sort((a, b) =>
     a.event.start < b.event.start ? -1 : a.event.start > b.event.start ? 1 : a.event.key < b.event.key ? -1 : a.event.key > b.event.key ? 1 : 0,
@@ -79,7 +81,7 @@ export function reconcile(
   const available = new Map<string, ResourceVector>();
   const spent: ResourceVector = {}; // cumulative earmarks so far (positive amounts)
 
-  for (const { event, pity } of referents) {
+  for (const { event, pity, usePaid } of referents) {
     const ticketKey = ticketKeyOf(event.type);
     // Available = income at this referent's end, minus every earlier-by-start claim (not its own).
     const avail: ResourceVector = { ...incomeBalanceAt(event.end) };
@@ -94,6 +96,7 @@ export function reconcile(
       { caratsPerPull: gacha.caratsPerPull, paidDailyPull: gacha.paidDailyPull, bannerDays: bannerDays(event.start, event.end) },
       gacha.sparkThreshold,
       pity,
+      usePaid,
     );
 
     // Only the non-zero debits — a 0 would attribute a dead `…: 0` ledger entry.

@@ -203,7 +203,7 @@ test("fold: ledger attribution joins on the settled key (one naming system)", ()
 test("reconcile: the claim debits at start, measured at end; availableFor self-excludes", () => {
   const coord = coordinator();
   const before = coord.balanceAt(FAR).free_carats!;
-  coord.commit("banner-kita", 1); // one spark of pity — the cost is the shipped pull-math's
+  coord.commit("banner-kita", 1, false); // one spark of pity — the cost is the shipped pull-math's
   const cost = before - coord.balanceAt(FAR).free_carats!;
   assert.ok(cost > 0);
   // the debit lands on the banner's start (start-date attribution, debit source = claimed key)…
@@ -217,9 +217,9 @@ test("reconcile: the claim debits at start, measured at end; availableFor self-e
 test("reconcile: seniority is earlier-by-start — a later banner sees the earlier claim", () => {
   const coord = coordinator();
   const before = coord.balanceAt(FAR).free_carats!;
-  coord.commit("banner-kita", 1); // starts 06-12 — senior
+  coord.commit("banner-kita", 1, false); // starts 06-12 — senior
   const kitaCost = before - coord.balanceAt(FAR).free_carats!;
-  coord.commit("banner-sakura", 1); // starts 06-14 — junior
+  coord.commit("banner-sakura", 1, false); // starts 06-14 — junior
   const sakura = coord.availableFor("banner-sakura")!;
   const kita = coord.availableFor("banner-kita")!;
   // sakura measures at a later end (06-24 vs 06-22), so it gains the income that
@@ -230,12 +230,12 @@ test("reconcile: seniority is earlier-by-start — a later banner sees the earli
 
 test("reconcile: a claim against an unknown key throws (resolve-or-throw)", () => {
   const coord = coordinator();
-  assert.throws(() => coord.commit("banner-ghost", 10), /unknown event/);
+  assert.throws(() => coord.commit("banner-ghost", 10, false), /unknown event/);
 });
 
 test("a committed trainee banner survives trainee-debuts being toggled off", () => {
   const coord = coordinator();
-  coord.commit("banner-sakura", 5); // a trainee banner, committed while debuts are on
+  coord.commit("banner-sakura", 5, false); // a trainee banner, committed while debuts are on
   // Toggling the debut-income lever off must NOT drop the banner (a pull target
   // with a live claim) from the lane — it would orphan the commitment.
   assert.doesNotThrow(() => coord.setPlay("custom", { ...play, traineeDebuts: "off" }));
@@ -246,10 +246,21 @@ test("a committed trainee banner survives trainee-debuts being toggled off", () 
 test("commit(key, 0) clears the claim", () => {
   const coord = coordinator();
   const base = coord.balanceAt(FAR).free_carats!;
-  coord.commit("banner-kita", 100);
-  coord.commit("banner-kita", 0);
+  coord.commit("banner-kita", 100, false);
+  coord.commit("banner-kita", 0, false);
   assert.equal(coord.balanceAt(FAR).free_carats, base);
   assert.equal(coord.availableFor("banner-kita"), undefined);
+});
+
+test("commit stores the dict form only when use-paid is on; flat otherwise", () => {
+  const coord = coordinator();
+  coord.commit("banner-kita", 50, false);
+  assert.equal(coord.document().commitments?.["banner-kita"], 50); // bare integer
+  coord.commit("banner-kita", 50, true);
+  assert.deepEqual(coord.document().commitments?.["banner-kita"], { number: 50, use_paid: true });
+  // Re-committing without the flag drops back to the flat form (no stale dict).
+  coord.commit("banner-kita", 60, false);
+  assert.equal(coord.document().commitments?.["banner-kita"], 60);
 });
 
 // ── the boundary (typed mutators, observe, toggles) ─────────────────────────
@@ -276,12 +287,12 @@ test("sync meta: mutations set dirty, markSynced clears + records the rev", () =
   const store = memoryStore();
   const coord = createCoordinator({ bundle: bundle(), config: config(), now: NOW, store });
   assert.deepEqual(coord.syncMeta(), { etag: null, dirty: false });
-  coord.commit("banner-kita", 100); // any plan mutation diverges from the cloud
+  coord.commit("banner-kita", 100, false); // any plan mutation diverges from the cloud
   assert.equal(coord.syncMeta().dirty, true);
   coord.markSynced('"abc123"');
   assert.deepEqual(coord.syncMeta(), { etag: '"abc123"', dirty: false });
   // dirty + etag persist across reload (local.sync round-trips).
-  coord.commit("banner-kita", 50);
+  coord.commit("banner-kita", 50, false);
   assert.deepEqual(createCoordinator({ bundle: bundle(), config: config(), now: NOW, store }).syncMeta(), { etag: '"abc123"', dirty: true });
 });
 
@@ -306,7 +317,7 @@ test("adoptRemote swaps the plan + records the rev, bringing the cloud's trainer
   const store = memoryStore();
   const coord = createCoordinator({ bundle: bundle(), config: config(), now: NOW, store });
   coord.setUsername("Local");
-  coord.commit("banner-kita", 100);
+  coord.commit("banner-kita", 100, false);
   assert.equal(Object.keys(coord.document().commitments ?? {}).length, 1);
   // Adopt a cloud plan that carries its own (synced) trainer name.
   coord.adoptRemote({ version: 2, config: { identity: { trainerName: "Cloud" } } }, '"cloud-rev"');

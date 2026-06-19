@@ -6,6 +6,7 @@
 
 import type { Commitments } from "../../core/persistence/document.ts";
 import type { ResourceVector } from "../../core/persistence/document.ts";
+import { commitmentPity, commitmentUsePaid } from "../../core/persistence/document.ts";
 import type { CalendarDate } from "../../core/projection/dates.ts";
 import { bannerDays, remainingAfterSpend } from "../../core/projection/pulls.ts";
 import type { Bundle } from "../bundle/access.ts";
@@ -42,8 +43,10 @@ export function plannerRows(bundle: Bundle, commitments: Commitments, now: Calen
   for (const ev of bundle.all()) {
     if (ev.type !== "trainee" && ev.type !== "support") continue;
     if (ev.end < now) continue;
-    const pity = commitments[ev.key] ?? 0;
+    const commitment = commitments[ev.key];
+    const pity = commitment == null ? 0 : commitmentPity(commitment);
     if (pity <= 0) continue;
+    const usePaid = commitment == null ? false : commitmentUsePaid(commitment);
     const balance = inputs.availableFor(ev.key) ?? inputs.balanceAt(ev.end);
     const freePulls = typeof ev.rewards?.pulls === "number" ? ev.rewards.pulls : 0;
     const remaining = remainingAfterSpend(
@@ -56,6 +59,7 @@ export function plannerRows(bundle: Bundle, commitments: Commitments, now: Calen
       { caratsPerPull, paidDailyPull, bannerDays: bannerDays(ev.start, ev.end) },
       sparkThreshold,
       pity,
+      usePaid,
     );
     rows.push({
       key: ev.key,

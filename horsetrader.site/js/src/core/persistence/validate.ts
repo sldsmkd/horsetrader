@@ -12,6 +12,7 @@
 
 import { CURRENT_VERSION } from "./document.ts";
 import type {
+  Commitment,
   Commitments,
   Config,
   Favourites,
@@ -107,12 +108,28 @@ function validateConfig(value: unknown): Config | undefined {
   return value;
 }
 
+/** A commitment is either a finite pity integer or an object that MUST carry a
+ *  finite `number` (the pity) and a boolean `use_paid`. Anything else is dropped. */
+function validateCommitment(value: unknown): Commitment | undefined {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (
+    isObject(value) &&
+    typeof value["number"] === "number" &&
+    Number.isFinite(value["number"]) &&
+    typeof value["use_paid"] === "boolean"
+  ) {
+    return { number: value["number"], use_paid: value["use_paid"] };
+  }
+  return undefined;
+}
+
 function validateCommitments(value: unknown): Commitments | undefined {
   if (!isObject(value)) return undefined;
   const out: Commitments = {};
-  for (const [bannerId, amount] of Object.entries(value)) {
-    if (typeof amount === "number" && Number.isFinite(amount)) out[bannerId] = amount;
-    else console.warn(`persistence: dropping non-numeric commitment "${bannerId}"`);
+  for (const [bannerId, raw] of Object.entries(value)) {
+    const commitment = validateCommitment(raw);
+    if (commitment !== undefined) out[bannerId] = commitment;
+    else console.warn(`persistence: dropping malformed commitment "${bannerId}"`);
   }
   return Object.keys(out).length ? out : undefined;
 }

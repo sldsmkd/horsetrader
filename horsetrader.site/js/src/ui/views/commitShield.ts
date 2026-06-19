@@ -27,11 +27,13 @@ import { PITY_WASTE_ABOVE } from "../select/aboveLane.ts";
 import { forecastWidget } from "../widgets/forecast.ts";
 import { pityBand } from "../widgets/pityBand.ts";
 import { surfaceActions } from "./surfaceActions.ts";
+import { checkbox } from "./checkbox.ts";
 
 export interface CommitShieldOpts {
   context: CommitContext;
-  /** Commit a pity count, or `null` to clear the commitment entirely. */
-  onCommit: (pity: number | null) => void;
+  /** Commit a pity count (or `null` to clear), and whether to spend owned paid carats
+   *  at full price beyond the daily window (#65). */
+  onCommit: (pity: number | null, usePaid: boolean) => void;
   onClose: () => void;
 }
 
@@ -102,6 +104,9 @@ function impactLine(icon: string, label: string, value: HTMLElement): HTMLElemen
 export function commitShield(opts: CommitShieldOpts): HTMLElement {
   const { context: ctx } = opts;
   let pity = ctx.committedPity ?? 0;
+  // The paid-spend opt-in (#65): off by default (keep the frugal discount-only model),
+  // seeded from the stored commitment so re-opening a paid plan stays paid.
+  let usePaid = ctx.committedUsePaid;
 
   // YOUR PLAN — the stepper read-backs.
   const pityValue = h("span", { class: "commit-shield__pity-value" }, String(pity));
@@ -124,7 +129,7 @@ export function commitShield(opts: CommitShieldOpts): HTMLElement {
     pityValue.textContent = String(pity);
     committedLabel.textContent = `${formatBalance(pity)} PITY COMMITTED`;
     reservedLabel.textContent = `${formatBalance(pity * ctx.sparkThreshold)} pulls reserved for this banner`;
-    const after = reserve(ctx, pity);
+    const after = reserve(ctx, pity, usePaid);
     setAfter(afterFree, after.freeCarats, true);
     setAfter(afterPaid, after.paidCarats, false);
     setAfter(afterTickets, after.tickets, false);
@@ -137,6 +142,19 @@ export function commitShield(opts: CommitShieldOpts): HTMLElement {
     pity = Math.max(0, pity + delta);
     render();
   };
+
+  // The paid-spend opt-in: by default paid carats only leave through the daily discount
+  // window; ticking this spends owned paid carats at full price toward the target before
+  // free carats surge negative (#65). Re-renders the Resource Impact "after" column.
+  const paidToggle = checkbox({
+    title: "Spend paid carats at full price",
+    checked: usePaid,
+    locked: false,
+    onToggle: (checked) => {
+      usePaid = checked;
+      render();
+    },
+  });
 
   render();
 
@@ -203,6 +221,7 @@ export function commitShield(opts: CommitShieldOpts): HTMLElement {
         { class: "commit-shield__impact-copy" },
         "Horsetrader looks at what you should have on this banner's last day, then sets your plan aside from the first day so later banners cannot spend it twice.",
       ),
+      paidToggle,
       h(
         "div",
         { class: "commit-shield__impact-grid" },
@@ -238,7 +257,7 @@ export function commitShield(opts: CommitShieldOpts): HTMLElement {
           attr: { type: "button" },
           on: {
             click: () => {
-              opts.onCommit(pity === 0 ? null : pity);
+              opts.onCommit(pity === 0 ? null : pity, usePaid);
               opts.onClose();
             },
           },

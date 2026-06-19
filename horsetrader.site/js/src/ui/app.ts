@@ -624,7 +624,7 @@ export function mountApp(
           context: ctx,
           // Persist the pity as the unit of account; the carat cost stays derived
           // (principle 10). A null clears the commitment (0 through `commit`).
-          onCommit: (pity) => coord.commit(committing, pity ?? 0),
+          onCommit: (pity, usePaid) => coord.commit(committing, pity ?? 0, usePaid),
           onClose: () => view.set({ committing: null }),
         }),
         onClose: () => view.set({ committing: null }),
