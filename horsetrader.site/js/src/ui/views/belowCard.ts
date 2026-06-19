@@ -13,6 +13,7 @@ import "./card.css";
 import "./belowCard.css";
 
 import { h } from "../h.ts";
+import { formatDateRange } from "../format.ts";
 import type { BelowCard } from "../select/belowLane.ts";
 import { rewardStrip } from "../widgets/rewardStrip.ts";
 import { rushedToggleFor } from "../widgets/rushedToggle.ts";
@@ -40,19 +41,43 @@ function missionBody(card: BelowCard, rush: RushBinding): HTMLElement {
 }
 
 function communityLabel(card: BelowCard): string | null {
-  if (card.kind !== "cm") return null;
-  const match = /^cm-0*(\d+)$/i.exec(card.key);
-  return match ? `CM${match[1]}` : null;
+  switch (card.kind) {
+    case "cm": {
+      const match = /^cm-0*(\d+)$/i.exec(card.key);
+      return match ? `CM${match[1]}` : null;
+    }
+    case "factorstudies":
+      return "Tachyon";
+    case "showtime":
+      return "Kiseki";
+    case "leagueofheroes":
+      return "League";
+    case "legendrace":
+      return "Legends";
+    case "masterschallenge":
+      return "Masters";
+    case "skilltest":
+      return "Skill Test";
+    case "strongestteam":
+      return "Strongest Team";
+    default:
+      return null;
+  }
+}
+
+function mediaDateLabel(card: BelowCard): string {
+  const range = formatDateRange(card.date, card.end);
+  const community = communityLabel(card);
+  return community ? `${community} · ${range}` : range;
 }
 
 function rectangularMedia(card: BelowCard): HTMLElement | null {
-  const label = communityLabel(card);
   return card.banner
     ? h(
         "div",
         { class: "card__media" },
         h("img", { class: "card__image", attr: { src: card.banner, alt: "", loading: "lazy", decoding: "async" } }),
-        label ? h("span", { class: "card__media-label", attr: { "aria-hidden": "true" } }, label) : null,
+        h("span", { class: "card__media-date" }, mediaDateLabel(card)),
       )
     : null;
 }

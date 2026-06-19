@@ -565,7 +565,8 @@ export function mountApp(
       const betaCard = overlay({
         title: "Beta",
         placement: "right",
-        body: betaSurface(),
+        headerless: true,
+        body: betaSurface(() => view.set({ right: null })),
         onClose: () => view.set({ right: null }),
       });
       if (anyShield) suspendOverlay(betaCard);
@@ -582,6 +583,7 @@ export function mountApp(
         overlay({
           title: "Cloud Save",
           placement: "center",
+          headerless: true,
           body: cloudProviderShield({
             coord,
             auth: cloudAuth,

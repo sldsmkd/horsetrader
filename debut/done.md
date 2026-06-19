@@ -5,6 +5,84 @@ Completed items from the Debut readiness pass. This is the little receipt pile:
 
 ## 2026-06-19
 
+### Generic overlay close chrome retired
+
+Removed the generic overlay title-bar close path entirely. Overlays still use
+`title` as the dialog's accessible name, but surfaces and shields now own their
+dismissal affordance in-body: Cancel buttons for write shields, collapse pills for
+collapsible surfaces. Cloud Save and the inactive Beta chamber were brought into
+that rule too, so no shield relies on a window `x`.
+
+### Editing controls consistency accepted
+
+Closed the editing controls consistency item. The Debut pattern is established:
+trainer name uses hover-to-edit highlight and a focus ring rather than a loud
+pencil control, and remaining edit affordances are acceptable for launch.
+
+### Sliders cleanup accepted for Debut
+
+Closed the sliders cleanup item. The Record Balance side is already converted
+with title hero, explanatory copy, days-to-top-up input, and centred actions; the
+play-style sliders/drawers are good enough for launch readiness and no longer
+need to block Debut.
+
+### Main surface/window chrome pass closed
+
+Flagged the surfaces-and-shields once-over and generic window chrome retirement as
+done for Debut's product surfaces. Main panels, oshi selector, club selector,
+Record Balance, Commit, Cloud Save, and the inactive Beta chamber now avoid
+generic window close chrome. The `confirmShield` reference is the small
+shield-of-a-shield used for destructive cloud actions; it already relies on
+explicit Cancel / confirm actions rather than a title-bar close.
+
+### Commit shield reserve model copy added
+
+Added concise Resource Impact copy to the commit shield explaining the planning
+model: Horsetrader looks at what the player should have on the banner's last day,
+then sets the selected pity aside from the first day so later banners cannot spend
+the same resources twice. This closes the Debut copy gap around the
+reserve-up-front / pay-at-end numbers.
+
+### Expired favourites state declined
+
+Decided not to add an explicit expired-favourite state. Silent culling is the
+right behaviour: if a banner never reruns again, there is nothing useful to pull
+on, so keeping a dead favourite around with a remove affordance would add noise
+rather than trust.
+
+### Rectangular below-card date badges added
+
+Added live-window date ranges to below-lane rectangular banner cards:
+
+- `BelowCard` now carries both `date` and `end`, keeping the visible event window
+  separate from reward-posting semantics.
+- Banner media renders a right-aligned dark date badge over the image, using the
+  same micro typography scale as the above-line banner date.
+- Champions Meetings replace the old large `CMn` overlay with `CMn · range`.
+- Generic recurring mode banners get short community labels in the same badge:
+  Tachyon, Kiseki, League, Legends, Masters, Skill Test, Strongest Team.
+- Anniversaries, holidays, scenarios, and stories deliberately stay date-only
+  because their banner art already carries specific information. Missions stay on
+  the simpler non-banner treatment and do not need special copy.
+
+Verification: `npm run check`, `npm run build`, and `npm test` passed from
+`horsetrader.site/`.
+
+### Oshi and club selectors converted
+
+Brought the two identity pickers into the Debut shield language:
+
+- Oshi selector and club selector overlays now use `overlay({ headerless: true })`,
+  dropping the generic title bar / close button while keeping dialog labels.
+- Each selector renders its own centred title hero.
+- Actions now use `surfaceActions`, with explicit **Cancel** buttons replacing the
+  removed header close affordance.
+- The club picker keeps **Leave club** as the destructive action, but no longer
+  pushes it to a corner.
+
+Verification: `npm run check`, `npm run build`, and `npm test` passed from
+`horsetrader.site/`.
+
 ### Cloud provider buttons branded
 
 Replaced the Unity cloud provider picker placeholder glyphs with actual provider

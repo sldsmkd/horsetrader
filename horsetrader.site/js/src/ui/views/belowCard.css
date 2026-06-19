@@ -111,23 +111,27 @@
   object-fit: contain;
 }
 
-.card__media-label {
+.card__media-date {
   position: absolute;
-  top: 8%;
-  left: 4%;
+  right: 0.35rem;
+  bottom: 0.35rem;
   z-index: 2;
-  color: var(--ht-colour-text-on-accent);
-  font-size: calc(var(--timeline-card-w) * 0.1);
-  font-weight: var(--ht-type-surface-title-weight);
-  line-height: 1;
+  max-width: calc(100% - 0.7rem);
+  padding: 0.2rem 0.45rem 0.22rem;
+  border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+  border-radius: 0.28rem;
+  background: color-mix(in srgb, Canvas 88%, transparent);
+  color: CanvasText;
+  font-size: var(--ht-type-micro-size);
+  font-weight: var(--ht-type-micro-weight);
+  line-height: var(--ht-type-micro-line);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
   pointer-events: none;
+  box-shadow: 0 0.18rem 0.45rem color-mix(in srgb, var(--ht-colour-shadow) 40%, transparent);
   text-shadow:
-    0 0 0.1em var(--ht-colour-shadow),
-    0.035em 0.035em 0 var(--ht-colour-shadow),
-    -0.035em 0.035em 0 var(--ht-colour-shadow),
-    0.035em -0.035em 0 var(--ht-colour-shadow),
-    -0.035em -0.035em 0 var(--ht-colour-shadow);
-  -webkit-text-stroke: 0.045em color-mix(in srgb, var(--ht-colour-shadow) 85%, transparent);
+    0 1px 0 color-mix(in srgb, Canvas 60%, transparent);
 }
 
 .card__label {

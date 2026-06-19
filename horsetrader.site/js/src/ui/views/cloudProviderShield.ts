@@ -28,6 +28,7 @@ import "./cloudProviderShield.css";
 
 import { h } from "../h.ts";
 import { presentConfirmShield } from "./confirmShield.ts";
+import { surfaceActions } from "./surfaceActions.ts";
 import { CLOUD_PROVIDERS, connect, disconnect, switchProvider } from "../../core/cloud/index.ts";
 import type { AuthState, CloudProvider } from "../../core/cloud/index.ts";
 import type { Coordinator } from "../../core/engine/index.ts";
@@ -41,8 +42,8 @@ export interface CloudProviderShieldOpts {
   /** Fired when the user ends up signed out (disconnect-and-stay) — the caller refreshes
    *  its auth state. A switch redirects to the new provider instead, so it skips this. */
   onSignedOut: () => void;
-  /** Close the shield (the shell clears `cloudConnecting`). Called by the overlay's own
-   *  close control AND after a completed disconnect. */
+  /** Close the shield (the shell clears `cloudConnecting`). Called by Cancel and after
+   *  a completed disconnect. */
   onClose: () => void;
 }
 
@@ -110,10 +111,16 @@ export function cloudProviderShield(opts: CloudProviderShieldOpts): HTMLElement 
     });
   }
 
-  // The shield BODY only — the app shell wraps it in `overlay({ title:"Cloud Save",
-  // placement:"center" })`, which supplies the header + close control + non-blocking
-  // chrome, exactly like the oshi/club/balance shields.
-  return h("div", { class: "cloud-provider" }, intro, list);
+  // The shield BODY only — the app shell wraps it in a headerless overlay. Dismissal
+  // lives here as an explicit Cancel action, matching the other write shields.
+  return h(
+    "div",
+    { class: "cloud-provider" },
+    h("h2", { class: "cloud-provider__title" }, "Cloud Save"),
+    intro,
+    list,
+    surfaceActions(h("button", { class: "cloud-provider__cancel", attr: { type: "button" }, on: { click: opts.onClose } }, "Cancel")),
+  );
 }
 
 function providerMark(provider: CloudProvider): SVGSVGElement {

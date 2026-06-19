@@ -1,6 +1,15 @@
 .oshi-selector {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 0.85rem;
+}
+
+.oshi-selector__title {
+  margin: 0;
+  text-align: center;
+  font-size: var(--ht-type-surface-title-size);
+  font-weight: var(--ht-type-surface-title-weight);
+  line-height: var(--ht-type-surface-title-line);
 }
 
 .oshi-selector__search {
@@ -67,21 +76,37 @@
   line-height: var(--ht-type-label-line);
 }
 
-.oshi-selector__actions {
-  display: flex;
-  justify-content: flex-end;
-}
-
+.oshi-selector__cancel,
 .oshi-selector__ok {
   min-width: 5.5rem;
   padding: 0.55rem 0.9rem;
-  border: 1px solid var(--ht-control-primary-border);
   border-radius: var(--ht-control-radius);
-  background: var(--ht-control-primary-bg);
   color: inherit;
   font: inherit;
-  font-weight: var(--ht-type-surface-title-weight);
   cursor: pointer;
+}
+
+.oshi-selector__cancel {
+  border: 1px solid var(--ht-control-border);
+  background: var(--ht-control-bg);
+}
+
+.oshi-selector__cancel:hover,
+.oshi-selector__cancel:focus-visible {
+  background: var(--ht-control-bg-hover-subtle);
+  outline: 0;
+}
+
+.oshi-selector__ok {
+  border: 1px solid var(--ht-control-primary-border);
+  background: var(--ht-control-primary-bg);
+  font-weight: var(--ht-type-surface-title-weight);
+}
+
+.oshi-selector__ok:hover,
+.oshi-selector__ok:focus-visible {
+  background: var(--ht-control-primary-bg-hover);
+  outline: 0;
 }
 
 @media (max-width: 620px) {

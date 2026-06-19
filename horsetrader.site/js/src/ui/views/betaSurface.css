@@ -17,3 +17,19 @@
   opacity: 0.55;
   line-height: var(--ht-type-caption-line);
 }
+
+.beta-surface__cancel {
+  padding: 0.55rem 0.9rem;
+  border: 1px solid var(--ht-control-border);
+  border-radius: var(--ht-control-radius);
+  background: var(--ht-control-bg);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.beta-surface__cancel:hover,
+.beta-surface__cancel:focus-visible {
+  background: var(--ht-control-bg-hover-subtle);
+  outline: 0;
+}

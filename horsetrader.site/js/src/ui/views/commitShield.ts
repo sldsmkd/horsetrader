@@ -199,6 +199,11 @@ export function commitShield(opts: CommitShieldOpts): HTMLElement {
       { class: "commit-shield__impact" },
       h("span", { class: "commit-shield__section-label" }, "Resource Impact"),
       h(
+        "p",
+        { class: "commit-shield__impact-copy" },
+        "Horsetrader looks at what you should have on this banner's last day, then sets your plan aside from the first day so later banners cannot spend it twice.",
+      ),
+      h(
         "div",
         { class: "commit-shield__impact-grid" },
         h(

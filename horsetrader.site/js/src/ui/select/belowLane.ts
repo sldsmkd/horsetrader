@@ -77,6 +77,8 @@ export interface BelowCard {
   /** The arrival date — when the event shows up on the timeline; the stem's true
    *  date (principle 4). The reward still posts on `end` in the ledger. */
   date: CalendarDate;
+  /** The event's live-window end date, separate from the reward posting semantics. */
+  end: CalendarDate;
   /** Content-space x for `date` off the axis (true-to-date, principle 2). */
   x: number;
   /** Predicted dates trust less — the grey grammar (principle 5). */
@@ -177,6 +179,7 @@ export function belowLaneCards(events: readonly SettledEvent[], axis: Axis, now:
       label: cardLabelOf(record, fullLabel),
       fullLabel,
       date: ev.start,
+      end: ev.end,
       x: axis.xForDate(ev.start),
       predicted: record.predicted,
       past: ev.end < now,

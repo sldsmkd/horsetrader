@@ -224,6 +224,15 @@
 }
 
 /* 4 — RESOURCE IMPACT */
+.commit-shield__impact-copy {
+  max-width: 38rem;
+  margin: -0.1rem auto 0.65rem;
+  color: color-mix(in srgb, currentColor 72%, transparent);
+  font-size: var(--ht-type-caption-size);
+  line-height: var(--ht-type-caption-line);
+  text-align: center;
+}
+
 .commit-shield__impact-grid {
   display: grid;
   grid-template-columns: 1fr auto 1fr;

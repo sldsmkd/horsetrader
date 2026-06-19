@@ -13,8 +13,9 @@
 import "./betaSurface.css";
 
 import { h } from "../h.ts";
+import { surfaceActions } from "./surfaceActions.ts";
 
-export function betaSurface(): HTMLElement {
+export function betaSurface(onClose: () => void): HTMLElement {
   return h(
     "section",
     { class: "beta-surface" },
@@ -24,5 +25,6 @@ export function betaSurface(): HTMLElement {
       { class: "beta-surface__note" },
       "Nothing in here right now — the next work-in-progress feature will surface here before it graduates to the main UI.",
     ),
+    surfaceActions(h("button", { class: "beta-surface__cancel", attr: { type: "button" }, on: { click: onClose } }, "Cancel")),
   );
 }

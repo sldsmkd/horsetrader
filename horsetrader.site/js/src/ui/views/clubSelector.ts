@@ -2,6 +2,7 @@ import "./clubSelector.css";
 
 import { h } from "../h.ts";
 import { pressedGroup } from "../widgets/pressedGroup.ts";
+import { surfaceActions } from "./surfaceActions.ts";
 import { CLUB_RANK_TIERS, DEFAULT_CLUB_RANK } from "../../core/identity/clubrank.ts";
 import type { ClubRankTier } from "../../core/identity/clubrank.ts";
 
@@ -88,10 +89,25 @@ export function clubSelector(opts: ClubSelectorOpts): HTMLElement {
       return button;
     }),
   );
+  const leaveButton = h(
+    "button",
+    {
+      class: "club-selector__leave",
+      attr: { type: "button" },
+      on: {
+        click: () => {
+          opts.onLeave();
+          opts.onClose();
+        },
+      },
+    },
+    "Leave club",
+  );
 
   return h(
     "section",
     { class: "club-selector" },
+    h("h2", { class: "club-selector__title" }, inClub ? "Edit Club" : "Join Club"),
     h(
       "label",
       { class: "club-selector__field" },
@@ -99,25 +115,9 @@ export function clubSelector(opts: ClubSelectorOpts): HTMLElement {
       name,
     ),
     grid,
-    h(
-      "footer",
-      { class: "club-selector__actions" },
-      inClub
-        ? h(
-            "button",
-            {
-              class: "club-selector__leave",
-              attr: { type: "button" },
-              on: {
-                click: () => {
-                  opts.onLeave();
-                  opts.onClose();
-                },
-              },
-            },
-            "Leave club",
-          )
-        : null,
+    surfaceActions(
+      ...(inClub ? [leaveButton] : []),
+      h("button", { class: "club-selector__cancel", attr: { type: "button" }, on: { click: opts.onClose } }, "Cancel"),
       h(
         "button",
         {

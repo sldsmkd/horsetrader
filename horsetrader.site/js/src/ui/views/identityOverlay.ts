@@ -56,6 +56,7 @@ export function buildOshiSelectorOverlay(
   return overlay({
     title: "Oshi Selector",
     placement: "center",
+    headerless: true,
     body: oshiSelector({
       selectedId: selectedOshi.id,
       selected: selectedOshi,
@@ -74,6 +75,7 @@ export function buildClubSelectorOverlay(
   return overlay({
     title: "Club",
     placement: "center",
+    headerless: true,
     body: clubSelector({
       club: identity.club(),
       onCommit: (club) => identity.setClub(club.name, club.rank),

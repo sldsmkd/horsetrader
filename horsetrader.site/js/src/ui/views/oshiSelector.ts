@@ -4,6 +4,7 @@ import { DEFAULT_OSHI_ID, searchOshis, starterOshis } from "../query/index.ts";
 import type { OshiOption, OshiSearchIndex } from "../query/index.ts";
 import { h } from "../h.ts";
 import { pressedGroup } from "../widgets/pressedGroup.ts";
+import { surfaceActions } from "./surfaceActions.ts";
 
 export interface OshiSelectorOpts {
   selectedId?: string;
@@ -69,11 +70,11 @@ export function oshiSelector(opts: OshiSelectorOpts): HTMLElement {
   return h(
     "section",
     { class: "oshi-selector" },
+    h("h2", { class: "oshi-selector__title" }, "Choose Oshi"),
     search,
     grid,
-    h(
-      "footer",
-      { class: "oshi-selector__actions" },
+    surfaceActions(
+      h("button", { class: "oshi-selector__cancel", attr: { type: "button" }, on: { click: opts.onClose } }, "Cancel"),
       h(
         "button",
         {

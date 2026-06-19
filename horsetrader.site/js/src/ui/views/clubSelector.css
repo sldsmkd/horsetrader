@@ -1,6 +1,15 @@
 .club-selector {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 0.85rem;
+}
+
+.club-selector__title {
+  margin: 0;
+  text-align: center;
+  font-size: var(--ht-type-surface-title-size);
+  font-weight: var(--ht-type-surface-title-weight);
+  line-height: var(--ht-type-surface-title-line);
 }
 
 .club-selector__field {
@@ -74,22 +83,31 @@
   line-height: var(--ht-type-label-line);
 }
 
-.club-selector__actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
-}
-
+.club-selector__cancel,
 .club-selector__leave {
-  margin-right: auto;
+  min-width: 5.5rem;
   padding: 0.55rem 0.9rem;
-  border: 1px solid var(--ht-control-danger-border);
   border-radius: var(--ht-control-radius);
-  background: var(--ht-control-danger-bg);
   color: inherit;
   font: inherit;
   font-weight: var(--ht-type-label-weight);
   cursor: pointer;
+}
+
+.club-selector__cancel {
+  border: 1px solid var(--ht-control-border);
+  background: var(--ht-control-bg);
+}
+
+.club-selector__cancel:hover,
+.club-selector__cancel:focus-visible {
+  background: var(--ht-control-bg-hover-subtle);
+  outline: 0;
+}
+
+.club-selector__leave {
+  border: 1px solid var(--ht-control-danger-border);
+  background: var(--ht-control-danger-bg);
 }
 
 .club-selector__leave:hover,
@@ -109,6 +127,12 @@
   font: inherit;
   font-weight: var(--ht-type-surface-title-weight);
   cursor: pointer;
+}
+
+.club-selector__ok:hover,
+.club-selector__ok:focus-visible {
+  background: var(--ht-control-primary-bg-hover);
+  outline: 0;
 }
 
 @media (max-width: 620px) {

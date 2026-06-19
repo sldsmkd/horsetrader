@@ -52,11 +52,8 @@
   overflow: hidden;
 }
 
-/* Headerless overlays render their own title hero (set via overlay({ headerless }));
-   the window header is simply not rendered. In the grid-based placements (book
-   columns, centred shields) the card would otherwise drop its single body child
-   into the `auto` header row and leave the `1fr` row empty as a gap below — so
-   collapse those to one fill row. */
+/* Overlays render no generic window header; surfaces own their title/dismissal.
+   In grid-based placements, collapse the card to one fill row for the body. */
 .overlay-book > .overlay--headerless,
 .overlay--center.overlay--headerless {
   grid-template-rows: minmax(0, 1fr);
@@ -91,30 +88,6 @@
   inset: 0;
   z-index: 3;
   cursor: default;
-}
-
-.overlay__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid color-mix(in srgb, currentColor 20%, transparent);
-}
-
-.overlay__title {
-  font-size: var(--ht-type-panel-title-size);
-  font-weight: var(--ht-type-panel-title-weight);
-  line-height: var(--ht-type-panel-title-line);
-}
-
-.overlay__close {
-  font: inherit;
-  font-size: var(--ht-type-body-size);
-  line-height: var(--ht-type-number-line);
-  background: transparent;
-  border: 0;
-  color: inherit;
-  cursor: pointer;
 }
 
 .overlay__body {

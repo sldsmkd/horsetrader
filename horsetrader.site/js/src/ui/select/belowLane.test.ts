@@ -88,6 +88,8 @@ test("each card resolves its label (name/title, falling back to key) and predict
   const byKey = new Map(cards.map((c) => [c.key, c]));
 
   assert.equal(byKey.get("cm-1")!.label, "Summer CM");
+  assert.equal(byKey.get("cm-1")!.date, "2026-06-27");
+  assert.equal(byKey.get("cm-1")!.end, "2026-07-01");
   assert.equal(byKey.get("story-1")!.label, "A Story");
   assert.equal(byKey.get("story-1")!.banner, null);
   assert.equal(byKey.get("holiday-1")!.label, "Golden Week"); // carries a name
