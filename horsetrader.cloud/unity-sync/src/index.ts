@@ -107,9 +107,11 @@ export default {
         return json({ error: "oauth_exchange_failed", detail: String(err) }, { status: 502 });
       }
       const session: Session = { provider: providerId, sub, exp: Math.floor(Date.now() / 1000) + SESSION_TTL };
-      // Land back on the bare site — the FE re-fetches `/api/me` on load, so no
-      // post-sign-in marker is needed in the URL.
-      const headers = new Headers({ location: `${origin}/` });
+      // Land back on the site with a one-shot connect marker: the FE runs a FULL sync on
+      // connect (design.md §5 trigger 4 — first-auth migration: push a local plan up / pull
+      // a cloud one down), then strips the param. Auth itself is read from `/api/me`; the
+      // marker only flags "this load is a fresh connect".
+      const headers = new Headers({ location: `${origin}/?unity=connected` });
       headers.append("set-cookie", serializeCookie(SESSION_COOKIE, await sign(session, env.SESSION_SECRET), secureCookie({ maxAge: SESSION_TTL, path: "/" })));
       // Burn the one-shot transaction cookie.
       headers.append("set-cookie", serializeCookie(OAUTH_COOKIE, "", secureCookie({ maxAge: 0, path: "/api/auth" })));

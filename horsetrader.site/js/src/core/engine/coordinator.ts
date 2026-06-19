@@ -90,6 +90,10 @@ export interface Coordinator {
   setUsername(name: string): void;
   /** Record a successful sync: adopt the new cloud rev, clear `dirty`. Local-only. */
   markSynced(etag: string | null): void;
+  /** Forget the cloud baseline (etag→null) after a disconnect deleted the cloud save —
+   *  the held rev now points at nothing, so a reconnect must re-create from scratch.
+   *  `dirty` follows whether local still has a plan to push up. Local-only. */
+  forgetCloud(): void;
   /**
    * Replace the local plan with a pulled cloud `remote` and record its rev. NAIVE:
    * adopts unconditionally — the dirty/conflict gate is the next flow to design
@@ -352,6 +356,14 @@ export function createCoordinator(options: CoordinatorOptions): Coordinator {
       // A clean push/pull: the local plan now matches this cloud rev. Local-only,
       // no re-derive (the plan itself didn't change).
       local = { ...local, sync: { etag, dirty: false } };
+      persist();
+      notify();
+    },
+    forgetCloud() {
+      // Disconnect deleted the cloud blob; the held etag is now a dangling rev. Drop it
+      // so the next connect pushes a fresh create (base ø) rather than a doomed If-Match.
+      // Logically dirty whenever local still has content (resolution.md null-base rule).
+      local = { ...local, sync: { etag: null, dirty: planHasContent(doc) } };
       persist();
       notify();
     },

@@ -68,7 +68,7 @@ clean push will land), P6 is a genuine fork that needs a human choice.
 | **U2** | dirty | `ø` | present | `INM:*` | **412** | **conflict.** Something exists where we expected emptiness — another device created it; first-link both-populated. → P6 dialog. |
 | **U3** | dirty | `E` | `== E` | `IM:E` | 200 | **fast-forward.** `markSynced(newEtag)`. The happy mid-session save. |
 | **U4** | dirty | `E` | `≠ E` | `IM:E` | **412** | **conflict.** Cloud moved under us. → P6 dialog. |
-| **U5** | dirty | `E` | `∅` (deleted) | `IM:E` | **412** | **conflict (vanished base).** Our base no longer exists; treat as a fork, don't blind-recreate. → P6 dialog. |
+| **U5** | dirty | `E` | `∅` (deleted) | `IM:E` | **412** | **recreate (vanished base).** Our base is gone — a disconnect deleted the blob (here or another device; disconnect now *deletes* the cloud save, design.md §7). An empty cloud has no other side to pick against, so re-push from local (base ø → `INM:*`) = the migration "local plan + cloud∅ → push up" row. Only a *racing* create turns it into a real P6 fork. |
 
 The CAS is the whole point: the client doesn't pre-check the cloud etag for a
 push — it *asserts* its expected base in the conditional and lets R2's HTTP
@@ -78,8 +78,15 @@ data, not a throw (see `client.ts` `pushSave`).
 ## Where the guarded rows terminate
 
 P4/P5 are not conflicts — they're "you meant to push": resolve by offering the
-Push action, no dialog. P6 / U2 / U4 / U5 are the real fork, and resolve
+Push action, no dialog. U5 (vanished base) is not a fork either — the cloud is
+empty, so it re-creates from local (no dialog); only a racing create demotes it
+into one. P6 / U2 / U4 (and U5's race) are the real fork, and resolve
 **pick-a-side** (§5, Steam-style — merge stays off the table):
+
+(Local disconnect short-circuits U5 entirely: deleting our own cloud save also
+calls `coord.forgetCloud()`, dropping the held etag to `ø`, so the reconnect
+pushes a plain create rather than a doomed `If-Match` + recreate round-trip — one
+Worker request, not three. U5 only fires when the delete happened *elsewhere*.)
 
 - **Keep local** → force-push (`cloud/sync.ts` `keepLocal`): push local over the
   cloud's *current* etag (the one fetched during detection), local wins.
@@ -126,8 +133,9 @@ is *clearer* than any merge the user can't inspect. One blob, one CAS, one dialo
 
 ## Delta vs. today's code
 
-- **Push** already implements U1–U5 correctly (conditional PUT, 412-as-data). Only
-  **U0** is missing — a manual push while clean should skip rather than spend a
+- **Push** implements U1–U5 (conditional PUT, 412-as-data); U5 recreates from local
+  on an empty cloud (`syncNow`), with a racing create falling through to a P6 fork.
+  Only **U0** is missing — a manual push while clean should skip rather than spend a
   request (cheap nicety; the button can still force).
 - **Load-time auto-pull** (`cloud/sync.ts` `pullOnLoad`, fired from `app.ts`, design
   §5 trigger 1) does GET-and-compare: clean + cloud-moved → fast-forward (P3); **dirty
@@ -136,6 +144,12 @@ is *clearer* than any merge the user can't inspect. One blob, one CAS, one dialo
   auto-pushes (push cadence stays user-initiated, §10). Non-blocking + fail-soft: a
   signed-out 401 or network failure falls through to local. This is Unity's first
   behaviour on the main (non-beta) load path.
+- **Sync-on-connect** (design §5 trigger 4, first-auth migration). The OAuth callback
+  lands with a one-shot `?unity=connected`; `app.ts` strips it and runs the **full**
+  reconcile (`syncNow`, not `pullOnLoad`) for that load only. A connect is an explicit
+  action, so an auto-push is justified — this is the one load that pushes UP: local plan
+  + cloud∅ → create (the migration push-up row); cloud present + clean → pull down; both
+  moved → conflict. Normal loads stay pull-only.
 - **Manual reconcile** (`syncNow`, the beta Sync button) implements the full table:
   clean → fast-forward; dirty → conditional push (CAS), and a 412 (P6) → fetch the
   cloud side and raise the **pick-a-side dialog**. The grading P4/P5-vs-P6 falls out:

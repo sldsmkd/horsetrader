@@ -81,6 +81,10 @@ function build(coord: Coordinator): Node[] {
   const cloud = button("Cloud", () =>
     presentCloudProviderShield({
       auth,
+      // Disconnect/switch deleted the cloud blob — drop the now-dangling sync baseline so
+      // what's local needs a fresh push (a reconnect/switch re-creates cleanly instead of
+      // If-Match-ing a deleted rev, U5).
+      onCloudDeleted: () => coord.forgetCloud(),
       onSignedOut: () => {
         auth = { authenticated: false };
         rerender();

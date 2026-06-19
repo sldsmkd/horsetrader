@@ -113,9 +113,24 @@ export async function syncNow(coord: Coordinator): Promise<SyncResult> {
         return { kind: "pushed", etag: push.etag };
       }
       if (!push.conflict) return { kind: "error", detail: `push failed (status ${push.status})` };
-      // 412 → the cloud moved under us (P6). Fetch it to fill the pick-a-side dialog.
+      // 412 → our base rev is stale. Fetch the cloud side to find out how.
       const cloud = await pullSave();
-      if (!cloud.exists) return { kind: "error", detail: "cloud save vanished mid-sync" };
+      if (!cloud.exists) {
+        // U5 "vanished base": the cloud blob is gone (a disconnect deleted it — here or on
+        // another device), so our If-Match had nothing to match. There's no other side to
+        // pick against an empty cloud, so re-create from local (base ø → If-None-Match:*).
+        const recreate = await pushSave(coord.document(), null);
+        if (recreate.ok) {
+          coord.markSynced(recreate.etag);
+          return { kind: "pushed", etag: recreate.etag };
+        }
+        // A racing create slipped in between our GET and re-push — now a genuine fork.
+        if (!recreate.conflict) return { kind: "error", detail: `recreate failed (status ${recreate.status})` };
+        const raced = await pullSave();
+        if (!raced.exists) return { kind: "error", detail: "cloud save vanished mid-sync" };
+        return { kind: "conflict", conflict: conflictOf(coord, normaliseRemotePlan(raced.doc), raced.etag) };
+      }
+      // P6 → the cloud moved under us. Fetch it to fill the pick-a-side dialog.
       return { kind: "conflict", conflict: conflictOf(coord, normaliseRemotePlan(cloud.doc), cloud.etag) };
     }
     // Clean: pull to fast-forward (adopt a moved cloud). No-op when nothing changed.

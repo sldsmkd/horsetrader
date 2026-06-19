@@ -84,6 +84,29 @@
   background: rgba(255, 255, 255, 0.06);
 }
 
+/* ON = the connected provider: a pushed-in radio toggle — accent border, lit fill, and
+   an inset shadow so it reads as depressed rather than raised. */
+.cloud-provider__option--on {
+  border-color: rgba(120, 170, 255, 0.6);
+  background: rgba(120, 170, 255, 0.14);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+
+.cloud-provider__option--on:hover {
+  background: rgba(120, 170, 255, 0.2);
+}
+
+/* "Connected" pill, pushed to the right edge of the ON row. */
+.cloud-provider__state {
+  margin-left: auto;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  opacity: 0.85;
+  color: #9cc0ff;
+}
+
 /* The provider glyph — a square chip so a one-letter mark reads as a logo slot. */
 .cloud-provider__icon {
   flex: none;

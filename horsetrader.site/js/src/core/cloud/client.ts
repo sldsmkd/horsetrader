@@ -114,3 +114,16 @@ export async function pushSave(doc: unknown, baseEtag: string | null): Promise<P
   }
   return { ok: false, conflict: res.status === 412, status: res.status };
 }
+
+/** Destroy the account's cloud save (the disconnect destructive step — design.md §7).
+ *  Idempotent on the Worker, so a retry after a partial disconnect is safe. Returns
+ *  whether the delete landed; the caller only clears the session on success so a
+ *  failed delete leaves the user connected to retry rather than orphaning the blob. */
+export async function deleteSave(): Promise<boolean> {
+  try {
+    const res = await fetch("/api/sync", { method: "DELETE", credentials: "include" });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}

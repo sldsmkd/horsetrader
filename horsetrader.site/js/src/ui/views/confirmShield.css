@@ -1,0 +1,82 @@
+/* Confirm — a shield-of-a-shield: an alert/confirm modal that paints ABOVE the shield
+   layer (z-index 1100 > the 1000 shields) so it blocks the shield beneath it AND the
+   rest of the foreground UI. The gate before a destructive action (e.g. disconnect,
+   which deletes the cloud save). Self-contained scrim + centred card, like the shields
+   it sits over, just narrower and terser. */
+.confirm-shield {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+  padding: 1.5rem;
+}
+
+.confirm-shield__card {
+  width: 100%;
+  max-width: 22rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  padding: 1.3rem 1.4rem;
+  border-radius: 0.6rem;
+  background: #242a33;
+  color: #e6e9ee;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 1.5rem 3rem rgba(0, 0, 0, 0.5);
+}
+
+.confirm-shield__title {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.confirm-shield__message {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  opacity: 0.85;
+}
+
+.confirm-shield__error {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: #ea8a8a;
+}
+
+.confirm-shield__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+}
+
+.confirm-shield__btn {
+  font: inherit;
+  padding: 0.5rem 1.2rem;
+  border-radius: 0.4rem;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.06);
+  color: inherit;
+  cursor: pointer;
+}
+
+.confirm-shield__btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.confirm-shield__btn--danger {
+  border-color: rgba(234, 107, 107, 0.5);
+  color: #ea8a8a;
+}
+
+.confirm-shield__btn--danger:hover {
+  background: rgba(234, 107, 107, 0.12);
+}
+
+.confirm-shield__btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}

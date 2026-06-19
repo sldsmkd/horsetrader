@@ -40,7 +40,7 @@ import { commitContext } from "./select/commit.ts";
 import type { CommitBinding } from "./views/bannerGroup.ts";
 import { tazunaSurface } from "./views/tazunaSurface.ts";
 import { betaSurface } from "./views/betaSurface.ts";
-import { pullOnLoad } from "../core/cloud/sync.ts";
+import { pullOnLoad, syncNow } from "../core/cloud/sync.ts";
 import { presentCloudConflict } from "./views/cloudConflict.ts";
 import { bookmarks } from "./views/bookmarks.ts";
 import { bookmarkRows, nextBookmarkDate } from "./select/bookmarks.ts";
@@ -578,15 +578,24 @@ export function mountApp(
   renderOverlay();
   renderBookmarks();
 
-  // Load-time auto-pull (design.md §5 trigger 1, Unity's first behaviour on the main
-  // load path): the UI is already live off localStorage; reconcile against the cloud
-  // in the background. A clean device fast-forwards (adopt → notify → re-render); a
-  // real divergence (local edits AND the cloud moved) raises the pick-a-side conflict
-  // dialog right here on load, rather than waiting for a manual Sync to discover it.
-  // Non-blocking and fail-soft — a signed-out 401 or a network failure just leaves
-  // the local plan in place. It never auto-pushes (push cadence stays user-initiated).
+  // Load-time cloud reconcile (design.md §5). Two flavours off one load:
+  //   - fresh connect (the OAuth callback lands with `?unity=connected`) → run the FULL
+  //     reconcile (`syncNow`, trigger 4): an explicit connect justifies an auto-push, so
+  //     a local plan migrates UP to an empty cloud / a cloud plan comes DOWN / both-moved
+  //     raises the conflict. The marker is one-shot — strip it so a later refresh doesn't
+  //     re-fire a connect-sync.
+  //   - normal load (trigger 1) → pull-only (`pullOnLoad`): reconcile in the background,
+  //     never auto-push (push cadence stays user-initiated).
+  // Both non-blocking and fail-soft: the UI is already live off localStorage, and a
+  // signed-out 401 / network failure just leaves the local plan in place.
   void (async () => {
-    const result = await pullOnLoad(coord);
+    const justConnected = new URLSearchParams(location.search).get("unity") === "connected";
+    if (justConnected) {
+      const url = new URL(location.href);
+      url.searchParams.delete("unity");
+      history.replaceState(null, "", url);
+    }
+    const result = justConnected ? await syncNow(coord) : await pullOnLoad(coord);
     // Chamber diagnostics: the path is otherwise silent, so a "nothing happened" is
     // hard to tell from a failure. Logs the decision (noop = clean+unchanged, or the
     // /api/sync 404 when not reachable e.g. the dev server; error = network/401).

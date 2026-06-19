@@ -11,6 +11,7 @@
  *                                     (the `cloud∅` arm of the migration matrix).
  *   PUT  /api/sync  If-None-Match:*  → first-ever write; 412 if one already exists.
  *   PUT  /api/sync  If-Match:<etag>  → fast-forward; 412 = someone moved it = CONFLICT.
+ *   DELETE /api/sync                → destroy the account's cloud save (disconnect).
  *
  * The rev (etag) is carried in the response BODY, never the `ETag` header: a CDN
  * in front (Cloudflare) may compress the response and rewrite the header to a WEAK
@@ -93,6 +94,17 @@ export async function handleSync(request: Request, env: SyncEnv, session: Sessio
 
     // Bare etag in the body (same reason as pull) — never the CDN-transformable header.
     return json({ etag: result.etag });
+  }
+
+  // ── delete ────────────────────────────────────────────────────────────────
+  // Disconnect destroys the account's cloud save outright, so a reconnect starts
+  // clean — no half-remembered state (design.md §7 / the disconnect brain-dump).
+  // Unconditional + idempotent: deleting a missing key is a no-op, so a double
+  // disconnect or a delete-after-conflict both settle to "gone". Session-clearing
+  // stays the auth layer's job (index.ts) — this only owns the bytes.
+  if (request.method === "DELETE") {
+    await env.BUCKET.delete(key);
+    return json({ ok: true });
   }
 
   return json({ error: "method_not_allowed" }, { status: 405 });
