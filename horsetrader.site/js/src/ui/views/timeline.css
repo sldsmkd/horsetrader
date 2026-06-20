@@ -8,6 +8,15 @@
   cursor: grab;
   touch-action: none;
   user-select: none;
+  /* The centre-line railtrack's screen-fixed extent (Darley #4). This is the SINGLE
+     source for the rail: both the painted band (.timeline__rail height, below) and the
+     JS derail/capture gesture math read it — the JS resolves it to px through the
+     glass-u→px bridge (glassUnit.ts) so the visual rail and the "where a vertical shove
+     derails" boundary are the same physical quantity, never two unit systems drifting
+     apart. It's screen-space (not feel), so it measures in glass-u like the rest of the
+     plane; the derail *threshold* it feeds (TRACK_DERAIL_PX) stays feel/px. ≈32px at
+     the dev calibration. Don't fold this back into a JS constant — see timeline.ts. */
+  --timeline-rail-height: calc(2.5 * var(--glass-u));
 }
 
 .timeline--grabbing {
@@ -19,7 +28,7 @@
   left: 0;
   right: 0;
   top: 50%;
-  height: var(--timeline-rail-height, 32px);
+  height: var(--timeline-rail-height);
   transform: translateY(-50%);
   pointer-events: none;
   background:

@@ -45,7 +45,10 @@ export const AXIS_COMMIT_PX = 8;
  *  through the capture band snaps onto the rail again. */
 export const TRACK_DERAIL_PX = 42;
 export const TRACK_CAPTURE_PX = 2;
-export const TRACK_RAIL_VISUAL_PX = 32;
+/* The rail's screen-fixed VISUAL extent is NOT a constant here — it's screen-space, so
+ * Darley (#4) measures it in glass-u (`--timeline-rail-height`, timeline.css) and the
+ * gesture layer resolves it to px through the glass-u→px bridge. Deliberately not a px
+ * constant: a single source painted by CSS and measured by JS can't drift. */
 export const TRACK_DERAIL_BIAS = 1.15;
 export const TRACK_MIN_TRAVEL_VIEWPORT = 0.35;
 export const TRACK_RETURN_SPEED_PX_PER_MS = 2.4;
@@ -71,12 +74,28 @@ export const OVERSCAN_VIEWPORTS = 1;
 
 /** Optical-scale zoom (Trackblazer zoom.md). `z` is a camera scalar applied as
  *  `scale(z)` on the content layer — the world layout never changes, only apparent
- *  altitude. The clamp is a 2D-game-camera min/max: zMin is the zoomed-out floor
- *  (the whole thing still fits comfortably), zMax the zoomed-in ceiling (cards
- *  readably large). The range is deliberately narrow (zoom.md Bounds); both ends
- *  are eye-tuned, not derived. */
-export const Z_MIN = 0.6;
+ *  altitude. The clamp is a 2D-game-camera min/max.
+ *
+ *  zMax (the zoomed-in ceiling — "how readable?", not "what fits?") is FEEL: eye-tuned
+ *  and left untouched by Darley (Grand Masters Part 2).
+ *
+ *  zMin (the zoomed-out floor — "does the whole thing still fit?") is SCREEN-SPACE, so
+ *  Darley DERIVES it per display from the aperture instead of fixing it: zFit =
+ *  aperture height / required world vertical extent, then zMin = bounded into
+ *  [Z_FIT_FLOOR, Z_FIT_CEIL]. Z_FIT_FLOOR is the absolute most-zoomed-out we ever
+ *  allow (a safety bound against a pathological extent); Z_FIT_CEIL caps the floor at
+ *  unity so a world that already fits never forces a zoom-IN as its floor. At the dev
+ *  aperture the derived zMin lands near the old hand-tuned ~0.6; it is free to differ
+ *  elsewhere — adapting to the display is the point. */
+export const Z_FIT_FLOOR = 0.3;
+export const Z_FIT_CEIL = 1.0;
 export const Z_MAX = 1.8;
 /** Wheel-zoom feel: deltaY → multiplicative zoom factor via `exp`, so each notch
  *  is a constant proportional step (symmetric in/out) rather than additive. */
 export const WHEEL_ZOOM_SENSITIVITY = 0.0015;
+
+/** Blur-policy motion settle (Darley #5). After the last camera frame, how long before
+ *  the glass regains its full backdrop frost. Long enough that the brief lull between a
+ *  drag's release and its momentum glide doesn't flash the blur back on mid-motion;
+ *  short enough that the frost returns promptly once the world is truly at rest. */
+export const MOVE_SETTLE_MS = 140;

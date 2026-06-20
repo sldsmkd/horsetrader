@@ -32,6 +32,7 @@ import {
   FRICTION_PER_MS,
   MIN_FLING_V,
   MIN_GLIDE_V,
+  MOVE_SETTLE_MS,
   OVERSCAN_VIEWPORTS,
   PAD_DAYS,
   PX_PER_DAY,
@@ -44,13 +45,14 @@ import {
   TRACK_GRIP_FALLOFF_PX,
   TRACK_GRIP_MIN,
   TRACK_MIN_TRAVEL_VIEWPORT,
-  TRACK_RAIL_VISUAL_PX,
   TRACK_RETURN_MAX_EASE,
   TRACK_RETURN_SPEED_PX_PER_MS,
   WHEEL_ZOOM_SENSITIVITY,
+  Z_FIT_CEIL,
+  Z_FIT_FLOOR,
   Z_MAX,
-  Z_MIN,
 } from "./timeline/constants.ts";
+import { apertureHeightPx, resolveLengthPx } from "../glassUnit.ts";
 import { clampDate, easeInOutSmootherstep, rubber, warpDuration } from "./timeline/motion.ts";
 import { createCulling } from "./timeline/culling.ts";
 import type { Extent, Timeline, TimelineHandlers } from "./timeline/types.ts";
@@ -78,6 +80,12 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
   // The dynamic roof and floor: only the overflow past the viewport half is pannable.
   let aboveDepth = 0;
   let belowDepth = 0;
+  // The zoomed-out floor, DERIVED per display (Darley #3) rather than a fixed constant:
+  // fit the full world vertical extent into the usable aperture. Recomputed whenever the
+  // extent or the viewport changes (setContentDepth, which the resize path also drives).
+  // Defaults to the ceiling — before any content there's nothing to fit, so don't permit
+  // a zoom-out floor below actual size.
+  let zMin = Z_FIT_CEIL;
 
   const culling = createCulling(); // owns the card host, the known scene, and the churn meter
   const line = h("div", { class: "timeline__line" });
@@ -85,7 +93,22 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
   const content = h("div", { class: "timeline__content" }, line, today, culling.host);
   const rail = h("div", { class: "timeline__rail", attr: { "aria-hidden": "true" } });
   const el = h("section", { class: "timeline", attr: { "aria-label": "Timeline" } }, rail, content);
-  el.style.setProperty("--timeline-rail-height", `${TRACK_RAIL_VISUAL_PX}px`);
+  // The rail's screen-fixed extent in px (Darley #4), resolved from the single CSS source
+  // `--timeline-rail-height` (glass-u, timeline.css) through the glass-u→px bridge — the
+  // SAME measure the band paints. Cached and refreshed on view changes (refreshMetrics,
+  // called from layout) since glass-u tracks the viewport; resolving forces layout, so
+  // never per-frame. The gesture math (panBoundsY) reads this, not a constant, so the
+  // visual rail and the derail boundary can't drift into two unit systems.
+  let railVisualPx = 0; // set on first layout, before any gesture can read it
+  const refreshMetrics = () => {
+    railVisualPx = resolveLengthPx(el, "var(--timeline-rail-height)");
+    // Fail loud: this IS the CSS-to-device calibration bridge. A zero/NaN here means the
+    // single source (`--timeline-rail-height`) was removed or folded back to a constant —
+    // exactly the drift the seam exists to prevent. Don't silently fall back to a number.
+    if (!(railVisualPx > 0)) {
+      throw new Error("timeline: --timeline-rail-height did not resolve to px (glass-u bridge broken)");
+    }
+  };
 
   // Screen↔content axis mapping under the camera transform (zoom.md conversion
   // spine). The axis primitive works in content space and never sees `z`; every
@@ -100,7 +123,29 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
     culling.reconcile(screenToContentX(0) - overscan, screenToContentX(el.clientWidth) + overscan);
   };
 
+  // Motion signal for the blur policy (Darley #5). backdrop-filter's worst case is the
+  // world churning under the panes, so the glass drops its frost while the camera moves.
+  // Driven off the one choke every camera change flows through (applyPan) and released on
+  // a short settle timeout — so drag, pinch, glide and warp are all covered without
+  // threading toggles through six handlers. The class lives on :root (where glass.css
+  // overrides --glass-blur), not on the timeline, because the blur panes are its siblings.
+  let moving = false;
+  let moveSettle = 0;
+  const markMoving = () => {
+    if (!moving) {
+      moving = true;
+      document.documentElement.classList.add("world-moving");
+    }
+    if (moveSettle) clearTimeout(moveSettle);
+    moveSettle = window.setTimeout(() => {
+      moving = false;
+      moveSettle = 0;
+      document.documentElement.classList.remove("world-moving");
+    }, MOVE_SETTLE_MS);
+  };
+
   const applyPan = () => {
+    markMoving();
     // `scale(z)` reaches exactly the cards + in-world markers inside content and
     // nothing mounted as a sibling (zoom.md Model). `--zoom` lets infinitely-thin
     // elements (home row, stems) counter-scale their cross-axis thickness so a 1px
@@ -188,7 +233,7 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
   // Rest is wherever the user left the lane, unless the rail recaptures.
   const panBoundsY = () => {
     const half = el.clientHeight / 2;
-    const minTravel = Math.max(TRACK_DERAIL_PX + TRACK_RAIL_VISUAL_PX / 2, el.clientHeight * TRACK_MIN_TRAVEL_VIEWPORT);
+    const minTravel = Math.max(TRACK_DERAIL_PX + railVisualPx / 2, el.clientHeight * TRACK_MIN_TRAVEL_VIEWPORT);
     // The vertical drag range is the default-zoom (z=1) range, scaled by `z` — so
     // the well stretches/contracts in proportion to altitude rather than re-deriving
     // a different overflow at each zoom. The minTravel floor is part of the base
@@ -241,7 +286,7 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
     // = clientWidth/2 for panX (so the `z` term rides along).
     return Math.max(min, Math.min(max, el.clientWidth / 2 - z * axis.xForDate(date)));
   };
-  const clampZ = (raw: number) => Math.max(Z_MIN, Math.min(Z_MAX, raw));
+  const clampZ = (raw: number) => Math.max(zMin, Math.min(Z_MAX, raw));
   const clampPanX = (raw: number) => {
     const { min, max } = panBounds();
     return Math.max(min, Math.min(max, raw));
@@ -471,6 +516,17 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
     setContentDepth: (above, below) => {
       aboveDepth = above;
       belowDepth = below;
+      // Derive the zoomed-out floor (Darley #3) from the fit of the world's full vertical
+      // extent into the usable aperture. Phrased in world/camera terms, not display class:
+      // zFit is how much the camera must shrink so the densest packing (above + below the
+      // centre line — the global extent, stable across pans) fits the aperture height, then
+      // bound it. The aperture (viewport − persistent chrome, resolved to px here) is the
+      // honest input — never a nominal "1440p". Recomputed here so the resize path (which
+      // re-runs this) re-fits when the viewport height changes.
+      const worldExtent = aboveDepth + belowDepth;
+      const zFit = worldExtent > 0 ? apertureHeightPx() / worldExtent : Z_FIT_CEIL;
+      zMin = Math.max(Z_FIT_FLOOR, Math.min(Z_FIT_CEIL, zFit));
+      z = clampZ(z); // a tighter floor may strand the current zoom below it
       panY = clampY(panY);
       if (Math.abs(panY) <= TRACK_CAPTURE_PX) panY = 0;
       applyPan();
@@ -510,6 +566,10 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
       anim = requestAnimationFrame(step);
     },
     layout(nextExtent, todayDate) {
+      // Refresh screen-space metrics first: layout runs on first mount and on every
+      // resize, and glass-u (hence the rail extent) tracks the viewport. Before the
+      // extent guard so the rail px is current even when the timeline is empty.
+      refreshMetrics();
       extent = nextExtent;
       if (!extent) {
         axis = null;

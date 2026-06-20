@@ -11,13 +11,31 @@
      world camera's privilege alone (a parallel projection can't scale without lying
      about its own size).
 
-     BRIDGING SHIM (delete-on-Darley): a naive height-derived `vh` so surfaces have a
-     real measure before Darley (Part 2) exists. Calibrated to the dev desktop
-     (MANGOHORSE perf HUD VIEW: innerHeight ≈ 1293 CSS px @1.5 DPR → 1vh ≈ 12.9px; the
-     plane reads ~100u tall). The `@x` is devicePixelRatio, not zoom — CSS px already
-     fold in DPR, so the unit is DPR-agnostic. Darley replaces this with the real
-     fix-height / derive-width mapping (vmin/clamp guards, responsive limits). */
-  --glass-u-base: 1vh;
+     THE UNIT (Darley #2 — replaces Byerley's `1vh` delete-on-Darley shim): a
+     height-authoritative, width-VETOED, px-clamped unit — the Unity CanvasScaler
+     "match-height with clamp" idiom. One honest expression for the whole chrome tier.
+
+       clamp(floor, min(Kh·1svh, Kw·1svw), ceiling)
+
+     - HEIGHT is the sole scale axis (the timeline well is height-bounded), so Kh·1svh
+       is the real driver. Kh = 1: at the dev aperture (innerHeight ≈ 1293 CSS px) this
+       resolves to ≈12.9px — today's effective unit, within tolerance. That reference
+       condition protects the eye-tuned application while letting the function bend at
+       the extremes.
+     - WIDTH only VETOES — it does not make width co-authoritative. Kw·1svw caps a
+       height-derived unit that can't fit, catching narrow-tall phones where pure height
+       would balloon u-measured surfaces past the width. Kw = 2 ⇒ the veto only engages
+       once the viewport is taller than ~2:1 (normal desktop/landscape never triggers it;
+       on a 16:9 monitor the width term is far above the height term).
+     - svh/svw, NOT vh/dvh: dvh reflows the whole UI as the mobile toolbar slides (every
+       surface breathing while the URL bar animates) — wrong for a dimensional unit. svh
+       is the calm, stable viewport unit.
+     - floor / ceiling are CALIBRATED PRODUCT LIMITS (smallest legible / largest sane u),
+       not generic best-practice; dev's ~12.9px sits comfortably mid-range.
+     CSS px already fold in DPR, so the unit stays DPR-agnostic.
+     EYE-TUNE: Kh/Kw/floor/ceiling are the calibration knobs — verify sizes read right
+     at the dev aperture and bend sanely on a phone. */
+  --glass-u-base: clamp(7px, min(1svh, 2svw), 20px);
 
   /* The unit every glass surface measures in. Defaults to the authoritative base,
      but a subtree may override it to a fraction of the base (see the dropdown rail
@@ -54,14 +72,42 @@
   --glass-edge: color-mix(in srgb, currentColor 20%, transparent); /* pane border / edge */
   --glass-edge-light: color-mix(in srgb, currentColor 12%, transparent); /* top inner edge-light */
   --glass-bg: color-mix(in srgb, Canvas 82%, transparent); /* frosted pane fill (see-through) */
-  /* Backdrop frost — the holographic see-through. PARKED DECISION (2026-06-20): the
-     blur re-rasterizes the live timeline every frame and is brutal on CPU/GPU,
-     especially on mobile. Left in (it looks right, and it's the holographic point) but
-     NOT settled — it must be benchmarked before it's locked, and may need a perf budget
-     / reduced-radius / opaque-fallback path. Darley (hardware) + Godolphin (mobile) own
-     the revisit; one knob (this token) turns it down or off. */
+  /* Backdrop frost — the holographic see-through, and Darley's perf POLICY (Grand
+     Masters Part 2, #5), centralised on this one token so the decision lives in ONE
+     place rather than scattered per-pane. backdrop-filter re-rasterizes everything
+     behind each glass pane every frame; the cost scales with the pixels REPEATEDLY
+     composited, so the worst case is exactly pan/zoom — the live timeline churning under
+     the panes. Three paths, one knob (see the rules just below this block):
+       • default material path — the full frost (this value);
+       • motion path — dropped to `none` while the world moves (:root.world-moving, set
+         by the timeline camera); the highest-value cut, motion being the worst case;
+       • constrained / opaque fallback — prefers-reduced-transparency swaps to an opaque
+         pane (no live compositing at all) for low-capability / transparency-averse setups.
+     BENCHMARK (the budget that settles "below some capability", a policy not a verdict):
+     on the gating scene (~35 live cards, MANGOHORSE worst frame) a sustained pan should
+     hold the cull's locked ~144fps (≤ ~7ms/frame). The motion path already removes this
+     cost during the pan; the opaque fallback removes it entirely. */
   --glass-blur: blur(6px);
   --glass-radius: 0.65rem; /* unified pane corner */
   /* Drop shadow lifting the pane + an inset top edge-light (the holographic glow). */
   --glass-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.28), inset 0 1px 0 var(--glass-edge-light);
+}
+
+/* --- Blur policy paths (Darley #5). The verdict lives here, beside the token. --- */
+
+/* Motion path: while the camera moves, the frost is the dominant per-frame cost (the
+   live world re-rasterizing under every pane), so drop it. The timeline sets this class
+   on :root from one settle-debounced motion signal, so all panes lose blur together for
+   the gesture/glide and regain the full frost at rest. */
+:root.world-moving {
+  --glass-blur: none;
+}
+
+/* Constrained / opaque fallback: where the platform asks for reduced transparency, skip
+   live compositing entirely — an opaque pane, no blur, on any hardware. */
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --glass-blur: none;
+    --glass-bg: Canvas;
+  }
 }

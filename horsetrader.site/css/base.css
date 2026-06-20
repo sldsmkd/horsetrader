@@ -25,11 +25,26 @@
   /* Pane look (bg/edge/radius/shadow/blur) now comes from the glass register in
      glass.css — these chrome knobs are layout only. */
   --minimap-h: var(--timeline-chrome-height); /* shared: minimap + readout clearance */
-  /* Vertical room a dropdown has between the top bar and the bottom minimap chrome.
+  /* The usable world aperture (Darley #1): the viewport MINUS the persistent chrome the
+     menubar (top) and minimap (bottom) reserve. This is the authoritative "how much of the
+     world can be displayed" — NOT the raw viewport. The camera frames world into this
+     aperture-through-the-glass, so #3's fit/zMin reads it (via JS) instead of the raw rect,
+     closing the CSS-reserves-chrome / JS-reads-raw-rect gap.
+     - svh, not vh/dvh: a stable viewport unit so the aperture doesn't breathe while the
+       mobile toolbar slides (the same calm-unit call as the glass unit itself).
+     - It is *literally a rectangle's height* — a framing concept, not a renderer. The one
+       distinction worth making now is viewport-vs-aperture; safe-area insets and the visual
+       viewport are future reservations of the same kind, added as fields only when something
+       needs them (recording an inset is Darley; reflowing to it is Godolphin). */
+  --glass-aperture-h: calc(
+    100svh - var(--timeline-chrome-top) - var(--timeline-chrome-height)
+      - var(--timeline-chrome-bottom) - var(--minimap-h)
+  );
+  /* Vertical room a dropdown has between the top bar and the bottom minimap chrome — now
+     derived from the aperture (one source) less the dropdown's own gap top and bottom.
      Plane-fixed clearance → base unit, so a rail card's local shrink doesn't loosen it. */
   --chrome-dropdown-max-height: calc(
-    100vh - var(--timeline-chrome-top) - var(--timeline-chrome-height) - var(--timeline-chrome-gap)
-      - var(--timeline-chrome-bottom) - var(--timeline-chrome-height) - 0.63 * var(--glass-u-base)
+    var(--glass-aperture-h) - var(--timeline-chrome-gap) - 0.63 * var(--glass-u-base)
   );
 }
 
