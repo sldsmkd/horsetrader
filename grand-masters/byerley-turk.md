@@ -170,6 +170,24 @@ desktop and nothing braver.
   the `vh` shim with the real fix-height/derive-width mapping. Mark it so it's retired, not
   enshrined.
 
+## Finishing pass — deferred within Part 1
+
+Two cleanups deliberately left out of the spine push; they land when Byerley is
+*finished* (the long-tail surface-internal migration onto `--glass-u`), not as new work:
+
+- **Retire the rail-card `zoom`.** The dropdown rail shrink is honest now (`zoom`
+  resizes layout-box == render, killing the scale-jank), but `zoom` is the *surgical*
+  fix, not the *unit* one. Once the rail cards' internals measure in `--glass-u`, the
+  0.8 shrink becomes a local `--glass-u` override and the `zoom` comes out — the cards
+  shrink because they're dimensionally smaller, not because a knob zooms them.
+  ([surface.css](../horsetrader.site/js/src/ui/views/surfaces/surface.css) `--chrome-dropdown-zoom`.)
+- **Declare the last z scatter.** The below-line card stacking
+  (`els[i].style.zIndex = 1000 - offset`,
+  [app.ts](../horsetrader.site/js/src/ui/app.ts) ~L109) is *world*-plane, not glass, so
+  it was correctly left out of the glass depth ladder — but it's still a magic-number z
+  scatter. Bring it under the same declared-order discipline (a world-plane stacking
+  token / documented rule) during the finishing pass, so no raw z-index remains.
+
 ## Non-goals (the seam to the other sires)
 
 - **Pixels, viewport, "what fits".** The concrete `--glass-u` derivation, clamps,

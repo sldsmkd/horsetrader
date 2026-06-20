@@ -1,8 +1,8 @@
 /**
- * The Cloud Provider shield — the write half of "connect a cloud" (the editor-as-shield
+ * The Cloud Provider modal — the write half of "connect a cloud" (the editor-as-modal
  * tenet — [[feedback_shield_vs_unfold]]; the cloud conflict dialog is the sibling
  * cloud modal). The trainer card's Cloud button reads a connection; *changing* it
- * (connect a provider / disconnect) is a deliberate action, so it gets a shield, not an
+ * (connect a provider / disconnect) is a deliberate action, so it gets a modal, not an
  * inline unfold.
  *
  * One radio-style toggle list, one row per {@link CLOUD_PROVIDERS} entry (Google now,
@@ -12,42 +12,42 @@
  *   - none connected → click any → plain connect (full-page OAuth redirect; the
  *     navigation tears the page down, so no self-close needed).
  *   - click the ON row → toggle off = DISCONNECT (destructive — deletes the cloud save,
- *     design.md §7) → confirm shield-of-a-shield first.
+ *     design.md §7) → confirm modal-of-a-modal first.
  *   - one connected → click a DIFFERENT row → SWITCH: disconnect the current (same
  *     destructive confirm) then redirect to the new provider's OAuth. No linking, so a
  *     switch is a clean break, not a merge.
  *
- * Behaves like every other shield (oshi/club/balance/commit): a plain BODY rendered into
- * the overlay layer by the app shell, tracked in view-state (`cloudConnecting`) so it
+ * Behaves like every other modal (oshi/club/balance/commit): a plain BODY rendered into
+ * the surface layer by the app shell, tracked in view-state (`cloudConnecting`) so it
  * suspends the trainer card behind it and locks the menu spawners — no self-mounted scrim,
  * so the timeline stays live behind it (ui.md principle 1). The `onClose` it returns
  * through is the shell's view-state reset.
  */
 
-import "./cloudProviderShield.css";
+import "./cloudProvider.css";
 
-import { h } from "../h.ts";
-import { presentConfirmShield } from "./confirmShield.ts";
+import { h } from "../../h.ts";
+import { presentConfirm } from "./confirm.ts";
 import { surfaceActions } from "./surfaceActions.ts";
-import { CLOUD_PROVIDERS, connect, disconnect, switchProvider } from "../../core/cloud/index.ts";
-import type { AuthState, CloudProvider } from "../../core/cloud/index.ts";
-import type { Coordinator } from "../../core/engine/index.ts";
+import { CLOUD_PROVIDERS, connect, disconnect, switchProvider } from "../../../core/cloud/index.ts";
+import type { AuthState, CloudProvider } from "../../../core/cloud/index.ts";
+import type { Coordinator } from "../../../core/engine/index.ts";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
-export interface CloudProviderShieldOpts {
+export interface CloudProviderOpts {
   /** The account state the lifecycle ops act on (disconnect/switch touch its sync meta). */
   coord: Coordinator;
   auth: AuthState;
   /** Fired when the user ends up signed out (disconnect-and-stay) — the caller refreshes
    *  its auth state. A switch redirects to the new provider instead, so it skips this. */
   onSignedOut: () => void;
-  /** Close the shield (the shell clears `cloudConnecting`). Called by Cancel and after
+  /** Close the modal (the shell clears `cloudConnecting`). Called by Cancel and after
    *  a completed disconnect. */
   onClose: () => void;
 }
 
-export function cloudProviderShield(opts: CloudProviderShieldOpts): HTMLElement {
+export function cloudProvider(opts: CloudProviderOpts): HTMLElement {
   const connected = opts.auth.authenticated ? opts.auth.identity.provider : null;
   const labelOf = (id: string): string => CLOUD_PROVIDERS.find((p) => p.id === id)?.label ?? id;
 
@@ -88,7 +88,7 @@ export function cloudProviderShield(opts: CloudProviderShieldOpts): HTMLElement 
   }
 
   function confirmDisconnect(label: string): void {
-    presentConfirmShield({
+    presentConfirm({
       title: "Disconnect cloud",
       message: `Disconnect from ${label} and delete its cloud save? Your local plan stays on this device, but the cloud copy is removed and can't be recovered.`,
       confirmLabel: "Disconnect",
@@ -102,7 +102,7 @@ export function cloudProviderShield(opts: CloudProviderShieldOpts): HTMLElement 
   }
 
   function confirmSwitch(fromId: string, toId: string): void {
-    presentConfirmShield({
+    presentConfirm({
       title: "Switch cloud provider",
       message: `Switch to ${labelOf(toId)}? This disconnects ${labelOf(fromId)} and deletes its cloud save, then signs you in with ${labelOf(toId)}. Your local plan stays on this device.`,
       confirmLabel: `Switch to ${labelOf(toId)}`,
@@ -111,8 +111,8 @@ export function cloudProviderShield(opts: CloudProviderShieldOpts): HTMLElement 
     });
   }
 
-  // The shield BODY only — the app shell wraps it in a headerless overlay. Dismissal
-  // lives here as an explicit Cancel action, matching the other write shields.
+  // The modal BODY only — the app shell wraps it in a headerless surface. Dismissal
+  // lives here as an explicit Cancel action, matching the other write modals.
   return h(
     "div",
     { class: "cloud-provider" },

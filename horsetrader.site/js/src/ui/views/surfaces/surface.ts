@@ -1,8 +1,8 @@
 /**
- * A floating, non-blocking overlay — the shared chrome every floating surface
+ * A floating, non-blocking surface — the shared chrome every floating surface
  * (account, search, plan, …) sits in. It honours ui.md principle 1: it **never
  * captures the timeline's scroll**. There is no input-capturing backdrop; the
- * canvas stays live behind it (the `.overlay-layer` it mounts into is
+ * canvas stays live behind it (the `.surface-layer` it mounts into is
  * `pointer-events: none`, only the card itself is interactive). Dismiss controls
  * live inside the surface body (Cancel / collapse pill), not in generic window chrome.
  *
@@ -10,43 +10,43 @@
  * state and reads nothing back out of the DOM.
  */
 
-import "./overlay.css";
+import "./surface.css";
 
-import { h } from "../h.ts";
+import { h } from "../../h.ts";
 
-export interface OverlayOpts {
+export interface SurfaceOpts {
   title: string;
   body: Node;
   placement?: "left" | "right" | "center";
-  /** Historical no-op: overlays are always headerless now. Surfaces render their own
+  /** Historical no-op: surfaces are always headerless now. Surfaces render their own
    *  title hero and dismiss affordance; `title` is the dialog's accessible name. */
   headerless?: boolean;
   onClose: () => void;
 }
 
-export function suspendOverlay(card: HTMLElement): HTMLElement {
-  card.classList.add("overlay--suspended");
+export function suspendSurface(card: HTMLElement): HTMLElement {
+  card.classList.add("surface--locked");
   card.setAttribute("aria-hidden", "true");
-  card.append(h("div", { class: "overlay__modal-shield", attr: { "aria-hidden": "true" } }));
+  card.append(h("div", { class: "surface__lock", attr: { "aria-hidden": "true" } }));
   return card;
 }
 
 /** Suspend a surface for the modality lock (grand-masters/byerley-turk.md). A composite
- *  surface — the playstyle `.overlay-book` — is a `pointer-events: none` wrapper, so the
+ *  surface — the playstyle `.surface-book` — is a `pointer-events: none` wrapper, so the
  *  scrim only blocks if it lands on each inner card; a plain surface suspends directly. */
 export function lockSurface(node: HTMLElement): void {
-  const inner = node.querySelectorAll<HTMLElement>(":scope > .overlay");
-  if (inner.length) inner.forEach((card) => suspendOverlay(card));
-  else suspendOverlay(node);
+  const inner = node.querySelectorAll<HTMLElement>(":scope > .surface");
+  if (inner.length) inner.forEach((card) => suspendSurface(card));
+  else suspendSurface(node);
 }
 
-export function overlay(opts: OverlayOpts): HTMLElement {
+export function surface(opts: SurfaceOpts): HTMLElement {
   return h(
     "div",
     {
-      class: `overlay overlay--${opts.placement ?? "right"} overlay--headerless`,
+      class: `surface surface--${opts.placement ?? "right"} surface--headerless`,
       attr: { role: "dialog", "aria-label": opts.title },
     },
-    h("div", { class: "overlay__body" }, opts.body),
+    h("div", { class: "surface__body" }, opts.body),
   );
 }

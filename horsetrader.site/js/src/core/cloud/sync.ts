@@ -13,7 +13,7 @@
  * Named `syncNow` (not `reconcile`) so it doesn't collide with the engine's
  * commitments `reconcile`. Conflict RESOLUTION is pick-a-side (Steam-style); merge
  * stays off the table (see unity/resolution.md). Both detect paths surface the same
- * `CloudConflict` payload, mounted by `ui/views/cloudConflict.ts`.
+ * `CloudConflict` payload, mounted by `ui/views/surfaces/cloudConflict.ts`.
  */
 import { pullSave, pushSave } from "./client.ts";
 import type { PushResult } from "./client.ts";

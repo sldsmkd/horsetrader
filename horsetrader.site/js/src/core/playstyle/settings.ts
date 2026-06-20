@@ -180,7 +180,7 @@ function isOneOf<T extends string>(value: unknown, keys: readonly T[]): value is
 
 export function playStyleSettingsForPreset(key: PlayStyleKey): PlayStyleSettings {
   // Custom has no canonical defaults — its live seed is the currently-applied
-  // settings (identityOverlay) and a committed Custom persists its own full set.
+  // settings (identityCards) and a committed Custom persists its own full set.
   // This only backstops a malformed/partial stored Custom, so fall back to the
   // neutral default preset (not a hardcoded ceiling).
   return key === "custom" ? { ...PRESET_SETTINGS[DEFAULT_PLAY_STYLE] } : { ...PRESET_SETTINGS[key] };

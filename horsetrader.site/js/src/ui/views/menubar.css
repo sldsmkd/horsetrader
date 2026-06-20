@@ -1,5 +1,5 @@
 /* Persistent menubar shell floating over the timeline canvas. The shell owns the
-   strip and item sequence; individual surfaces mount through the overlay layer. */
+   strip and item sequence; individual surfaces mount through the surface layer. */
 .menubar {
   position: absolute;
   top: var(--timeline-chrome-top);
@@ -59,11 +59,11 @@
   background: var(--ht-control-bg-hover);
 }
 
-/* Inert: a button that can't act right now because a shield locks its surface.
+/* Inert: a button that can't act right now because a modal locks its surface.
    Dimmed but still readable. Disabled buttons don't fire :hover, so no lift to
    suppress. */
 .menubar__button:disabled,
-.menubar__button--shielded {
+.menubar__button--locked {
   opacity: 0.4;
   cursor: not-allowed;
 }

@@ -1,6 +1,6 @@
-/* The overlay layer + card. The layer spans the viewport but never blocks the
-   live canvas (principle 1); only the overlay card itself is interactive. */
-.overlay-layer {
+/* The surface layer + card. The layer spans the viewport but never blocks the
+   live canvas (principle 1); only the surface card itself is interactive. */
+.surface-layer {
   position: fixed;
   inset: 0;
   pointer-events: none;
@@ -18,7 +18,7 @@
   pointer-events: none;
 }
 
-.overlay {
+.surface {
   pointer-events: auto;
   position: absolute;
   top: 4.5rem;
@@ -30,7 +30,7 @@
   backdrop-filter: var(--glass-blur);
 }
 
-.overlay-book {
+.surface-book {
   pointer-events: none;
   position: absolute;
   top: 0;
@@ -42,7 +42,7 @@
   max-height: var(--chrome-dropdown-max-height);
 }
 
-.overlay-book > .overlay {
+.surface-book > .surface {
   position: static;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
@@ -50,11 +50,11 @@
   max-height: inherit;
 }
 
-.overlay-book > .overlay--playstyle {
+.surface-book > .surface--playstyle {
   min-height: 0;
 }
 
-.overlay-book > .overlay--playstyle > .overlay__body {
+.surface-book > .surface--playstyle > .surface__body {
   display: flex;
   /* Column so the surface's flex:1 drives its HEIGHT (fills the card), not its
      width. Without this the surface only stretched on the cross axis and left
@@ -65,29 +65,29 @@
   overflow: hidden;
 }
 
-/* Overlays render no generic window header; surfaces own their title/dismissal.
+/* Surfaces render no generic window header; surfaces own their title/dismissal.
    In grid-based placements, collapse the card to one fill row for the body. */
-.overlay-book > .overlay--headerless,
-.overlay--center.overlay--headerless {
+.surface-book > .surface--headerless,
+.surface--modal.surface--headerless {
   grid-template-rows: minmax(0, 1fr);
 }
 
-.overlay--suspended {
+.surface--locked {
   z-index: 1;
 }
 
-.overlay--left {
+.surface--left {
   left: 0.75rem;
   width: min(35rem, calc(100vw - 1.5rem));
 }
 
-.overlay--right {
+.surface--right {
   right: 2rem;
 }
 
 /* On the dropdown rail the surfaces hug the layer's own edges (which are the bar's
    edges) and drop from its top, instead of the viewport corners. */
-.chrome-dropdowns > .overlay {
+.chrome-dropdowns > .surface {
   top: 0;
   max-height: var(--chrome-dropdown-max-height);
 }
@@ -97,18 +97,18 @@
    rail's spacing measures the real rendered size (Byerley: size = dimension; the
    layout box must equal the render). transform: scale shrank only the render, which is
    the camera's idiom leaking onto the glass plane. */
-.chrome-dropdowns > .overlay-book,
-.chrome-dropdowns > .overlay--left {
+.chrome-dropdowns > .surface-book,
+.chrome-dropdowns > .surface--left {
   left: 0;
   zoom: var(--chrome-dropdown-zoom);
 }
 
-.chrome-dropdowns > .overlay--right {
+.chrome-dropdowns > .surface--right {
   right: 0;
   zoom: var(--chrome-dropdown-zoom);
 }
 
-.overlay--center {
+.surface--modal {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   z-index: 2;
@@ -119,39 +119,39 @@
   transform: translate(-50%, -50%);
 }
 
-.overlay__modal-shield {
+.surface__lock {
   position: absolute;
   inset: 0;
   z-index: 3;
   cursor: default;
 }
 
-.overlay__body {
+.surface__body {
   padding: 1rem;
   overflow: auto;
 }
 
 @media (max-width: 860px) {
-  .overlay-book {
+  .surface-book {
     right: 0.75rem;
     grid-template-columns: minmax(0, 1fr);
     max-height: calc(100vh - 5.25rem);
     overflow: auto;
   }
 
-  .overlay-book > .overlay {
+  .surface-book > .surface {
     max-height: none;
   }
 }
 
 @media (max-width: 620px) {
-  .overlay {
+  .surface {
     left: 0.75rem;
     right: 0.75rem;
     width: auto;
   }
 
-  .overlay--center {
+  .surface--modal {
     left: 50%;
     right: auto;
     width: calc(100vw - 1.5rem);

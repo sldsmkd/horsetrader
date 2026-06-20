@@ -2,8 +2,8 @@
  * The bookmarks drawer — favourites as navigation (ui.md "Bookmarks"). A
  * collapsible docked panel summoned by a chevron tab; each row warps the timeline
  * to a future appearance of a favourited atom. It is **layer-2 chrome** alongside
- * the menubar and minimap: non-blocking (it shields nothing and is shielded by
- * nothing), painted *under* the overlays it shares the top-left zone with, and the
+ * the menubar and minimap: non-blocking (it locks nothing and is locked by
+ * nothing), painted *under* the surfaces it shares the top-left zone with, and the
  * canvas stays live behind it.
  *
  * It is the **list-twin of the minimap's favourite dots** — the same favourites
@@ -32,7 +32,7 @@ export interface BookmarksHandlers {
   onWarp(row: BookmarkRow): void;
   /** Warp the timeline view to a planned banner. */
   onPlannerWarp(date: CalendarDate): void;
-  /** Open the commit shield for a planned banner. */
+  /** Open the commit dossier for a planned banner. */
   onPlannerCommit(bannerKey: string): void;
   /** Flip the shared drawer slot between favourites and committed banners. */
   onFace(face: BookmarksFace): void;

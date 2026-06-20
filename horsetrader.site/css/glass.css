@@ -31,8 +31,8 @@
      surfaces (a candidate to dissolve into the lock); the modal lift lets a covering
      scrim-modal paint over the chrome. */
   --glass-z-chrome: 3; /* menubar + minimap (persistent nav) */
-  --glass-z-shield: 1000; /* covering scrim-modal (cloud conflict) */
-  --glass-z-alert: 1100; /* alert-over-shield (confirm) */
+  --glass-z-modal: 1000; /* covering scrim-modal (cloud conflict) */
+  --glass-z-alert: 1100; /* alert-over-modal (confirm) */
 
   /* The glass register — the holographic pane look, as one ordered token layer.
      Byerley owns it; a future re-theme negotiates WITH this vocabulary (it is not a

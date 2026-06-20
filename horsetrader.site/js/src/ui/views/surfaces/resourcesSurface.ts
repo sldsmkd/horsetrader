@@ -4,24 +4,24 @@
  * the carat headline (free/paid), the scout tickets, and the two limit-breaker
  * meters (whole crystals + shards toward the next, 20 shards crafting one). It
  * holds no inputs; editing the saved balance is a separate **write** transaction
- * that opens in its own shield (see resourcesEditor + [[feedback_shield_vs_unfold]]).
+ * that opens in its own modal (see resourcesEditor + [[feedback_shield_vs_unfold]]).
  * The "Update Actual Balance" button is the only seam back to that editor.
  *
  * It returns a small handle, not a bare element: panning the timeline moves the
- * view date 60 Hz off the overlay-render path (app.ts `onView`), so the open card
+ * view date 60 Hz off the surface-render path (app.ts `onView`), so the open card
  * follows the projection through `update()` — the same imperative-readout pattern
- * the menubar uses (`setResources`), not a full overlay rebuild per frame. The
+ * the menubar uses (`setResources`), not a full surface rebuild per frame. The
  * footer (which reads the saved snapshot, not the view date) is captured once.
  */
 
 import "./resourcesSurface.css";
 
-import { h } from "../h.ts";
-import { collapsePill } from "./collapsePill.ts";
-import { formatBalance, formatDate } from "../format.ts";
-import { limitBreaker } from "./limitBreaker.ts";
-import type { ResourceVector } from "../../core/projection/index.ts";
-import type { Snapshot } from "../../core/persistence/document.ts";
+import { h } from "../../h.ts";
+import { collapsePill } from "../collapsePill.ts";
+import { formatBalance, formatDate } from "../../format.ts";
+import { limitBreaker } from "../limitBreaker.ts";
+import type { ResourceVector } from "../../../core/projection/index.ts";
+import type { Snapshot } from "../../../core/persistence/document.ts";
 
 export interface ResourcesSurfaceOpts {
   viewDate: string;

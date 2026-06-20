@@ -23,7 +23,7 @@ function controlButton(label: string, onClick: () => void): HTMLButtonElement {
  * The Unity cloud controls — `Cloud` (connect / manage) + `Sync`, on the trainer card
  * between club info and play style. Purely presentational: auth + last-sync state live
  * in the app shell (fetched once), so the trainer card's frequent rebuilds never re-hit
- * `/api/me`. `Cloud` opens the provider shield; `Sync` runs the reconcile, lit only when
+ * `/api/me`. `Cloud` opens the cloud provider surface; `Sync` runs the reconcile, lit only when
  * connected AND there are local changes to send.
  */
 export function cloudControls(opts: CloudControlsOpts): HTMLElement {

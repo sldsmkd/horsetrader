@@ -6,12 +6,12 @@
  *     view-centre date straight here via `onView`; we read `balanceAt` into the
  *     menubar and move the minimap window — no recompute, no broadcast, no rebuild.
  *   - **Render path:** a domain mutation (editing the snapshot in the Account
- *     overlay) recomputes and notifies; we re-lay the timeline for the new
+ *     surface) recomputes and notifies; we re-lay the timeline for the new
  *     extent, which re-emits the centre date through `onView` and so refreshes
  *     the menubar against the fresh projection. Rare, so a full re-layout is fine.
- *   - **Discrete view-state:** the menubar toggles which overlay is open through
+ *   - **Discrete view-state:** the menubar toggles which surface is open through
  *     the view-state store's `subscribe`; the timeline stays live behind it
- *     (ui.md principle 1, via the `pointer-events: none` overlay layer).
+ *     (ui.md principle 1, via the `pointer-events: none` surface layer).
  *
  * As of 4b the standalone step-3 scrub `<input>` is gone: the timeline substrate
  * is the real owner of pan/focus. No state is read back out of the DOM. As of 4f
@@ -31,24 +31,24 @@ import { belowCard } from "./views/belowCard.ts";
 import { bannerGroup } from "./views/bannerGroup.ts";
 import type { RushBinding } from "./widgets/rushedToggle.ts";
 import type { FavouriteBinding } from "./widgets/atomChip.ts";
-import { overlay, lockSurface } from "./views/overlay.ts";
-import { resourcesSurface } from "./views/resourcesSurface.ts";
-import type { ResourcesSurfaceHandle } from "./views/resourcesSurface.ts";
-import { resourcesEditor } from "./views/resourcesEditor.ts";
-import { commitShield, commitTitle } from "./views/commitShield.ts";
+import { surface, lockSurface } from "./views/surfaces/surface.ts";
+import { resourcesSurface } from "./views/surfaces/resourcesSurface.ts";
+import type { ResourcesSurfaceHandle } from "./views/surfaces/resourcesSurface.ts";
+import { resourcesEditor } from "./views/surfaces/resourcesEditor.ts";
+import { commitDossier, commitTitle } from "./views/surfaces/commitDossier.ts";
 import { commitContext } from "./select/commit.ts";
 import type { CommitBinding } from "./views/bannerGroup.ts";
-import { betaSurface } from "./views/betaSurface.ts";
+import { betaSurface } from "./views/surfaces/betaSurface.ts";
 import { reconcileOnLoad, fetchAuth, syncNow } from "../core/cloud/index.ts";
 import type { AuthState, SyncResult } from "../core/cloud/index.ts";
-import { presentCloudConflict } from "./views/cloudConflict.ts";
-import { cloudProviderShield } from "./views/cloudProviderShield.ts";
+import { presentCloudConflict } from "./views/surfaces/cloudConflict.ts";
+import { cloudProvider } from "./views/surfaces/cloudProvider.ts";
 import { cloudControls } from "./views/cloudControls.ts";
 import { bookmarks } from "./views/bookmarks.ts";
 import { bookmarkRows, nextBookmarkDate } from "./select/bookmarks.ts";
 import { plannerRows } from "./select/planner.ts";
 import { scenarioLookup } from "./select/scenario.ts";
-import { buildTrainerCard, buildOshiSelectorOverlay, buildClubSelectorOverlay, buildPlayStyleOverlay } from "./views/identityOverlay.ts";
+import { buildTrainerCard, buildOshiSelector, buildClubSelector, buildPlayStyle } from "./views/surfaces/identityCards.ts";
 import { menubar } from "./views/menubar.ts";
 import type { RightSurface } from "./views/menubar.ts";
 import { createIdentityController } from "./identity/controller.ts";
@@ -172,7 +172,7 @@ export function mountApp(
     PLAY_STYLE_MACHINE_INITIAL,
   );
   // The machine IS the left group's state; its `send` notifies subscribers, so
-  // renderOverlay (subscribed below) re-runs. No mirror into view-state.
+  // renderSurfaces (subscribed below) re-runs. No mirror into view-state.
   const sendIdentityEvent = (event: PlayStyleMachineEvent): void => identityMachine.send(event);
   // The right surface group: opening a member replaces whatever right surface was
   // open (so only one per group), and clears the resources editor child. It does
@@ -205,8 +205,8 @@ export function mountApp(
   let viewDate = now;
 
   // The open Resources card, when one is up — a live handle the pan path refreshes
-  // imperatively (like the menubar), since `onView` deliberately skips the overlay
-  // rebuild. Null whenever the card isn't mounted; set/cleared in renderOverlay.
+  // imperatively (like the menubar), since `onView` deliberately skips the surface
+  // rebuild. Null whenever the card isn't mounted; set/cleared in renderSurfaces.
   let liveResources: ResourcesSurfaceHandle | null = null;
 
   // The cheap path: the view centre *is* the focus. The timeline hands us the
@@ -233,7 +233,7 @@ export function mountApp(
 
   // The bookmarks drawer: layer-2 chrome, twin of the minimap dots over the same
   // favourites map. Its open/collapsed state is independent view-state (it coexists
-  // with overlays, not modal); each row warps the timeline like Home/search do.
+  // with surfaces, not modal); each row warps the timeline like Home/search do.
   const book = bookmarks({
     onToggle: () => view.set({ bookmarks: !view.get().bookmarks }),
     onWarp: (row) => {
@@ -342,9 +342,9 @@ export function mountApp(
     });
   });
 
-  // The view-state-driven layer: which overlay is open is a discrete change, so
+  // The view-state-driven layer: which surface is open is a discrete change, so
   // it flows through `subscribe` and re-renders here (the render path).
-  const overlayLayer = h("div", { class: "overlay-layer" });
+  const surfaceLayer = h("div", { class: "surface-layer" });
   // The menubar's dropdown rail: a layer that mirrors the floating bar's geometry so
   // its surfaces drop in under the bar's own edges (left book off the left edge, right
   // resources off the right). Sibling to the bar today; the coherent-scale wrapper folds
@@ -365,8 +365,8 @@ export function mountApp(
 
   // Unity cloud — the trainer card's Cloud Save controls. Auth + last-sync state live
   // here (closure state, fetched ONCE at startup) rather than in the card, so the card's
-  // frequent rebuilds (every coord notify, via renderOverlay) never re-hit /api/me. Each
-  // state change re-renders the card through renderOverlay, the same path identity uses.
+  // frequent rebuilds (every coord notify, via renderSurfaces) never re-hit /api/me. Each
+  // state change re-renders the card through renderSurfaces, the same path identity uses.
   let cloudAuth: AuthState = { authenticated: false };
   let cloudSyncing = false;
   let cloudOutcome: string | null = null;
@@ -387,37 +387,37 @@ export function mountApp(
     }
   };
   const onCloud = (): void => {
-    if (shieldOpen()) return; // same belt-and-braces spawn guard as the other surfaces
-    view.set({ cloudConnecting: true }); // tracked like every other shield → suspends + locks
+    if (modalOpen()) return; // same belt-and-braces spawn guard as the other surfaces
+    view.set({ cloudConnecting: true }); // tracked like every other modal → suspends + locks
   };
   const runSync = async (): Promise<void> => {
     if (cloudSyncing) return;
     cloudSyncing = true;
     cloudOutcome = "Syncing…";
-    renderOverlay();
+    renderSurfaces();
     const result = await syncNow(coord);
     cloudSyncing = false;
     if (result.kind === "conflict") {
       cloudOutcome = "Conflict — choose a version to keep";
-      renderOverlay();
+      renderSurfaces();
       presentCloudConflict(coord, result.conflict, (outcome) => {
         cloudOutcome = `Resolved — ${outcome}`;
-        renderOverlay();
+        renderSurfaces();
       });
       return;
     }
     cloudOutcome = cloudOutcomeLabel(result);
-    renderOverlay();
+    renderSurfaces();
   };
   const onSync = (): void => void runSync();
 
 
-  // Live read of "is a shield (modal child window) up?" — the fallback guard for
+  // Live read of "is a modal (modal child window) up?" — the fallback guard for
   // every spawn control. Suspension already makes the controls unreachable; this
-  // belt-and-braces refuses the spawn even if one slips through. A shield is modal
+  // belt-and-braces refuses the spawn even if one slips through. A modal is modal
   // to ALL spawnable windows (feedback_shield_vs_unfold).
-  const shieldOpen = (): boolean => {
-    const left = identityMachine.get().overlay;
+  const modalOpen = (): boolean => {
+    const left = identityMachine.get().surface;
     return (
       left === "oshi" ||
       left === "playstyle-oshi" ||
@@ -429,37 +429,37 @@ export function mountApp(
     );
   };
 
-  // The commit shield's spawn seam, handed to every banner readout: a banner's
-  // commit control opens its shield, refused while any shield is already up (the
+  // The commit modal's spawn seam, handed to every banner readout: a banner's
+  // commit control opens its modal, refused while any modal is already up (the
   // belt-and-braces guard — suspension already hides in-card pencils behind a
-  // shield, this refuses a spawn that slips through). The shield itself renders in
-  // the overlay layer (renderOverlay), modal to all spawnable windows.
+  // modal, this refuses a spawn that slips through). The modal itself renders in
+  // the surface layer (renderSurfaces), modal to all spawnable windows.
   const commit: CommitBinding = {
     open: (bannerKey) => {
-      if (!shieldOpen()) view.set({ committing: bannerKey });
+      if (!modalOpen()) view.set({ committing: bannerKey });
     },
   };
 
-  function renderOverlay(): void {
+  function renderSurfaces(): void {
     const identityUi = identityMachine.get();
-    const left = identityUi.overlay; // left group — the machine is its sole owner
+    const left = identityUi.surface; // left group — the machine is its sole owner
     const right = view.get().right as RightSurface | null; // right group
-    // A shield (oshi or balance editor) is modal to ALL spawnable windows: it
+    // A modal (oshi or balance editor) is modal to ALL spawnable windows: it
     // locks the menu's surface spawners AND suspends every other open surface so
-    // their in-card pencils can't spawn a second shield. One predicate, reused.
-    const anyShield = shieldOpen();
+    // their in-card pencils can't spawn a second modal. One predicate, reused.
+    const anyModal = modalOpen();
 
     menu.setIdentity(identity.menuIdentity());
     menu.setLeftActive(left !== "closed");
     menu.setRightActive(right);
-    menu.setShielded(anyShield);
+    menu.setLocked(anyModal);
 
     const trainerCardOn = {
       onOshiSelect: () => {
-        if (!shieldOpen()) sendIdentityEvent({ type: "open-oshi" });
+        if (!modalOpen()) sendIdentityEvent({ type: "open-oshi" });
       },
       onClubSelect: () => {
-        if (!shieldOpen()) sendIdentityEvent({ type: "open-club" });
+        if (!modalOpen()) sendIdentityEvent({ type: "open-club" });
       },
       onPlayStylePreview: previewPlayStyle,
       onClose: () => sendIdentityEvent({ type: "close-all" }),
@@ -496,24 +496,24 @@ export function mountApp(
     } else if (left === "oshi") {
       children.push(
         buildTrainerCard(identity, strings, { cloud }, trainerCardOn),
-        buildOshiSelectorOverlay(identity, { onClose: closeOshiSelector }),
+        buildOshiSelector(identity, { onClose: closeOshiSelector }),
       );
     } else if (left === "club") {
       children.push(
         buildTrainerCard(identity, strings, { cloud }, trainerCardOn),
-        buildClubSelectorOverlay(identity, { onClose: closeClubSelector }),
+        buildClubSelector(identity, { onClose: closeClubSelector }),
       );
     } else if (left === "playstyle") {
-      children.push(buildPlayStyleOverlay(identity, strings, identityUi, { cloud }, playStyleOn));
+      children.push(buildPlayStyle(identity, strings, identityUi, { cloud }, playStyleOn));
     } else if (left === "playstyle-oshi") {
       children.push(
-        buildPlayStyleOverlay(identity, strings, identityUi, { cloud }, playStyleOn),
-        buildOshiSelectorOverlay(identity, { onClose: closeOshiSelector }),
+        buildPlayStyle(identity, strings, identityUi, { cloud }, playStyleOn),
+        buildOshiSelector(identity, { onClose: closeOshiSelector }),
       );
     } else if (left === "playstyle-club") {
       children.push(
-        buildPlayStyleOverlay(identity, strings, identityUi, { cloud }, playStyleOn),
-        buildClubSelectorOverlay(identity, { onClose: closeClubSelector }),
+        buildPlayStyle(identity, strings, identityUi, { cloud }, playStyleOn),
+        buildClubSelector(identity, { onClose: closeClubSelector }),
       );
     }
 
@@ -527,23 +527,23 @@ export function mountApp(
         snapshot: coord.document().snapshot,
         now,
         onEdit: () => {
-          if (!shieldOpen()) view.set({ resourcesEditing: true });
+          if (!modalOpen()) view.set({ resourcesEditing: true });
         },
         onClose: () => view.set({ right: null, resourcesEditing: false }),
       });
       liveResources = resources; // the pan path refreshes this card in place
-      const resourcesCard = overlay({
+      const resourcesCard = surface({
         title: "Resources",
         placement: "right",
         headerless: true,
         body: resources.el,
-        // Closing the surface tears the editor shield down with it.
+        // Closing the surface tears the editor modal down with it.
         onClose: () => view.set({ right: null, resourcesEditing: false }),
       });
       children.push(resourcesCard);
 
       if (editing) {
-        const balanceCard = overlay({
+        const balanceCard = surface({
           title: "Record Balance",
           placement: "center",
           headerless: true,
@@ -564,7 +564,7 @@ export function mountApp(
         children.push(balanceCard);
       }
     } else if (right === "beta") {
-      const betaCard = overlay({
+      const betaCard = surface({
         title: "Beta",
         placement: "right",
         headerless: true,
@@ -574,18 +574,18 @@ export function mountApp(
       children.push(betaCard);
     }
 
-    // The Cloud provider shield: spawned from the trainer card's Cloud button,
-    // independent of the left/right groups. A shield like the commit/balance ones — it
-    // sits in `anyShield` above (suspending the other surfaces + locking the menu) and
+    // The Cloud provider modal: spawned from the trainer card's Cloud button,
+    // independent of the left/right groups. A modal like the commit/balance ones — it
+    // sits in `anyModal` above (suspending the other surfaces + locking the menu) and
     // the timeline behind it stays live. Disconnect resets the app's cloud auth in place.
     if (view.get().cloudConnecting) {
       const closeCloud = (): void => view.set({ cloudConnecting: false });
       children.push(
-        overlay({
+        surface({
           title: "Cloud Save",
           placement: "center",
           headerless: true,
-          body: cloudProviderShield({
+          body: cloudProvider({
             coord,
             auth: cloudAuth,
             onSignedOut: () => {
@@ -599,24 +599,24 @@ export function mountApp(
       );
     }
 
-    // The commit shield: spawned at source from a banner readout, independent of
-    // the left/right groups. A shield (so it sits in `anyShield` above, suspending
+    // The commit modal: spawned at source from a banner readout, independent of
+    // the left/right groups. A modal (so it sits in `anyModal` above, suspending
     // the other surfaces); the timeline behind it stays live (it is transparent to
     // the canvas, like the balance editor).
     const committing = view.get().committing;
     if (committing !== null) {
       const ctx = commitContext(bundle, committing, {
-        // The shield reads this banner's *self-excluded* available (income minus earlier
+        // The modal reads this banner's *self-excluded* available (income minus earlier
         // claims, not its own) so editing a committed pity never double-debits; an
         // uncommitted banner has no own-spend yet, so the series at its end is right.
         balanceAt: (date) => coord.availableFor(committing) ?? coord.balanceAt(date),
         commitments: coord.document().commitments ?? {},
       });
-      const commitCard = overlay({
+      const commitCard = surface({
         title: commitTitle(ctx), // kept as the dialog aria-label; the body renders its own title hero
         placement: "center",
         headerless: true,
-        body: commitShield({
+        body: commitDossier({
           context: ctx,
           // Persist the pity as the unit of account; the carat cost stays derived
           // (principle 10). A null clears the commitment (0 through `commit`).
@@ -629,28 +629,28 @@ export function mountApp(
     }
 
     // MODALITY — the lock fan-out, declared once (grand-masters/byerley-turk.md). A
-    // surface that demands exclusivity (the `overlay--center` marker = the *modal*
+    // surface that demands exclusivity (the `surface--modal` marker = the *modal*
     // trait + centred *placement*) locks the menubar — the spawn-tree root —
-    // (menu.setShielded above) and suspends every other surface here, so no in-card
+    // (menu.setLocked above) and suspends every other surface here, so no in-card
     // spawner can mint a surface that's born locked. The minimap is a sibling of the
     // menubar, outside this surface tree, so the lock never reaches it. Placement also
-    // routes the node: centred modals into the overlayLayer, everything else onto the
+    // routes the node: centred modals into the surfaceLayer, everything else onto the
     // bar's rail in `chromeDropdowns`.
     const rail: Node[] = [];
     const modals: Node[] = [];
     for (const node of children) {
-      (node instanceof HTMLElement && node.classList.contains("overlay--center") ? modals : rail).push(node);
+      (node instanceof HTMLElement && node.classList.contains("surface--modal") ? modals : rail).push(node);
     }
-    if (anyShield) rail.forEach((node) => node instanceof HTMLElement && lockSurface(node));
+    if (anyModal) rail.forEach((node) => node instanceof HTMLElement && lockSurface(node));
     chromeDropdowns.replaceChildren(...rail);
-    overlayLayer.replaceChildren(...modals);
+    surfaceLayer.replaceChildren(...modals);
   }
-  view.subscribe(renderOverlay);
-  coord.subscribe(renderOverlay);
-  identityMachine.subscribe(renderOverlay); // left group re-renders on its own events
+  view.subscribe(renderSurfaces);
+  coord.subscribe(renderSurfaces);
+  identityMachine.subscribe(renderSurfaces); // left group re-renders on its own events
 
   // The drawer is a view over favourites (coord) and its open flag (view-state),
-  // so it re-renders on both paths — the same dual-subscribe as the overlay layer.
+  // so it re-renders on both paths — the same dual-subscribe as the surface layer.
   function renderBookmarks(): void {
     book.refresh({
       rows: bookmarkRows(bundle, coord.document().favourites ?? {}, now),
@@ -666,19 +666,19 @@ export function mountApp(
   coord.subscribe(renderBookmarks);
 
   // Mount order is the z-band: scenario wallpaper (back), timeline, the bookmarks
-  // drawer, then the overlay layer (paints over the drawer where they share the
+  // drawer, then the surface layer (paints over the drawer where they share the
   // top-left zone), with the menubar/minimap lifted above all of it (their own
   // z-index) so the always-reachable chrome is never occluded.
-  root.replaceChildren(menu.el, scen.el, tl.el, book.el, mini.el, chromeDropdowns, overlayLayer, hud.el);
+  root.replaceChildren(menu.el, scen.el, tl.el, book.el, mini.el, chromeDropdowns, surfaceLayer, hud.el);
   refresh();
-  renderOverlay();
+  renderSurfaces();
   renderBookmarks();
 
   // Resolve the cloud session once, in the background, then re-render so the trainer
   // card's Cloud button reflects connected/disconnected. Signed-out on any error.
   void (async () => {
     cloudAuth = await fetchAuth();
-    renderOverlay();
+    renderSurfaces();
   })();
 
   // Load-time cloud reconcile (design.md §5) — non-blocking + fail-soft: the UI is

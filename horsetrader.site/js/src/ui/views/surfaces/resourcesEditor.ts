@@ -1,23 +1,23 @@
 /**
  * The balance editor: the **write** half of Resources, lifted out of the surface
- * into its own shield (the oshi selector is the reference impl). It is a focused
+ * into its own modal (the oshi selector is the reference impl). It is a focused
  * transcription transaction — you copy the values straight off the game and hit
  * Save; the reading is stamped *now* (UTC) and folds forward as the projection
  * origin. There is no date input and no history: a save just replaces the one
  * stored snapshot with the current moment. It owns its draft state in the inputs
  * and reads it back only on commit; the surface behind it stays a pure read. See
- * [[feedback_shield_vs_unfold]] for why this is a shield and play style is not.
+ * [[feedback_shield_vs_unfold]] for why this is a modal and play style is not.
  */
 
 import "./resourcesEditor.css";
 
-import { h } from "../h.ts";
+import { h } from "../../h.ts";
 import { RESOURCE_ROWS, cellHeading, resourceGrid, type Cell } from "./resourceLayout.ts";
 import { surfaceActions } from "./surfaceActions.ts";
-import type { ResourceVector } from "../../core/projection/index.ts";
-import type { Snapshot } from "../../core/persistence/document.ts";
+import type { ResourceVector } from "../../../core/projection/index.ts";
+import type { Snapshot } from "../../../core/persistence/document.ts";
 
-/** The transcription this shield commits: the resource reading, the Daily Carat Pack
+/** The transcription this modal commits: the resource reading, the Daily Carat Pack
  *  subscription's validity date (`null` when not subscribed), and whether the player
  *  owns the Training Pass premium track. */
 export interface ResourcesDraft {

@@ -1,7 +1,7 @@
 /**
- * The commit shield: a **banner dossier with a planning attachment** (the write
+ * The commit modal: a **banner dossier with a planning attachment** (the write
  * half of a banner's commitment; the balance editor / oshi selector are the
- * reference shields — [[feedback_shield_vs_unfold]]). It reads top-down in the
+ * reference modals — [[feedback_shield_vs_unfold]]). It reads top-down in the
  * player's order of questions (docs/frontend/ui.md "the plan"):
  *
  *   1. *What am I pulling for?* — banner artwork + the featured-card grid (the hero;
@@ -18,18 +18,18 @@
  * behind it stays a pure read.
  */
 
-import "./commitShield.css";
+import "./commitDossier.css";
 
-import { h } from "../h.ts";
-import { formatBalance, formatDate } from "../format.ts";
-import { reserve, type CommitContext, type CommitAtom } from "../select/commit.ts";
-import { PITY_WASTE_ABOVE } from "../select/aboveLane.ts";
-import { forecastWidget } from "../widgets/forecast.ts";
-import { pityBand } from "../widgets/pityBand.ts";
+import { h } from "../../h.ts";
+import { formatBalance, formatDate } from "../../format.ts";
+import { reserve, type CommitContext, type CommitAtom } from "../../select/commit.ts";
+import { PITY_WASTE_ABOVE } from "../../select/aboveLane.ts";
+import { forecastWidget } from "../../widgets/forecast.ts";
+import { pityBand } from "../../widgets/pityBand.ts";
 import { surfaceActions } from "./surfaceActions.ts";
-import { checkbox } from "./checkbox.ts";
+import { checkbox } from "../checkbox.ts";
 
-export interface CommitShieldOpts {
+export interface CommitDossierOpts {
   context: CommitContext;
   /** Commit a pity count (or `null` to clear), and whether to spend owned paid carats
    *  at full price beyond the daily window (#65). */
@@ -45,7 +45,7 @@ const TITLE: Record<CommitContext["kind"], string> = { support: "Support Card Pi
 const FEATURED_SCROLL_THRESHOLD = 12;
 const TICKET_LABEL: Record<CommitContext["kind"], string> = { support: "Support Tickets", trainee: "Trainee Tickets" };
 
-/** The overlay header text — kind + run. The banner artwork is gone from the body
+/** The surface header text — kind + run. The banner artwork is gone from the body
  *  (the player just clicked the banner to get here), so identity lives in the title. */
 export function commitTitle(ctx: CommitContext): string {
   return `${TITLE[ctx.kind]} · ${formatDate(ctx.start)} – ${formatDate(ctx.end)}`;
@@ -55,19 +55,19 @@ export function commitTitle(ctx: CommitContext): string {
 function featuredCard(atom: CommitAtom): HTMLElement {
   return h(
     "li",
-    { class: `commit-shield__card commit-shield__card--${atom.rarityTier}` },
+    { class: `commit-dossier__card commit-dossier__card--${atom.rarityTier}` },
     h(
       "div",
-      { class: "commit-shield__card-art" },
+      { class: "commit-dossier__card-art" },
       atom.image
-        ? h("img", { class: "commit-shield__card-img", attr: { src: atom.image, alt: "", loading: "lazy" } })
-        : h("div", { class: "commit-shield__card-img commit-shield__card-img--empty", attr: { "aria-hidden": "true" } }),
-      h("span", { class: `commit-shield__rarity commit-shield__rarity--${atom.rarityTier}` }, atom.rarity),
+        ? h("img", { class: "commit-dossier__card-img", attr: { src: atom.image, alt: "", loading: "lazy" } })
+        : h("div", { class: "commit-dossier__card-img commit-dossier__card-img--empty", attr: { "aria-hidden": "true" } }),
+      h("span", { class: `commit-dossier__rarity commit-dossier__rarity--${atom.rarityTier}` }, atom.rarity),
       atom.attribute
-        ? h("img", { class: "commit-shield__attr", attr: { src: `/icons/old/${atom.attribute}.png`, alt: atom.attribute, width: 18, height: 18, loading: "lazy" } })
+        ? h("img", { class: "commit-dossier__attr", attr: { src: `/icons/old/${atom.attribute}.png`, alt: atom.attribute, width: 18, height: 18, loading: "lazy" } })
         : null,
     ),
-    h("span", { class: "commit-shield__card-name" }, atom.name),
+    h("span", { class: "commit-dossier__card-name" }, atom.name),
   );
 }
 
@@ -84,24 +84,24 @@ function floorDisplay(value: number, freeCarats: boolean): number {
 function setAfter(el: HTMLElement, value: number, freeCarats: boolean): void {
   const shown = floorDisplay(value, freeCarats);
   el.textContent = formatBalance(shown);
-  el.classList.toggle("commit-shield__impact-value--negative", shown < 0);
+  el.classList.toggle("commit-dossier__impact-value--negative", shown < 0);
 }
 
 /** One Resource Impact line — icon, before → after (after re-rendered on commit). */
 function impactLine(icon: string, label: string, value: HTMLElement): HTMLElement {
   const iconEl = icon.startsWith("/")
-    ? h("img", { class: "commit-shield__impact-icon", attr: { src: icon, alt: "", width: 26, height: 26 } })
-    : h("span", { class: "commit-shield__impact-icon commit-shield__impact-icon--glyph", attr: { "aria-hidden": "true" } }, icon);
+    ? h("img", { class: "commit-dossier__impact-icon", attr: { src: icon, alt: "", width: 26, height: 26 } })
+    : h("span", { class: "commit-dossier__impact-icon commit-dossier__impact-icon--glyph", attr: { "aria-hidden": "true" } }, icon);
   return h(
     "div",
-    { class: "commit-shield__impact-line" },
+    { class: "commit-dossier__impact-line" },
     iconEl,
     value,
-    h("span", { class: "commit-shield__impact-label" }, label),
+    h("span", { class: "commit-dossier__impact-label" }, label),
   );
 }
 
-export function commitShield(opts: CommitShieldOpts): HTMLElement {
+export function commitDossier(opts: CommitDossierOpts): HTMLElement {
   const { context: ctx } = opts;
   let pity = ctx.committedPity ?? 0;
   // The paid-spend opt-in (#65): off by default (keep the frugal discount-only model),
@@ -109,18 +109,18 @@ export function commitShield(opts: CommitShieldOpts): HTMLElement {
   let usePaid = ctx.committedUsePaid;
 
   // YOUR PLAN — the stepper read-backs.
-  const pityValue = h("span", { class: "commit-shield__pity-value" }, String(pity));
+  const pityValue = h("span", { class: "commit-dossier__pity-value" }, String(pity));
   // The pity box wears the shared pity-band fill (grey/green/purple/red), same rule
   // as the timeline commitment badge — recoloured as pity changes in render().
-  const pityBox = h("div", { class: "commit-shield__pity" }, pityValue);
-  const committedLabel = h("span", { class: "commit-shield__plan-heading" });
-  const reservedLabel = h("p", { class: "commit-shield__reserved" });
+  const pityBox = h("div", { class: "commit-dossier__pity" }, pityValue);
+  const committedLabel = h("span", { class: "commit-dossier__plan-heading" });
+  const reservedLabel = h("p", { class: "commit-dossier__reserved" });
 
   // RESOURCE IMPACT — the "after" column, re-rendered as pity changes.
-  const afterFree = h("span", { class: "commit-shield__impact-value" });
-  const afterPaid = h("span", { class: "commit-shield__impact-value" });
-  const afterTickets = h("span", { class: "commit-shield__impact-value" });
-  const afterGiftPulls = h("span", { class: "commit-shield__impact-value" });
+  const afterFree = h("span", { class: "commit-dossier__impact-value" });
+  const afterPaid = h("span", { class: "commit-dossier__impact-value" });
+  const afterTickets = h("span", { class: "commit-dossier__impact-value" });
+  const afterGiftPulls = h("span", { class: "commit-dossier__impact-value" });
 
   // FORECAST — the target-copy distribution, redrawn as pity changes.
   const forecast = forecastWidget({ pullsPerPity: ctx.sparkThreshold, featuredRate: ctx.featuredRate, maxCopies: ctx.maxCopies }, ctx.kind);
@@ -134,7 +134,7 @@ export function commitShield(opts: CommitShieldOpts): HTMLElement {
     setAfter(afterPaid, after.paidCarats, false);
     setAfter(afterTickets, after.tickets, false);
     setAfter(afterGiftPulls, after.freePulls, false);
-    pityBox.className = `commit-shield__pity pity-band--${pityBand(pity, after.freeCarats < 0, PITY_WASTE_ABOVE[ctx.kind])}`;
+    pityBox.className = `commit-dossier__pity pity-band--${pityBand(pity, after.freeCarats < 0, PITY_WASTE_ABOVE[ctx.kind])}`;
     forecast.update(pity);
   };
 
@@ -160,26 +160,26 @@ export function commitShield(opts: CommitShieldOpts): HTMLElement {
 
   return h(
     "section",
-    { class: "commit-shield" },
+    { class: "commit-dossier" },
 
     // Title hero — kind + run, self-rendered (the window title bar is dropped like
     // the other surfaces; Cancel handles dismissal).
     h(
       "header",
-      { class: "commit-shield__mast" },
-      h("h2", { class: "commit-shield__title" }, TITLE[ctx.kind]),
-      h("p", { class: "commit-shield__dates" }, `${formatDate(ctx.start)} – ${formatDate(ctx.end)}`),
+      { class: "commit-dossier__mast" },
+      h("h2", { class: "commit-dossier__title" }, TITLE[ctx.kind]),
+      h("p", { class: "commit-dossier__dates" }, `${formatDate(ctx.start)} – ${formatDate(ctx.end)}`),
     ),
 
     // FEATURED CARDS: the hero answer to "what am I pulling for?" (the banner
     // artwork is gone — the player just clicked it).
     h(
       "div",
-      { class: "commit-shield__featured" },
-      h("span", { class: "commit-shield__section-label" }, "Featured"),
+      { class: "commit-dossier__featured" },
+      h("span", { class: "commit-dossier__section-label" }, "Featured"),
       h(
         "ul",
-        { class: `commit-shield__cards${ctx.atoms.length > FEATURED_SCROLL_THRESHOLD ? " commit-shield__cards--scroll" : ""}` },
+        { class: `commit-dossier__cards${ctx.atoms.length > FEATURED_SCROLL_THRESHOLD ? " commit-dossier__cards--scroll" : ""}` },
         ...ctx.atoms.map(featuredCard),
       ),
     ),
@@ -188,25 +188,25 @@ export function commitShield(opts: CommitShieldOpts): HTMLElement {
     // where the player is dialling it (and it reclaims the vertical space).
     h(
       "div",
-      { class: "commit-shield__plan-row" },
+      { class: "commit-dossier__plan-row" },
       h(
         "div",
-        { class: "commit-shield__plan" },
-        h("span", { class: "commit-shield__section-label" }, "Your Plan"),
+        { class: "commit-dossier__plan" },
+        h("span", { class: "commit-dossier__section-label" }, "Your Plan"),
         committedLabel,
         h(
           "div",
-          { class: "commit-shield__stepper" },
-          h("button", { class: "commit-shield__step", attr: { type: "button", "aria-label": "Less pity" }, on: { click: () => step(-1) } }, "−"),
+          { class: "commit-dossier__stepper" },
+          h("button", { class: "commit-dossier__step", attr: { type: "button", "aria-label": "Less pity" }, on: { click: () => step(-1) } }, "−"),
           pityBox,
-          h("button", { class: "commit-shield__step", attr: { type: "button", "aria-label": "More pity" }, on: { click: () => step(1) } }, "+"),
+          h("button", { class: "commit-dossier__step", attr: { type: "button", "aria-label": "More pity" }, on: { click: () => step(1) } }, "+"),
         ),
         reservedLabel,
       ),
       h(
         "div",
-        { class: "commit-shield__forecast" },
-        h("span", { class: "commit-shield__section-label" }, "Forecast"),
+        { class: "commit-dossier__forecast" },
+        h("span", { class: "commit-dossier__section-label" }, "Forecast"),
         forecast.el,
       ),
     ),
@@ -214,31 +214,31 @@ export function commitShield(opts: CommitShieldOpts): HTMLElement {
     // 4 — RESOURCE IMPACT: predicted-available → after-commitment.
     h(
       "div",
-      { class: "commit-shield__impact" },
-      h("span", { class: "commit-shield__section-label" }, "Resource Impact"),
+      { class: "commit-dossier__impact" },
+      h("span", { class: "commit-dossier__section-label" }, "Resource Impact"),
       h(
         "p",
-        { class: "commit-shield__impact-copy" },
+        { class: "commit-dossier__impact-copy" },
         "Horsetrader looks at what you should have on this banner's last day, then sets your plan aside from the first day so later banners cannot spend it twice.",
       ),
       paidToggle,
       h(
         "div",
-        { class: "commit-shield__impact-grid" },
+        { class: "commit-dossier__impact-grid" },
         h(
           "div",
-          { class: "commit-shield__impact-col" },
-          h("span", { class: "commit-shield__impact-heading" }, "Predicted Available"),
-          impactLine("🎁", "Gift Pulls", h("span", { class: "commit-shield__impact-value" }, formatBalance(floorDisplay(ctx.freePulls, false)))),
-          impactLine("/icons/carat.png", "Carats", h("span", { class: "commit-shield__impact-value" }, formatBalance(floorDisplay(ctx.freeCarats, true)))),
-          impactLine(`/icons/${ctx.kind}_ticket.png`, TICKET_LABEL[ctx.kind], h("span", { class: "commit-shield__impact-value" }, formatBalance(floorDisplay(ctx.tickets, false)))),
-          impactLine("/icons/carat.png", "Paid Carats", h("span", { class: "commit-shield__impact-value" }, formatBalance(floorDisplay(ctx.paidCarats, false)))),
+          { class: "commit-dossier__impact-col" },
+          h("span", { class: "commit-dossier__impact-heading" }, "Predicted Available"),
+          impactLine("🎁", "Gift Pulls", h("span", { class: "commit-dossier__impact-value" }, formatBalance(floorDisplay(ctx.freePulls, false)))),
+          impactLine("/icons/carat.png", "Carats", h("span", { class: "commit-dossier__impact-value" }, formatBalance(floorDisplay(ctx.freeCarats, true)))),
+          impactLine(`/icons/${ctx.kind}_ticket.png`, TICKET_LABEL[ctx.kind], h("span", { class: "commit-dossier__impact-value" }, formatBalance(floorDisplay(ctx.tickets, false)))),
+          impactLine("/icons/carat.png", "Paid Carats", h("span", { class: "commit-dossier__impact-value" }, formatBalance(floorDisplay(ctx.paidCarats, false)))),
         ),
-        h("span", { class: "commit-shield__impact-arrow", attr: { "aria-hidden": "true" } }, "→"),
+        h("span", { class: "commit-dossier__impact-arrow", attr: { "aria-hidden": "true" } }, "→"),
         h(
           "div",
-          { class: "commit-shield__impact-col" },
-          h("span", { class: "commit-shield__impact-heading" }, "After Commitment"),
+          { class: "commit-dossier__impact-col" },
+          h("span", { class: "commit-dossier__impact-heading" }, "After Commitment"),
           impactLine("🎁", "Gift Pulls", afterGiftPulls),
           impactLine("/icons/carat.png", "Carats", afterFree),
           impactLine(`/icons/${ctx.kind}_ticket.png`, TICKET_LABEL[ctx.kind], afterTickets),
@@ -249,11 +249,11 @@ export function commitShield(opts: CommitShieldOpts): HTMLElement {
 
     // Save writes the pity through to the commitments map; 0 clears it.
     surfaceActions(
-      h("button", { class: "commit-shield__cancel", attr: { type: "button" }, on: { click: opts.onClose } }, "Cancel"),
+      h("button", { class: "commit-dossier__cancel", attr: { type: "button" }, on: { click: opts.onClose } }, "Cancel"),
       h(
         "button",
         {
-          class: "commit-shield__save",
+          class: "commit-dossier__save",
           attr: { type: "button" },
           on: {
             click: () => {

@@ -9,7 +9,7 @@
 
 import "./resourceLayout.css";
 
-import { h } from "../h.ts";
+import { h } from "../../h.ts";
 
 export type Cell = { key: string; heading: string; icon: string };
 

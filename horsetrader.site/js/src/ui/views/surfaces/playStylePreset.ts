@@ -1,9 +1,9 @@
 import "./playStylePreset.css";
 
-import { h } from "../h.ts";
-import { DEFAULT_PLAY_STYLE, PLAY_STYLE_KEYS } from "../../core/playstyle/index.ts";
-import type { PlayStyleKey } from "../../core/playstyle/index.ts";
-import type { PlayStyleStrings } from "../strings.ts";
+import { h } from "../../h.ts";
+import { DEFAULT_PLAY_STYLE, PLAY_STYLE_KEYS } from "../../../core/playstyle/index.ts";
+import type { PlayStyleKey } from "../../../core/playstyle/index.ts";
+import type { PlayStyleStrings } from "../../strings.ts";
 
 // The preset keys are account data (core/playstyle); this module is the DOM grid
 // that layers icons on top, in the canonical key order. Custom is core

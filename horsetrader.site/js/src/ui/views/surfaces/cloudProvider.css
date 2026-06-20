@@ -1,5 +1,5 @@
-/* Cloud Provider — the shield BODY. The overlay supplies placement only; title and
-   dismissal live inside the body like the other write shields. */
+/* Cloud Provider — the modal BODY. The surface supplies placement only; title and
+   dismissal live inside the body like the other write modals. */
 .cloud-provider {
   display: flex;
   flex-direction: column;

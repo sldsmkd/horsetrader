@@ -1,6 +1,6 @@
 /* The bookmarks drawer — layer-2 chrome docked top-left under the menubar. No
- * z-index: it sits in DOM order before the overlay layer, so overlays paint over
- * it where they share the zone (ui.md: overlays "overlay it" but never lock it).
+ * z-index: it sits in DOM order before the surface layer, so surfaces paint over
+ * it where they share the zone (ui.md: surfaces "surface it" but never lock it).
  * It is sized to its content, so the live canvas shows through everywhere else. */
 .bookmarks {
   position: fixed;

@@ -1,15 +1,15 @@
-import { h } from "../h.ts";
-import { overlay } from "./overlay.ts";
+import { h } from "../../h.ts";
+import { surface } from "./surface.ts";
 import { identitySurface } from "./identitySurface.ts";
 import { oshiSelector } from "./oshiSelector.ts";
 import { clubSelector } from "./clubSelector.ts";
 import { playStyleSurface } from "./playStyleSurface.ts";
-import { previewedPlayStyle } from "../identity/playStyleMachine.ts";
-import { playStyleSettingsForPreset } from "../../core/playstyle/index.ts";
-import type { PlayStyleMachineState } from "../identity/playStyleMachine.ts";
-import type { IdentityController } from "../identity/controller.ts";
-import type { PlayStyleKey, PlayStyleSettings } from "../../core/playstyle/index.ts";
-import type { UiStrings } from "../strings.ts";
+import { previewedPlayStyle } from "../../identity/playStyleMachine.ts";
+import { playStyleSettingsForPreset } from "../../../core/playstyle/index.ts";
+import type { PlayStyleMachineState } from "../../identity/playStyleMachine.ts";
+import type { IdentityController } from "../../identity/controller.ts";
+import type { PlayStyleKey, PlayStyleSettings } from "../../../core/playstyle/index.ts";
+import type { UiStrings } from "../../strings.ts";
 
 export function buildTrainerCard(
   identity: IdentityController,
@@ -23,7 +23,7 @@ export function buildTrainerCard(
   },
 ): HTMLElement {
   const oshi = identity.currentOshi();
-  const card = overlay({
+  const card = surface({
     title: "Trainer Card",
     placement: "left",
     headerless: true,
@@ -47,12 +47,12 @@ export function buildTrainerCard(
   return card;
 }
 
-export function buildOshiSelectorOverlay(
+export function buildOshiSelector(
   identity: IdentityController,
   on: { onClose: () => void },
 ): HTMLElement {
   const selectedOshi = identity.currentOshi();
-  return overlay({
+  return surface({
     title: "Oshi Selector",
     placement: "center",
     headerless: true,
@@ -67,11 +67,11 @@ export function buildOshiSelectorOverlay(
   });
 }
 
-export function buildClubSelectorOverlay(
+export function buildClubSelector(
   identity: IdentityController,
   on: { onClose: () => void },
 ): HTMLElement {
-  return overlay({
+  return surface({
     title: "Club",
     placement: "center",
     headerless: true,
@@ -85,7 +85,7 @@ export function buildClubSelectorOverlay(
   });
 }
 
-export function buildPlayStyleOverlay(
+export function buildPlayStyle(
   identity: IdentityController,
   strings: UiStrings,
   state: PlayStyleMachineState,
@@ -113,7 +113,7 @@ export function buildPlayStyleOverlay(
       ? savedPlayStyleSettings
       : playStyleSettingsForPreset(playStyleKey));
 
-  const playStyleCard = overlay({
+  const playStyleCard = surface({
     title: strings.playStyle.presets[playStyleKey].name,
     headerless: true,
     body: playStyleSurface({
@@ -128,7 +128,7 @@ export function buildPlayStyleOverlay(
     }),
     onClose: on.onDiscard,
   });
-  playStyleCard.classList.add("overlay--playstyle");
+  playStyleCard.classList.add("surface--playstyle");
 
   const identityCard = buildTrainerCard(
     identity,
@@ -142,5 +142,5 @@ export function buildPlayStyleOverlay(
     if (height > 0) playStyleCard.style.height = `${height}px`;
   });
 
-  return h("div", { class: "overlay-book" }, identityCard, playStyleCard);
+  return h("div", { class: "surface-book" }, identityCard, playStyleCard);
 }

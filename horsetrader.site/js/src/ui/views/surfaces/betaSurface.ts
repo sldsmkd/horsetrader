@@ -5,14 +5,14 @@
  * PARKED. Its first tenant, the Unity cloud save/load controls (Cloud + Sync), has
  * graduated onto the trainer card ([cloudControls.ts](cloudControls.ts)), so the chamber
  * is currently empty. The plumbing is kept intact — the `RightSurface "beta"` member, the
- * `onBeta` seam, the `renderOverlay` branch that mounts this — but the menubar renders no
+ * `onBeta` seam, the `renderSurfaces` branch that mounts this — but the menubar renders no
  * entry, so it's inactive + hidden. The next big feature graduates through here: drop its
  * surface in below and re-add the menubar icon (see menubar.ts).
  */
 
 import "./betaSurface.css";
 
-import { h } from "../h.ts";
+import { h } from "../../h.ts";
 import { surfaceActions } from "./surfaceActions.ts";
 
 export function betaSurface(onClose: () => void): HTMLElement {

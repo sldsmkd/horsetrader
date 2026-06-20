@@ -12,10 +12,10 @@
 
 import "./cloudConflict.css";
 
-import { h } from "../h.ts";
-import { keepCloud, keepLocal } from "../../core/cloud/index.ts";
-import type { CloudConflict, PlanFacts } from "../../core/cloud/index.ts";
-import type { Coordinator } from "../../core/engine/index.ts";
+import { h } from "../../h.ts";
+import { keepCloud, keepLocal } from "../../../core/cloud/index.ts";
+import type { CloudConflict, PlanFacts } from "../../../core/cloud/index.ts";
+import type { Coordinator } from "../../../core/engine/index.ts";
 
 export interface CloudConflictOpts {
   local: PlanFacts;

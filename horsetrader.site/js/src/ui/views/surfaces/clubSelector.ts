@@ -1,12 +1,12 @@
 import "./clubSelector.css";
 
-import { h } from "../h.ts";
-import { pressedGroup } from "../widgets/pressedGroup.ts";
+import { h } from "../../h.ts";
+import { pressedGroup } from "../../widgets/pressedGroup.ts";
 import { surfaceActions } from "./surfaceActions.ts";
-import { CLUB_RANK_TIERS, DEFAULT_CLUB_RANK } from "../../core/identity/clubrank.ts";
-import type { ClubRankTier } from "../../core/identity/clubrank.ts";
+import { CLUB_RANK_TIERS, DEFAULT_CLUB_RANK } from "../../../core/identity/clubrank.ts";
+import type { ClubRankTier } from "../../../core/identity/clubrank.ts";
 
-// The shield badge per rank. The icon ladder runs club_rank_01 (D) → _11 (SS),
+// The modal badge per rank. The icon ladder runs club_rank_01 (D) → _11 (SS),
 // but the reward map — and so `CLUB_RANK_TIERS` — starts at D+, so _01 is unused
 // (D earns nothing). Keyed by tier rather than computed off the index so a
 // reorder of the ladder can't silently slide every badge.
@@ -23,7 +23,7 @@ const CLUB_RANK_ICON: Record<ClubRankTier, string> = {
   SS: "/icons/club_rank_11.webp",
 };
 
-/** The badge asset for a resolved club rank — the trainer sheet and the shield share it. */
+/** The badge asset for a resolved club rank — the trainer sheet and the modal share it. */
 export function clubRankIcon(tier: ClubRankTier): string {
   return CLUB_RANK_ICON[tier];
 }
@@ -37,7 +37,7 @@ export interface ClubSelectorOpts {
 }
 
 /**
- * The club shield: a single modal that edits both halves of the club identity —
+ * The club modal: a single modal that edits both halves of the club identity —
  * the free-text name and the rank badge (a `reward_maps.club-rank` selector). Same
  * shape as the oshi selector (a grid of pressable badges + an OK that commits and
  * closes), with a name field on top. When already in a club a Leave action clears

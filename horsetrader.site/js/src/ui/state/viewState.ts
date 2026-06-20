@@ -1,6 +1,6 @@
 /**
  * The discrete view-state store: ephemeral UI state that *many* views care about
- * and that changes *rarely* — which overlay is open, the current selection, the
+ * and that changes *rarely* — which surface is open, the current selection, the
  * search query. It carries a render-triggering `subscribe`, the same one-way
  * pattern as the coordinator (docs/frontend/interaction.md). It is NEVER
  * persisted (it is not a plan input) and is NEVER read back out of the DOM (the
@@ -29,9 +29,9 @@ export interface ViewState {
    *  a right surface can be open at once, but opening a right surface closes the
    *  other right one. */
   right: string | null;
-  /** Whether the balance editor shield is up over the Resources surface. Only
+  /** Whether the balance editor modal is up over the Resources surface. Only
    *  meaningful while `right === "resources"`; the editor is a write transaction
-   *  that suspends the read surface behind it (feedback_shield_vs_unfold). */
+   *  that locks the read surface behind it (feedback_shield_vs_unfold). */
   resourcesEditing: boolean;
   /** The banner key whose commit shield is up, or `null`. A shield like the
    *  balance editor — spawned at source from the banner readout — so it is modal

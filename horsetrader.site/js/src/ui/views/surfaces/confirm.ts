@@ -1,24 +1,24 @@
 /**
- * confirmShield — the "shield-of-a-shield": a small alert/confirm modal that a shield
- * raises to gate a destructive action. It paints above the shield layer (CSS z-index
- * 1100 > the 1000 shields) so it blocks the shield that spawned it *and* the rest of
- * the foreground UI — modal to everything, owned by the shield beneath it.
+ * confirm — the "modal-of-a-modal": a small alert/confirm modal that a modal
+ * raises to gate a destructive action. It paints above the modal layer (CSS z-index
+ * 1100 > the 1000 modals) so it blocks the modal that spawned it *and* the rest of
+ * the foreground UI — modal to everything, owned by the modal beneath it.
  *
  * It owns the action, not just the yes/no: `onConfirm` may be async, and while it runs
  * the buttons go busy; a rejection is shown inline and the modal stays open to retry,
  * so a flaky destructive call (a failed cloud-save delete) never leaves the user
  * stranded with no context. Resolve/return → close.
  *
- * First use: disconnect (delete the cloud save) in {@link cloudProviderShield}. Kept
+ * First use: disconnect (delete the cloud save) in {@link cloudProvider}. Kept
  * generic — a confirm gate is the sort of thing a second caller will want — but no more
  * configurable than that first need warrants ([[feedback_shield_vs_unfold]] sibling).
  */
 
-import "./confirmShield.css";
+import "./confirm.css";
 
-import { h } from "../h.ts";
+import { h } from "../../h.ts";
 
-export interface ConfirmShieldOpts {
+export interface ConfirmOpts {
   title: string;
   message: string;
   /** Label for the affirmative button (e.g. "Disconnect"). */
@@ -36,20 +36,20 @@ export interface ConfirmShieldOpts {
 
 /** Mount a confirm modal on the body, wire teardown into both exits. The single entry —
  *  callers never touch the mount/scrim glue. */
-export function presentConfirmShield(opts: ConfirmShieldOpts): void {
-  let shield: HTMLElement;
-  const close = (): void => shield.remove();
+export function presentConfirm(opts: ConfirmOpts): void {
+  let modal: HTMLElement;
+  const close = (): void => modal.remove();
 
-  const error = h("p", { class: "confirm-shield__error", attr: { hidden: true } });
+  const error = h("p", { class: "confirm__error", attr: { hidden: true } });
   const cancelBtn = h(
     "button",
-    { class: "confirm-shield__btn", attr: { type: "button" }, on: { click: () => cancel() } },
+    { class: "confirm__btn", attr: { type: "button" }, on: { click: () => cancel() } },
     opts.cancelLabel ?? "Cancel",
   );
   const confirmBtn = h(
     "button",
     {
-      class: `confirm-shield__btn${opts.danger ? " confirm-shield__btn--danger" : ""}`,
+      class: `confirm__btn${opts.danger ? " confirm__btn--danger" : ""}`,
       attr: { type: "button" },
       on: { click: () => void confirm() },
     },
@@ -79,22 +79,22 @@ export function presentConfirmShield(opts: ConfirmShieldOpts): void {
     }
   }
 
-  shield = h(
+  modal = h(
     "div",
     {
-      class: "confirm-shield",
+      class: "confirm",
       attr: { role: "alertdialog", "aria-modal": "true", "aria-label": opts.title },
-      // Scrim click (not the card) cancels — same affordance as the shields beneath.
+      // Scrim click (not the card) cancels — same affordance as the modals beneath.
       on: { click: (e) => e.target === e.currentTarget && cancel() },
     },
     h(
       "div",
-      { class: "confirm-shield__card" },
-      h("h2", { class: "confirm-shield__title" }, opts.title),
-      h("p", { class: "confirm-shield__message" }, opts.message),
+      { class: "confirm__card" },
+      h("h2", { class: "confirm__title" }, opts.title),
+      h("p", { class: "confirm__message" }, opts.message),
       error,
-      h("div", { class: "confirm-shield__actions" }, cancelBtn, confirmBtn),
+      h("div", { class: "confirm__actions" }, cancelBtn, confirmBtn),
     ),
   );
-  document.body.appendChild(shield);
+  document.body.appendChild(modal);
 }

@@ -1,6 +1,6 @@
 import type { PlayStyleKey, PlayStyleSettings } from "../../core/playstyle/index.ts";
 
-export type IdentityOverlayState =
+export type IdentitySurfaceState =
   | "closed"
   | "identity"
   | "oshi"
@@ -10,7 +10,7 @@ export type IdentityOverlayState =
   | "playstyle-club";
 
 export interface PlayStyleMachineState {
-  overlay: IdentityOverlayState;
+  surface: IdentitySurfaceState;
   stagedPlayStyle: PlayStyleKey | null;
   stagedPlayStyleSettings: PlayStyleSettings | null;
 }
@@ -29,7 +29,7 @@ export type PlayStyleMachineEvent =
   | { type: "close-all" };
 
 export const PLAY_STYLE_MACHINE_INITIAL: PlayStyleMachineState = {
-  overlay: "closed",
+  surface: "closed",
   stagedPlayStyle: null,
   stagedPlayStyleSettings: null,
 };
@@ -46,54 +46,54 @@ export function reducePlayStyleMachine(
   switch (event.type) {
     case "toggle-identity":
       return {
-        overlay: state.overlay === "closed" ? "identity" : "closed",
+        surface: state.surface === "closed" ? "identity" : "closed",
         stagedPlayStyle: null,
         stagedPlayStyleSettings: null,
       };
     case "open-oshi":
       return {
-        overlay: state.overlay === "playstyle" || state.overlay === "playstyle-oshi" ? "playstyle-oshi" : "oshi",
+        surface: state.surface === "playstyle" || state.surface === "playstyle-oshi" ? "playstyle-oshi" : "oshi",
         stagedPlayStyle: state.stagedPlayStyle,
         stagedPlayStyleSettings: state.stagedPlayStyleSettings,
       };
     case "close-oshi":
       return {
-        overlay: state.overlay === "playstyle-oshi" ? "playstyle" : "identity",
+        surface: state.surface === "playstyle-oshi" ? "playstyle" : "identity",
         stagedPlayStyle: state.stagedPlayStyle,
         stagedPlayStyleSettings: state.stagedPlayStyleSettings,
       };
     case "open-club":
       return {
-        overlay: state.overlay === "playstyle" || state.overlay === "playstyle-club" ? "playstyle-club" : "club",
+        surface: state.surface === "playstyle" || state.surface === "playstyle-club" ? "playstyle-club" : "club",
         stagedPlayStyle: state.stagedPlayStyle,
         stagedPlayStyleSettings: state.stagedPlayStyleSettings,
       };
     case "close-club":
       return {
-        overlay: state.overlay === "playstyle-club" ? "playstyle" : "identity",
+        surface: state.surface === "playstyle-club" ? "playstyle" : "identity",
         stagedPlayStyle: state.stagedPlayStyle,
         stagedPlayStyleSettings: state.stagedPlayStyleSettings,
       };
     case "discard-playstyle":
     case "commit-playstyle":
-      return { overlay: "identity", stagedPlayStyle: null, stagedPlayStyleSettings: null };
+      return { surface: "identity", stagedPlayStyle: null, stagedPlayStyleSettings: null };
     // Custom is a tweaker surface: committing clears the staging (the saved value
     // now IS the edit) but keeps the play-style page open so tuning can continue,
     // rather than collapsing back to the trainer card like a streamlined preset.
     case "commit-playstyle-stay":
-      return { overlay: "playstyle", stagedPlayStyle: null, stagedPlayStyleSettings: null };
+      return { surface: "playstyle", stagedPlayStyle: null, stagedPlayStyleSettings: null };
     case "close-all":
       return PLAY_STYLE_MACHINE_INITIAL;
     case "stage-settings":
       return { ...state, stagedPlayStyleSettings: event.settings };
     case "preview-playstyle": {
-      if ((state.overlay === "playstyle" || state.overlay === "playstyle-oshi") && event.key === savedPlayStyle) {
+      if ((state.surface === "playstyle" || state.surface === "playstyle-oshi") && event.key === savedPlayStyle) {
         return previewedPlayStyle(state, savedPlayStyle) === savedPlayStyle
-          ? { overlay: "identity", stagedPlayStyle: null, stagedPlayStyleSettings: null }
-          : { overlay: "playstyle", stagedPlayStyle: null, stagedPlayStyleSettings: null };
+          ? { surface: "identity", stagedPlayStyle: null, stagedPlayStyleSettings: null }
+          : { surface: "playstyle", stagedPlayStyle: null, stagedPlayStyleSettings: null };
       }
       return {
-        overlay: "playstyle",
+        surface: "playstyle",
         stagedPlayStyle: event.key === savedPlayStyle ? null : event.key,
         stagedPlayStyleSettings: null,
       };

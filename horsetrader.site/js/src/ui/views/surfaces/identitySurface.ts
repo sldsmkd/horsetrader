@@ -1,12 +1,12 @@
 import "./identitySurface.css";
 
-import { h } from "../h.ts";
-import { collapsePill } from "./collapsePill.ts";
+import { h } from "../../h.ts";
+import { collapsePill } from "../collapsePill.ts";
 import { playStylePresetGrid } from "./playStylePreset.ts";
 import { clubRankIcon } from "./clubSelector.ts";
 import type { PlayStyleKey } from "./playStylePreset.ts";
-import type { ClubIdentity } from "../../core/identity/clubrank.ts";
-import type { PlayStyleStrings } from "../strings.ts";
+import type { ClubIdentity } from "../../../core/identity/clubrank.ts";
+import type { PlayStyleStrings } from "../../strings.ts";
 
 export interface IdentitySurfaceOpts {
   trainerName: string;
@@ -50,7 +50,7 @@ function sanitizeTrainerName(raw: string): string {
 
 // The Matikane stable names — Matikanetannhauser and Matikanefukukitaru — are the
 // only oshi names long enough to overrun the portrait. They're a family prefix
-// ("Matikane") run together with a given name; split them so the overlay wraps at
+// ("Matikane") run together with a given name; split them so the surface wraps at
 // a real space (and the given name reads Ucfirst'd) instead of breaking mid-word.
 function displayOshiName(name: string): string {
   const prefix = "Matikane";
@@ -59,10 +59,10 @@ function displayOshiName(name: string): string {
   return `${prefix} ${given[0]!.toUpperCase()}${given.slice(1)}`;
 }
 
-// The club row is a single click target that opens the club shield (name + rank),
+// The club row is a single click target that opens the club modal (name + rank),
 // the same spawn pattern as the oshi portrait. In a club it shows the name with the
 // rank badge as a trailing chip; with no club it reads a muted "No club" and still
-// opens the shield (to join).
+// opens the modal (to join).
 function clubRow(opts: IdentitySurfaceOpts): HTMLElement {
   const club = opts.club;
   const body = club

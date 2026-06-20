@@ -1,9 +1,9 @@
-/* Confirm — a shield-of-a-shield: an alert/confirm modal that paints ABOVE the shield
-   layer (z-index 1100 > the 1000 shields) so it blocks the shield beneath it AND the
+/* Confirm — a modal-of-a-modal: an alert/confirm modal that paints ABOVE the modal
+   layer (z-index 1100 > the 1000 modals) so it blocks the modal beneath it AND the
    rest of the foreground UI. The gate before a destructive action (e.g. disconnect,
-   which deletes the cloud save). Self-contained scrim + centred card, like the shields
+   which deletes the cloud save). Self-contained scrim + centred card, like the modals
    it sits over, just narrower and terser. */
-.confirm-shield {
+.confirm {
   position: fixed;
   inset: 0;
   z-index: var(--glass-z-alert);
@@ -14,7 +14,7 @@
   padding: 1.5rem;
 }
 
-.confirm-shield__card {
+.confirm__card {
   width: 100%;
   max-width: 22rem;
   display: flex;
@@ -28,34 +28,34 @@
   box-shadow: 0 1.5rem 3rem rgba(0, 0, 0, 0.5);
 }
 
-.confirm-shield__title {
+.confirm__title {
   margin: 0;
   font-size: var(--ht-type-panel-title-size);
   font-weight: var(--ht-type-panel-title-weight);
   line-height: var(--ht-type-panel-title-line);
 }
 
-.confirm-shield__message {
+.confirm__message {
   margin: 0;
   font-size: var(--ht-type-control-size);
   line-height: var(--ht-type-body-line);
   opacity: 0.85;
 }
 
-.confirm-shield__error {
+.confirm__error {
   margin: 0;
   font-size: var(--ht-type-caption-size);
   line-height: var(--ht-type-caption-line);
   color: var(--ht-colour-danger);
 }
 
-.confirm-shield__actions {
+.confirm__actions {
   display: flex;
   justify-content: flex-end;
   gap: 0.6rem;
 }
 
-.confirm-shield__btn {
+.confirm__btn {
   font: inherit;
   padding: 0.5rem 1.2rem;
   border-radius: var(--ht-control-radius);
@@ -65,20 +65,20 @@
   cursor: pointer;
 }
 
-.confirm-shield__btn:hover {
+.confirm__btn:hover {
   background: var(--ht-control-bg-hover-subtle);
 }
 
-.confirm-shield__btn--danger {
+.confirm__btn--danger {
   border-color: var(--ht-control-danger-border);
   color: var(--ht-colour-danger);
 }
 
-.confirm-shield__btn--danger:hover {
+.confirm__btn--danger:hover {
   background: var(--ht-control-danger-bg-hover);
 }
 
-.confirm-shield__btn:disabled {
+.confirm__btn:disabled {
   opacity: var(--ht-control-disabled-opacity);
   cursor: default;
 }

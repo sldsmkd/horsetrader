@@ -9,7 +9,7 @@ import "./menubar.css";
 
 import { h } from "../h.ts";
 import { formatBalance, formatDate } from "../format.ts";
-import { searchBox } from "./searchBox.ts";
+import { searchBox } from "./surfaces/searchBox.ts";
 import type { SearchIndex, SearchResult } from "../query/index.ts";
 import type { ResourceVector } from "../../core/projection/index.ts";
 import { pressedGroup } from "../widgets/pressedGroup.ts";
@@ -27,11 +27,11 @@ export interface Menubar {
   setLeftActive(active: boolean): void;
   /** Highlight which right-group surface is open (balance), or none. */
   setRightActive(member: RightSurface | null): void;
-  /** Lock the surface-spawning buttons while a shield (modal child window) is up.
+  /** Lock the surface-spawning buttons while a modal (modal child window) is up.
    *  Navigation (home, search) stays live; so do the independent higher layers
-   *  (bookmarks, minimap, timeline). A shield is modal only against its peers —
+   *  (bookmarks, minimap, timeline). A modal is modal only against its peers —
    *  the other menu surfaces it could otherwise spawn over. */
-  setShielded(shielded: boolean): void;
+  setLocked(locked: boolean): void;
 }
 
 export interface MenubarIdentity {
@@ -91,7 +91,7 @@ export function menubar(opts: MenubarOpts): Menubar {
   );
   // Beta (🔨): the WIP isolation chamber is PARKED — its first tenant (Unity cloud
   // auth/sync) has graduated onto the trainer card, so the chamber is empty. We keep the
-  // surface plumbing (RightSurface "beta", onBeta, the renderOverlay branch) but render
+  // surface plumbing (RightSurface "beta", onBeta, the renderSurfaces branch) but render
   // no entry, so it's inactive + hidden until the next big feature graduates through it;
   // reviving it is just re-adding the icon button below to the right cluster.
 
@@ -135,13 +135,13 @@ export function menubar(opts: MenubarOpts): Menubar {
   setLeftActive(false);
   setRightPressed(null);
 
-  // The surface spawners a shield locks — every *live* menu item that opens a
+  // The surface spawners a modal locks — every *live* menu item that opens a
   // same-layer surface (not home/search, which are navigation).
   const lockable: HTMLButtonElement[] = [identity, balance];
-  function setShielded(shielded: boolean): void {
+  function setLocked(locked: boolean): void {
     for (const button of lockable) {
-      button.disabled = shielded;
-      button.classList.toggle("menubar__button--shielded", shielded);
+      button.disabled = locked;
+      button.classList.toggle("menubar__button--locked", locked);
     }
   }
 
@@ -160,6 +160,6 @@ export function menubar(opts: MenubarOpts): Menubar {
     },
     setLeftActive,
     setRightActive: (member) => setRightPressed(member),
-    setShielded,
+    setLocked,
   };
 }

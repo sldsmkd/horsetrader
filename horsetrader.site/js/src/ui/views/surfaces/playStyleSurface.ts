@@ -1,10 +1,10 @@
 import "./playStyleSurface.css";
 
-import { h } from "../h.ts";
-import { checkbox } from "./checkbox.ts";
-import { collapsePill } from "./collapsePill.ts";
+import { h } from "../../h.ts";
+import { checkbox } from "../checkbox.ts";
+import { collapsePill } from "../collapsePill.ts";
 import { surfaceActions } from "./surfaceActions.ts";
-import { discreteSlider } from "./discreteSlider.ts";
+import { discreteSlider } from "../discreteSlider.ts";
 import { PLAY_STYLES } from "./playStylePreset.ts";
 import type { PlayStyleKey } from "./playStylePreset.ts";
 import {
@@ -16,9 +16,9 @@ import {
   STRONGEST_TEAM_KEYS,
   TEAM_TRIAL_KEYS,
   samePlayStyleSettings,
-} from "../../core/playstyle/index.ts";
-import type { PlayStyleSettings, PlayToggleKey } from "../../core/playstyle/index.ts";
-import type { PlayStyleSettingStrings, PlayStyleStrings } from "../strings.ts";
+} from "../../../core/playstyle/index.ts";
+import type { PlayStyleSettings, PlayToggleKey } from "../../../core/playstyle/index.ts";
+import type { PlayStyleSettingStrings, PlayStyleStrings } from "../../strings.ts";
 
 type SettingKey = keyof PlayStyleSettings;
 
@@ -264,7 +264,7 @@ export function playStyleSurface(opts: PlayStyleSurfaceOpts): HTMLElement {
     ...DRAWERS.map((drawer) => drawerFor(drawer, ctx)),
   );
   // Restore the offset after this rebuilt list is mounted AND laid out. Double
-  // rAF on purpose: the overlay locks the card's height in its own first-frame
+  // rAF on purpose: the surface locks the card's height in its own first-frame
   // rAF, so a single rAF here would run before that and clamp scrollTop to ~0
   // (container not yet full height). The second frame runs after the height lock.
   requestAnimationFrame(() => requestAnimationFrame(() => (drawers.scrollTop = drawersScrollTop)));

@@ -63,7 +63,7 @@ each is licensed to use.
 ### The glass plane — orthographic / parallel projection
 
 A single fixed, camera-independent coordinate system holding every surface, window,
-dropdown, drawer, shield, and the wallpaper. No foreshortening, no eye point:
+dropdown, drawer, modal, and the wallpaper. No foreshortening, no eye point:
 screen-size = object-size × a uniform factor, position-independent. This *is* CSS's
 default 2D model — we're not building the orthographic container, we're naming the
 substrate we already stand in.
