@@ -25,7 +25,9 @@ new functionality or later product directions, not readiness polish.
   context, clear banner art, dates, pity counts, and a small callback/attribution to
   `horsetrader.site` so the image can travel outside the app and still point home.
   This is a project, not Debut polish. Source: user note.
-- **Floating timeline chrome + mobile (project in its own right).** The glass-table
+- **Floating timeline chrome + mobile (project in its own right).** *Graduated
+  2026-06-20 → [Grand Masters](../grand-masters/grand-masters.md); Part 1 (order &
+  discipline) is [Byerley Turk](../grand-masters/byerley-turk.md).* The glass-table
   chrome is good enough for launch: the menubar/minimap float over the timeline, the
   dropdown rail re-anchors to the bar's edges with a `--chrome-dropdown-scale` knob,
   and the phone layout is contained (stacked bar, drawer killed, usable in portrait —

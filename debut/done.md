@@ -3,6 +3,36 @@
 Completed items from the Debut readiness pass. This is the little receipt pile:
 `polish.md` should stay focused on work that still wants attention.
 
+## 2026-06-20
+
+### Opt-in paid-carat spending (first live bug report — issue #65 hotfix)
+
+First post-launch bug report: a player with a large paid-carat balance found the
+planner treated those carats as unspendable (paid carats only ever left through the
+daily-discount window, so most banked and read as broken). Real game lets paid carats
+pay full price for any pull, so we were under-reporting capacity. Shipped a
+per-commitment opt-in, off by default (keeps the frugal discount-only model):
+
+- **Storage.** A commitment is now `number | { number, use_paid }` (`core/persistence/
+  document.ts`, with `commitmentPity` / `commitmentUsePaid` accessors). The dict form
+  persists only when the flag is on — a bare commitment stays a flat integer (sparse,
+  like favourites/rushed). `validateCommitments` accepts both and drops malformed
+  entries.
+- **Spend waterfall (when on).** After the daily-discount window: burn free carats down
+  to their `< 150` remainder, then spend owned paid carats at full price (150) toward the
+  target, then surge any still-unmet need negative on free carats. Off = unchanged (paid
+  banks, free absorbs the whole remainder negative). Lives in `spend()` in
+  `core/projection/pulls.ts`; threaded through the projection debit (`reconcile`), the
+  planner and card-gutter reads, and the commit-shield `reserve` forecast.
+- **UI.** A "Spend paid carats at full price" checkbox in the commit shield (off by
+  default, seeded from the stored flag so re-opening a paid plan stays ticked). Toggling
+  re-renders the Resource Impact column live; `coord.commit(key, pity, usePaid)` persists.
+- **Verification.** 243 tests green, typecheck clean; verified live against the reporting
+  player's exact balance (free floors to the remainder, paid does the work, no over-surge).
+- **Deferred (#65 read side).** The pre-commit card-face "pulls available" readout still
+  ignores full-price paid, so it undercounts at a glance until you commit. Logged on #65
+  for later.
+
 ## 2026-06-19
 
 ### Initial menubar and minimap float implemented
@@ -39,6 +69,16 @@ closes the can't-close trap, since the drawer's only opener (its chevron tab) li
 inside the container that gets `display: none`. Usable in portrait, which is the
 Debut bar; coaxing the phone experience into real life is parked as a post-launch
 project.
+
+### Bookmarks drawer re-anchored to the floating bar
+
+The favourites/plan drawer still used its pre-float geometry (`top: 4.5rem`, a
+viewport-based max-height), so it sat level with the floating menubar — covering its
+controls — and a long list could run past the bottom minimap. Dropped it onto the
+same rail as the dropdowns (`top` = `chrome-top + chrome-height + gap`) so it floats
+just under the bar, and capped its height with the shared `--chrome-dropdown-max-height`
+(the room between the two floating bars) so the list scrolls inside instead of
+overflowing. It now tracks the bar knobs automatically if they're retuned.
 
 ### Generic overlay close chrome retired
 
