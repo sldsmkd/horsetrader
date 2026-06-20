@@ -1,7 +1,7 @@
 import "./atomChip.css";
 
-import { h } from "../h.ts";
-import type { BannerAtom } from "../select/aboveLane.ts";
+import { h } from "../../h.ts";
+import type { BannerAtom } from "../../select/aboveLane.ts";
 
 /** The persisted-favourite seam handed to atom chips: read whether an entity is
  *  favourited, and flip it. Keyed by ETL stable entity id. */

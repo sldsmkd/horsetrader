@@ -161,7 +161,7 @@ export function aboveLaneGroups(
     const freePulls = typeof record.rewards?.pulls === "number" ? record.rewards.pulls : 0;
     // The effective pulls under the spend model: free pulls + kind-appropriate tickets
     // + duration-capped daily paid pulls + full-price free carats (shared with the
-    // commit shield's reservation so card and shield never disagree).
+    // commit dossier's reservation so card and modal never disagree).
     const pullCaps = { caratsPerPull, paidDailyPull, bannerDays: bannerDays(ev.start, ev.end) };
     const pullSources = {
       freePulls,

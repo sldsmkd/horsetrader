@@ -33,12 +33,12 @@ export interface ViewState {
    *  meaningful while `right === "resources"`; the editor is a write transaction
    *  that locks the read surface behind it (feedback_shield_vs_unfold). */
   resourcesEditing: boolean;
-  /** The banner key whose commit shield is up, or `null`. A shield like the
+  /** The banner key whose commit dossier is up, or `null`. A modal like the
    *  balance editor — spawned at source from the banner readout — so it is modal
    *  to every other spawnable window (feedback_shield_vs_unfold). Independent of
    *  the left/right surface groups; the timeline behind it stays live. */
   committing: string | null;
-  /** Whether the Cloud provider shield is up (connect / disconnect / switch). A shield
+  /** Whether the Cloud provider modal is up (connect / disconnect / switch). A modal
    *  like the others — spawned from the trainer card's Cloud button, modal to every
    *  spawnable window, the timeline behind it stays live (feedback_shield_vs_unfold). */
   cloudConnecting: boolean;

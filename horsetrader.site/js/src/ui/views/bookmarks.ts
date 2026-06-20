@@ -19,9 +19,9 @@ import { h } from "../h.ts";
 import type { BookmarkRow } from "../select/bookmarks.ts";
 import type { CalendarDate } from "../../core/projection/dates.ts";
 import type { PlannerRow } from "../select/planner.ts";
-import { bookmarkCard } from "../widgets/bookmarkCard.ts";
-import type { BookmarkCard } from "../widgets/bookmarkCard.ts";
-import { plannerCard } from "../widgets/plannerCard.ts";
+import { bookmarkCard } from "./widgets/bookmarkCard.ts";
+import type { BookmarkCard } from "./widgets/bookmarkCard.ts";
+import { plannerCard } from "./widgets/plannerCard.ts";
 
 export type BookmarksFace = "favourites" | "planner";
 

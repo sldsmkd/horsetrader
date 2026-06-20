@@ -1,10 +1,10 @@
 import "./bookmarkCard.css";
 
-import { h } from "../h.ts";
-import { formatDate } from "../format.ts";
-import type { BookmarkRow } from "../select/bookmarks.ts";
-import { nextBookmarkDate } from "../select/bookmarks.ts";
-import type { CalendarDate } from "../../core/projection/dates.ts";
+import { h } from "../../h.ts";
+import { formatDate } from "../../format.ts";
+import type { BookmarkRow } from "../../select/bookmarks.ts";
+import { nextBookmarkDate } from "../../select/bookmarks.ts";
+import type { CalendarDate } from "../../../core/projection/dates.ts";
 
 export interface BookmarkCardOpts {
   row: BookmarkRow;

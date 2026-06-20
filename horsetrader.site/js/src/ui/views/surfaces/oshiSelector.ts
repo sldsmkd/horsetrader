@@ -3,7 +3,7 @@ import "./oshiSelector.css";
 import { DEFAULT_OSHI_ID, searchOshis, starterOshis } from "../../query/index.ts";
 import type { OshiOption, OshiSearchIndex } from "../../query/index.ts";
 import { h } from "../../h.ts";
-import { pressedGroup } from "../../widgets/pressedGroup.ts";
+import { pressedGroup } from "../widgets/pressedGroup.ts";
 import { surfaceActions } from "./surfaceActions.ts";
 
 export interface OshiSelectorOpts {

@@ -1,7 +1,7 @@
 import "./cloudControls.css";
 
-import { h } from "../h.ts";
-import type { AuthState } from "../../core/cloud/index.ts";
+import { h } from "../../h.ts";
+import type { AuthState } from "../../../core/cloud/index.ts";
 
 export interface CloudControlsOpts {
   auth: AuthState;

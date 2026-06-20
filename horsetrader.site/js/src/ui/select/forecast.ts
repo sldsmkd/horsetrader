@@ -1,5 +1,5 @@
 /**
- * The outcome-distribution model behind the commit shield's Forecast widget: given a
+ * The outcome-distribution model behind the commit dossier's Forecast widget: given a
  * committed **pity** (the plan), what spread of *target copies* does it buy?
  *
  * The spark is a guarantee, not a chance: every `pullsPerPity` pulls earns one exchange

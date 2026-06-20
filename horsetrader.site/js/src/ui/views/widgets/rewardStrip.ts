@@ -1,7 +1,7 @@
 import "./rewardStrip.css";
 
-import { formatRewardLines } from "../format.ts";
-import { h } from "../h.ts";
+import { formatRewardLines } from "../../format.ts";
+import { h } from "../../h.ts";
 
 export function rewardStrip(rewards: Record<string, number | undefined>): HTMLElement | null {
   const lines = formatRewardLines(rewards);

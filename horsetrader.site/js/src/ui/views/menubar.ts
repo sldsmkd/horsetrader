@@ -12,7 +12,7 @@ import { formatBalance, formatDate } from "../format.ts";
 import { searchBox } from "./surfaces/searchBox.ts";
 import type { SearchIndex, SearchResult } from "../query/index.ts";
 import type { ResourceVector } from "../../core/projection/index.ts";
-import { pressedGroup } from "../widgets/pressedGroup.ts";
+import { pressedGroup } from "./widgets/pressedGroup.ts";
 
 /** A member of the right-hand surface group. The left group (identity) is a
  *  single button, so it takes a plain boolean. */

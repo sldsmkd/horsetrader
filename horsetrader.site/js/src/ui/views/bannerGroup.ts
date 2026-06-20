@@ -17,13 +17,13 @@ import { h } from "../h.ts";
 import { formatDateRange, formatBalance } from "../format.ts";
 import { PITY_WASTE_ABOVE } from "../select/aboveLane.ts";
 import type { Banner, BannerGroup, BannerKind } from "../select/aboveLane.ts";
-import { atomChip } from "../widgets/atomChip.ts";
-import type { FavouriteBinding } from "../widgets/atomChip.ts";
-import { commitmentBadge } from "../widgets/commitmentBadge.ts";
+import { atomChip } from "./widgets/atomChip.ts";
+import type { FavouriteBinding } from "./widgets/atomChip.ts";
+import { commitmentBadge } from "./widgets/commitmentBadge.ts";
 
-/** The commit seam handed to the banner readout: spawn the commit shield for a
+/** The commit seam handed to the banner readout: spawn the commit dossier for a
  *  banner (the write transaction lives there, not on the card). Keyed by banner
- *  key; `open` is a no-op when a shield is already up (app.ts guards it). */
+ *  key; `open` is a no-op when a modal is already up (app.ts guards it). */
 export interface CommitBinding {
   open: (bannerKey: string) => void;
 }

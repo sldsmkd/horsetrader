@@ -1,5 +1,5 @@
 /**
- * The Forecast widget: the commit shield's "what outcome does that buy?" answer — a
+ * The Forecast widget: the commit dossier's "what outcome does that buy?" answer — a
  * little bar chart of the target-copy distribution (select/forecast.ts), reactive to
  * the pity stepper via an `{ el, update }` handle (the Resources-card pattern). The
  * spark floor is rendered as filled (guaranteed) bars; the random extras taper off to
@@ -14,13 +14,13 @@
 
 import "./forecast.css";
 
-import { h } from "../h.ts";
-import { forecast, expectedCopies, type ForecastInput } from "../select/forecast.ts";
-import type { BannerKind } from "../select/aboveLane.ts";
+import { h } from "../../h.ts";
+import { forecast, expectedCopies, type ForecastInput } from "../../select/forecast.ts";
+import type { BannerKind } from "../../select/aboveLane.ts";
 
 export interface ForecastWidget {
   el: HTMLElement;
-  /** Re-draw the distribution for a committed pity (called from the shield's render). */
+  /** Re-draw the distribution for a committed pity (called from the dossier's render). */
   update(pity: number): void;
 }
 

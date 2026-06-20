@@ -15,9 +15,9 @@ import "./belowCard.css";
 import { h } from "../h.ts";
 import { formatDateRange } from "../format.ts";
 import type { BelowCard } from "../select/belowLane.ts";
-import { rewardStrip } from "../widgets/rewardStrip.ts";
-import { rushedToggleFor } from "../widgets/rushedToggle.ts";
-import type { RushBinding } from "../widgets/rushedToggle.ts";
+import { rewardStrip } from "./widgets/rewardStrip.ts";
+import { rushedToggleFor } from "./widgets/rushedToggle.ts";
+import type { RushBinding } from "./widgets/rushedToggle.ts";
 
 function missionBody(card: BelowCard, rush: RushBinding): HTMLElement {
   return h(

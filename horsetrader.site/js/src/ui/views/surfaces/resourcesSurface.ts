@@ -17,9 +17,9 @@
 import "./resourcesSurface.css";
 
 import { h } from "../../h.ts";
-import { collapsePill } from "../collapsePill.ts";
+import { collapsePill } from "../widgets/collapsePill.ts";
 import { formatBalance, formatDate } from "../../format.ts";
-import { limitBreaker } from "../limitBreaker.ts";
+import { limitBreaker } from "../widgets/limitBreaker.ts";
 import type { ResourceVector } from "../../../core/projection/index.ts";
 import type { Snapshot } from "../../../core/persistence/document.ts";
 

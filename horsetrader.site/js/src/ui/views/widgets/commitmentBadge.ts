@@ -1,7 +1,7 @@
 import "./commitmentBadge.css";
 
-import { h } from "../h.ts";
-import { formatBalance } from "../format.ts";
+import { h } from "../../h.ts";
+import { formatBalance } from "../../format.ts";
 import { pityBand } from "./pityBand.ts";
 
 export interface CommitmentBadgeOpts {
@@ -14,7 +14,7 @@ export interface CommitmentBadgeOpts {
 }
 
 /** Shared pity commitment affordance. It is both status (the committed pity) and
- * the edit entry point for the commit shield. */
+ * the edit entry point for the commit dossier. */
 export function commitmentBadge({ pity, unfundable = false, wasteAbove = 3, onOpen }: CommitmentBadgeOpts): HTMLElement {
   return h(
     "button",

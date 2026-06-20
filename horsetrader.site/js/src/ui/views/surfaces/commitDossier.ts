@@ -24,10 +24,10 @@ import { h } from "../../h.ts";
 import { formatBalance, formatDate } from "../../format.ts";
 import { reserve, type CommitContext, type CommitAtom } from "../../select/commit.ts";
 import { PITY_WASTE_ABOVE } from "../../select/aboveLane.ts";
-import { forecastWidget } from "../../widgets/forecast.ts";
-import { pityBand } from "../../widgets/pityBand.ts";
+import { forecastWidget } from "../widgets/forecast.ts";
+import { pityBand } from "../widgets/pityBand.ts";
 import { surfaceActions } from "./surfaceActions.ts";
-import { checkbox } from "../checkbox.ts";
+import { checkbox } from "../widgets/checkbox.ts";
 
 export interface CommitDossierOpts {
   context: CommitContext;

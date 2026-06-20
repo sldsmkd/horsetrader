@@ -1,6 +1,6 @@
 import "./discreteSlider.css";
 
-import { h } from "../h.ts";
+import { h } from "../../h.ts";
 
 export interface DiscreteSliderStep {
   value: string;

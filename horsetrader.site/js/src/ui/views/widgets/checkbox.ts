@@ -1,6 +1,6 @@
 import "./checkbox.css";
 
-import { h } from "../h.ts";
+import { h } from "../../h.ts";
 
 export interface CheckboxOpts {
   title: string;

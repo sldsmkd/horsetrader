@@ -1,7 +1,7 @@
 import "./identitySurface.css";
 
 import { h } from "../../h.ts";
-import { collapsePill } from "../collapsePill.ts";
+import { collapsePill } from "../widgets/collapsePill.ts";
 import { playStylePresetGrid } from "./playStylePreset.ts";
 import { clubRankIcon } from "./clubSelector.ts";
 import type { PlayStyleKey } from "./playStylePreset.ts";

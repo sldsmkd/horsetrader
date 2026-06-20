@@ -1,6 +1,6 @@
 import "./rushedToggle.css";
 
-import { h } from "../h.ts";
+import { h } from "../../h.ts";
 
 export interface RushedToggleOptions {
   pressed?: boolean;

@@ -9,7 +9,7 @@
 
 import "./limitBreaker.css";
 
-import { h } from "../h.ts";
+import { h } from "../../h.ts";
 
 /** Shards that craft one crystal — the meter's denominator. */
 export const SHARDS_PER_CRYSTAL = 20;

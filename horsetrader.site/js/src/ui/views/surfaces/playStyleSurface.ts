@@ -1,10 +1,10 @@
 import "./playStyleSurface.css";
 
 import { h } from "../../h.ts";
-import { checkbox } from "../checkbox.ts";
-import { collapsePill } from "../collapsePill.ts";
+import { checkbox } from "../widgets/checkbox.ts";
+import { collapsePill } from "../widgets/collapsePill.ts";
 import { surfaceActions } from "./surfaceActions.ts";
-import { discreteSlider } from "../discreteSlider.ts";
+import { discreteSlider } from "../widgets/discreteSlider.ts";
 import { PLAY_STYLES } from "./playStylePreset.ts";
 import type { PlayStyleKey } from "./playStylePreset.ts";
 import {

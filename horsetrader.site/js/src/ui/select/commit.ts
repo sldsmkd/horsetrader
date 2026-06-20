@@ -1,15 +1,15 @@
 /**
- * The commit-shield view-model: `(bundle, bannerKey, inputs) → CommitContext`.
- * The shield is a **banner dossier with a planning attachment** (docs/frontend/ui.md
- * "the plan"; commitShield.ts): it answers *what am I pulling for* (artwork +
+ * The commit-dossier view-model: `(bundle, bannerKey, inputs) → CommitContext`.
+ * The modal is a **banner dossier with a planning attachment** (docs/frontend/ui.md
+ * "the plan"; commitDossier.ts): it answers *what am I pulling for* (artwork +
  * featured cards) before *what will it cost* (the resource impact). This pure
  * selector resolves one banner to that data — identity, the featured-card atoms
  * with their art, and the **predicted-available** resources the reservation draws
- * on — plus the gacha constants the shield needs to turn a committed **pity**
+ * on — plus the gacha constants the modal needs to turn a committed **pity**
  * (principle 10) into a reserved pull/carat cost.
  *
  * Data-only: no display strings (the view labels + formats). The reservation
- * "after" is computed *in the shield*, reactive to the pity stepper, so the
+ * "after" is computed *in the modal*, reactive to the pity stepper, so the
  * selector exposes only the pre-commitment balances and the constants.
  */
 
@@ -30,7 +30,7 @@ export interface CommitAtom extends BannerAtom {
   image: string;
 }
 
-/** Everything the commit shield renders and writes against, for one banner. */
+/** Everything the commit dossier renders and writes against, for one banner. */
 export interface CommitContext {
   bannerKey: string;
   kind: BannerKind;
@@ -81,7 +81,7 @@ function featuredRate(ev: { rate_overrides?: Record<string, number> }, atoms: Co
   return rates.length ? Math.max(...rates) : 0;
 }
 
-/** The two live reads the shield folds in, mirroring `AboveLaneInputs`. */
+/** The two live reads the modal folds in, mirroring `AboveLaneInputs`. */
 export interface CommitInputs {
   balanceAt: (date: CalendarDate) => ResourceVector;
   commitments: Commitments;
@@ -89,7 +89,7 @@ export interface CommitInputs {
 
 export function commitContext(bundle: Bundle, bannerKey: string, inputs: CommitInputs): CommitContext {
   const ev = bundle.event(bannerKey);
-  // The shield is only ever spawned from a banner readout — resolve-or-throw, the
+  // The modal is only ever spawned from a banner readout — resolve-or-throw, the
   // same trust-the-bake stance as the lookups: a non-banner key here is a wiring bug.
   if (ev.type !== "trainee" && ev.type !== "support") throw new Error(`commit: "${bannerKey}" is not a banner (${ev.type})`);
   const kind: BannerKind = ev.type;

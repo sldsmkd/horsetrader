@@ -1,4 +1,4 @@
-/* Pity-band fills, shared by the timeline commitment badge and the commit shield.
+/* Pity-band fills, shared by the timeline commitment badge and the commit dossier.
    See pityBand.ts for the rule that picks the band. */
 .pity-band--positive {
   background: color-mix(in srgb, var(--ht-colour-commit-positive) 80%, Canvas);

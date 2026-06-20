@@ -1,10 +1,10 @@
 import "./plannerCard.css";
 
-import { h } from "../h.ts";
-import { formatDate } from "../format.ts";
-import type { CalendarDate } from "../../core/projection/dates.ts";
-import type { PlannerRow } from "../select/planner.ts";
-import { PITY_WASTE_ABOVE } from "../select/aboveLane.ts";
+import { h } from "../../h.ts";
+import { formatDate } from "../../format.ts";
+import type { CalendarDate } from "../../../core/projection/dates.ts";
+import type { PlannerRow } from "../../select/planner.ts";
+import { PITY_WASTE_ABOVE } from "../../select/aboveLane.ts";
 import { commitmentBadge } from "./commitmentBadge.ts";
 
 export interface PlannerCardOpts {

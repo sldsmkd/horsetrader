@@ -1,7 +1,7 @@
 import "./clubSelector.css";
 
 import { h } from "../../h.ts";
-import { pressedGroup } from "../../widgets/pressedGroup.ts";
+import { pressedGroup } from "../widgets/pressedGroup.ts";
 import { surfaceActions } from "./surfaceActions.ts";
 import { CLUB_RANK_TIERS, DEFAULT_CLUB_RANK } from "../../../core/identity/clubrank.ts";
 import type { ClubRankTier } from "../../../core/identity/clubrank.ts";

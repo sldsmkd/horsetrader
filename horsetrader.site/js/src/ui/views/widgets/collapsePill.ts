@@ -1,6 +1,6 @@
 import "./collapsePill.css";
 
-import { h } from "../h.ts";
+import { h } from "../../h.ts";
 
 /**
  * The shared flow-marker collapse pill. A surface's dismiss affordance: chevrons
