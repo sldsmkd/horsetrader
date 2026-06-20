@@ -1,8 +1,8 @@
 .discrete-slider {
   display: grid;
-  grid-template-columns: 1.65rem minmax(0, 1fr);
-  gap: 0.55rem;
-  padding: 0.65rem 0.7rem;
+  grid-template-columns: calc(2.06 * var(--glass-u)) minmax(0, 1fr);
+  gap: calc(0.69 * var(--glass-u));
+  padding: calc(0.81 * var(--glass-u)) calc(0.88 * var(--glass-u));
   background: color-mix(in srgb, Canvas 88%, transparent);
 }
 
@@ -10,17 +10,17 @@
   position: relative;
   display: inline-grid;
   place-items: center;
-  width: 1.15rem;
+  width: calc(1.44 * var(--glass-u));
   aspect-ratio: 1;
   justify-self: center;
-  margin-top: 0.1rem;
+  margin-top: calc(0.13 * var(--glass-u));
   opacity: 0.74;
 }
 
 .discrete-slider__lock::before {
   content: "";
-  width: 0.7rem;
-  height: 0.48rem;
+  width: calc(0.88 * var(--glass-u));
+  height: calc(0.6 * var(--glass-u));
   align-self: end;
   border: 2px solid currentColor;
   border-radius: 0.12rem;
@@ -30,9 +30,9 @@
 .discrete-slider__lock::after {
   content: "";
   position: absolute;
-  top: 0.13rem;
-  width: 0.55rem;
-  height: 0.5rem;
+  top: calc(0.16 * var(--glass-u));
+  width: calc(0.69 * var(--glass-u));
+  height: calc(0.63 * var(--glass-u));
   border: 2px solid currentColor;
   border-bottom: 0;
   border-radius: 0.45rem 0.45rem 0 0;
@@ -40,7 +40,7 @@
 
 .discrete-slider__body {
   display: grid;
-  gap: 0.45rem;
+  gap: calc(0.56 * var(--glass-u));
   min-width: 0;
 }
 
@@ -48,7 +48,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: baseline;
-  gap: 0.8rem;
+  gap: var(--glass-u);
 }
 
 .discrete-slider__title {
@@ -98,7 +98,7 @@
 @media (max-width: 620px) {
   .discrete-slider__header {
     grid-template-columns: 1fr;
-    gap: 0.2rem;
+    gap: calc(0.25 * var(--glass-u));
   }
 
   .discrete-slider__value {

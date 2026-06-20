@@ -1,6 +1,6 @@
 .cloud-controls {
   display: grid;
-  gap: 0.4rem;
+  gap: calc(0.5 * var(--glass-u));
 }
 
 .cloud-controls__row {
@@ -8,7 +8,7 @@
   /* Centred, auto-width buttons — the shared surface button pattern, not a
      full-width split bar. */
   justify-content: center;
-  gap: 0.4rem;
+  gap: calc(0.5 * var(--glass-u));
 }
 
 .cloud-controls__btn {
@@ -16,10 +16,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 2.35rem;
+  min-height: calc(2.94 * var(--glass-u));
   font: inherit;
   font-weight: 700;
-  padding: 0 1rem;
+  padding: 0 calc(1.25 * var(--glass-u));
   border-radius: var(--ht-control-radius);
   border: 1px solid var(--ht-control-border);
   background: var(--ht-control-bg-subtle);
@@ -47,6 +47,6 @@
 
 .cloud-controls__status {
   margin: 0;
-  font-size: 0.78rem;
+  font-size: var(--ht-type-caption-size);
   opacity: 0.65;
 }

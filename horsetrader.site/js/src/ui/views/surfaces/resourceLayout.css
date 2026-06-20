@@ -1,19 +1,19 @@
 .resource-grid {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: calc(0.63 * var(--glass-u));
 }
 
 .resource-grid__row {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 0.5rem;
+  gap: calc(0.63 * var(--glass-u));
 }
 
 .resource-field__heading {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: calc(0.31 * var(--glass-u));
   font-size: var(--ht-type-micro-size);
   font-weight: var(--ht-type-micro-weight);
   letter-spacing: var(--ht-type-label-spacing);
@@ -24,8 +24,8 @@
 
 .resource-field__icon {
   flex-shrink: 0;
-  width: 0.9rem;
-  height: 0.9rem;
+  width: calc(1.13 * var(--glass-u));
+  height: calc(1.13 * var(--glass-u));
   object-fit: contain;
 }
 
@@ -43,7 +43,7 @@
   border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
   border-radius: 0.25rem;
   color: inherit;
-  padding: 0.2rem 0.4rem;
+  padding: calc(0.25 * var(--glass-u)) calc(0.5 * var(--glass-u));
 }
 
 .resource-field__input:focus {

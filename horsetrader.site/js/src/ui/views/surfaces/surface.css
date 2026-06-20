@@ -1,5 +1,13 @@
 /* The surface layer + card. The layer spans the viewport but never blocks the
-   live canvas (principle 1); only the surface card itself is interactive. */
+   live canvas (principle 1); only the surface card itself is interactive.
+
+   GLASS-U MIGRATION (Byerley outstanding #1): surface geometry measures in
+   `N × --glass-u`, not rem — the plane is one resolution-independent unit, so a
+   surface keeps its proportions as the plane resizes (the rem grid is fixed to the
+   browser font, which is a different axis). Conversion: at the dev calibration
+   1 glass-u ≈ 0.8rem, so a rem value re-bases as `N = rem × 1.25`. Viewport clamps
+   (100vw/100vh) and px breakpoints stay — those are the camera-meets-display seam
+   (Darley/Godolphin). Borders stay hairline px; radius stays --glass-radius. */
 .surface-layer {
   position: fixed;
   inset: 0;
@@ -13,7 +21,7 @@
   position: absolute;
   top: calc(var(--timeline-chrome-top) + var(--timeline-chrome-height) + var(--timeline-chrome-gap));
   left: 50%;
-  width: min(var(--timeline-chrome-width), var(--timeline-chrome-max-width), calc(100vw - 1.5rem));
+  width: min(var(--timeline-chrome-width), var(--timeline-chrome-max-width), calc(100vw - 1.88 * var(--glass-u)));
   transform: translateX(-50%);
   pointer-events: none;
 }
@@ -21,8 +29,8 @@
 .surface {
   pointer-events: auto;
   position: absolute;
-  top: 4.5rem;
-  width: 20rem;
+  top: calc(5.63 * var(--glass-u));
+  width: calc(25 * var(--glass-u));
   border: 1px solid var(--glass-edge);
   border-radius: var(--glass-radius);
   background: var(--glass-bg);
@@ -36,9 +44,9 @@
   top: 0;
   left: 0;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, min(35rem, calc((100vw - 2rem) / 2))));
+  grid-template-columns: repeat(2, minmax(0, min(calc(43.75 * var(--glass-u)), calc((100vw - 2.5 * var(--glass-u)) / 2))));
   align-items: start;
-  gap: 0.5rem;
+  gap: calc(0.63 * var(--glass-u));
   max-height: var(--chrome-dropdown-max-height);
 }
 
@@ -77,12 +85,12 @@
 }
 
 .surface--left {
-  left: 0.75rem;
-  width: min(35rem, calc(100vw - 1.5rem));
+  left: calc(0.94 * var(--glass-u));
+  width: min(calc(43.75 * var(--glass-u)), calc(100vw - 1.88 * var(--glass-u)));
 }
 
 .surface--right {
-  right: 2rem;
+  right: calc(2.5 * var(--glass-u));
 }
 
 /* On the dropdown rail the surfaces hug the layer's own edges (which are the bar's
@@ -114,8 +122,8 @@
   z-index: 2;
   top: 50%;
   left: 50%;
-  width: min(36rem, calc(100vw - 1.5rem));
-  max-height: calc(100vh - 1.5rem);
+  width: min(calc(45 * var(--glass-u)), calc(100vw - 1.88 * var(--glass-u)));
+  max-height: calc(100vh - 1.88 * var(--glass-u));
   transform: translate(-50%, -50%);
 }
 
@@ -127,15 +135,15 @@
 }
 
 .surface__body {
-  padding: 1rem;
+  padding: calc(1.25 * var(--glass-u));
   overflow: auto;
 }
 
 @media (max-width: 860px) {
   .surface-book {
-    right: 0.75rem;
+    right: calc(0.94 * var(--glass-u));
     grid-template-columns: minmax(0, 1fr);
-    max-height: calc(100vh - 5.25rem);
+    max-height: calc(100vh - 6.56 * var(--glass-u));
     overflow: auto;
   }
 
@@ -146,14 +154,14 @@
 
 @media (max-width: 620px) {
   .surface {
-    left: 0.75rem;
-    right: 0.75rem;
+    left: calc(0.94 * var(--glass-u));
+    right: calc(0.94 * var(--glass-u));
     width: auto;
   }
 
   .surface--modal {
     left: 50%;
     right: auto;
-    width: calc(100vw - 1.5rem);
+    width: calc(100vw - 1.88 * var(--glass-u));
   }
 }

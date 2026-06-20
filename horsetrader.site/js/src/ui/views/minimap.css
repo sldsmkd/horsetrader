@@ -6,7 +6,7 @@
   left: 50%;
   bottom: var(--timeline-chrome-bottom);
   height: var(--minimap-h);
-  width: min(var(--timeline-chrome-width), var(--timeline-chrome-max-width), calc(100vw - 1.5rem));
+  width: min(var(--timeline-chrome-width), var(--timeline-chrome-max-width), calc(100vw - 1.88 * var(--glass-u)));
   box-sizing: border-box;
   z-index: var(--glass-z-chrome); /* above the timeline canvas */
   background: var(--glass-bg);
@@ -125,7 +125,7 @@
 
 @media (max-width: 620px) {
   .minimap {
-    bottom: max(0.75rem, calc(var(--timeline-chrome-bottom) / 2));
-    width: calc(100vw - 1.5rem);
+    bottom: max(calc(0.94 * var(--glass-u)), calc(var(--timeline-chrome-bottom) / 2));
+    width: calc(100vw - 1.88 * var(--glass-u));
   }
 }

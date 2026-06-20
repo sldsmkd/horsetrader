@@ -7,14 +7,14 @@
   display: grid;
   /* Reserve a fixed track for the pity+date so a wide pill row can never squeeze
      them out and push the date off the card (which is what scrolled the panel). */
-  grid-template-columns: minmax(0, 1fr) 5.25rem;
+  grid-template-columns: minmax(0, 1fr) calc(6.56 * var(--glass-u));
   align-items: center;
-  gap: 0.45rem;
+  gap: calc(0.56 * var(--glass-u));
   width: 100%;
-  padding: 0.5rem 0.55rem;
+  padding: calc(0.63 * var(--glass-u)) calc(0.69 * var(--glass-u));
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--planner-card-colour) 58%, transparent);
-  border-left-width: 4px;
+  border-left-width: calc(0.31 * var(--glass-u));
   border-radius: 0.4rem;
   background: Canvas;
   color: inherit;
@@ -39,7 +39,7 @@
   display: block;
   width: 100%;
   min-width: 0;
-  height: 2.75rem;
+  height: calc(3.44 * var(--glass-u));
   object-fit: cover;
   object-position: left center;
   border-radius: 0.25rem;
@@ -61,12 +61,12 @@
   flex-direction: column;
   align-items: flex-end;
   justify-content: center;
-  gap: 0.18rem;
+  gap: calc(0.23 * var(--glass-u));
 }
 
 .planner-card__pity .commitment-badge {
-  min-width: 2.4rem;
-  min-height: 1.6rem;
+  min-width: calc(3 * var(--glass-u));
+  min-height: calc(2 * var(--glass-u));
   border-radius: 0.25rem;
   font-size: var(--ht-type-body-size);
   font-variant-numeric: tabular-nums;

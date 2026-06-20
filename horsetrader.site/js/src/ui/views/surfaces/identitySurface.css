@@ -1,7 +1,7 @@
 .identity-surface {
   position: relative;
   display: grid;
-  gap: 0.8rem;
+  gap: var(--glass-u);
 }
 
 /* Mast: promoted trainer name as the card title + put-away pill, replacing the
@@ -9,7 +9,7 @@
 .identity-surface__mast {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: calc(0.63 * var(--glass-u));
 }
 
 .identity-surface__mast .identity-surface__title {
@@ -17,14 +17,14 @@
 }
 
 .identity-surface__mast .identity-surface__name-input {
-  font-size: 1.5rem;
+  font-size: var(--ht-type-surface-title-size);
   line-height: 1.1;
 }
 
 .identity-surface__card {
   display: grid;
-  grid-template-columns: minmax(9rem, 42%) 1fr;
-  min-height: 18rem;
+  grid-template-columns: minmax(calc(11.25 * var(--glass-u)), 42%) 1fr;
+  min-height: calc(22.5 * var(--glass-u));
   overflow: hidden;
   border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
   border-radius: 0.45rem;
@@ -36,7 +36,7 @@
 .identity-surface__portrait {
   position: relative;
   display: block;
-  min-height: 18rem;
+  min-height: calc(22.5 * var(--glass-u));
   padding: 0;
   overflow: hidden;
   border: 0;
@@ -49,7 +49,7 @@
   content: "";
   position: absolute;
   inset: 0;
-  border-right: 0.28rem solid var(--ht-colour-interactive);
+  border-right: calc(0.35 * var(--glass-u)) solid var(--ht-colour-interactive);
   pointer-events: none;
 }
 
@@ -63,11 +63,11 @@
 
 .identity-surface__portrait-edit {
   position: absolute;
-  top: 0.7rem;
-  right: 0.7rem;
+  top: calc(0.88 * var(--glass-u));
+  right: calc(0.88 * var(--glass-u));
   display: grid;
   place-items: center;
-  width: 2rem;
+  width: calc(2.5 * var(--glass-u));
   aspect-ratio: 1;
   border: 1px solid color-mix(in srgb, currentColor 24%, transparent);
   border-radius: 50%;
@@ -82,9 +82,9 @@
 .identity-surface__portrait-name {
   position: absolute;
   left: 0;
-  right: 0.28rem;
+  right: calc(0.35 * var(--glass-u));
   bottom: 0;
-  padding: 1.4rem 0.7rem 0.55rem;
+  padding: calc(1.75 * var(--glass-u)) calc(0.88 * var(--glass-u)) calc(0.69 * var(--glass-u));
   background: linear-gradient(to top, rgba(0, 0, 0, 0.78), transparent);
   color: #fff;
   font-size: var(--ht-type-surface-title-size);
@@ -110,9 +110,9 @@
 .identity-surface__details {
   display: flex;
   flex-direction: column;
-  gap: 0.9rem;
+  gap: calc(1.13 * var(--glass-u));
   min-width: 0;
-  padding: 1rem;
+  padding: calc(1.25 * var(--glass-u));
 }
 
 .identity-surface__title {
@@ -136,8 +136,8 @@
 .identity-surface__name-input {
   width: 100%;
   min-width: 0;
-  padding: 0.1rem 0.35rem;
-  margin-left: -0.35rem;
+  padding: calc(0.13 * var(--glass-u)) calc(0.44 * var(--glass-u));
+  margin-left: calc(-0.44 * var(--glass-u));
   border: 0;
   border-radius: 0.3rem;
   background: transparent;
@@ -161,21 +161,21 @@
 
 .identity-surface__section {
   display: grid;
-  gap: 0.55rem;
+  gap: calc(0.69 * var(--glass-u));
 }
 
 .identity-surface__row {
   display: grid;
-  grid-template-columns: minmax(5.6rem, auto) 1fr;
+  grid-template-columns: minmax(calc(7 * var(--glass-u)), auto) 1fr;
   align-items: baseline;
-  gap: 0.75rem;
+  gap: calc(0.94 * var(--glass-u));
 }
 
 .identity-surface__value {
   display: inline-flex;
   min-width: 0;
   justify-content: flex-end;
-  gap: 0.45rem;
+  gap: calc(0.56 * var(--glass-u));
   text-align: right;
   font-weight: var(--ht-type-label-weight);
   white-space: nowrap;
@@ -187,8 +187,8 @@
 
 .identity-surface__club {
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.1rem 0.3rem;
+  gap: calc(0.5 * var(--glass-u));
+  padding: calc(0.13 * var(--glass-u)) calc(0.38 * var(--glass-u));
   border: 0;
   border-radius: 0.3rem;
   background: transparent;
@@ -217,14 +217,14 @@
 }
 
 .identity-surface__club-rank {
-  width: 1.6rem;
+  width: calc(2 * var(--glass-u));
   height: auto;
   object-fit: contain;
 }
 
 .identity-surface__cloud {
   display: grid;
-  gap: 0.45rem;
+  gap: calc(0.56 * var(--glass-u));
   /* Sits at the bottom of the right panel, filling the space the promoted name
      vacated. */
   margin-top: auto;
@@ -239,8 +239,8 @@
 
 .identity-surface__playstyle {
   display: grid;
-  gap: 0.45rem;
-  padding-top: 0.05rem;
+  gap: calc(0.56 * var(--glass-u));
+  padding-top: calc(0.06 * var(--glass-u));
 }
 
 @media (max-width: 620px) {
@@ -249,12 +249,12 @@
   }
 
   .identity-surface__portrait {
-    min-height: 12rem;
+    min-height: calc(15 * var(--glass-u));
   }
 
   .identity-surface__portrait::after {
     border-right: 0;
-    border-bottom: 0.28rem solid var(--ht-colour-interactive);
+    border-bottom: calc(0.35 * var(--glass-u)) solid var(--ht-colour-interactive);
   }
 
 }

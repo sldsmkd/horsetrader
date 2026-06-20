@@ -3,13 +3,13 @@
   --bookmark-card-colour: currentColor;
   box-sizing: border-box;
   display: grid;
-  grid-template-columns: 2.75rem minmax(0, 1fr) auto;
+  grid-template-columns: calc(3.44 * var(--glass-u)) minmax(0, 1fr) auto;
   align-items: center;
-  gap: 0.65rem;
+  gap: calc(0.81 * var(--glass-u));
   width: 100%;
-  padding: 0.5rem 0.6rem;
+  padding: calc(0.63 * var(--glass-u)) calc(0.75 * var(--glass-u));
   border: 1px solid color-mix(in srgb, var(--bookmark-card-colour) 58%, transparent);
-  border-left-width: 4px;
+  border-left-width: calc(0.31 * var(--glass-u));
   border-radius: 0.4rem;
   background: Canvas;
   color: inherit;
@@ -26,8 +26,8 @@
 
 .bookmark-card__image {
   box-sizing: border-box;
-  width: 2.75rem;
-  height: 2.75rem;
+  width: calc(3.44 * var(--glass-u));
+  height: calc(3.44 * var(--glass-u));
   border-radius: 0.35rem;
   object-fit: cover;
   background: color-mix(in srgb, Canvas 55%, currentColor 9%);
@@ -68,7 +68,7 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.12rem;
+  gap: calc(0.15 * var(--glass-u));
 }
 
 .bookmark-card__name {

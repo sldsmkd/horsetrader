@@ -1,9 +1,9 @@
 .beta-surface {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  min-height: 26rem; /* sized like a real side panel, matching tazuna */
-  max-width: 22rem;
+  gap: calc(0.94 * var(--glass-u));
+  min-height: calc(32.5 * var(--glass-u)); /* sized like a real side panel, matching tazuna */
+  max-width: calc(27.5 * var(--glass-u));
 }
 
 .beta-surface__group {
@@ -19,7 +19,7 @@
 }
 
 .beta-surface__cancel {
-  padding: 0.55rem 0.9rem;
+  padding: calc(0.69 * var(--glass-u)) calc(1.13 * var(--glass-u));
   border: 1px solid var(--ht-control-border);
   border-radius: var(--ht-control-radius);
   background: var(--ht-control-bg);

@@ -7,16 +7,16 @@
   align-items: center;
   justify-content: center;
   background: rgba(0, 0, 0, 0.55);
-  padding: 1.5rem;
+  padding: calc(1.88 * var(--glass-u));
 }
 
 .cloud-conflict__card {
   width: 100%;
-  max-width: 34rem;
+  max-width: calc(42.5 * var(--glass-u));
   display: flex;
   flex-direction: column;
-  gap: 0.9rem;
-  padding: 1.4rem 1.5rem;
+  gap: calc(1.13 * var(--glass-u));
+  padding: calc(1.75 * var(--glass-u)) calc(1.88 * var(--glass-u));
   border-radius: 0.6rem;
   background: #242a33;
   color: #e6e9ee;
@@ -27,7 +27,7 @@
 .cloud-conflict__header {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: calc(0.75 * var(--glass-u));
 }
 
 .cloud-conflict__warn {
@@ -51,14 +51,14 @@
 .cloud-conflict__options {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: calc(0.75 * var(--glass-u));
 }
 
 .cloud-conflict__option {
   display: flex;
   align-items: center;
-  gap: 0.8rem;
-  padding: 0.8rem 0.9rem;
+  gap: var(--glass-u);
+  padding: var(--glass-u) calc(1.13 * var(--glass-u));
   border-radius: var(--ht-control-radius-soft);
   border: 1px solid var(--ht-control-border-quiet);
   background: var(--ht-control-bg-subtle);
@@ -80,8 +80,8 @@
 /* The radio dot — filled when its option is selected. */
 .cloud-conflict__radio {
   flex: none;
-  width: 1rem;
-  height: 1rem;
+  width: calc(1.25 * var(--glass-u));
+  height: calc(1.25 * var(--glass-u));
   border-radius: 50%;
   border: 2px solid rgba(255, 255, 255, 0.4);
   box-sizing: border-box;
@@ -102,7 +102,7 @@
 .cloud-conflict__option-text {
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
+  gap: calc(0.19 * var(--glass-u));
   min-width: 0;
 }
 
@@ -126,12 +126,12 @@
 .cloud-conflict__actions {
   display: flex;
   justify-content: flex-end;
-  gap: 0.6rem;
+  gap: calc(0.75 * var(--glass-u));
 }
 
 .cloud-conflict__btn {
   font: inherit;
-  padding: 0.5rem 1.2rem;
+  padding: calc(0.63 * var(--glass-u)) calc(1.5 * var(--glass-u));
   border-radius: var(--ht-control-radius);
   border: 1px solid var(--ht-control-border);
   background: var(--ht-control-bg-subtle);

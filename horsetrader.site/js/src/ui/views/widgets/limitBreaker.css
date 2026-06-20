@@ -1,13 +1,13 @@
 .limit-breaker {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: calc(0.75 * var(--glass-u));
 }
 
 .limit-breaker__icon {
   flex-shrink: 0;
-  width: 2rem;
-  height: 2rem;
+  width: calc(2.5 * var(--glass-u));
+  height: calc(2.5 * var(--glass-u));
   object-fit: contain;
 }
 
@@ -16,14 +16,14 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: calc(0.38 * var(--glass-u));
 }
 
 .limit-breaker__head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 0.5rem;
+  gap: calc(0.63 * var(--glass-u));
 }
 
 .limit-breaker__name {
@@ -37,13 +37,13 @@
 }
 
 .limit-breaker__ratio {
-  margin-left: 0.3rem;
+  margin-left: calc(0.38 * var(--glass-u));
   font-size: var(--ht-type-caption-size);
   opacity: 0.45;
 }
 
 .limit-breaker__bar {
-  height: 0.45rem;
+  height: calc(0.56 * var(--glass-u));
   border-radius: 0.25rem;
   background: color-mix(in srgb, currentColor 12%, transparent);
   overflow: hidden;

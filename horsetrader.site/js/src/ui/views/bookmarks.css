@@ -8,13 +8,13 @@
      stay clear, and cap to the room between the two floating bars so the list never
      runs past the minimap. */
   top: calc(var(--timeline-chrome-top) + var(--timeline-chrome-height) + var(--timeline-chrome-gap));
-  left: 0.75rem;
+  left: calc(0.94 * var(--glass-u));
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.35rem;
-  width: 24rem;
-  max-width: calc(100vw - 1.5rem);
+  gap: calc(0.44 * var(--glass-u));
+  width: calc(30 * var(--glass-u));
+  max-width: calc(100vw - 1.88 * var(--glass-u));
   max-height: var(--chrome-dropdown-max-height);
 }
 
@@ -22,7 +22,7 @@
   display: inline-flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.35rem;
+  gap: calc(0.44 * var(--glass-u));
 }
 
 .bookmarks--open .bookmarks__header {
@@ -40,10 +40,10 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.25rem;
-  width: 2.6rem;
-  min-height: 7.2rem;
-  padding: 0.65rem 0;
+  gap: calc(0.31 * var(--glass-u));
+  width: calc(3.25 * var(--glass-u));
+  min-height: calc(9 * var(--glass-u));
+  padding: calc(0.81 * var(--glass-u)) 0;
   border: 1px solid var(--ht-control-border);
   border-radius: var(--ht-control-radius-soft);
   background: Canvas;
@@ -68,11 +68,11 @@
 .bookmarks--open .bookmarks__panel-header {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: calc(0.94 * var(--glass-u));
   box-sizing: border-box;
   width: 100%;
-  min-height: 3rem;
-  padding: 0 0.9rem 0 1rem;
+  min-height: calc(3.75 * var(--glass-u));
+  padding: 0 calc(1.13 * var(--glass-u)) 0 calc(1.25 * var(--glass-u));
   border-bottom: 1px solid color-mix(in srgb, currentColor 14%, transparent);
 }
 
@@ -100,7 +100,7 @@
   flex: 1 1 auto;
   align-items: center;
   overflow: hidden;
-  min-height: 2rem;
+  min-height: calc(2.5 * var(--glass-u));
   border: 1px solid var(--ht-control-border-quiet);
   border-radius: 0.35rem;
 }
@@ -111,8 +111,8 @@
 
 .bookmarks__face-tab {
   flex: 1 1 50%;
-  min-height: 2rem;
-  padding: 0 0.7rem;
+  min-height: calc(2.5 * var(--glass-u));
+  padding: 0 calc(0.88 * var(--glass-u));
   border: 0;
   border-right: 1px solid var(--ht-control-border-quiet);
   background: transparent;
@@ -162,7 +162,7 @@
 .bookmarks__panel {
   display: none;
   width: 100%;
-  min-height: 16rem;
+  min-height: calc(20 * var(--glass-u));
   /* Vertical scroll only — rows are width-bounded, so a horizontal scrollbar here
      only ever means a row mis-measured; never let it chase the panel wider. */
   overflow: hidden auto;
@@ -179,16 +179,16 @@
 
 .bookmarks__list {
   margin: 0;
-  padding: 0.3rem;
+  padding: calc(0.38 * var(--glass-u));
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: calc(0.38 * var(--glass-u));
 }
 
 .bookmarks__empty {
   margin: 0;
-  padding: 0.85rem;
+  padding: calc(1.06 * var(--glass-u));
   color: color-mix(in srgb, currentColor 68%, transparent);
   font-size: var(--ht-type-caption-size);
   line-height: var(--ht-type-caption-line);

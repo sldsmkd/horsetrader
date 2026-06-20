@@ -1,10 +1,10 @@
 .scenario-art {
   position: fixed;
-  right: 1rem;
-  bottom: calc(var(--timeline-chrome-bottom) + var(--minimap-h) + 1rem);
+  right: calc(1.25 * var(--glass-u));
+  bottom: calc(var(--timeline-chrome-bottom) + var(--minimap-h) + 1.25 * var(--glass-u));
   z-index: var(--glass-z-wallpaper);
-  width: min(16.75rem, 25vw);
-  max-height: min(16.75rem, 31vh);
+  width: min(calc(20.94 * var(--glass-u)), 25vw);
+  max-height: min(calc(20.94 * var(--glass-u)), 31vh);
   margin: 0;
   pointer-events: none;
   opacity: 0.72;
@@ -40,7 +40,7 @@
   bottom: 0;
   max-width: 100%;
   box-sizing: border-box;
-  padding: 0.25rem 0.45rem;
+  padding: calc(0.31 * var(--glass-u)) calc(0.56 * var(--glass-u));
   border-radius: 0.35rem 0 0 0;
   background: color-mix(in srgb, Canvas 68%, transparent);
   color: color-mix(in srgb, currentColor 86%, transparent);
@@ -70,7 +70,7 @@
 
 @media (max-width: 720px) {
   .scenario-art {
-    width: min(12rem, 36vw);
+    width: min(calc(15 * var(--glass-u)), 36vw);
     opacity: 0.54;
   }
 

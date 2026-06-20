@@ -1,10 +1,10 @@
 .checkbox {
   display: grid;
-  grid-template-columns: 1.05rem minmax(0, 1fr);
+  grid-template-columns: calc(1.31 * var(--glass-u)) minmax(0, 1fr);
   align-items: center;
-  gap: 0.4rem;
+  gap: calc(0.5 * var(--glass-u));
   min-width: 0;
-  padding: 0.5rem 0.6rem;
+  padding: calc(0.63 * var(--glass-u)) calc(0.75 * var(--glass-u));
   border: 0;
   background: var(--ht-control-bg);
   color: inherit;
@@ -28,7 +28,7 @@
 }
 
 .checkbox__box {
-  width: 1.05rem;
+  width: calc(1.31 * var(--glass-u));
   aspect-ratio: 1;
   border: 2px solid color-mix(in srgb, currentColor 40%, transparent);
   border-radius: 0.22rem;
@@ -51,10 +51,10 @@
 .checkbox--on .checkbox__box::after {
   content: "";
   position: absolute;
-  top: 0.04rem;
-  left: 0.3rem;
-  width: 0.26rem;
-  height: 0.5rem;
+  top: calc(0.05 * var(--glass-u));
+  left: calc(0.38 * var(--glass-u));
+  width: calc(0.33 * var(--glass-u));
+  height: calc(0.63 * var(--glass-u));
   border: solid color-mix(in srgb, currentColor 88%, transparent);
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);

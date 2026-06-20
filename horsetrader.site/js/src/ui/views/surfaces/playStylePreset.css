@@ -1,16 +1,16 @@
 .playstyle-presets {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.4rem;
+  gap: calc(0.5 * var(--glass-u));
 }
 
 .playstyle-preset {
   display: grid;
-  grid-template-columns: minmax(2.8rem, 31%) 1fr;
+  grid-template-columns: minmax(calc(3.5 * var(--glass-u)), 31%) 1fr;
   align-items: center;
-  gap: 0.55rem;
-  min-height: 4rem;
-  padding: 0.45rem 0.6rem 0.45rem 0.45rem;
+  gap: calc(0.69 * var(--glass-u));
+  min-height: calc(5 * var(--glass-u));
+  padding: calc(0.56 * var(--glass-u)) calc(0.75 * var(--glass-u)) calc(0.56 * var(--glass-u)) calc(0.56 * var(--glass-u));
   border: 1px solid var(--ht-control-border);
   border-radius: var(--ht-control-radius-soft);
   background: var(--ht-control-bg);
@@ -49,9 +49,9 @@
     repeating-linear-gradient(
       135deg,
       color-mix(in srgb, Canvas 48%, transparent),
-      color-mix(in srgb, Canvas 48%, transparent) 0.35rem,
-      color-mix(in srgb, currentColor 7%, transparent) 0.35rem,
-      color-mix(in srgb, currentColor 7%, transparent) 0.7rem
+      color-mix(in srgb, Canvas 48%, transparent) calc(0.44 * var(--glass-u)),
+      color-mix(in srgb, currentColor 7%, transparent) calc(0.44 * var(--glass-u)),
+      color-mix(in srgb, currentColor 7%, transparent) calc(0.88 * var(--glass-u))
     ),
     color-mix(in srgb, Canvas 52%, transparent);
   pointer-events: none;
@@ -71,7 +71,7 @@
 
 .playstyle-preset__icon img {
   display: block;
-  width: min(2.55rem, 100%);
+  width: min(calc(3.19 * var(--glass-u)), 100%);
   height: auto;
   aspect-ratio: 1;
   object-fit: contain;
@@ -80,7 +80,7 @@
 .playstyle-preset__copy {
   display: grid;
   min-width: 0;
-  gap: 0.15rem;
+  gap: calc(0.19 * var(--glass-u));
 }
 
 .playstyle-preset__name {

@@ -1,7 +1,7 @@
 .oshi-selector {
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
+  gap: calc(1.06 * var(--glass-u));
 }
 
 .oshi-selector__title {
@@ -15,7 +15,7 @@
 .oshi-selector__search {
   width: 100%;
   min-width: 0;
-  padding: 0.6rem 0.75rem;
+  padding: calc(0.75 * var(--glass-u)) calc(0.94 * var(--glass-u));
   border: 1px solid var(--ht-control-border);
   border-radius: var(--ht-control-radius);
   background: var(--ht-control-bg);
@@ -31,19 +31,19 @@
 .oshi-selector__grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  grid-auto-rows: 7rem;
+  grid-auto-rows: calc(8.75 * var(--glass-u));
   align-content: start;
-  gap: 0.55rem;
-  min-height: calc(3 * 7rem + 2 * 0.55rem);
+  gap: calc(0.69 * var(--glass-u));
+  min-height: calc(27.63 * var(--glass-u));
 }
 
 .oshi-selector__option {
   display: grid;
   justify-items: center;
-  gap: 0.4rem;
+  gap: calc(0.5 * var(--glass-u));
   min-width: 0;
-  min-height: 7rem;
-  padding: 0.65rem 0.45rem;
+  min-height: calc(8.75 * var(--glass-u));
+  padding: calc(0.81 * var(--glass-u)) calc(0.56 * var(--glass-u));
   border: 1px solid var(--ht-control-border-quiet);
   border-radius: var(--ht-control-radius-soft);
   background: var(--ht-control-bg);
@@ -62,8 +62,8 @@
 }
 
 .oshi-selector__icon {
-  width: 4rem;
-  height: 4rem;
+  width: calc(5 * var(--glass-u));
+  height: calc(5 * var(--glass-u));
   border-radius: 50%;
   object-fit: cover;
 }
@@ -78,8 +78,8 @@
 
 .oshi-selector__cancel,
 .oshi-selector__ok {
-  min-width: 5.5rem;
-  padding: 0.55rem 0.9rem;
+  min-width: calc(6.88 * var(--glass-u));
+  padding: calc(0.69 * var(--glass-u)) calc(1.13 * var(--glass-u));
   border-radius: var(--ht-control-radius);
   color: inherit;
   font: inherit;
@@ -112,7 +112,7 @@
 @media (max-width: 620px) {
   .oshi-selector__grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    grid-auto-rows: 7rem;
-    min-height: calc(4 * 7rem + 3 * 0.55rem);
+    grid-auto-rows: calc(8.75 * var(--glass-u));
+    min-height: calc(37.07 * var(--glass-u));
   }
 }

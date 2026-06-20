@@ -7,8 +7,9 @@ This file is just *what's left*.
 ## Status — shipped (branch `byerley-turk`)
 
 Commits on the branch: `7b0173e` (turk baseline) → `cb46791` (tidy up views) →
-`ee62d80` (consolidate widgets). Working tree clean. **243 tests green, tsc + build
-clean, user-verified spacing + modals.**
+`ee62d80` (consolidate widgets) → `7a26022` (handoff doc). **243 tests green, tsc + build
+clean.** UNCOMMITTED in the tree (2026-06-20): the full `--glass-u` migration (#1 below)
+across 32 CSS files + the `surface--modal` bugfix.
 
 - **Spine (Phases A–E):** `css/glass.css` holds the glass substrate — `--glass-u`
   (with the delete-on-Darley `vh` shim), the depth ladder `--glass-z-*`, and the
@@ -27,18 +28,43 @@ clean, user-verified spacing + modals.**
 
 ## Outstanding
 
-1. **Long-tail surface-internal `--glass-u` migration** *(the main remaining Byerley
-   work — deferred by the scoped decision, on purpose).* Surface internals still use
-   `rem`/`vw`/`px` (≈the sprawl in `views/surfaces/*.css` + `views/widgets/*.css`).
-   Migrate them to `N × --glass-u` so the whole glass plane is structurally
-   resolution-independent. Do it incrementally, not big-bang; eyeball on the dev server.
+1. **Long-tail surface-internal `--glass-u` migration — DONE 2026-06-20.** The whole
+   glass plane now measures in `N × --glass-u`. Convention (recorded in
+   [surface.css](../horsetrader.site/js/src/ui/views/surfaces/surface.css) header):
+   geometry (`gap`/`padding`/`width`/`height`/offsets/track sizes) → `calc(N × --glass-u)`,
+   `N = rem × 1.25` (1 glass-u ≈ 0.8rem at the dev calibration); loose `font-size` routed
+   to the nearest `--ht-type-*` token; `border-radius`/`outline-offset`/hairline borders/
+   shadows left cosmetic; `100vw`/`100vh` clamps + px media breakpoints left (Darley/
+   Godolphin seam). Scope: all of `views/surfaces/*.css` + `views/widgets/*.css`, **plus**
+   the chrome/glass top-level files (`menubar`, `bookmarks`, `minimap` outer offsets only —
+   its dots/window/needle stay symbolic px, `scenarioArt`). **Deliberately excluded:**
+   world-plane cards (`bannerGroup`, `belowCard`, `card`, `timeline`) — they're carried by
+   the camera's `scale(z)` and measure in world units the zoom scales; migrating them to a
+   viewport unit would fight the camera. `perfHud` (debug) also left.
+   - **Pre-existing bug fixed in passing:** `placement: "center"` emitted `surface--center`,
+     but the router (app.ts) + CSS key on `surface--modal` — so every centred modal rendered
+     as a narrow left-pinned plain surface AND got swept into the rail lock that scrimmed it
+     against itself (needed a reload to recover). [surface.ts](../horsetrader.site/js/src/ui/views/surfaces/surface.ts)
+     now maps center → the `surface--modal` marker. Introduced by the `cb46791` rename.
+   - **Residual (type-layer rebase — the deferred gate):** the `--ht-type-*` token layer is
+     still rem. "Geometry + type" means text should scale with the plane too — do that as ONE
+     rebase of `css/typography.css` onto glass-u (carries all token-driven text at once),
+     then mop up the 2 sub-token loose fonts left in
+     [forecast.css](../horsetrader.site/js/src/ui/views/widgets/forecast.css) (`__pct` 0.6rem,
+     `__count` 0.66rem — no token fits). Its own eyeball gate.
 
-2. **Finishing-pass items — land WITH #1, not as new phases:**
+2. **Finishing-pass items — now unblocked by #1:**
    - **a. Retire the rail-card `zoom`.** Today the dropdown shrink is honest `zoom`
      ([surface.css](../horsetrader.site/js/src/ui/views/surfaces/surface.css)
-     `--chrome-dropdown-zoom`). Once the rail cards' internals measure in `--glass-u`,
-     the 0.8 becomes a *local `--glass-u` override* and `zoom` comes out — they shrink
+     `--chrome-dropdown-zoom`). Now that the rail cards' internals measure in `--glass-u`,
+     the 0.8 can become a *local `--glass-u` override* and `zoom` comes out — they shrink
      because they're dimensionally smaller, not zoomed.
+   - **c. Chrome sizing-token layer → glass-u — DONE 2026-06-20.** The chrome frame
+     ([base.css](../horsetrader.site/css/base.css)) now measures entirely in `--glass-u`:
+     `--timeline-chrome-height` (was the lone fixed `64px`), `-gap`, `-max-width`, and the
+     dropdown clearance all ride the unit, so Darley has ONE knob (the glass-u definition)
+     driving the whole tier. `--timeline-chrome-width: 85vw` stays — it's a responsive
+     proportion, not a dimension (Darley's proportion-vs-derived-width call).
    - **b. Declare the last z scatter.** `els[i].style.zIndex = 1000 - offset`
      ([app.ts](../horsetrader.site/js/src/ui/app.ts) ~L109) is *world*-plane (below-line
      card stacking), correctly outside the glass depth ladder — but still a magic
@@ -62,6 +88,16 @@ clean, user-verified spacing + modals.**
 - **Darley (Part 2):** real `--glass-u` px derivation (fix-height / derive-width,
   `vmin`/`clamp`, responsive zoom limits), the camera-meets-display seam. The shim is
   hers to replace (delete-on-Darley).
+  - **Plane extents → glass-u (handed to Darley 2026-06-20).** The world *cards* stay
+    their own thing (camera-scaled world units — `bannerGroup`/`belowCard`/`card`, the
+    `timeline/constants.ts` feel knobs). But the plane's screen-fixed extents want glass-u
+    too — and the load-bearing one isn't a clean CSS swap: `TRACK_RAIL_VISUAL_PX = 32`
+    ([constants.ts](../horsetrader.site/js/src/ui/views/timeline/constants.ts)) feeds BOTH
+    the CSS visual (`--timeline-rail-height`, set inline in timeline.ts) AND the JS
+    derail-gesture math (timeline.ts ~L191, `TRACK_DERAIL_PX + TRACK_RAIL_VISUAL_PX / 2`).
+    So the rail extent is one screen-px value shared by CSS-visual + JS-gesture-feel;
+    moving it to glass-u means threading the real glass-u→px value into the JS feel layer
+    — exactly Darley's derivation. Move them together or they desync.
 - **Godolphin (Part 3):** mobile/touch/alternate representations. The phone stopgap
   stays as-is.
 

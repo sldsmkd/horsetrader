@@ -3,8 +3,8 @@
 .cloud-provider {
   display: flex;
   flex-direction: column;
-  gap: 0.9rem;
-  min-width: min(22rem, 70vw);
+  gap: calc(1.13 * var(--glass-u));
+  min-width: min(calc(27.5 * var(--glass-u)), 70vw);
 }
 
 .cloud-provider__title {
@@ -25,14 +25,14 @@
 .cloud-provider__list {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: calc(0.75 * var(--glass-u));
 }
 
 .cloud-provider__option {
   display: flex;
   align-items: center;
-  gap: 0.8rem;
-  padding: 0.8rem 0.9rem;
+  gap: var(--glass-u);
+  padding: var(--glass-u) calc(1.13 * var(--glass-u));
   border-radius: var(--ht-control-radius-soft);
   border: 1px solid var(--ht-control-border-quiet);
   background: var(--ht-control-bg-subtle);
@@ -92,8 +92,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 1.6rem;
-  height: 1.6rem;
+  width: calc(2 * var(--glass-u));
+  height: calc(2 * var(--glass-u));
   border-radius: 0.3rem;
   background: rgba(255, 255, 255, 0.1);
   color: var(--cloud-provider-brand, currentColor);
@@ -101,8 +101,8 @@
 
 .cloud-provider__mark {
   display: block;
-  width: 1.15rem;
-  height: 1.15rem;
+  width: calc(1.44 * var(--glass-u));
+  height: calc(1.44 * var(--glass-u));
 }
 
 .cloud-provider__option-label {
@@ -110,8 +110,8 @@
 }
 
 .cloud-provider__cancel {
-  min-width: 5.5rem;
-  padding: 0.55rem 0.9rem;
+  min-width: calc(6.88 * var(--glass-u));
+  padding: calc(0.69 * var(--glass-u)) calc(1.13 * var(--glass-u));
   border: 1px solid var(--ht-control-border);
   border-radius: var(--ht-control-radius);
   background: var(--ht-control-bg);

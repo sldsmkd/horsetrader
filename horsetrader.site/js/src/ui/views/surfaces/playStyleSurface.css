@@ -2,7 +2,7 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
+  gap: calc(1.06 * var(--glass-u));
   flex: 1;
   height: 100%;
   min-height: 0;
@@ -11,15 +11,15 @@
 
 .playstyle-surface__mast {
   display: grid;
-  grid-template-columns: 3.25rem minmax(0, 1fr);
+  grid-template-columns: calc(4.06 * var(--glass-u)) minmax(0, 1fr);
   align-items: start;
-  gap: 0.75rem;
+  gap: calc(0.94 * var(--glass-u));
 }
 
 .playstyle-surface__icon {
   display: grid;
   place-items: center;
-  width: 3.25rem;
+  width: calc(4.06 * var(--glass-u));
   aspect-ratio: 1;
   border: 1px solid color-mix(in srgb, var(--ht-colour-interactive) 42%, currentColor 18%);
   border-radius: 0.45rem;
@@ -28,7 +28,7 @@
 
 .playstyle-surface__icon img {
   display: block;
-  width: 2.5rem;
+  width: calc(3.13 * var(--glass-u));
   height: auto;
   aspect-ratio: 1;
   object-fit: contain;
@@ -36,7 +36,7 @@
 
 .playstyle-surface__copy {
   display: grid;
-  gap: 0.25rem;
+  gap: calc(0.31 * var(--glass-u));
   align-self: center;
   min-width: 0;
 }
@@ -63,7 +63,7 @@
 }
 
 .playstyle-surface__shape {
-  padding-block: 0.15rem;
+  padding-block: calc(0.19 * var(--glass-u));
   color: color-mix(in srgb, currentColor 70%, transparent);
   font-size: var(--ht-type-control-size);
   line-height: var(--ht-type-caption-line);
@@ -79,11 +79,11 @@
 .playstyle-surface__drawers {
   display: flex;
   flex-direction: column;
-  gap: 0.55rem;
+  gap: calc(0.69 * var(--glass-u));
   flex: 1 1 auto;
   min-height: 0;
   overflow: auto;
-  padding-right: 0.15rem;
+  padding-right: calc(0.19 * var(--glass-u));
 }
 
 .playstyle-surface__drawer {
@@ -104,10 +104,10 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
-  gap: 1rem;
+  gap: calc(1.25 * var(--glass-u));
   width: 100%;
-  min-height: 3rem;
-  padding: 0.65rem 0.85rem;
+  min-height: calc(3.75 * var(--glass-u));
+  padding: calc(0.81 * var(--glass-u)) calc(1.06 * var(--glass-u));
   border: 0;
   background: transparent;
   color: inherit;
@@ -132,7 +132,7 @@
    collapses back up). */
 .playstyle-surface__drawer-toggle::after {
   content: "";
-  width: 0.45rem;
+  width: calc(0.56 * var(--glass-u));
   aspect-ratio: 1;
   border-right: 2px solid color-mix(in srgb, currentColor 64%, transparent);
   border-bottom: 2px solid color-mix(in srgb, currentColor 64%, transparent);
@@ -145,7 +145,7 @@
 
 .playstyle-surface__drawer-heading {
   display: grid;
-  gap: 0.2rem;
+  gap: calc(0.25 * var(--glass-u));
   min-width: 0;
 }
 
@@ -190,8 +190,8 @@
 }
 
 .playstyle-surface__apply {
-  min-height: 2.35rem;
-  padding: 0 1rem;
+  min-height: calc(2.94 * var(--glass-u));
+  padding: 0 calc(1.25 * var(--glass-u));
   color: inherit;
   font: inherit;
   cursor: pointer;
@@ -227,7 +227,7 @@
 @media (max-width: 620px) {
   .playstyle-surface__drawer-toggle {
     grid-template-columns: 1fr;
-    gap: 0.35rem;
+    gap: calc(0.44 * var(--glass-u));
   }
 
   .playstyle-surface__drawer-note {

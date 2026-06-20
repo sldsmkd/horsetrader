@@ -41,10 +41,14 @@ export function lockSurface(node: HTMLElement): void {
 }
 
 export function surface(opts: SurfaceOpts): HTMLElement {
+  // "center" is the human-facing placement; the modal *trait* it carries is the
+  // `surface--modal` marker the router (app.ts) + CSS key on — one class for both,
+  // per the modality design (centred placement ⇒ modal). left/right pass through.
+  const variant = opts.placement === "center" ? "modal" : (opts.placement ?? "right");
   return h(
     "div",
     {
-      class: `surface surface--${opts.placement ?? "right"} surface--headerless`,
+      class: `surface surface--${variant} surface--headerless`,
       attr: { role: "dialog", "aria-label": opts.title },
     },
     h("div", { class: "surface__body" }, opts.body),

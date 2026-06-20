@@ -4,17 +4,20 @@
 :root {
   color-scheme: dark;
   font-family: var(--ht-font-family-ui);
-  /* Floating timeline chrome knobs: top menu + bottom minimap/nav. */
+  /* Floating timeline chrome knobs: top menu + bottom minimap/nav. The whole frame
+     measures in --glass-u so Darley has ONE knob (the glass-u definition) driving the
+     entire chrome tier — offsets AND height AND the dropdown clearance follow it.
+     Only --timeline-chrome-width stays viewport-relative: it's a responsive PROPORTION
+     (85% of width), not a dimension — that proportion-vs-derived-width call is Darley's. */
   --timeline-chrome-width: 85vw;
-  --timeline-chrome-max-width: 160rem; /* guard against ultrawide only; 85vw governs on real monitors */
-  /* Float offsets in glass units — the chrome's distance from the viewport edges.
-     N × --glass-u (structural resolution-independence); value-identical today
-     (--glass-u ≈ 1vh) but now Darley's single knob. Height stays a fixed dimension —
-     fixing the authoritative axis is Darley's job. */
+  --timeline-chrome-max-width: calc(200 * var(--glass-u)); /* ultrawide guard; 85vw governs on real monitors */
   --timeline-chrome-top: calc(5 * var(--glass-u));
   --timeline-chrome-bottom: calc(5 * var(--glass-u));
-  --timeline-chrome-height: 64px;
-  --timeline-chrome-gap: 0.5rem; /* drop between the bar's bottom edge and its dropdowns */
+  /* Height now rides glass-u too (≈64px at the dev calibration). "Fix height, derive
+     width" still holds — Darley fixes the height axis AT the glass-u definition, and the
+     bar height rides that one authoritative unit instead of a stray fixed px. */
+  --timeline-chrome-height: calc(5 * var(--glass-u));
+  --timeline-chrome-gap: calc(0.63 * var(--glass-u)); /* drop between the bar's bottom edge and its dropdowns */
   --chrome-dropdown-zoom: 0.8; /* dimensional shrink for the rail cards (honest zoom, not scale) */
   /* Pane look (bg/edge/radius/shadow/blur) now comes from the glass register in
      glass.css — these chrome knobs are layout only. */
@@ -22,7 +25,7 @@
   /* Vertical room a dropdown has between the top bar and the bottom minimap chrome. */
   --chrome-dropdown-max-height: calc(
     100vh - var(--timeline-chrome-top) - var(--timeline-chrome-height) - var(--timeline-chrome-gap)
-      - var(--timeline-chrome-bottom) - var(--timeline-chrome-height) - 0.5rem
+      - var(--timeline-chrome-bottom) - var(--timeline-chrome-height) - 0.63 * var(--glass-u)
   );
 }
 

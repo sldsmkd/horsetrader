@@ -1,6 +1,6 @@
 .surface-actions {
   display: flex;
   justify-content: center;
-  gap: 0.5rem;
+  gap: calc(0.63 * var(--glass-u));
   margin-top: auto;
 }

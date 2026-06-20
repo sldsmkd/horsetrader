@@ -11,16 +11,16 @@
   align-items: center;
   justify-content: center;
   background: rgba(0, 0, 0, 0.45);
-  padding: 1.5rem;
+  padding: calc(1.88 * var(--glass-u));
 }
 
 .confirm__card {
   width: 100%;
-  max-width: 22rem;
+  max-width: calc(27.5 * var(--glass-u));
   display: flex;
   flex-direction: column;
-  gap: 0.9rem;
-  padding: 1.3rem 1.4rem;
+  gap: calc(1.13 * var(--glass-u));
+  padding: calc(1.63 * var(--glass-u)) calc(1.75 * var(--glass-u));
   border-radius: 0.6rem;
   background: #242a33;
   color: #e6e9ee;
@@ -52,12 +52,12 @@
 .confirm__actions {
   display: flex;
   justify-content: flex-end;
-  gap: 0.6rem;
+  gap: calc(0.75 * var(--glass-u));
 }
 
 .confirm__btn {
   font: inherit;
-  padding: 0.5rem 1.2rem;
+  padding: calc(0.63 * var(--glass-u)) calc(1.5 * var(--glass-u));
   border-radius: var(--ht-control-radius);
   border: 1px solid var(--ht-control-border);
   background: var(--ht-control-bg-subtle);

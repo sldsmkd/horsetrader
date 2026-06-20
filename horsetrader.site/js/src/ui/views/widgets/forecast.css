@@ -1,16 +1,16 @@
 .forecast {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: calc(0.63 * var(--glass-u));
 }
 
 .forecast__chart {
   display: flex;
   align-items: flex-end;
   justify-content: space-around;
-  gap: 0.4rem;
-  min-height: 7rem;
-  padding: 0.3rem 0.2rem 0;
+  gap: calc(0.5 * var(--glass-u));
+  min-height: calc(8.75 * var(--glass-u));
+  padding: calc(0.38 * var(--glass-u)) calc(0.25 * var(--glass-u)) 0;
 }
 
 .forecast__bar {
@@ -18,23 +18,24 @@
   flex: 1;
   flex-direction: column;
   align-items: center;
-  gap: 0.25rem;
+  gap: calc(0.31 * var(--glass-u));
   min-width: 0;
 }
 
 .forecast__pct {
+  /* Sub-token chart label — left loose pending the typography-layer glass-u rebase. */
   font-size: 0.6rem;
   font-variant-numeric: tabular-nums;
   opacity: 0.6;
-  min-height: 0.8rem;
+  min-height: var(--glass-u);
 }
 
 /* The full-height column the fill grows up from. */
 .forecast__track {
   position: relative;
   width: 100%;
-  max-width: 1.6rem;
-  height: 5rem;
+  max-width: calc(2 * var(--glass-u));
+  height: calc(6.25 * var(--glass-u));
   border-radius: 0.2rem;
   background: color-mix(in srgb, currentColor 10%, transparent);
 }
@@ -59,7 +60,7 @@
 
 .forecast__caption {
   margin: 0;
-  font-size: 0.72rem;
+  font-size: var(--ht-type-label-size);
   text-align: center;
   opacity: 0.7;
   font-variant-numeric: tabular-nums;

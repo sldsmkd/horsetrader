@@ -1,8 +1,8 @@
 .rushed-toggle {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.25rem 0.35rem;
+  gap: calc(0.5 * var(--glass-u));
+  padding: calc(0.31 * var(--glass-u)) calc(0.44 * var(--glass-u));
   border: 1px solid color-mix(in srgb, currentColor 22%, transparent);
   border-radius: 0.45rem;
   background: none;
@@ -19,8 +19,8 @@
 
 .rushed-toggle__icon {
   display: block;
-  width: 1.5rem;
-  height: 1.5rem;
+  width: calc(1.88 * var(--glass-u));
+  height: calc(1.88 * var(--glass-u));
   object-fit: contain;
 }
 
