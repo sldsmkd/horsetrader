@@ -5,27 +5,31 @@
   color-scheme: dark;
   font-family: var(--ht-font-family-ui);
   /* Floating timeline chrome knobs: top menu + bottom minimap/nav. The whole frame
-     measures in --glass-u so Darley has ONE knob (the glass-u definition) driving the
-     entire chrome tier — offsets AND height AND the dropdown clearance follow it.
+     measures in --glass-u-base so Darley has ONE knob (the glass-u definition) driving
+     the entire chrome tier — offsets AND height AND the dropdown clearance follow it.
+     These read the *base* unit, not --glass-u, because the floating chrome is plane-
+     fixed: a rail card that locally shrinks --glass-u (below) must not drag the chrome
+     frame or its clearance math down with it.
      Only --timeline-chrome-width stays viewport-relative: it's a responsive PROPORTION
      (85% of width), not a dimension — that proportion-vs-derived-width call is Darley's. */
   --timeline-chrome-width: 85vw;
-  --timeline-chrome-max-width: calc(200 * var(--glass-u)); /* ultrawide guard; 85vw governs on real monitors */
-  --timeline-chrome-top: calc(5 * var(--glass-u));
-  --timeline-chrome-bottom: calc(5 * var(--glass-u));
+  --timeline-chrome-max-width: calc(200 * var(--glass-u-base)); /* ultrawide guard; 85vw governs on real monitors */
+  --timeline-chrome-top: calc(5 * var(--glass-u-base));
+  --timeline-chrome-bottom: calc(5 * var(--glass-u-base));
   /* Height now rides glass-u too (≈64px at the dev calibration). "Fix height, derive
      width" still holds — Darley fixes the height axis AT the glass-u definition, and the
      bar height rides that one authoritative unit instead of a stray fixed px. */
-  --timeline-chrome-height: calc(5 * var(--glass-u));
-  --timeline-chrome-gap: calc(0.63 * var(--glass-u)); /* drop between the bar's bottom edge and its dropdowns */
-  --chrome-dropdown-zoom: 0.8; /* dimensional shrink for the rail cards (honest zoom, not scale) */
+  --timeline-chrome-height: calc(5 * var(--glass-u-base));
+  --timeline-chrome-gap: calc(0.63 * var(--glass-u-base)); /* drop between the bar's bottom edge and its dropdowns */
+  --chrome-dropdown-u-scale: 0.8; /* rail cards shrink by measuring in 0.8× the base unit (dimensional, not zoom) */
   /* Pane look (bg/edge/radius/shadow/blur) now comes from the glass register in
      glass.css — these chrome knobs are layout only. */
   --minimap-h: var(--timeline-chrome-height); /* shared: minimap + readout clearance */
-  /* Vertical room a dropdown has between the top bar and the bottom minimap chrome. */
+  /* Vertical room a dropdown has between the top bar and the bottom minimap chrome.
+     Plane-fixed clearance → base unit, so a rail card's local shrink doesn't loosen it. */
   --chrome-dropdown-max-height: calc(
     100vh - var(--timeline-chrome-top) - var(--timeline-chrome-height) - var(--timeline-chrome-gap)
-      - var(--timeline-chrome-bottom) - var(--timeline-chrome-height) - 0.63 * var(--glass-u)
+      - var(--timeline-chrome-bottom) - var(--timeline-chrome-height) - 0.63 * var(--glass-u-base)
   );
 }
 

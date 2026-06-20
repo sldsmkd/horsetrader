@@ -46,29 +46,39 @@ across 32 CSS files + the `surface--modal` bugfix.
      as a narrow left-pinned plain surface AND got swept into the rail lock that scrimmed it
      against itself (needed a reload to recover). [surface.ts](../horsetrader.site/js/src/ui/views/surfaces/surface.ts)
      now maps center → the `surface--modal` marker. Introduced by the `cb46791` rename.
-   - **Residual (type-layer rebase — the deferred gate):** the `--ht-type-*` token layer is
-     still rem. "Geometry + type" means text should scale with the plane too — do that as ONE
-     rebase of `css/typography.css` onto glass-u (carries all token-driven text at once),
-     then mop up the 2 sub-token loose fonts left in
-     [forecast.css](../horsetrader.site/js/src/ui/views/widgets/forecast.css) (`__pct` 0.6rem,
-     `__count` 0.66rem — no token fits). Its own eyeball gate.
+   - **Residual (type-layer rebase) — DONE 2026-06-20.** `css/typography.css` rebased onto
+     glass-u in ONE pass: every `--ht-type-*-size` is now `calc(N × --glass-u)`, `N = rem ×
+     1.25` (line-heights/weights/spacing stay unitless ratios; original rem noted inline).
+     The 2 sub-token loose fonts in
+     [forecast.css](../horsetrader.site/js/src/ui/views/widgets/forecast.css) (`__pct`,
+     `__count`) moved to `calc(N × --glass-u)` directly (below the smallest token). Only
+     `perfHud.css` (debug, excluded) keeps loose rem fonts. **Eyeball gate: text now scales
+     with the plane — confirm sizes read right at the dev calibration.**
 
 2. **Finishing-pass items — now unblocked by #1:**
-   - **a. Retire the rail-card `zoom`.** Today the dropdown shrink is honest `zoom`
-     ([surface.css](../horsetrader.site/js/src/ui/views/surfaces/surface.css)
-     `--chrome-dropdown-zoom`). Now that the rail cards' internals measure in `--glass-u`,
-     the 0.8 can become a *local `--glass-u` override* and `zoom` comes out — they shrink
-     because they're dimensionally smaller, not zoomed.
+   - **a. Retire the rail-card `zoom` — DONE 2026-06-20.** `zoom` is gone from the glass
+     plane. glass.css now splits the unit: `--glass-u-base` (authoritative, the shim) and
+     `--glass-u: var(--glass-u-base)` (the local surface unit). The dropdown rail
+     ([surface.css](../horsetrader.site/js/src/ui/views/surfaces/surface.css)) sets a local
+     `--glass-u: calc(var(--chrome-dropdown-u-scale) * var(--glass-u-base))` (0.8×) on the
+     rail cards, so they shrink *dimensionally* — genuinely smaller, not zoomed. The
+     misnamed `--chrome-dropdown-zoom` token → `--chrome-dropdown-u-scale`. Chrome-frame +
+     clearance tokens ([base.css](../horsetrader.site/css/base.css)) now read
+     `--glass-u-base`, so a rail card's local shrink can never perturb the fixed chrome or
+     its viewport-clearance math. **Eyeball gate: confirm the menubar dropdowns still shrink
+     correctly off their pinned edges.**
    - **c. Chrome sizing-token layer → glass-u — DONE 2026-06-20.** The chrome frame
      ([base.css](../horsetrader.site/css/base.css)) now measures entirely in `--glass-u`:
      `--timeline-chrome-height` (was the lone fixed `64px`), `-gap`, `-max-width`, and the
      dropdown clearance all ride the unit, so Darley has ONE knob (the glass-u definition)
      driving the whole tier. `--timeline-chrome-width: 85vw` stays — it's a responsive
      proportion, not a dimension (Darley's proportion-vs-derived-width call).
-   - **b. Declare the last z scatter.** `els[i].style.zIndex = 1000 - offset`
-     ([app.ts](../horsetrader.site/js/src/ui/app.ts) ~L109) is *world*-plane (below-line
-     card stacking), correctly outside the glass depth ladder — but still a magic
-     number. Bring it under declared order (a world-plane stacking token / rule).
+   - **b. Declare the last z scatter — DONE 2026-06-20.** The `1000 - offset` magic number
+     in [app.ts](../horsetrader.site/js/src/ui/app.ts) (below-line card stacking) is now the
+     declared `BELOW_LANE_STACK_TOP` constant in
+     [timeline/constants.ts](../horsetrader.site/js/src/ui/views/timeline/constants.ts),
+     documented as the *world* plane's own paint order — deliberately outside the glass
+     depth ladder (`--glass-z-*`).
 
 3. **Parked decision — register backdrop blur.** `--glass-blur` (`backdrop-filter`)
    re-rasterizes the live timeline every frame; brutal on CPU/GPU, especially mobile.
@@ -77,11 +87,11 @@ across 32 CSS files + the `surface--modal` bugfix.
    **Godolphin** (mobile); the token is the one knob. See byerley-turk.md "Parked
    decision".
 
-4. **Loose end — the paint lifts.** `glass.css` flags `--glass-z-chrome` /
-   `--glass-z-modal` / `--glass-z-alert` as "candidates to dissolve into the lock."
-   Modality is now a lock, but the chrome lift stays legitimate (menubar is
-   *visible-but-locked* under a modal — visibility ≠ interactivity). Likely **keep
-   as-is**; just decide consciously and update the comment if so.
+4. **Loose end — the paint lifts — SETTLED 2026-06-20 (KEEP).** `--glass-z-chrome` /
+   `--glass-z-modal` / `--glass-z-alert` stay. They aren't modality (the lock handles
+   that) — they're paint order, an orthogonal axis: the menubar is *visible-but-locked*
+   under a modal (visibility ≠ interactivity). They're the legitimate front of the depth
+   ladder, not lock leakage. glass.css comment updated to record the settled call.
 
 ## Seams — explicitly NOT Byerley
 

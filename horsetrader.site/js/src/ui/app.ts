@@ -50,6 +50,7 @@ import { plannerRows } from "./select/planner.ts";
 import { scenarioLookup } from "./select/scenario.ts";
 import { buildTrainerCard, buildOshiSelector, buildClubSelector, buildPlayStyle } from "./views/surfaces/identityCards.ts";
 import { menubar } from "./views/menubar.ts";
+import { BELOW_LANE_STACK_TOP } from "./views/timeline/constants.ts";
 import type { RightSurface } from "./views/menubar.ts";
 import { createIdentityController } from "./identity/controller.ts";
 import {
@@ -106,7 +107,7 @@ function packBelowLane(cards: readonly BelowCard[], els: readonly HTMLElement[])
   let depth = 0;
   offsets.forEach((offset, i) => {
     stems[i].style.height = `${baseStem + offset}px`;
-    els[i].style.zIndex = String(Math.round(1000 - offset)); // shallower rows in front
+    els[i].style.zIndex = String(Math.round(BELOW_LANE_STACK_TOP - offset)); // shallower rows in front
     depth = Math.max(depth, baseStem + offset + heights[i]); // distance from the line to this card's bottom
   });
   return depth;

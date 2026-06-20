@@ -5,6 +5,14 @@
  * behaviour, not numbers. All eye-tuned unless noted.
  */
 
+/** World-plane card stacking order. Below-lane cards that pack into deeper rows paint
+ *  BEHIND shallower ones, so each card's z-index counts DOWN from this top by its pack
+ *  offset (`STACK_TOP - offset`). This is the *world* plane's own paint order — distinct
+ *  from, and deliberately outside, the glass depth ladder (`--glass-z-*` in glass.css),
+ *  which orders the chrome/surfaces that float over the world. The top is set high
+ *  enough that the deepest stack never underflows past 0 into the world layer below. */
+export const BELOW_LANE_STACK_TOP = 1000;
+
 /** Px per day — the fixed true-to-date *layout* scale (ui.md principle 2); zoom is a
  *  camera scale on top, not a change to this. A date-gap should read as room, not a
  *  crush: at this scale a 2-day gap (240px) clears a full + compact card pair

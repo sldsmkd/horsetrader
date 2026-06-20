@@ -17,7 +17,16 @@
      plane reads ~100u tall). The `@x` is devicePixelRatio, not zoom — CSS px already
      fold in DPR, so the unit is DPR-agnostic. Darley replaces this with the real
      fix-height / derive-width mapping (vmin/clamp guards, responsive limits). */
-  --glass-u: 1vh;
+  --glass-u-base: 1vh;
+
+  /* The unit every glass surface measures in. Defaults to the authoritative base,
+     but a subtree may override it to a fraction of the base (see the dropdown rail
+     in surface.css) to shrink DIMENSIONALLY — the card is genuinely smaller, not
+     zoomed. The override scales `--glass-u-base` rather than `--glass-u` itself,
+     because `--glass-u: calc(... * var(--glass-u))` would be a cyclic self-reference.
+     Chrome-frame + clearance tokens read --glass-u-base instead (base.css), so a
+     descendant's local shrink can never perturb the fixed floating chrome. */
+  --glass-u: var(--glass-u-base);
 
   /* The depth ladder — one declared back→front paint order, replacing scattered
      per-component z-index. Modality (whether a surface is locked) is a SEPARATE axis,
@@ -26,10 +35,13 @@
   --glass-z-world: 0; /* the timeline content plane */
   --glass-z-surface: 1; /* floating surfaces (overlays, dropdowns, drawer) */
 
-  /* Two pragmatic paint lifts — named here so the scatter lives in one place. Phase C
-     (modality) decides their fate: the chrome lift keeps persistent nav painted over
-     surfaces (a candidate to dissolve into the lock); the modal lift lets a covering
-     scrim-modal paint over the chrome. */
+  /* Two paint lifts — named here so the scatter lives in one place. SETTLED (Byerley
+     Part 1, #4): these KEEP. Modality is now enforced by a lock, not by z-order, but
+     these lifts aren't modality — they're paint order, an orthogonal axis. The chrome
+     lift keeps persistent nav painted over surfaces because the menubar stays
+     visible-but-locked under a modal (visibility ≠ interactivity — the lock handles
+     interactivity); the modal lift lets a covering scrim-modal paint over that chrome.
+     They are legitimately the front of the same depth ladder, not lock leakage. */
   --glass-z-chrome: 3; /* menubar + minimap (persistent nav) */
   --glass-z-modal: 1000; /* covering scrim-modal (cloud conflict) */
   --glass-z-alert: 1100; /* alert-over-modal (confirm) */
