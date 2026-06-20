@@ -31,6 +31,15 @@ export function suspendOverlay(card: HTMLElement): HTMLElement {
   return card;
 }
 
+/** Suspend a surface for the modality lock (grand-masters/byerley-turk.md). A composite
+ *  surface — the playstyle `.overlay-book` — is a `pointer-events: none` wrapper, so the
+ *  scrim only blocks if it lands on each inner card; a plain surface suspends directly. */
+export function lockSurface(node: HTMLElement): void {
+  const inner = node.querySelectorAll<HTMLElement>(":scope > .overlay");
+  if (inner.length) inner.forEach((card) => suspendOverlay(card));
+  else suspendOverlay(node);
+}
+
 export function overlay(opts: OverlayOpts): HTMLElement {
   return h(
     "div",

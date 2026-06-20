@@ -6,7 +6,7 @@
 .confirm-shield {
   position: fixed;
   inset: 0;
-  z-index: 1100;
+  z-index: var(--glass-z-alert);
   display: flex;
   align-items: center;
   justify-content: center;

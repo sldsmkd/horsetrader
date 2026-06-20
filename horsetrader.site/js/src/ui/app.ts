@@ -31,7 +31,7 @@ import { belowCard } from "./views/belowCard.ts";
 import { bannerGroup } from "./views/bannerGroup.ts";
 import type { RushBinding } from "./widgets/rushedToggle.ts";
 import type { FavouriteBinding } from "./widgets/atomChip.ts";
-import { overlay, suspendOverlay } from "./views/overlay.ts";
+import { overlay, lockSurface } from "./views/overlay.ts";
 import { resourcesSurface } from "./views/resourcesSurface.ts";
 import type { ResourcesSurfaceHandle } from "./views/resourcesSurface.ts";
 import { resourcesEditor } from "./views/resourcesEditor.ts";
@@ -492,27 +492,27 @@ export function mountApp(
     });
 
     if (left === "identity") {
-      children.push(buildTrainerCard(identity, strings, { suspended: anyShield, cloud }, trainerCardOn));
+      children.push(buildTrainerCard(identity, strings, { cloud }, trainerCardOn));
     } else if (left === "oshi") {
       children.push(
-        buildTrainerCard(identity, strings, { suspended: true, cloud }, trainerCardOn),
+        buildTrainerCard(identity, strings, { cloud }, trainerCardOn),
         buildOshiSelectorOverlay(identity, { onClose: closeOshiSelector }),
       );
     } else if (left === "club") {
       children.push(
-        buildTrainerCard(identity, strings, { suspended: true, cloud }, trainerCardOn),
+        buildTrainerCard(identity, strings, { cloud }, trainerCardOn),
         buildClubSelectorOverlay(identity, { onClose: closeClubSelector }),
       );
     } else if (left === "playstyle") {
-      children.push(buildPlayStyleOverlay(identity, strings, identityUi, { suspended: anyShield, cloud }, playStyleOn));
+      children.push(buildPlayStyleOverlay(identity, strings, identityUi, { cloud }, playStyleOn));
     } else if (left === "playstyle-oshi") {
       children.push(
-        buildPlayStyleOverlay(identity, strings, identityUi, { suspended: true, cloud }, playStyleOn),
+        buildPlayStyleOverlay(identity, strings, identityUi, { cloud }, playStyleOn),
         buildOshiSelectorOverlay(identity, { onClose: closeOshiSelector }),
       );
     } else if (left === "playstyle-club") {
       children.push(
-        buildPlayStyleOverlay(identity, strings, identityUi, { suspended: true, cloud }, playStyleOn),
+        buildPlayStyleOverlay(identity, strings, identityUi, { cloud }, playStyleOn),
         buildClubSelectorOverlay(identity, { onClose: closeClubSelector }),
       );
     }
@@ -540,9 +540,6 @@ export function mountApp(
         // Closing the surface tears the editor shield down with it.
         onClose: () => view.set({ right: null, resourcesEditing: false }),
       });
-      // The editor is a shield over the surface (the oshi/trainer pattern); any
-      // shield up suspends this surface too, so its pencil can't spawn a second.
-      if (anyShield) suspendOverlay(resourcesCard);
       children.push(resourcesCard);
 
       if (editing) {
@@ -574,7 +571,6 @@ export function mountApp(
         body: betaSurface(() => view.set({ right: null })),
         onClose: () => view.set({ right: null }),
       });
-      if (anyShield) suspendOverlay(betaCard);
       children.push(betaCard);
     }
 
@@ -632,17 +628,22 @@ export function mountApp(
       children.push(commitCard);
     }
 
-    // Two destinations: menubar-spawned dropdowns (left book, right resources) hang
-    // off the bar's rail in `chromeDropdowns`; viewport-centered shields stay in the
-    // `overlayLayer`. The `overlay--center` class is the marker — every shield carries
-    // it, every dropdown doesn't.
+    // MODALITY — the lock fan-out, declared once (grand-masters/byerley-turk.md). A
+    // surface that demands exclusivity (the `overlay--center` marker = the *modal*
+    // trait + centred *placement*) locks the menubar — the spawn-tree root —
+    // (menu.setShielded above) and suspends every other surface here, so no in-card
+    // spawner can mint a surface that's born locked. The minimap is a sibling of the
+    // menubar, outside this surface tree, so the lock never reaches it. Placement also
+    // routes the node: centred modals into the overlayLayer, everything else onto the
+    // bar's rail in `chromeDropdowns`.
     const rail: Node[] = [];
-    const shields: Node[] = [];
+    const modals: Node[] = [];
     for (const node of children) {
-      (node instanceof HTMLElement && node.classList.contains("overlay--center") ? shields : rail).push(node);
+      (node instanceof HTMLElement && node.classList.contains("overlay--center") ? modals : rail).push(node);
     }
+    if (anyShield) rail.forEach((node) => node instanceof HTMLElement && lockSurface(node));
     chromeDropdowns.replaceChildren(...rail);
-    overlayLayer.replaceChildren(...shields);
+    overlayLayer.replaceChildren(...modals);
   }
   view.subscribe(renderOverlay);
   coord.subscribe(renderOverlay);

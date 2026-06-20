@@ -2,7 +2,7 @@
   position: fixed;
   right: 1rem;
   bottom: calc(var(--timeline-chrome-bottom) + var(--minimap-h) + 1rem);
-  z-index: -100;
+  z-index: var(--glass-z-wallpaper);
   width: min(16.75rem, 25vw);
   max-height: min(16.75rem, 31vh);
   margin: 0;

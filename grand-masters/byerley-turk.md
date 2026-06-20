@@ -138,6 +138,38 @@ The shield-vs-unfold design *heuristic* — split a read surface from a write su
 when display ≠ edit — survives unchanged; it is reworded from "instantiate a Shield" to
 "spawn a second surface that requests the modal trait."
 
+## Parked decision — register backdrop blur (benchmark before locking)
+
+The glass register's `--glass-blur` (`backdrop-filter`) frosts every pane over the live
+timeline. It looks right and is the holographic point, so it **stays in** — but it is an
+**active, un-settled decision**, not a default: the blur re-rasterizes the moving world
+every frame and is brutal on CPU/GPU, especially on mobile. It must be **benchmarked**
+before it's locked, and may need a perf budget, a reduced radius, or an opaque-fallback
+path. The revisit belongs to **Darley** (hardware reality) + **Godolphin** (mobile); the
+token is the single knob that turns it down or off. (Shipped 2026-06-20 as built-but-parked.)
+
+## Bridging shim (Darley-stand-in — delete-on-Darley)
+
+Byerley's `--glass-u` is unit-relative and pixel-free; the px resolution is **Darley's**,
+and Darley isn't built. So Byerley ships a **naive shim** in her place — just enough px
+mapping that surfaces measured in `--glass-u` actually render, calibrated to the dev
+desktop and nothing braver.
+
+- **Authoritative axis = height** (Darley's plan: the timeline well is height-bounded).
+  Calibration sample (MANGOHORSE perf HUD, `VIEW`): **2527 × 1293 CSS px @ DPR 1.50** on
+  the dev desktop — so `innerHeight ≈ 1293` is the number to tune against. The `@1.50x` is
+  `devicePixelRatio`, not zoom; CSS px already fold in DPR, so the shim works in CSS px and
+  DPR crispness is Darley's, not the unit's.
+- **Form:** `--glass-u ≈ (100 / N)vh`, N = how many glass-units tall the plane reads as.
+  It auto-adapts to any height; 1293 is only the sample you pick N against. Exact N left to
+  scope work (user deferred unit detail: "sensible + roughly best-practice").
+- **Deliberately omits everything Darley owns:** width-derive-from-aspect, `vmin` / `clamp`
+  ultrawide + small-screen guards, responsive zoom limits, the camera-meets-display seam.
+  The shim "just sort of targets the desktop."
+- **Delete-on-Darley.** This is Darley's desk borrowed early; when she lands she replaces
+  the `vh` shim with the real fix-height/derive-width mapping. Mark it so it's retired, not
+  enshrined.
+
 ## Non-goals (the seam to the other sires)
 
 - **Pixels, viewport, "what fits".** The concrete `--glass-u` derivation, clamps,

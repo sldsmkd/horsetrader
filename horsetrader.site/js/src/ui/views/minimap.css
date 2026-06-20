@@ -8,17 +8,17 @@
   height: var(--minimap-h);
   width: min(var(--timeline-chrome-width), var(--timeline-chrome-max-width), calc(100vw - 1.5rem));
   box-sizing: border-box;
-  z-index: 3; /* above the timeline canvas */
-  background: var(--timeline-chrome-bg);
-  border: 1px solid var(--timeline-chrome-border);
-  border-radius: var(--timeline-chrome-radius);
-  box-shadow: var(--timeline-chrome-shadow);
+  z-index: var(--glass-z-chrome); /* above the timeline canvas */
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-edge);
+  border-radius: var(--glass-radius);
+  box-shadow: var(--glass-shadow);
   cursor: grab;
   touch-action: none;
   user-select: none;
   overflow: hidden;
   transform: translateX(-50%);
-  backdrop-filter: blur(6px);
+  backdrop-filter: var(--glass-blur);
 }
 .minimap--grabbing {
   cursor: grabbing;

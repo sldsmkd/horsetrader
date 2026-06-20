@@ -1,5 +1,5 @@
 import { h } from "../h.ts";
-import { overlay, suspendOverlay } from "./overlay.ts";
+import { overlay } from "./overlay.ts";
 import { identitySurface } from "./identitySurface.ts";
 import { oshiSelector } from "./oshiSelector.ts";
 import { clubSelector } from "./clubSelector.ts";
@@ -14,7 +14,7 @@ import type { UiStrings } from "../strings.ts";
 export function buildTrainerCard(
   identity: IdentityController,
   strings: UiStrings,
-  opts: { suspended?: boolean; previewPlayStyleKey?: PlayStyleKey; cloud?: Node | undefined },
+  opts: { previewPlayStyleKey?: PlayStyleKey; cloud?: Node | undefined },
   on: {
     onOshiSelect: () => void;
     onClubSelect: () => void;
@@ -44,7 +44,6 @@ export function buildTrainerCard(
     }),
     onClose: on.onClose,
   });
-  if (opts.suspended) suspendOverlay(card);
   return card;
 }
 
@@ -90,7 +89,7 @@ export function buildPlayStyleOverlay(
   identity: IdentityController,
   strings: UiStrings,
   state: PlayStyleMachineState,
-  opts: { suspended?: boolean; cloud?: Node | undefined },
+  opts: { cloud?: Node | undefined },
   on: {
     onOshiSelect: () => void;
     onClubSelect: () => void;
@@ -134,7 +133,7 @@ export function buildPlayStyleOverlay(
   const identityCard = buildTrainerCard(
     identity,
     strings,
-    { previewPlayStyleKey: playStyleKey, cloud: opts.cloud, ...(opts.suspended ? { suspended: true } : {}) },
+    { previewPlayStyleKey: playStyleKey, cloud: opts.cloud },
     { onOshiSelect: on.onOshiSelect, onClubSelect: on.onClubSelect, onPlayStylePreview: on.onPlayStylePreview, onClose: on.onTrainerClose },
   );
 
@@ -143,10 +142,5 @@ export function buildPlayStyleOverlay(
     if (height > 0) playStyleCard.style.height = `${height}px`;
   });
 
-  return h(
-    "div",
-    { class: "overlay-book" },
-    identityCard,
-    opts.suspended ? suspendOverlay(playStyleCard) : playStyleCard,
-  );
+  return h("div", { class: "overlay-book" }, identityCard, playStyleCard);
 }

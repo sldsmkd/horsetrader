@@ -1,0 +1,55 @@
+/* Byerley Turk (Grand Masters Part 1) — the glass substrate.
+   The orthographic glass plane's dimensional unit and its declared depth ladder.
+
+   Membership (glass vs world) is structural, not declared here: glass elements are
+   siblings of the timeline `content`; world elements are its children, carried by the
+   camera's `scale(z)`. This file owns the other two axes — depth and the unit — and
+   stays pixel-free apart from the one delete-on-Darley shim noted below. */
+:root {
+  /* The glass unit. Every glass surface measures in N × --glass-u and resizes
+     DIMENSIONALLY (size = dimension) — never via `transform: scale`, which is the
+     world camera's privilege alone (a parallel projection can't scale without lying
+     about its own size).
+
+     BRIDGING SHIM (delete-on-Darley): a naive height-derived `vh` so surfaces have a
+     real measure before Darley (Part 2) exists. Calibrated to the dev desktop
+     (MANGOHORSE perf HUD VIEW: innerHeight ≈ 1293 CSS px @1.5 DPR → 1vh ≈ 12.9px; the
+     plane reads ~100u tall). The `@x` is devicePixelRatio, not zoom — CSS px already
+     fold in DPR, so the unit is DPR-agnostic. Darley replaces this with the real
+     fix-height / derive-width mapping (vmin/clamp guards, responsive limits). */
+  --glass-u: 1vh;
+
+  /* The depth ladder — one declared back→front paint order, replacing scattered
+     per-component z-index. Modality (whether a surface is locked) is a SEPARATE axis,
+     enforced by a lock, NOT by these bands. */
+  --glass-z-wallpaper: -100; /* scenario art: glass coords, painted behind the world */
+  --glass-z-world: 0; /* the timeline content plane */
+  --glass-z-surface: 1; /* floating surfaces (overlays, dropdowns, drawer) */
+
+  /* Two pragmatic paint lifts — named here so the scatter lives in one place. Phase C
+     (modality) decides their fate: the chrome lift keeps persistent nav painted over
+     surfaces (a candidate to dissolve into the lock); the modal lift lets a covering
+     scrim-modal paint over the chrome. */
+  --glass-z-chrome: 3; /* menubar + minimap (persistent nav) */
+  --glass-z-shield: 1000; /* covering scrim-modal (cloud conflict) */
+  --glass-z-alert: 1100; /* alert-over-shield (confirm) */
+
+  /* The glass register — the holographic pane look, as one ordered token layer.
+     Byerley owns it; a future re-theme negotiates WITH this vocabulary (it is not a
+     sire). Colour + look constants only, never a viewport→px mapping — that is Darley's.
+     Every glass pane (chrome bars, dropdowns, modals) reads its look from here, so the
+     whole plane frosts consistently instead of bars-frosted / surfaces-opaque. */
+  --glass-edge: color-mix(in srgb, currentColor 20%, transparent); /* pane border / edge */
+  --glass-edge-light: color-mix(in srgb, currentColor 12%, transparent); /* top inner edge-light */
+  --glass-bg: color-mix(in srgb, Canvas 82%, transparent); /* frosted pane fill (see-through) */
+  /* Backdrop frost — the holographic see-through. PARKED DECISION (2026-06-20): the
+     blur re-rasterizes the live timeline every frame and is brutal on CPU/GPU,
+     especially on mobile. Left in (it looks right, and it's the holographic point) but
+     NOT settled — it must be benchmarked before it's locked, and may need a perf budget
+     / reduced-radius / opaque-fallback path. Darley (hardware) + Godolphin (mobile) own
+     the revisit; one knob (this token) turns it down or off. */
+  --glass-blur: blur(6px);
+  --glass-radius: 0.65rem; /* unified pane corner */
+  /* Drop shadow lifting the pane + an inset top edge-light (the holographic glow). */
+  --glass-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.28), inset 0 1px 0 var(--glass-edge-light);
+}

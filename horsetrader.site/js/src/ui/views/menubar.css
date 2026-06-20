@@ -4,7 +4,7 @@
   position: absolute;
   top: var(--timeline-chrome-top);
   left: 50%;
-  z-index: 3;
+  z-index: var(--glass-z-chrome);
   display: grid;
   grid-template-columns: auto minmax(12rem, 28rem) auto;
   align-items: center;
@@ -13,13 +13,13 @@
   width: min(var(--timeline-chrome-width), var(--timeline-chrome-max-width), calc(100vw - 1.5rem));
   min-height: var(--timeline-chrome-height);
   padding: 0.45rem 0.55rem;
-  border: 1px solid var(--timeline-chrome-border);
-  border-radius: var(--timeline-chrome-radius);
-  background: var(--timeline-chrome-bg);
-  box-shadow: var(--timeline-chrome-shadow);
+  border: 1px solid var(--glass-edge);
+  border-radius: var(--glass-radius);
+  background: var(--glass-bg);
+  box-shadow: var(--glass-shadow);
   pointer-events: none;
   transform: translateX(-50%);
-  backdrop-filter: blur(6px);
+  backdrop-filter: var(--glass-blur);
 }
 
 .menubar__cluster {

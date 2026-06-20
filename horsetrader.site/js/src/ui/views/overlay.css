@@ -23,10 +23,11 @@
   position: absolute;
   top: 4.5rem;
   width: 20rem;
-  border: 1px solid currentColor;
-  border-radius: 0.5rem;
-  background: Canvas;
-  box-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--glass-edge);
+  border-radius: var(--glass-radius);
+  background: var(--glass-bg);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: var(--glass-blur);
 }
 
 .overlay-book {
@@ -91,20 +92,20 @@
   max-height: var(--chrome-dropdown-max-height);
 }
 
-/* Shrink each card off the edge it's pinned to, so it stays glued to the bar's
-   left/right while it scales. The book is a left-group surface, so it shares the
-   left card's top-left origin. */
+/* Shrink each rail card off the edge it's pinned to. `zoom` (not transform: scale) is
+   the honest glass shrink — it resizes the layout box AND the render together, so the
+   rail's spacing measures the real rendered size (Byerley: size = dimension; the
+   layout box must equal the render). transform: scale shrank only the render, which is
+   the camera's idiom leaking onto the glass plane. */
 .chrome-dropdowns > .overlay-book,
 .chrome-dropdowns > .overlay--left {
   left: 0;
-  transform: scale(var(--chrome-dropdown-scale));
-  transform-origin: top left;
+  zoom: var(--chrome-dropdown-zoom);
 }
 
 .chrome-dropdowns > .overlay--right {
   right: 0;
-  transform: scale(var(--chrome-dropdown-scale));
-  transform-origin: top right;
+  zoom: var(--chrome-dropdown-zoom);
 }
 
 .overlay--center {

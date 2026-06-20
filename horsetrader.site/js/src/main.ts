@@ -11,6 +11,7 @@ import "../../css/palette.css";
 import "../../css/typography.css";
 import "../../css/controls.css";
 import "../../css/base.css";
+import "../../css/glass.css";
 import "../../css/timelineSizing.css";
 
 import { createCoordinator } from "./core/engine/index.ts";
