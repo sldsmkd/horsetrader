@@ -72,42 +72,18 @@
   --glass-edge: color-mix(in srgb, currentColor 20%, transparent); /* pane border / edge */
   --glass-edge-light: color-mix(in srgb, currentColor 12%, transparent); /* top inner edge-light */
   --glass-bg: color-mix(in srgb, Canvas 82%, transparent); /* frosted pane fill (see-through) */
-  /* Backdrop frost — the holographic see-through, and Darley's perf POLICY (Grand
-     Masters Part 2, #5), centralised on this one token so the decision lives in ONE
-     place rather than scattered per-pane. backdrop-filter re-rasterizes everything
-     behind each glass pane every frame; the cost scales with the pixels REPEATEDLY
-     composited, so the worst case is exactly pan/zoom — the live timeline churning under
-     the panes. Three paths, one knob (see the rules just below this block):
-       • default material path — the full frost (this value);
-       • motion path — dropped to `none` while the world moves (:root.world-moving, set
-         by the timeline camera); the highest-value cut, motion being the worst case;
-       • constrained / opaque fallback — prefers-reduced-transparency swaps to an opaque
-         pane (no live compositing at all) for low-capability / transparency-averse setups.
-     BENCHMARK (the budget that settles "below some capability", a policy not a verdict):
-     on the gating scene (~35 live cards, MANGOHORSE worst frame) a sustained pan should
-     hold the cull's locked ~144fps (≤ ~7ms/frame). The motion path already removes this
-     cost during the pan; the opaque fallback removes it entirely. */
+  /* Backdrop frost — the holographic see-through. PARKED (Darley #5 attempted + reverted
+     2026-06-20): backdrop-filter re-rasterizes everything behind each pane every frame;
+     cost scales with the pixels REPEATEDLY composited, so the worst case is pan/zoom (the
+     live timeline churning under the panes). Darley centralised a policy on this one token
+     — default frost / drop-while-moving / opaque capability fallback — but the MOTION path
+     read badly in practice: the blur pops in/out distractingly and surfaces the hardware
+     limitation too clearly (the motion-blur/film-grain class of effect everyone disables;
+     a Silent-Hill render-distance tell). The CONCEPT is sound but it needs a taste pass +
+     real profiling before it lands — so the active paths are removed and the frost stays
+     always-on (Byerley's parked state). The token remains the one knob for the revisit. */
   --glass-blur: blur(6px);
   --glass-radius: 0.65rem; /* unified pane corner */
   /* Drop shadow lifting the pane + an inset top edge-light (the holographic glow). */
   --glass-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.28), inset 0 1px 0 var(--glass-edge-light);
-}
-
-/* --- Blur policy paths (Darley #5). The verdict lives here, beside the token. --- */
-
-/* Motion path: while the camera moves, the frost is the dominant per-frame cost (the
-   live world re-rasterizing under every pane), so drop it. The timeline sets this class
-   on :root from one settle-debounced motion signal, so all panes lose blur together for
-   the gesture/glide and regain the full frost at rest. */
-:root.world-moving {
-  --glass-blur: none;
-}
-
-/* Constrained / opaque fallback: where the platform asks for reduced transparency, skip
-   live compositing entirely — an opaque pane, no blur, on any hardware. */
-@media (prefers-reduced-transparency: reduce) {
-  :root {
-    --glass-blur: none;
-    --glass-bg: Canvas;
-  }
 }

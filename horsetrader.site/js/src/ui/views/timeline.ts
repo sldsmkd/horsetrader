@@ -32,7 +32,6 @@ import {
   FRICTION_PER_MS,
   MIN_FLING_V,
   MIN_GLIDE_V,
-  MOVE_SETTLE_MS,
   OVERSCAN_VIEWPORTS,
   PAD_DAYS,
   PX_PER_DAY,
@@ -48,8 +47,8 @@ import {
   TRACK_RETURN_MAX_EASE,
   TRACK_RETURN_SPEED_PX_PER_MS,
   WHEEL_ZOOM_SENSITIVITY,
-  Z_FIT_CEIL,
   Z_FIT_FLOOR,
+  Z_MIN_BASE,
   Z_MAX,
 } from "./timeline/constants.ts";
 import { apertureHeightPx, resolveLengthPx } from "../glassUnit.ts";
@@ -83,9 +82,9 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
   // The zoomed-out floor, DERIVED per display (Darley #3) rather than a fixed constant:
   // fit the full world vertical extent into the usable aperture. Recomputed whenever the
   // extent or the viewport changes (setContentDepth, which the resize path also drives).
-  // Defaults to the ceiling — before any content there's nothing to fit, so don't permit
-  // a zoom-out floor below actual size.
-  let zMin = Z_FIT_CEIL;
+  // Defaults to the eye-tuned baseline overview pull-back; before any content there's
+  // nothing to fit-derive against, so the baseline stands until setContentDepth deepens it.
+  let zMin = Z_MIN_BASE;
 
   const culling = createCulling(); // owns the card host, the known scene, and the churn meter
   const line = h("div", { class: "timeline__line" });
@@ -123,29 +122,7 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
     culling.reconcile(screenToContentX(0) - overscan, screenToContentX(el.clientWidth) + overscan);
   };
 
-  // Motion signal for the blur policy (Darley #5). backdrop-filter's worst case is the
-  // world churning under the panes, so the glass drops its frost while the camera moves.
-  // Driven off the one choke every camera change flows through (applyPan) and released on
-  // a short settle timeout — so drag, pinch, glide and warp are all covered without
-  // threading toggles through six handlers. The class lives on :root (where glass.css
-  // overrides --glass-blur), not on the timeline, because the blur panes are its siblings.
-  let moving = false;
-  let moveSettle = 0;
-  const markMoving = () => {
-    if (!moving) {
-      moving = true;
-      document.documentElement.classList.add("world-moving");
-    }
-    if (moveSettle) clearTimeout(moveSettle);
-    moveSettle = window.setTimeout(() => {
-      moving = false;
-      moveSettle = 0;
-      document.documentElement.classList.remove("world-moving");
-    }, MOVE_SETTLE_MS);
-  };
-
   const applyPan = () => {
-    markMoving();
     // `scale(z)` reaches exactly the cards + in-world markers inside content and
     // nothing mounted as a sibling (zoom.md Model). `--zoom` lets infinitely-thin
     // elements (home row, stems) counter-scale their cross-axis thickness so a 1px
@@ -523,9 +500,13 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
       // bound it. The aperture (viewport − persistent chrome, resolved to px here) is the
       // honest input — never a nominal "1440p". Recomputed here so the resize path (which
       // re-runs this) re-fits when the viewport height changes.
+      // zFit is the zoom at which the world's full vertical extent exactly fills the
+      // aperture. The floor sits at the eye-tuned baseline (Z_MIN_BASE) and only DEEPENS
+      // toward Z_FIT_FLOOR when even that baseline can't fit the world (cramped viewport);
+      // it never rises above the baseline, so a roomy display keeps its overview pull-back.
       const worldExtent = aboveDepth + belowDepth;
-      const zFit = worldExtent > 0 ? apertureHeightPx() / worldExtent : Z_FIT_CEIL;
-      zMin = Math.max(Z_FIT_FLOOR, Math.min(Z_FIT_CEIL, zFit));
+      const zFit = worldExtent > 0 ? apertureHeightPx() / worldExtent : Z_MIN_BASE;
+      zMin = Math.max(Z_FIT_FLOOR, Math.min(Z_MIN_BASE, zFit));
       z = clampZ(z); // a tighter floor may strand the current zoom below it
       panY = clampY(panY);
       if (Math.abs(panY) <= TRACK_CAPTURE_PX) panY = 0;

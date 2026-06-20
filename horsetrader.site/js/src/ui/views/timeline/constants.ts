@@ -79,23 +79,21 @@ export const OVERSCAN_VIEWPORTS = 1;
  *  zMax (the zoomed-in ceiling — "how readable?", not "what fits?") is FEEL: eye-tuned
  *  and left untouched by Darley (Grand Masters Part 2).
  *
- *  zMin (the zoomed-out floor — "does the whole thing still fit?") is SCREEN-SPACE, so
- *  Darley DERIVES it per display from the aperture instead of fixing it: zFit =
- *  aperture height / required world vertical extent, then zMin = bounded into
- *  [Z_FIT_FLOOR, Z_FIT_CEIL]. Z_FIT_FLOOR is the absolute most-zoomed-out we ever
- *  allow (a safety bound against a pathological extent); Z_FIT_CEIL caps the floor at
- *  unity so a world that already fits never forces a zoom-IN as its floor. At the dev
- *  aperture the derived zMin lands near the old hand-tuned ~0.6; it is free to differ
- *  elsewhere — adapting to the display is the point. */
+ *  zMin (the zoomed-out floor — how far back you may pull) has BOTH a feel part and a
+ *  screen-space part, and the synthesis is the point. Z_MIN_BASE is the eye-tuned
+ *  baseline overview pull-back every display gets (the old hand-tuned floor). Darley's
+ *  screen-space derivation only ever DEEPENS it — never retracts it — when a viewport is
+ *  too small to fit the world even at the baseline: zFit = aperture height / required
+ *  world vertical extent, and zMin = max(Z_FIT_FLOOR, min(Z_MIN_BASE, zFit)). So a roomy
+ *  display sits at the eye-tuned baseline; a cramped one zooms out further (toward the
+ *  Z_FIT_FLOOR safety floor) so the whole thing still fits — exactly the "responsive
+ *  zoom limits on small/narrow viewports" this derivation exists for. The derivation must
+ *  not push the floor UP (a big display that already fits must keep its overview pull-back
+ *  — capping at unity was the bug). At the dev aperture this lands on ~0.6 (zFit > 1 there
+ *  → the baseline governs). */
 export const Z_FIT_FLOOR = 0.3;
-export const Z_FIT_CEIL = 1.0;
+export const Z_MIN_BASE = 0.6;
 export const Z_MAX = 1.8;
 /** Wheel-zoom feel: deltaY → multiplicative zoom factor via `exp`, so each notch
  *  is a constant proportional step (symmetric in/out) rather than additive. */
 export const WHEEL_ZOOM_SENSITIVITY = 0.0015;
-
-/** Blur-policy motion settle (Darley #5). After the last camera frame, how long before
- *  the glass regains its full backdrop frost. Long enough that the brief lull between a
- *  drag's release and its momentum glide doesn't flash the blur back on mid-motion;
- *  short enough that the frost returns promptly once the world is truly at rest. */
-export const MOVE_SETTLE_MS = 140;
