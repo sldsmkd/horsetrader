@@ -18,6 +18,23 @@
   line-height: var(--ht-type-caption-line);
 }
 
+.beta-surface__run {
+  padding: calc(0.69 * var(--glass-u)) calc(1.13 * var(--glass-u));
+  border: 1px solid var(--ht-control-border);
+  border-radius: var(--ht-control-radius);
+  background: var(--ht-control-bg-accent, var(--ht-control-bg));
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.beta-surface__run:hover,
+.beta-surface__run:focus-visible {
+  background: var(--ht-control-bg-hover-subtle);
+  outline: 0;
+}
+
 .beta-surface__cancel {
   padding: calc(0.69 * var(--glass-u)) calc(1.13 * var(--glass-u));
   border: 1px solid var(--ht-control-border);

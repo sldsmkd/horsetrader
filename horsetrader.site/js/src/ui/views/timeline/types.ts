@@ -99,6 +99,34 @@ export interface Timeline {
    * during pan/warp — the baseline the cull/pool path must not regress.
    */
   drainChurn(): number;
+  /**
+   * The benchmark drive seam (UmaMark, grand-masters/umamark.md) — dev-only, gated
+   * behind the `?umamark` flag at the call site. UmaMark scripts the camera directly,
+   * frame by frame, instead of through `warpTo` (whose glide physics would make the
+   * motion non-deterministic). It owns no loop of its own — UmaMark's rAF drives it.
+   */
+  readonly bench: BenchControl;
+}
+
+/**
+ * The deterministic-camera controls UmaMark drives. All in screen px at the current
+ * (fitted) zoom: a sweep walks `panX` from `0` (start edge at the viewport left) to
+ * `panMin()` (end edge at the right) and back, advancing a fixed screen-width fraction
+ * per frame. Setting `panX` re-renders (transform + cull reconcile) synchronously, so
+ * the perf instrument's own tick times the resulting frame.
+ */
+export interface BenchControl {
+  /** Put the camera at the canonical run start: scene-start edge, fitted/overview zoom,
+   *  lane recentred. Every run begins identically regardless of the user's prior view. */
+  reset(): void;
+  /** The current applied horizontal pan offset, px. */
+  panX(): number;
+  /** The most-negative pan (end edge held at the viewport right) at the current zoom. */
+  panMin(): number;
+  /** Set the horizontal pan directly (clamped to the walls) and re-render now. */
+  setPanX(px: number): void;
+  /** The viewport width in px — the unit a screen-width-relative step is measured against. */
+  viewportWidth(): number;
 }
 
 export interface TimelineHandlers {

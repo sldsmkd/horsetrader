@@ -87,6 +87,7 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
   // aperture are known; until then they default to the roomy-display case (zBase = 1).
   let zMin = ZOOM_OUT_FACTOR; // = 1 * ZOOM_OUT_FACTOR
   let zMax = ZOOM_IN_FACTOR; //  = 1 * ZOOM_IN_FACTOR
+  let zBaseFitted = 1; // the fitted/overview z the timeline opens at — UmaMark's run-start zoom
   let zoomFitted = false; // first content load opens the camera fitted to the viewport
 
   const culling = createCulling(); // owns the card host, the known scene, and the churn meter
@@ -498,6 +499,23 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
       return culling.visibility(screenToContentX(0), screenToContentX(el.clientWidth), overscan);
     },
     drainChurn: () => culling.drainChurn(),
+    bench: {
+      reset: () => {
+        stopAnim(); // kill any glide/spring — the run owns the camera
+        z = clampZ(zBaseFitted); // fitted/overview zoom; the always-huge horizontal extent gives the sweep its room
+        panY = 0; // lane recentred
+        const { max } = panBounds();
+        panX = max; // start edge (0) at the viewport left
+        applyPan();
+      },
+      panX: () => panX,
+      panMin: () => panBounds().min,
+      setPanX: (px) => {
+        panX = clampPanX(px);
+        applyPan();
+      },
+      viewportWidth: () => el.clientWidth,
+    },
     setContentDepth: (above, below) => {
       aboveDepth = above;
       belowDepth = below;
@@ -514,6 +532,7 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
       // that sizes the timeline to the device. zMin/zMax then bracket the base by the
       // eye-tuned factors, so the window stays proportionate to what the device can show.
       const zBase = Math.min(1, zFit);
+      zBaseFitted = zBase; // UmaMark resets to this overview zoom for a deterministic run start
       zMin = Math.max(Z_FIT_FLOOR, zBase * ZOOM_OUT_FACTOR);
       zMax = zBase * ZOOM_IN_FACTOR;
       // On first content load, OPEN at the fit; later loads keep the user's zoom, re-clamped

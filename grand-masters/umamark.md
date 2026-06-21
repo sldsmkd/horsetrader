@@ -72,6 +72,89 @@ constrained hardware → the threshold ("drop blur below what capability / while
 becomes a measured call, not a guess. Also any future perf question — mobile, a culling
 regression, a new heavy surface, zoom cost — gets a repeatable score instead of eyeballing.
 
+## Locked kickoff design (2026-06-21)
+
+The proposed deliverables above were confirmed and sharpened in a kickoff with the user.
+Recorded here as the build contract.
+
+### Scene — the bake *is* the fixture (no synthetic cards)
+
+The future is **frozen Japanese history** projected onto Global's clock, so the real
+timeline is already deterministic by construction. The benchmark scene is therefore the
+**real timeline over its full launch → 5th-anniversary extent** (`displayExtent`'s
+`[lo, hi]`, which already reaches ~the 5th-anniv horizon — as far as JP's past lets us
+project). This dissolves the synthetic-vs-real open call: synthetic was only ever a hedge
+against bake-drift, and a frozen bake has none. Bonus: real card geometry + real density
+peaks (anniversaries, festival stacks) instead of a made-up worst case.
+
+### Motion — frame-stepped, screen-width-relative
+
+Driven by a **gated benchmark seam on the Timeline** (set `panX`/`z` directly + `applyPan`),
+*not* `warpTo` — its glide physics would make the motion non-deterministic. Each animation
+frame advances the camera by a fixed fraction of screen-width; the run is a fixed frame
+count, so every run renders the **same visual sweep over the same number of frames** — a
+fast device just finishes sooner. The score is the per-frame render-cost distribution, not
+wall-clock, which is what makes it comparable device-to-device. All passes run at the
+**fitted/overview zoom** (`zBaseFitted` — the z the timeline opens at; vertical fit, with
+the always-huge horizontal extent giving the sweep its room). No scripted zoom workload —
+both tests are pan-based.
+
+### Run structure
+
+1. **Warmup** — one round trip (start→end→start) @ **20% screen-width/frame**. Primes the
+   browser's async loads (scenario art, lazy images) so first-touch decode never pollutes
+   the score. **Unmeasured** — pure priming.
+2. **Test 1 — Fillrate** — **10 round trips @ 50% screen-width/frame**, fitted zoom.
+   Guarantees every card paints; big per-frame jumps = max cards crossing the cull boundary
+   = peak churn + paint/raster. **Measured** (one capture across all traversals).
+3. **Test 2 — Transparency** — a benchmark-owned **screen-fixed centre sampler**, sized to
+   the **commit-surface footprint** (indicative). Same motion (**one back-and-forth cycle @
+   ~10% screen-width/frame**) run **3× — once per blend mode, captured separately**:
+   1. **Opaque** — no alpha; baseline (zero alpha-blend GPU pressure).
+   2. **Simple alpha** — ~10% see-through, straight per-pixel blend, no filter.
+   3. **Frost** — the real `--glass-blur` backdrop-filter the surfaces use.
+   The **delta between the three distributions is the isolated frost cost** — the measured
+   answer to the parked blur verdict. (A *moving* backdrop forces frost to re-sample each
+   frame = the true worst case.) Key insight: page JS cannot see GPU/compositor/raster time
+   directly, so frame-ms inflation across the 3 modes *is* the in-page proxy for blend cost.
+
+### Instrument — self-contained, mobile-safe
+
+UmaMark runs **entirely in-page** (no CDP / external driver) — because the constrained
+hardware where the verdict bites (the iPhone-SE) doesn't expose CDP. That forces:
+- **`performance.now()` frame-ms = the universal spine.** Score = p50/p95/p99/max ms, mean
+  fps, **%-over-budget** vs the instrument's learned `budgetMs`. Works on every device.
+- **LoAF + `performance.memory` = progressive enhancement** — Chrome/Android only (iOS
+  Safari ships neither), feature-detected, captured where present (slow-frame autopsy +
+  heap delta), **silently absent on iOS, never gating the score**.
+
+A run produces the same headline number everywhere; the blur verdict rides on the Test-2
+frame-ms delta, which is universal — answerable on the actual constrained device.
+
+### Scene hygiene + widget
+
+- **Hide all real glass surfaces for the run** (menubar, dropdowns, surface layer,
+  bookmarks, minimap, MangoHorse) — restore on completion. Keep the world (timeline +
+  scenario wallpaper). A clean, uncluttered scene; the sampler is the only overlay.
+- A dedicated **mini widget** — live **fps** + **% progress** + current phase. **No data
+  capture from the widget** (it's a readout; the score lives in the capture buffer). At the
+  end it expands into a compact **results card** (per-test p50/p95/p99/max, fps,
+  %-over-budget + the Test-2 frost delta) — on-screen because the phone has no console; on
+  desktop also `console.table`'d for copy-paste diffing.
+
+### Invocation — touch-reachable, flagged
+
+F2 is desktop-only, so the real entry is a **button**. UmaMark is the **Beta chamber's**
+first real tenant (purpose-built "prove a WIP feature before it graduates"; all plumbing —
+`RightSurface "beta"`, `onBeta`, the `renderSurfaces` branch — already exists, just no
+menubar entry). The chamber's visibility **is the feature flag**:
+- **`?umamark` in the URL** (per-session, **not** persisted) reveals the 🔨 Beta menubar
+  icon. Lightest self-contained, mobile-friendly mechanism; none existed before.
+- Inside the chamber: a **"Run UmaMark"** button → `presentConfirm` ("Run benchmark? Takes
+  over the screen for ~Ns") → on confirm: **reset the camera to the canonical start** (scene
+  start = launch edge, fitted zoom — every run begins identically) → hide surfaces → run.
+- F2 / MangoHorse untouched.
+
 ## Starting point (as-built, on `darley-arabian`)
 
 - `ui/perf.ts` — `perfInstrument({ drainChurn })` → `{ snapshot(), subscribe() }`;

@@ -2,12 +2,11 @@
  * The beta surface — Unity's in-app isolation chamber (design.md §9): where a WIP
  * feature proves out before graduating to the main UI.
  *
- * PARKED. Its first tenant, the Unity cloud save/load controls (Cloud + Sync), has
- * graduated onto the trainer card ([cloudControls.ts](cloudControls.ts)), so the chamber
- * is currently empty. The plumbing is kept intact — the `RightSurface "beta"` member, the
- * `onBeta` seam, the `renderSurfaces` branch that mounts this — but the menubar renders no
- * entry, so it's inactive + hidden. The next big feature graduates through here: drop its
- * surface in below and re-add the menubar icon (see menubar.ts).
+ * Its current tenant is **UmaMark** (grand-masters/umamark.md) — the deterministic
+ * benchmark. The chamber itself is the feature flag: it's only reachable under `?umamark`
+ * (which reveals the menubar 🔨), so this surface assumes that context and just hosts the
+ * launcher. The plumbing (`RightSurface "beta"`, the `onBeta` seam, the `renderSurfaces`
+ * branch) has always been here.
  */
 
 import "./betaSurface.css";
@@ -15,7 +14,13 @@ import "./betaSurface.css";
 import { h } from "../../h.ts";
 import { surfaceActions } from "./surfaceActions.ts";
 
-export function betaSurface(onClose: () => void): HTMLElement {
+export interface BetaSurfaceOptions {
+  onClose: () => void;
+  /** Launch UmaMark: resets the camera, hides chrome and runs the benchmark. */
+  onRunUmaMark: () => void;
+}
+
+export function betaSurface({ onClose, onRunUmaMark }: BetaSurfaceOptions): HTMLElement {
   return h(
     "section",
     { class: "beta-surface" },
@@ -23,7 +28,12 @@ export function betaSurface(onClose: () => void): HTMLElement {
     h(
       "p",
       { class: "beta-surface__note" },
-      "Nothing in here right now — the next work-in-progress feature will surface here before it graduates to the main UI.",
+      "UmaMark — the deterministic performance benchmark. It takes over the screen, drives a fixed camera workload over the timeline and reports a comparable score.",
+    ),
+    h(
+      "button",
+      { class: "beta-surface__run", attr: { type: "button" }, on: { click: onRunUmaMark } },
+      "Run UmaMark",
     ),
     surfaceActions(h("button", { class: "beta-surface__cancel", attr: { type: "button" }, on: { click: onClose } }, "Cancel")),
   );

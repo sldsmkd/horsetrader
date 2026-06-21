@@ -1,0 +1,190 @@
+/* UmaMark — the benchmark overlay (grand-masters/umamark.md). The scrim + centre sampler +
+   the corner panel. Sits above the whole glass ladder (alert = 1100); during a run the scrim
+   absorbs input so a stray touch can't fight the scripted camera, and the chrome is hidden
+   so the world is the only thing being stressed. */
+
+.umamark {
+  position: fixed;
+  inset: 0;
+  z-index: 1200; /* above --glass-z-alert (1100); a benchmark owns the screen outright */
+  pointer-events: none; /* transparent to the world by default (results phase) */
+}
+
+/* The run scrim: claim pointer events so manual pan/zoom can't perturb the deterministic
+   workload. Dropped the moment the run ends, so the restored chrome is reachable again. */
+.umamark--running {
+  pointer-events: auto;
+}
+
+/* Hide real chrome for the run's duration — applied by the harness to the menubar, surface
+   layers, bookmarks, minimap and MangoHorse. The world (timeline + wallpaper) stays. */
+.umamark-hidden {
+  display: none !important;
+}
+
+/* The transparency sampler — a fixed, screen-centred rectangle sized to the commit surface
+   (indicative), shown only during Test 2. The moving world behind it is what each blend mode
+   pays a different price to composite. */
+.umamark__sampler {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(calc(43.75 * var(--glass-u)), calc(100vw - 1.88 * var(--glass-u)));
+  height: calc(34 * var(--glass-u));
+  border-radius: var(--glass-radius);
+  box-shadow: var(--glass-shadow);
+  display: none;
+}
+
+.umamark__sampler--visible {
+  display: block;
+}
+
+/* Mode 1 — opaque: no alpha at all, the baseline (zero alpha-blend GPU pressure). */
+.umamark__sampler--opaque {
+  background: Canvas;
+}
+
+/* Mode 2 — simple alpha: ~10% see-through, straight per-pixel blend, no filter. */
+.umamark__sampler--alpha {
+  background: color-mix(in srgb, Canvas 90%, transparent);
+}
+
+/* Mode 3 — frost: the real glass effect the surfaces use, so the number maps to actual UI. */
+.umamark__sampler--frost {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-edge);
+}
+
+/* The corner panel — live readout during the run, results card after. Glass-styled like the
+   surfaces; always interactive (it carries the Close button). */
+.umamark__panel {
+  position: absolute;
+  top: calc(1.5 * var(--glass-u));
+  right: calc(1.5 * var(--glass-u));
+  width: calc(26 * var(--glass-u));
+  max-width: calc(100vw - 3 * var(--glass-u));
+  padding: calc(1.5 * var(--glass-u));
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-edge);
+  border-radius: var(--glass-radius);
+  box-shadow: var(--glass-shadow);
+  pointer-events: auto;
+  font: var(--ht-type-caption-size, 0.8rem) / 1.4 system-ui, sans-serif;
+}
+
+.umamark__title {
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  margin-bottom: calc(0.75 * var(--glass-u));
+}
+
+.umamark__line {
+  display: flex;
+  justify-content: space-between;
+  gap: calc(0.75 * var(--glass-u));
+}
+
+.umamark__fps {
+  opacity: 0.8;
+  font-variant-numeric: tabular-nums;
+}
+
+.umamark__bar {
+  margin-top: calc(0.5 * var(--glass-u));
+  height: calc(0.5 * var(--glass-u));
+  border-radius: 999px;
+  background: var(--glass-edge);
+  overflow: hidden;
+}
+
+.umamark__bar-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  background: currentColor;
+  transition: width 80ms linear;
+}
+
+.umamark__pct {
+  display: block;
+  margin-top: calc(0.25 * var(--glass-u));
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.8;
+}
+
+/* Results */
+.umamark__verdict {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: calc(0.75 * var(--glass-u));
+}
+
+.umamark__verdict-label {
+  opacity: 0.7;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.85em;
+}
+
+.umamark__verdict-value {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.umamark__verdict-note {
+  margin-top: calc(0.25 * var(--glass-u));
+  opacity: 0.7;
+  font-size: 0.85em;
+  line-height: 1.35;
+}
+
+.umamark__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.umamark__table th,
+.umamark__table td {
+  text-align: right;
+  padding: calc(0.2 * var(--glass-u)) calc(0.35 * var(--glass-u));
+}
+
+.umamark__table th:first-child,
+.umamark__table td:first-child {
+  text-align: left;
+}
+
+.umamark__table th {
+  opacity: 0.6;
+  font-weight: 600;
+}
+
+.umamark__extra {
+  margin-top: calc(0.5 * var(--glass-u));
+  opacity: 0.75;
+  font-variant-numeric: tabular-nums;
+}
+
+.umamark__close {
+  margin-top: var(--glass-u);
+  width: 100%;
+  padding: calc(0.6 * var(--glass-u));
+  border: 1px solid var(--glass-edge);
+  border-radius: var(--glass-radius);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.umamark__close:hover {
+  background: var(--glass-edge);
+}

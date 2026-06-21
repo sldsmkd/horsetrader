@@ -40,6 +40,8 @@ import { commitDossier, commitTitle } from "./views/surfaces/commitDossier.ts";
 import { commitContext } from "./select/commit.ts";
 import type { CommitBinding } from "./views/bannerGroup.ts";
 import { betaSurface } from "./views/surfaces/betaSurface.ts";
+import { presentConfirm } from "./views/surfaces/confirm.ts";
+import { createUmaMark } from "./umamark/umamark.ts";
 import { reconcileOnLoad, fetchAuth, syncNow } from "../core/cloud/index.ts";
 import type { AuthState, SyncResult } from "../core/cloud/index.ts";
 import { presentCloudConflict } from "./views/surfaces/cloudConflict.ts";
@@ -167,6 +169,9 @@ export function mountApp(
   root: HTMLElement = qs("#app"),
 ): void {
   const view = createViewStore();
+  // UmaMark's feature flag: `?umamark` (per-session, not persisted) reveals the Beta chamber
+  // that hosts the benchmark launcher. See grand-masters/umamark.md.
+  const umamarkEnabled = new URLSearchParams(window.location.search).has("umamark");
   const search = createSearchIndex(bundle, now);
   const identity = createIdentityController(coord, bundle);
   const identityMachine = createMachine<PlayStyleMachineState, PlayStyleMachineEvent>(
@@ -258,6 +263,7 @@ export function mountApp(
     onIdentity: () => sendIdentityEvent({ type: "toggle-identity" }),
     onResources: () => toggleRight("resources"),
     onBeta: () => toggleRight("beta"),
+    showBeta: umamarkEnabled,
     search,
     onSearch: (result) => {
       view.set({ search: result.label, selection: result.id });
@@ -355,6 +361,29 @@ export function mountApp(
   // resources off the right). Sibling to the bar today; the coherent-scale wrapper folds
   // both together next.
   const chromeDropdowns = h("div", { class: "chrome-dropdowns" });
+
+  // UmaMark — the deterministic benchmark (grand-masters/umamark.md). It scripts the camera
+  // (tl.bench) and reads Darley's perf instrument; for the run it hides all chrome so the
+  // world is the only thing stressed, then restores it. Constructed here, once every chrome
+  // element it suppresses exists. Reachable only under `?umamark`, via the Beta chamber.
+  const umamark = createUmaMark({
+    timeline: tl,
+    perf,
+    mount: root,
+    chrome: [menu.el, chromeDropdowns, surfaceLayer, book.el, mini.el, hud.el],
+  });
+  const launchUmaMark = (): void => {
+    presentConfirm({
+      title: "Run UmaMark",
+      message:
+        "UmaMark takes over the screen and drives a fixed camera workload over the timeline (~30–60s). Leave the screen alone while it runs.",
+      confirmLabel: "Run",
+      onConfirm: () => {
+        view.set({ right: null }); // close the chamber; the harness hides the rest of the chrome
+        void umamark.run();
+      },
+    });
+  };
   const closeOshiSelector = () => sendIdentityEvent({ type: "close-oshi" });
   const closeClubSelector = () => sendIdentityEvent({ type: "close-club" });
   const previewPlayStyle = (key: PlayStyleKey): void => sendIdentityEvent({ type: "preview-playstyle", key });
@@ -573,7 +602,7 @@ export function mountApp(
         title: "Beta",
         placement: "right",
         headerless: true,
-        body: betaSurface(() => view.set({ right: null })),
+        body: betaSurface({ onClose: () => view.set({ right: null }), onRunUmaMark: launchUmaMark }),
         onClose: () => view.set({ right: null }),
       });
       children.push(betaCard);

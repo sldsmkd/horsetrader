@@ -46,9 +46,11 @@ export interface MenubarOpts {
   onHome: () => void;
   onIdentity: () => void;
   onResources: () => void;
-  /** Parked: the beta chamber renders no entry right now, so this is currently unused —
-   *  kept as the seam for when the chamber is revived for the next graduating feature. */
+  /** The beta chamber's spawn seam. Rendered only when `showBeta` is set (the `?umamark`
+   *  flag), revealing the chamber that hosts UmaMark — see grand-masters/umamark.md. */
   onBeta: () => void;
+  /** Reveal the 🔨 Beta chamber entry. Off by default; the `?umamark` flag turns it on. */
+  showBeta?: boolean;
   search: SearchIndex;
   onSearch: (result: SearchResult) => void;
 }
@@ -89,11 +91,26 @@ export function menubar(opts: MenubarOpts): Menubar {
     identityIcon,
     identityName,
   );
-  // Beta (🔨): the WIP isolation chamber is PARKED — its first tenant (Unity cloud
-  // auth/sync) has graduated onto the trainer card, so the chamber is empty. We keep the
-  // surface plumbing (RightSurface "beta", onBeta, the renderSurfaces branch) but render
-  // no entry, so it's inactive + hidden until the next big feature graduates through it;
-  // reviving it is just re-adding the icon button below to the right cluster.
+  // Beta (🔨): the WIP isolation chamber. Normally rendered no entry (parked), but the
+  // `?umamark` flag (showBeta) revives it to host UmaMark — the benchmark needs a touch-
+  // reachable launcher since F2 is desktop-only (grand-masters/umamark.md). The surface
+  // plumbing (RightSurface "beta", onBeta, the renderSurfaces branch) has always been here;
+  // the flag just re-adds the icon button to the right cluster.
+  const beta = opts.showBeta
+    ? h(
+        "button",
+        {
+          class: "menubar__item menubar__button menubar__beta",
+          attr: { type: "button", "aria-label": "Beta chamber", title: "Beta chamber" },
+          on: { click: opts.onBeta },
+        },
+        "🔨",
+      )
+    : null;
+
+  const rightCluster = beta
+    ? h("div", { class: "menubar__cluster menubar__cluster--right" }, beta, balance)
+    : h("div", { class: "menubar__cluster menubar__cluster--right" }, balance);
 
   const el = h(
     "nav",
@@ -114,19 +131,15 @@ export function menubar(opts: MenubarOpts): Menubar {
       identity,
     ),
     search,
-    h("div", { class: "menubar__cluster menubar__cluster--right" }, balance),
+    rightCluster,
   );
 
   // Two independent highlight groups: the left group is the single identity
   // button (a plain on/off), the right group is a pressed-group over its members
   // (at most one lit). Both can be lit at once — left and right are independent.
-  const setRightPressed = pressedGroup(
-    new Map<RightSurface, HTMLElement>([
-      ["resources", balance],
-      // "beta" is parked (no entry rendered) — omitted until the chamber is revived.
-    ]),
-    "menubar__button--active",
-  );
+  const rightMembers = new Map<RightSurface, HTMLElement>([["resources", balance]]);
+  if (beta) rightMembers.set("beta", beta); // revived only under the `?umamark` flag
+  const setRightPressed = pressedGroup(rightMembers, "menubar__button--active");
 
   function setLeftActive(active: boolean): void {
     identity.setAttribute("aria-pressed", String(active));
@@ -137,7 +150,7 @@ export function menubar(opts: MenubarOpts): Menubar {
 
   // The surface spawners a modal locks — every *live* menu item that opens a
   // same-layer surface (not home/search, which are navigation).
-  const lockable: HTMLButtonElement[] = [identity, balance];
+  const lockable: HTMLButtonElement[] = [identity, balance, ...(beta ? [beta] : [])];
   function setLocked(locked: boolean): void {
     for (const button of lockable) {
       button.disabled = locked;
