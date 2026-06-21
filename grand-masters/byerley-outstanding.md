@@ -4,6 +4,15 @@ Cold-start pickup for Part 1. Full design + rationale is in
 [byerley-turk.md](byerley-turk.md); project frame in [grand-masters.md](grand-masters.md).
 This file is just *what's left*.
 
+> **CLOSED 2026-06-21.** Everything below is done. Byerley Part 1 shipped and deployed; the
+> two items it handed forward both landed in **Darley** (Part 2, also merged + deployed): the
+> rail-extent seam was built (glass-u→px bridge), and the parked `--glass-blur` decision was
+> *settled by measurement* — **UmaMark** benchmarked frost as cheap (free on a 7900XT, +1ms p95
+> on a 60Hz iPhone 14), so it stays always-on. The only remaining thread is the **Godolphin**
+> (Part 3) mobile seam — now with a concrete first target: UmaMark's Fillrate pass measured the
+> iPhone dropping to 44fps / 40% over on a worst-case fast pan (main-thread card churn, *not*
+> frost). Per-item status updated inline below.
+
 ## Status — shipped (branch `byerley-turk`)
 
 Commits on the branch: `7b0173e` (turk baseline) → `cb46791` (tidy up views) →
@@ -80,12 +89,16 @@ across 32 CSS files + the `surface--modal` bugfix.
      documented as the *world* plane's own paint order — deliberately outside the glass
      depth ladder (`--glass-z-*`).
 
-3. **Parked decision — register backdrop blur.** `--glass-blur` (`backdrop-filter`)
-   re-rasterizes the live timeline every frame; brutal on CPU/GPU, especially mobile.
-   Left in (looks right) but **un-settled — benchmark before locking**; may need a perf
-   budget / reduced radius / opaque fallback. Revisit owned by **Darley** (hardware) +
-   **Godolphin** (mobile); the token is the one knob. See byerley-turk.md "Parked
-   decision".
+3. **Parked decision — register backdrop blur — RESOLVED 2026-06-21 (KEEP, always-on).**
+   `--glass-blur` (`backdrop-filter`) re-rasterizes the live timeline every frame, so it was
+   left in (looks right) but un-settled pending a benchmark. **UmaMark** (the deterministic
+   benchmark built in Darley's perf half — see [umamark.md](umamark.md)) supplied the
+   measurement: frost is **cheap, not the mobile killer it was feared to be** — free on a
+   desktop 7900XT (vsync-bound, +0.0ms) and just **+1.0ms p95** over opaque on a 60Hz iPhone 14
+   (the alpha/blend compositor path is fast on real mobile hardware). No perf budget / reduced
+   radius / opaque-fallback needed on perf grounds. (`prefers-reduced-transparency` remains an
+   *accessibility* option, orthogonal to perf — parked, not required.) The token stays the one
+   knob if a future device ever changes the answer.
 
 4. **Loose end — the paint lifts — SETTLED 2026-06-20 (KEEP).** `--glass-z-chrome` /
    `--glass-z-modal` / `--glass-z-alert` stay. They aren't modality (the lock handles
@@ -95,23 +108,26 @@ across 32 CSS files + the `surface--modal` bugfix.
 
 ## Seams — explicitly NOT Byerley
 
-- **Darley (Part 2):** real `--glass-u` px derivation (fix-height / derive-width,
-  `vmin`/`clamp`, responsive zoom limits), the camera-meets-display seam. The shim is
-  hers to replace (delete-on-Darley).
-  - **Plane extents → glass-u (handed to Darley 2026-06-20).** The world *cards* stay
-    their own thing (camera-scaled world units — `bannerGroup`/`belowCard`/`card`, the
-    `timeline/constants.ts` feel knobs). But the plane's screen-fixed extents want glass-u
-    too — and the load-bearing one isn't a clean CSS swap: `TRACK_RAIL_VISUAL_PX = 32`
-    ([constants.ts](../horsetrader.site/js/src/ui/views/timeline/constants.ts)) feeds BOTH
-    the CSS visual (`--timeline-rail-height`, set inline in timeline.ts) AND the JS
-    derail-gesture math (timeline.ts ~L191, `TRACK_DERAIL_PX + TRACK_RAIL_VISUAL_PX / 2`).
-    So the rail extent is one screen-px value shared by CSS-visual + JS-gesture-feel;
-    moving it to glass-u means threading the real glass-u→px value into the JS feel layer
-    — exactly Darley's derivation. Move them together or they desync.
-- **Godolphin (Part 3):** mobile/touch/alternate representations. The phone stopgap
-  stays as-is.
+- **Darley (Part 2) — DONE 2026-06-21 (merged + deployed).** Real `--glass-u` px derivation
+  (the shim became `--glass-u-base: clamp(7px, min(1svh, 2svw), 20px)`), responsive zoom limits
+  (`zMin` derived from fit-to-height, `zMax` left feel), and the camera-meets-display seam, all
+  built and signed off across all 5 deliverables + a real-iPhone mobile pass.
+  - **Plane extents → glass-u — DONE.** The load-bearing rail seam landed: new
+    [glassUnit.ts](../horsetrader.site/js/src/ui/glassUnit.ts) is the glass-u→px bridge
+    (`resolveLengthPx` probe), `--timeline-rail-height` is the single CSS source
+    (`calc(2.5 × --glass-u)`), timeline.ts reads it cached through the bridge, the
+    `TRACK_RAIL_VISUAL_PX` constant is **deleted**, and `railSeam.test.ts` guards the coupling
+    so a later tidy can't fold one side back to a constant. (The world *cards* stay
+    camera-scaled world units, as designed.)
+- **Godolphin (Part 3):** mobile/touch/alternate representations — the one remaining seam.
+  The phone stopgap stays as-is. **Concrete first target (new):** UmaMark's Fillrate pass
+  measured the iPhone dropping to 44fps / 40% over budget / 105ms max single frame on a
+  worst-case fast pan — main-thread card **churn** (mount/unmount across the cull boundary +
+  paint of entering cards), *not* GPU/frost. Ties back to Trackblazer (culling was the win,
+  pooling parked as "not needed" — on desktop); this is the first evidence pooling/batching
+  might earn its keep on a phone.
 
 ## Verify (from `horsetrader.site/`)
 
-`npm run check` (tsc) · `npm run build` (esbuild) · `npm test` (243 tests) · dev server
+`npm run check` (tsc) · `npm run build` (esbuild) · `npm test` (245 tests) · dev server
 on `:3000` for eyeball (reuse the standing one; don't screenshot-verify UI tweaks).
