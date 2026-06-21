@@ -57,15 +57,15 @@ const ACADEMY: Academy = {
 
 const bundle = () => createBundle(EVENTS, ACADEMY, TEST_CONFIG);
 
-test("cardDetails(trainee): name via character, ★ rarity, portrait art, variant+title facets, source", () => {
+test("cardDetails(trainee): name via character, ★ rarity, portrait art, variant facet + title tagline, source", () => {
   const d = cardDetails(bundle(), "trainee", "t-spe");
   assert.equal(d.name, "Special Week");
   assert.equal(d.rarity, "3★");
   assert.equal(d.rarityTier, "crystal");
   assert.equal(d.art, "/img/t-spe-portrait.webp"); // portrait preferred over thumbnail
+  assert.equal(d.tagline, "[Jubilant Star]"); // title reads as the flavour tagline
   assert.deepEqual(d.facets, [
     { label: "Variant", value: "Special Dreamer" },
-    { label: "Title", value: "[Jubilant Star]" },
   ]);
   assert.equal(d.source, "https://gametora.com/umamusume/characters/100101-special-week");
   // Bio vitals project off the resolved character, formatted for display.
@@ -90,15 +90,15 @@ test("cardDetails(trainee): name via character, ★ rarity, portrait art, varian
   ]);
 });
 
-test("cardDetails(support): display name, uppercased rarity, art hero, type pip + title facets", () => {
+test("cardDetails(support): display name, uppercased rarity, art hero, type pip facet + title tagline", () => {
   const d = cardDetails(bundle(), "support", "s-spe");
   assert.equal(d.name, "Special Week");
   assert.equal(d.rarity, "SSR");
   assert.equal(d.rarityTier, "crystal");
   assert.equal(d.art, "/img/s-spe-art.webp"); // art preferred over thumbnail
+  assert.equal(d.tagline, "The Setting Sun And Rising Stars"); // title reads as the flavour tagline
   assert.deepEqual(d.facets, [
     { label: "Type", value: "Guts", attribute: "guts" },
-    { label: "Title", value: "The Setting Sun And Rising Stars" },
   ]);
   assert.equal(d.source, "https://gametora.com/umamusume/supports/30001-special-week");
   assert.equal(d.aptitudes, null); // supports carry no aptitude block
@@ -109,7 +109,8 @@ test("cardDetails: a null source carries through (the view omits the link)", () 
   assert.equal(d.source, null);
   assert.equal(d.art, "/img/s-bare-thumb.webp"); // no art → thumbnail
   assert.equal(d.rarityTier, "gold"); // non-ssr
-  assert.deepEqual(d.facets, []); // no type, no title
+  assert.equal(d.tagline, null); // no title → no tagline
+  assert.deepEqual(d.facets, []); // no type
 });
 
 test("cardDetails: bio is empty when the character is absent or its members are null", () => {

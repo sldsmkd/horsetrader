@@ -1,17 +1,40 @@
+/* The card is art-forward and narrower than the generic 45u modal — size that modal
+   down to the card so it doesn't leave a loose empty column on the right. The width is
+   chosen to seat the four-slot Distance/Strategy aptitude rows on one line. */
+.surface--modal:has(> .surface__body > .card-surface) {
+  width: min(calc(34 * var(--glass-u)), calc(100vw - 1.88 * var(--glass-u)));
+}
+
 .card-surface {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   gap: calc(1.13 * var(--glass-u));
-  min-width: calc(20 * var(--glass-u));
-  max-width: calc(26 * var(--glass-u));
+  width: 100%;
 }
 
-/* ART HERO — the surface's reason to exist; sized to lead the column. */
+/* TOP — art hero beside its identity column. */
+.card-surface__top {
+  display: flex;
+  align-items: flex-start;
+  gap: calc(1.13 * var(--glass-u));
+  width: 100%;
+}
+
+/* IDENTITY COLUMN — name, tagline, facets, set beside the art. */
+.card-surface__intro {
+  display: flex;
+  flex-direction: column;
+  gap: calc(0.94 * var(--glass-u));
+  flex: 1;
+  min-width: 0;
+}
+
+/* ART HERO — the surface's reason to exist; sized to anchor the top row. */
 .card-surface__art {
   position: relative;
-  width: calc(15 * var(--glass-u));
-  max-width: 100%;
+  width: calc(13 * var(--glass-u));
+  flex: none;
   aspect-ratio: 3 / 4;
   border-radius: 0.5rem;
   overflow: hidden;
@@ -34,13 +57,21 @@
   background: var(--ht-control-bg);
 }
 
-/* IDENTITY — name + rarity. */
+/* IDENTITY — name + rarity + tagline. */
 .card-surface__head {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   gap: calc(0.38 * var(--glass-u));
-  text-align: center;
+}
+
+/* TAGLINE — the card's flavour title, quiet and italic under the name. */
+.card-surface__tagline {
+  margin: 0;
+  font-style: italic;
+  font-size: var(--ht-type-label-size);
+  line-height: var(--ht-type-label-line);
+  opacity: 0.75;
 }
 
 .card-surface__name {
@@ -99,7 +130,9 @@
   height: calc(1.13 * var(--glass-u));
 }
 
-/* APTITUDES — trainee base grades, three axes stacked. */
+/* APTITUDES — trainee base grades, the in-game slot pills. The axis label sits on
+ * its own line above its row so the full width is free for the pills — Distance and
+ * Strategy then seat all four slots on a single row. */
 .card-surface__aptitudes {
   display: flex;
   flex-direction: column;
@@ -121,27 +154,34 @@
   opacity: 0.55;
 }
 
+/* Four fixed columns — Distance/Strategy fill all four on one row; Surface fills the
+   first two and leaves the rest empty (the in-game alignment), with no width math that
+   can spill a slot onto a second line. */
 .card-surface__apt-grades {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: calc(0.31 * var(--glass-u));
+  gap: calc(0.44 * var(--glass-u));
 }
 
+/* One slot pill — the slot name and its colour-coded grade letter, side by side. */
 .card-surface__apt-cell {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: calc(0.13 * var(--glass-u));
+  gap: calc(0.38 * var(--glass-u));
+  padding: calc(0.31 * var(--glass-u)) calc(0.56 * var(--glass-u));
+  border: 1px solid var(--ht-control-border-quiet);
+  border-radius: var(--ht-control-radius-soft);
 }
 
 .card-surface__apt-slot {
-  font-size: var(--ht-type-micro-size);
-  line-height: var(--ht-type-micro-line);
+  font-size: var(--ht-type-label-size);
+  line-height: var(--ht-type-label-line);
   opacity: 0.7;
 }
 
 .card-surface__apt-rank {
-  font-size: var(--ht-type-surface-title-size);
+  margin-left: auto;
+  font-size: var(--ht-type-label-size);
   font-weight: var(--ht-type-surface-title-weight);
   line-height: 1;
   /* The semantic aptitude band (css/palette.css); resolved per grade below. */
@@ -156,12 +196,15 @@
 .card-surface__apt-rank[data-rank="a"] { color: var(--ht-colour-aptitude-a); }
 .card-surface__apt-rank[data-rank="s"] { color: var(--ht-colour-aptitude-s); }
 
-/* NOTE — the trainer's why; reads as text, lifts to an input on focus. */
+/* NOTE — the trainer's why; reads as text, lifts to an input on focus. A fixed,
+   comfortable box (it doesn't scale to the card) — capped so it doesn't run to the
+   far edge. */
 .card-surface__note {
   display: flex;
   flex-direction: column;
   gap: calc(0.31 * var(--glass-u));
   width: 100%;
+  max-width: calc(24 * var(--glass-u));
 }
 
 .card-surface__note-label {
@@ -175,7 +218,7 @@
 .card-surface__note-input {
   width: 100%;
   min-width: 0;
-  resize: vertical;
+  resize: none;
   padding: calc(0.5 * var(--glass-u)) calc(0.63 * var(--glass-u));
   border: 1px solid var(--ht-control-border-quiet);
   border-radius: var(--ht-control-radius-soft);
@@ -204,7 +247,10 @@
   outline: 0;
 }
 
+/* Dismiss — a standard control-language button at its natural width, centred (the card
+   stretches its rows, so this opts back out rather than reading as a full-width bar). */
 .card-surface__close {
+  align-self: center;
   min-width: calc(6.88 * var(--glass-u));
   padding: calc(0.69 * var(--glass-u)) calc(1.13 * var(--glass-u));
   border: 1px solid var(--ht-control-border);

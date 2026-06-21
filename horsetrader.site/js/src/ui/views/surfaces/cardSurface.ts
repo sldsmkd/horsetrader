@@ -46,7 +46,7 @@ function noteBox(note: string, onSetNote: (text: string) => void): HTMLElement {
     h("span", { class: "card-surface__note-label" }, "Note"),
     h("textarea", {
       class: "card-surface__note-input",
-      attr: { placeholder: "Why this one?", maxlength: NOTE_MAX_LENGTH, rows: 2 },
+      attr: { placeholder: "Why this one?", maxlength: NOTE_MAX_LENGTH, rows: 4 },
       on: {
         blur: (e) => onSetNote((e.target as HTMLTextAreaElement).value),
         keydown: (e) => {
@@ -109,30 +109,42 @@ export function cardSurface(opts: CardSurfaceOpts): HTMLElement {
     "section",
     { class: `card-surface card-surface--${card.rarityTier}` },
 
-    // Art hero — the reason the surface earns its space.
+    // Top — the art hero beside its identity column (name, tagline, facets).
     h(
       "div",
-      { class: "card-surface__art" },
-      card.art
-        ? h("img", { class: "card-surface__art-img", attr: { src: card.art, alt: "", loading: "lazy" } })
-        : h("div", { class: "card-surface__art-img card-surface__art-img--empty", attr: { "aria-hidden": "true" } }),
-    ),
+      { class: "card-surface__top" },
 
-    // Identity — name + rarity badge.
-    h(
-      "header",
-      { class: "card-surface__head" },
-      h("h2", { class: "card-surface__name" }, card.name),
-      card.rarity ? h("span", { class: `card-surface__rarity card-surface__rarity--${card.rarityTier}` }, card.rarity) : null,
-    ),
+      // Art hero — the reason the surface earns its space.
+      h(
+        "div",
+        { class: "card-surface__art" },
+        card.art
+          ? h("img", { class: "card-surface__art-img", attr: { src: card.art, alt: "", loading: "lazy" } })
+          : h("div", { class: "card-surface__art-img card-surface__art-img--empty", attr: { "aria-hidden": "true" } }),
+      ),
 
-    // Facets — the kind-appropriate identity lines + release.
-    h(
-      "dl",
-      { class: "card-surface__facets" },
-      ...card.facets.map(facetRow),
-      ...card.bio.map(facetRow),
-      facetRow({ label: "Released", value: formatDate(card.release) }),
+      // Identity column — name + rarity, the flavour tagline, then the facets.
+      h(
+        "div",
+        { class: "card-surface__intro" },
+
+        h(
+          "header",
+          { class: "card-surface__head" },
+          h("h2", { class: "card-surface__name" }, card.name),
+          card.rarity ? h("span", { class: `card-surface__rarity card-surface__rarity--${card.rarityTier}` }, card.rarity) : null,
+          card.tagline ? h("p", { class: "card-surface__tagline" }, card.tagline) : null,
+        ),
+
+        // Facets — the kind-appropriate identity lines + bio vitals + release.
+        h(
+          "dl",
+          { class: "card-surface__facets" },
+          ...card.facets.map(facetRow),
+          ...card.bio.map(facetRow),
+          facetRow({ label: "Released", value: formatDate(card.release) }),
+        ),
+      ),
     ),
 
     // Aptitudes — trainee only; the borrowed stat table stops at the door, but the
@@ -152,7 +164,7 @@ export function cardSurface(opts: CardSurfaceOpts): HTMLElement {
             class: "card-surface__link",
             attr: { href: card.source, target: "_blank", rel: "noopener noreferrer" },
           },
-          "full stats ↗",
+          "View on GameTora ↗",
         )
       : null,
 

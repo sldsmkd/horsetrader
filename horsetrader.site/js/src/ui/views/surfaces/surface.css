@@ -89,6 +89,16 @@
   z-index: 1;
 }
 
+/* Suspended = visibly inert: grey the *content* back so the controls read as
+   un-interactable while a surface in front owns the foreground (the .surface__lock
+   overlay already swallows the clicks; this just makes that legible). Scoped to the
+   body, not the card, so the surface keeps its glass — fading the whole element
+   composites its backdrop-blur away and the timeline shows through. */
+.surface--locked > .surface__body {
+  opacity: 0.55;
+  filter: grayscale(0.4);
+}
+
 .surface--left {
   left: calc(0.94 * var(--glass-u));
   width: min(calc(43.75 * var(--glass-u)), calc(100vw - 1.88 * var(--glass-u)));

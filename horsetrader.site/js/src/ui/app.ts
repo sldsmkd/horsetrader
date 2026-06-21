@@ -707,6 +707,11 @@ export function mountApp(
       (node instanceof HTMLElement && node.classList.contains("surface--modal") ? modals : rail).push(node);
     }
     if (anyModal) rail.forEach((node) => node instanceof HTMLElement && lockSurface(node));
+    // A modal spawned from another modal (e.g. a card detail off the commit dossier)
+    // stacks above its parent (DOM order = paint order, equal z-index). Suspend every
+    // modal beneath the topmost so its controls can't be reached through the card in
+    // front. (The richer cross-spawner rules can come when cards spawn from elsewhere.)
+    modals.slice(0, -1).forEach((node) => node instanceof HTMLElement && lockSurface(node));
     chromeDropdowns.replaceChildren(...rail);
     surfaceLayer.replaceChildren(...modals);
     // Now the cards are live + laid out: height-match the play-style window to the trainer

@@ -41,6 +41,9 @@ export interface CardDetails {
   name: string;
   rarity: string;
   rarityTier: RarityTier;
+  /** The character/card flavour title, rendered as an italic tagline under the
+   *  name — `null` when the bake carries none. */
+  tagline: string | null;
   /** The hero art src, or `null` when the bake lacks one (renders an empty frame). */
   art: string | null;
   facets: Facet[];
@@ -108,10 +111,10 @@ export function cardDetails(bundle: Bundle, kind: BannerKind, id: string): CardD
       name: character.name ?? id,
       rarity: `${t.rarity}★`,
       rarityTier: t.rarity >= 3 ? "crystal" : "gold",
+      tagline: t.title,
       art: t.portrait ?? t.thumbnail,
       facets: [
         { label: "Variant", value: t.variant },
-        ...(t.title ? [{ label: "Title", value: t.title }] : []),
       ],
       bio: bioFacets(character),
       release: t.release,
@@ -126,10 +129,10 @@ export function cardDetails(bundle: Bundle, kind: BannerKind, id: string): CardD
     name: s.display ?? character?.name ?? id,
     rarity: (s.rarity ?? "").toUpperCase(),
     rarityTier: (s.rarity ?? "").toLowerCase() === "ssr" ? "crystal" : "gold",
+    tagline: s.title,
     art: s.art ?? s.thumbnail,
     facets: [
       ...(s.type ? [{ label: "Type", value: titleCase(s.type), attribute: s.type }] : []),
-      ...(s.title ? [{ label: "Title", value: s.title }] : []),
     ],
     bio: bioFacets(character),
     release: s.release,
