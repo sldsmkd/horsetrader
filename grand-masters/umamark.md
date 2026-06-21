@@ -155,6 +155,45 @@ menubar entry). The chamber's visibility **is the feature flag**:
   start = launch edge, fitted zoom — every run begins identically) → hide surfaces → run.
 - F2 / MangoHorse untouched.
 
+## Result — the blur verdict, SETTLED (2026-06-21)
+
+Built and run on two devices. **Keep the always-on frost** — its own cost is measured as
+negligible everywhere. But the two runs are *not* the same story, and the difference is the
+honest finding:
+
+- **Desktop (7900XT, 144Hz):** fully **vsync-bound with headroom** — every percentile pinned
+  to ~6.9ms, **0% over budget**, frost↔opaque delta **+0.0ms**. Frost is free; the GPU finishes
+  every frame inside the refresh deadline, and page JS can't see sub-frame GPU time, so there's
+  nothing to observe because there's nothing to pay.
+- **iPhone 14 (60Hz, budget 15.6ms):** frost is **cheap, not literally free**. The three
+  transparency modes hold **59fps / 6% over**, p95 24 / 24 / **25**ms — frost↔opaque delta
+  **+0.0ms p50, +1.0ms p95**. That ~1ms at p95 is a *real* measured cost (the run wasn't
+  vsync-bound, and the card said so), but ~4% of a frame → trivially affordable.
+
+So the **`--glass-blur` blur verdict is resolved: keep always-on frost** (Byerley's parked
+state stands) — free on desktop, +1ms p95 on a mid 60Hz phone, no measured reason to drop it.
+
+**Separate, bigger finding (NOT a blur question → Godolphin/Part 3):** the **Fillrate** pass
+exposed that the iPhone genuinely struggles with the worst-case fast full-speed pan — **44fps,
+40% over budget, p99 49ms, max 105ms** (paint + cull churn at 50%/frame, no sampler involved).
+The phone is not headroom-rich; frost was never the bottleneck — fast-pan fill is. A real
+mobile-perf datapoint for Godolphin, captured for free as a side effect.
+
+Two instrument bugs the first run exposed and fixed (`ui/perf.ts`): (1) the device budget was
+learning the fastest *single* frame and latched a 4.0ms coalesced-frame artifact — now derived
+from **peak windowed fps** (vsync-capped, immune to single-frame spikes); (2) per-frame
+over-budget counted any frame `> budget` (so vsync jitter read 100% over) — now counts genuine
+misses only (`≥ 1.5× refresh`). The results card also interprets a vsync-bound run in words so
+`+0.0ms` reads as "free here", not "broken". Open sanity note: the iPhone 14 run reported
+~144fps (a 60Hz panel) — verdict holds at any refresh, but the iOS fps integration is worth an
+eyeball someday.
+
+**Status: harness kept, path retired.** The `?umamark` URL trigger was removed (`app.ts`
+`umamarkEnabled = false`) now the verdict is in, but the whole harness + Beta-chamber launcher
++ `perf.capture()` + the timeline `bench` seam are left **intact and revivable** (flip the one
+constant) for the next perf question — mobile regressions, a culling change, a new heavy
+surface, zoom cost. It costs nothing to keep.
+
 ## Starting point (as-built, on `darley-arabian`)
 
 - `ui/perf.ts` — `perfInstrument({ drainChurn })` → `{ snapshot(), subscribe() }`;

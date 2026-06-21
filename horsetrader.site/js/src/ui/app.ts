@@ -169,9 +169,12 @@ export function mountApp(
   root: HTMLElement = qs("#app"),
 ): void {
   const view = createViewStore();
-  // UmaMark's feature flag: `?umamark` (per-session, not persisted) reveals the Beta chamber
-  // that hosts the benchmark launcher. See grand-masters/umamark.md.
-  const umamarkEnabled = new URLSearchParams(window.location.search).has("umamark");
+  // UmaMark's launcher lives in the Beta chamber but is currently UN-SURFACED. The `?umamark`
+  // URL path was retired once the blur verdict was settled (UmaMark measured frost as free —
+  // vsync-bound with headroom — on both a 7900XT and a mid iPhone). The benchmark harness +
+  // its surfaces are kept intact for the next perf question; revive by flipping this to true
+  // (or restoring a URL/flag read). See grand-masters/umamark.md.
+  const umamarkEnabled = false;
   const search = createSearchIndex(bundle, now);
   const identity = createIdentityController(coord, bundle);
   const identityMachine = createMachine<PlayStyleMachineState, PlayStyleMachineEvent>(
