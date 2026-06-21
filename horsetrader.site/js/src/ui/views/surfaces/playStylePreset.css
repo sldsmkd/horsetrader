@@ -6,7 +6,10 @@
 
 .playstyle-preset {
   display: grid;
-  grid-template-columns: minmax(calc(3.5 * var(--glass-u)), 31%) 1fr;
+  /* Icon column sized to the icon, not a 31% share — the captions are full sentences and
+     need every spare px of the copy column to avoid wrapping to three lines (which made
+     the buttons grow, especially in the narrower book layout beside the play-style window). */
+  grid-template-columns: calc(3.5 * var(--glass-u)) 1fr;
   align-items: center;
   gap: calc(0.69 * var(--glass-u));
   min-height: calc(5 * var(--glass-u));
@@ -84,6 +87,9 @@
 }
 
 .playstyle-preset__name {
+  /* The longest names ("DEDICATED", "UNHINGED") overran the copy column at the inherited
+     body size — step down to the control size so every name fits one line in the button. */
+  font-size: var(--ht-type-control-size);
   font-weight: var(--ht-type-surface-title-weight);
   line-height: var(--ht-type-surface-title-line);
   text-transform: uppercase;
@@ -92,9 +98,16 @@
 .playstyle-preset__caption {
   min-width: 0;
   color: color-mix(in srgb, currentColor 64%, transparent);
-  font-size: var(--ht-type-micro-size);
+  /* Sub-token: the compact preview's copy column only fits ~two short words a line, so the
+     flavour caption sits just below the micro token (the full description is in the side
+     window). Clamped to two lines so a long caption can't grow the button to three. */
+  font-size: calc(0.72 * var(--glass-u));
   line-height: var(--ht-type-micro-line);
   text-transform: uppercase;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
 }
 
 @media (max-width: 620px) {

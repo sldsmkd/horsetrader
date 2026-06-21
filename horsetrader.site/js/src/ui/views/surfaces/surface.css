@@ -43,8 +43,13 @@
   position: absolute;
   top: 0;
   left: 0;
+  width: 100%;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, min(calc(43.75 * var(--glass-u)), calc((100vw - 2.5 * var(--glass-u)) / 2))));
+  /* The book is always [trainer card, play-style window]. The trainer card holds the same
+     fixed width it has standalone (so toggling the window doesn't shift it by a px); the
+     window takes what's left, shrinking first when the viewport can't fit both at full
+     width. (Below 860px the media query drops to a single column.) */
+  grid-template-columns: min(calc(43.75 * var(--glass-u)), 100%) minmax(0, calc(43.75 * var(--glass-u)));
   align-items: start;
   gap: calc(0.63 * var(--glass-u));
   max-height: var(--chrome-dropdown-max-height);
