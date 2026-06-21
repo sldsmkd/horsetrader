@@ -173,11 +173,13 @@ honest finding:
 So the **`--glass-blur` blur verdict is resolved: keep always-on frost** (Byerley's parked
 state stands) — free on desktop, +1ms p95 on a mid 60Hz phone, no measured reason to drop it.
 
-**Separate, bigger finding (NOT a blur question → Godolphin/Part 3):** the **Fillrate** pass
-exposed that the iPhone genuinely struggles with the worst-case fast full-speed pan — **44fps,
-40% over budget, p99 49ms, max 105ms** (paint + cull churn at 50%/frame, no sampler involved).
-The phone is not headroom-rich; frost was never the bottleneck — fast-pan fill is. A real
-mobile-perf datapoint for Godolphin, captured for free as a side effect.
+**Separate finding (NOT a blur question) — ACCEPTED AS-IS, not pursued:** the **Fillrate** pass
+exposed that the iPhone struggles with the worst-case fast full-speed pan — **44fps, 40% over
+budget, p99 49ms, max 105ms** (paint + cull churn at 50%/frame, no sampler involved). The phone
+is not headroom-rich; frost was never the bottleneck — fast-pan fill is. User call (2026-06-21):
+that's not how the app is used — fling-scrubbing is bells-and-whistles, degraded-not-broken,
+chugging is fine. So the Trackblazer pooling/batching revisit **stays parked**, *not* a Godolphin
+deliverable. Banked as a measured datapoint only, so it isn't re-litigated as live work.
 
 Two instrument bugs the first run exposed and fixed (`ui/perf.ts`): (1) the device budget was
 learning the fastest *single* frame and latched a 4.0ms coalesced-frame artifact — now derived

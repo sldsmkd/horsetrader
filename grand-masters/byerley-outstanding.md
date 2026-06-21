@@ -119,13 +119,20 @@ across 32 CSS files + the `surface--modal` bugfix.
     `TRACK_RAIL_VISUAL_PX` constant is **deleted**, and `railSeam.test.ts` guards the coupling
     so a later tidy can't fold one side back to a constant. (The world *cards* stay
     camera-scaled world units, as designed.)
-- **Godolphin (Part 3):** mobile/touch/alternate representations — the one remaining seam.
-  The phone stopgap stays as-is. **Concrete first target (new):** UmaMark's Fillrate pass
-  measured the iPhone dropping to 44fps / 40% over budget / 105ms max single frame on a
-  worst-case fast pan — main-thread card **churn** (mount/unmount across the cull boundary +
-  paint of entering cards), *not* GPU/frost. Ties back to Trackblazer (culling was the win,
-  pooling parked as "not needed" — on desktop); this is the first evidence pooling/batching
-  might earn its keep on a phone.
+- **Godolphin (Part 3) — DEFERRED; phone is NOT a supported target right now.** Byerley's
+  pixel-free abstraction + Darley's single mapping made the phone *incidentally usable* — a
+  byproduct of getting the substrate right, **not** a support commitment. So this isn't a
+  near-term routing chore. When/if phone becomes a target, Godolphin is a **wider product
+  rethink of the app's intended purpose on the form factor** (what does this even do on a
+  phone?), of which media-query/device-class routing + surface substitution are just the
+  eventual implementation tail. Gated on that product decision, not queued. The phone stopgap
+  stays as-is.
+  - **Fast-pan churn — ACCEPTED AS-IS 2026-06-21 (NOT pursued).** UmaMark's Fillrate pass
+    measured the iPhone dropping to 44fps / 40% over / 105ms max on a worst-case fast pan —
+    main-thread card **churn** (mount/unmount + paint of entering cards), *not* GPU/frost. User
+    call: that's not how the app is used (fling-scrubbing is bells-and-whistles), degraded-not-
+    broken, chugging is fine. So the Trackblazer pooling/batching revisit **stays parked**, not
+    a Godolphin deliverable — banked only so it isn't re-litigated as live work.
 
 ## Verify (from `horsetrader.site/`)
 
