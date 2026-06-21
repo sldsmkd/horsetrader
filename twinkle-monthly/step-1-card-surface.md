@@ -1,5 +1,36 @@
 # Twinkle Monthly · Step 1 — The Card Surface (shell + commit-dossier hook)
 
+> **✅ COMPLETE (2026-06-21, branch `twinkle-monthly`).** All four deliverables
+> shipped, `tsc` + 250 FE tests green, verified live (Gold Ship's summer card
+> renders art + identity + bio + the coloured aptitude ladder + the `full stats`
+> deep-link). Uncommitted in the working tree. Deviations from this brief, all
+> deliberate:
+>
+> - **Canonical URL: Transcend reports it, the model does not sniff `References`.**
+>   The spec said the model picks the canonical URL out of the mixed `References`
+>   list. Building it proved that fragile — trainee art is served off the bare
+>   `gametora.com/images/...` host with a *deeper* path than the entity page, so
+>   every "deepest gametora URL" heuristic grabbed the image. Instead the Gametora
+>   scraper (`@transcend`) constructs the canonical **English** entity page
+>   deterministically from the slug (`/ja/` = Japanese; EN = the locale-less
+>   mirror) and reports it as a named `source` field threaded scraper → index →
+>   model → mapper → record. The entity model stays source-agnostic.
+> - **View-model split out of the surface.** The kind-branch lives in a pure,
+>   CSS-free `ui/select/cardDetail.ts` (`cardDetails(bundle, kind, id)`), tested
+>   directly; `cardSurface.ts` only renders. Reason: the surface's `.css`
+>   side-effect import can't load under node's test runner, so testable logic must
+>   stay in `select/` (house convention). The "renders for a trainee/support id"
+>   tests therefore assert the view-model, not the DOM (no jsdom in this project).
+> - **Bonus ETL enrichment landed in the same arc** (the "ETL enrichment comes in
+>   later steps" line, pulled forward): trainee **base aptitudes** (`AptitudeRank`
+>   enum → `AptitudesRecord`, rendered as a coloured ladder via the
+>   `--ht-colour-aptitude-*` palette tokens) and character **bio** vitals
+>   (birthday / height / three sizes, nullable members for pals/NPCs/scrape-lag).
+>   Both are data-gathering passes; richer interactions still deferred.
+> - **Modality:** `cardDetail` was folded into `modalOpen()` so the surface is a
+>   first-class modal (menubar lock + second-spawn refusal), not just a stacked
+>   child. The commit-draft-reset rough edge below is left as-is, as planned.
+
 The first buildable slice. Ship the **vessel**: a spawnable trainee/support
 detail surface, minimal, hooked from one real place. Notes, plan-context, and
 ETL enrichment come in later steps — see [README.md](README.md). This doc is the
