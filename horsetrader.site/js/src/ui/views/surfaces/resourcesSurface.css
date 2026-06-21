@@ -59,6 +59,12 @@
   font-weight: var(--ht-type-number-display-weight);
   line-height: var(--ht-type-number-line);
   font-variant-numeric: tabular-nums;
+  /* The hero number stays on one line and may shrink to fit the fixed-width card
+     (fitCaratTotal measures and reduces the font for large balances); min-width:0 lets
+     it shrink inside the flex row, overflow:hidden is the belt-and-braces clip. */
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .resources-surface__carat-split {

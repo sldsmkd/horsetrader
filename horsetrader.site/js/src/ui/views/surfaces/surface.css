@@ -140,7 +140,9 @@
 
 .surface__body {
   padding: calc(1.25 * var(--glass-u));
-  overflow: auto;
+  /* Vertical only — surfaces are fixed-width, so horizontal content (e.g. an oversized
+     number) must never produce a sideways scrollbar; it's contained/shrunk instead. */
+  overflow: hidden auto;
 }
 
 @media (max-width: 860px) {

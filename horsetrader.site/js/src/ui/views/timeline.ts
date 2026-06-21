@@ -48,8 +48,8 @@ import {
   TRACK_RETURN_SPEED_PX_PER_MS,
   WHEEL_ZOOM_SENSITIVITY,
   Z_FIT_FLOOR,
-  Z_MIN_BASE,
-  Z_MAX,
+  ZOOM_IN_FACTOR,
+  ZOOM_OUT_FACTOR,
 } from "./timeline/constants.ts";
 import { apertureHeightPx, resolveLengthPx } from "../glassUnit.ts";
 import { clampDate, easeInOutSmootherstep, rubber, warpDuration } from "./timeline/motion.ts";
@@ -82,9 +82,12 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
   // The zoomed-out floor, DERIVED per display (Darley #3) rather than a fixed constant:
   // fit the full world vertical extent into the usable aperture. Recomputed whenever the
   // extent or the viewport changes (setContentDepth, which the resize path also drives).
-  // Defaults to the eye-tuned baseline overview pull-back; before any content there's
-  // nothing to fit-derive against, so the baseline stands until setContentDepth deepens it.
-  let zMin = Z_MIN_BASE;
+  // The zoom range, anchored to the device fit (zBase = min(1, zFit)) and bracketed by the
+  // eye-tuned factors. Both ends recompute in setContentDepth once the world extent + the
+  // aperture are known; until then they default to the roomy-display case (zBase = 1).
+  let zMin = ZOOM_OUT_FACTOR; // = 1 * ZOOM_OUT_FACTOR
+  let zMax = ZOOM_IN_FACTOR; //  = 1 * ZOOM_IN_FACTOR
+  let zoomFitted = false; // first content load opens the camera fitted to the viewport
 
   const culling = createCulling(); // owns the card host, the known scene, and the churn meter
   const line = h("div", { class: "timeline__line" });
@@ -210,15 +213,20 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
   // Rest is wherever the user left the lane, unless the rail recaptures.
   const panBoundsY = () => {
     const half = el.clientHeight / 2;
+    // The minimum derail run is a gesture distance (TRACK_DERAIL_PX) measured in SCREEN px,
+    // so the floor is screen px and does NOT scale with z — the track must stay derailable
+    // at any altitude, including the zoomed-out fit on a small viewport.
     const minTravel = Math.max(TRACK_DERAIL_PX + railVisualPx / 2, el.clientHeight * TRACK_MIN_TRAVEL_VIEWPORT);
-    // The vertical drag range is the default-zoom (z=1) range, scaled by `z` — so
-    // the well stretches/contracts in proportion to altitude rather than re-deriving
-    // a different overflow at each zoom. The minTravel floor is part of the base
-    // range, so it scales too (stays well above the derail threshold across the
-    // narrow z span).
-    const maxBase = Math.max(minTravel, aboveDepth - half);
-    const minBase = Math.max(minTravel, belowDepth - half);
-    return { min: -z * minBase, max: z * maxBase };
+    // The pannable run each way is the on-screen overflow past the viewport half. A lane
+    // reaches `depth` in world px, so `depth * z` on screen; only the part beyond `half`
+    // (also screen px) is pannable. Mixing the units — `z * (depth - half)`, which scales
+    // the viewport half too — over-ran into empty space when zoomed out (and diverged up
+    // vs down as the lanes' depths differ), hidden at z=1 where the two forms coincide. At
+    // the zoomed-out fit the overflow collapses to ~0 → both ways rest at minTravel
+    // (symmetric, like a roomy viewport); zooming in grows each side by its real overflow.
+    const maxBase = Math.max(minTravel, aboveDepth * z - half);
+    const minBase = Math.max(minTravel, belowDepth * z - half);
+    return { min: -minBase, max: maxBase };
   };
   const verticalOffset = () => {
     const { min, max } = panBoundsY();
@@ -263,7 +271,7 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
     // = clientWidth/2 for panX (so the `z` term rides along).
     return Math.max(min, Math.min(max, el.clientWidth / 2 - z * axis.xForDate(date)));
   };
-  const clampZ = (raw: number) => Math.max(zMin, Math.min(Z_MAX, raw));
+  const clampZ = (raw: number) => Math.max(zMin, Math.min(zMax, raw));
   const clampPanX = (raw: number) => {
     const { min, max } = panBounds();
     return Math.max(min, Math.min(max, raw));
@@ -493,21 +501,30 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
     setContentDepth: (above, below) => {
       aboveDepth = above;
       belowDepth = below;
-      // Derive the zoomed-out floor (Darley #3) from the fit of the world's full vertical
-      // extent into the usable aperture. Phrased in world/camera terms, not display class:
-      // zFit is how much the camera must shrink so the densest packing (above + below the
-      // centre line — the global extent, stable across pans) fits the aperture height, then
-      // bound it. The aperture (viewport − persistent chrome, resolved to px here) is the
-      // honest input — never a nominal "1440p". Recomputed here so the resize path (which
-      // re-runs this) re-fits when the viewport height changes.
-      // zFit is the zoom at which the world's full vertical extent exactly fills the
-      // aperture. The floor sits at the eye-tuned baseline (Z_MIN_BASE) and only DEEPENS
-      // toward Z_FIT_FLOOR when even that baseline can't fit the world (cramped viewport);
-      // it never rises above the baseline, so a roomy display keeps its overview pull-back.
+      // Darley #3 — the fit-to-height derivation, phrased in world/camera terms, not
+      // display class. zFit is the zoom at which the world's full vertical extent (above +
+      // below the centre line — the global packed extent, stable across pans) exactly fills
+      // the usable aperture (viewport − persistent chrome, resolved to px here — never a
+      // nominal "1440p"). Recomputed here so the resize path (which re-runs this) re-fits.
       const worldExtent = aboveDepth + belowDepth;
-      const zFit = worldExtent > 0 ? apertureHeightPx() / worldExtent : Z_MIN_BASE;
-      zMin = Math.max(Z_FIT_FLOOR, Math.min(Z_MIN_BASE, zFit));
-      z = clampZ(z); // a tighter floor may strand the current zoom below it
+      const zFit = worldExtent > 0 ? apertureHeightPx() / worldExtent : 1;
+      // The fitted base scale anchors the whole range: fit a cramped viewport's world, but
+      // never open a roomy one past 1:1. The world cards are camera-scaled world units
+      // (Byerley's exclusion — they don't track glass-u), so the camera is the only lever
+      // that sizes the timeline to the device. zMin/zMax then bracket the base by the
+      // eye-tuned factors, so the window stays proportionate to what the device can show.
+      const zBase = Math.min(1, zFit);
+      zMin = Math.max(Z_FIT_FLOOR, zBase * ZOOM_OUT_FACTOR);
+      zMax = zBase * ZOOM_IN_FACTOR;
+      // On first content load, OPEN at the fit; later loads keep the user's zoom, re-clamped
+      // to the (possibly changed) range.
+      if (!zoomFitted && worldExtent > 0) {
+        z = clampZ(zBase);
+        zoomFitted = true;
+        panX = clampPanX(el.clientWidth / 2 - z * centerX); // re-centre: layout set panX for the pre-fit z
+      } else {
+        z = clampZ(z);
+      }
       panY = clampY(panY);
       if (Math.abs(panY) <= TRACK_CAPTURE_PX) panY = 0;
       applyPan();

@@ -137,10 +137,21 @@ export function buildPlayStyle(
     { onOshiSelect: on.onOshiSelect, onClubSelect: on.onClubSelect, onPlayStylePreview: on.onPlayStylePreview, onClose: on.onTrainerClose },
   );
 
-  requestAnimationFrame(() => {
-    const height = identityCard.getBoundingClientRect().height;
-    if (height > 0) playStyleCard.style.height = `${height}px`;
-  });
-
   return h("div", { class: "surface-book" }, identityCard, playStyleCard);
+}
+
+/**
+ * Height-match the play-style side window to the trainer card it sits beside in the book.
+ * Must run AFTER the book is in the live DOM (so both cards have laid out), and must run
+ * SYNCHRONOUSLY before the browser paints — renderSurfaces calls it straight after it
+ * inserts the surfaces. Doing it in a deferred `requestAnimationFrame` painted one frame
+ * at the cards' natural (mismatched, taller) heights before the match landed — a visible
+ * flicker whenever the paint is slow enough to show that frame (e.g. DevTools open).
+ */
+export function matchPlayStyleHeight(book: HTMLElement): void {
+  const trainer = book.querySelector<HTMLElement>(":scope > .surface--left");
+  const playStyle = book.querySelector<HTMLElement>(":scope > .surface--playstyle");
+  if (!trainer || !playStyle) return;
+  const height = trainer.getBoundingClientRect().height;
+  if (height > 0) playStyle.style.height = `${height}px`;
 }

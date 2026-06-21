@@ -38,6 +38,11 @@ export interface ResourcesEditorOpts {
 
 const MS_PER_DAY = 86_400_000;
 
+/** Cap on any single resource field. Generous beyond any real balance (a heavy hoarder
+ *  holds well under a million carats), but it stops a typo / fat-finger from storing a
+ *  nonsense nine-digit value that breaks the projection maths and overflows the readout. */
+const MAX_RESOURCE = 9_999_999;
+
 /** The days-to-top-up countdown for a stored cycle-boundary date, "" when unset. */
 function daysUntil(dateStr: string | null): string {
   if (!dateStr) return "";
@@ -53,7 +58,7 @@ export function resourcesEditor(opts: ResourcesEditorOpts): HTMLElement {
   const editCell = (cell: Cell): HTMLElement => {
     const input = h("input", {
       class: "resource-field__input",
-      attr: { type: "number", min: "0", step: "1", value: String(values[cell.key] ?? 0), id: `rs-${cell.key}` },
+      attr: { type: "number", min: "0", max: String(MAX_RESOURCE), step: "1", value: String(values[cell.key] ?? 0), id: `rs-${cell.key}` },
     });
     inputs.set(cell.key, input);
     return h("div", { class: "resources-editor__cell" }, cellHeading(cell, "label", { for: `rs-${cell.key}` }), input);
@@ -100,7 +105,11 @@ export function resourcesEditor(opts: ResourcesEditorOpts): HTMLElement {
   const collect = (): ResourcesDraft => {
     const resources: ResourceVector = {};
     for (const row of RESOURCE_ROWS) {
-      for (const cell of row) resources[cell.key] = inputs.get(cell.key)!.valueAsNumber || 0;
+      // Clamp on commit too — `max` only guides the spinner, it doesn't stop a typed or
+      // pasted value, so the cap is enforced here where the draft is read.
+      for (const cell of row) {
+        resources[cell.key] = Math.min(MAX_RESOURCE, Math.max(0, inputs.get(cell.key)!.valueAsNumber || 0));
+      }
     }
     const recordedAt = new Date().toISOString();
     const snapshot: Snapshot = { date: recordedAt.slice(0, 10), recordedAt, resources };

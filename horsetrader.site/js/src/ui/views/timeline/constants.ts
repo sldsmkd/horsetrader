@@ -76,24 +76,25 @@ export const OVERSCAN_VIEWPORTS = 1;
  *  `scale(z)` on the content layer — the world layout never changes, only apparent
  *  altitude. The clamp is a 2D-game-camera min/max.
  *
- *  zMax (the zoomed-in ceiling — "how readable?", not "what fits?") is FEEL: eye-tuned
- *  and left untouched by Darley (Grand Masters Part 2).
- *
- *  zMin (the zoomed-out floor — how far back you may pull) has BOTH a feel part and a
- *  screen-space part, and the synthesis is the point. Z_MIN_BASE is the eye-tuned
- *  baseline overview pull-back every display gets (the old hand-tuned floor). Darley's
- *  screen-space derivation only ever DEEPENS it — never retracts it — when a viewport is
- *  too small to fit the world even at the baseline: zFit = aperture height / required
- *  world vertical extent, and zMin = max(Z_FIT_FLOOR, min(Z_MIN_BASE, zFit)). So a roomy
- *  display sits at the eye-tuned baseline; a cramped one zooms out further (toward the
- *  Z_FIT_FLOOR safety floor) so the whole thing still fits — exactly the "responsive
- *  zoom limits on small/narrow viewports" this derivation exists for. The derivation must
- *  not push the floor UP (a big display that already fits must keep its overview pull-back
- *  — capping at unity was the bug). At the dev aperture this lands on ~0.6 (zFit > 1 there
- *  → the baseline governs). */
+ *  The whole zoom RANGE is anchored to the device fit, not fixed absolute z. The world
+ *  cards are camera-scaled world units (Byerley's exclusion — they don't track glass-u),
+ *  so on a small viewport the desktop-sized world has to open zoomed OUT to fit; a fixed
+ *  [0.6, 1.8] then both stranded the floor at the opening (no pull-back) and let zoom-in
+ *  scale absurdly past the tiny screen. So instead the camera derives a base scale and
+ *  brackets it with eye-tuned FACTORS:
+ *    zBase = min(1, zFit)            — the fitted opening: fit a cramped viewport's world,
+ *                                      never zoom IN past 1:1 on a roomy one;
+ *                                      zFit = aperture height / world vertical extent.
+ *    zMin  = max(Z_FIT_FLOOR, zBase * ZOOM_OUT_FACTOR)   — pull-back / overview floor.
+ *    zMax  = zBase * ZOOM_IN_FACTOR                      — read-a-card ceiling.
+ *  On a roomy display zBase = 1.0, so this reduces EXACTLY to the old [0.6, 1.8] — no
+ *  regression on desktop. On a phone the whole window scales down with the fit, so the
+ *  range stays proportionate to what the device can actually show. The factors are the
+ *  eye-tuned FEEL (how far out for overview, how far in to read); Z_FIT_FLOOR is the
+ *  absolute zoom-out safety clamp against a pathological extent. */
 export const Z_FIT_FLOOR = 0.3;
-export const Z_MIN_BASE = 0.6;
-export const Z_MAX = 1.8;
+export const ZOOM_OUT_FACTOR = 0.6;
+export const ZOOM_IN_FACTOR = 1.8;
 /** Wheel-zoom feel: deltaY → multiplicative zoom factor via `exp`, so each notch
  *  is a constant proportional step (symmetric in/out) rather than additive. */
 export const WHEEL_ZOOM_SENSITIVITY = 0.0015;

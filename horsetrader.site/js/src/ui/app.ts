@@ -48,7 +48,7 @@ import { bookmarks } from "./views/bookmarks.ts";
 import { bookmarkRows, nextBookmarkDate } from "./select/bookmarks.ts";
 import { plannerRows } from "./select/planner.ts";
 import { scenarioLookup } from "./select/scenario.ts";
-import { buildTrainerCard, buildOshiSelector, buildClubSelector, buildPlayStyle } from "./views/surfaces/identityCards.ts";
+import { buildTrainerCard, buildOshiSelector, buildClubSelector, buildPlayStyle, matchPlayStyleHeight } from "./views/surfaces/identityCards.ts";
 import { menubar } from "./views/menubar.ts";
 import { BELOW_LANE_STACK_TOP } from "./views/timeline/constants.ts";
 import type { RightSurface } from "./views/menubar.ts";
@@ -479,6 +479,9 @@ export function mountApp(
     const children: Node[] = [];
     // Rebuilt below if the Resources card is in this frame; the pan path checks it.
     liveResources = null;
+    // The play-style book (trainer card + side window), when this frame has one — its two
+    // cards are height-matched synchronously after insertion (below) to avoid a flicker.
+    let playStyleBook: HTMLElement | null = null;
 
     // The Cloud Save controls on the trainer card — built fresh each frame off the live
     // cloud state. Only one left-group branch runs per frame, so this single node mounts
@@ -505,17 +508,14 @@ export function mountApp(
         buildClubSelector(identity, { onClose: closeClubSelector }),
       );
     } else if (left === "playstyle") {
-      children.push(buildPlayStyle(identity, strings, identityUi, { cloud }, playStyleOn));
+      playStyleBook = buildPlayStyle(identity, strings, identityUi, { cloud }, playStyleOn);
+      children.push(playStyleBook);
     } else if (left === "playstyle-oshi") {
-      children.push(
-        buildPlayStyle(identity, strings, identityUi, { cloud }, playStyleOn),
-        buildOshiSelector(identity, { onClose: closeOshiSelector }),
-      );
+      playStyleBook = buildPlayStyle(identity, strings, identityUi, { cloud }, playStyleOn);
+      children.push(playStyleBook, buildOshiSelector(identity, { onClose: closeOshiSelector }));
     } else if (left === "playstyle-club") {
-      children.push(
-        buildPlayStyle(identity, strings, identityUi, { cloud }, playStyleOn),
-        buildClubSelector(identity, { onClose: closeClubSelector }),
-      );
+      playStyleBook = buildPlayStyle(identity, strings, identityUi, { cloud }, playStyleOn);
+      children.push(playStyleBook, buildClubSelector(identity, { onClose: closeClubSelector }));
     }
 
     // The right group: one surface (+ its children) at a time, independent of the
@@ -645,6 +645,11 @@ export function mountApp(
     if (anyModal) rail.forEach((node) => node instanceof HTMLElement && lockSurface(node));
     chromeDropdowns.replaceChildren(...rail);
     surfaceLayer.replaceChildren(...modals);
+    // Now the cards are live + laid out: height-match the play-style window to the trainer
+    // card synchronously, before the browser paints, so the unmatched frame never shows.
+    if (playStyleBook) matchPlayStyleHeight(playStyleBook);
+    // Same timing for the resources hero number: fit it to the card now it's measurable.
+    liveResources?.fit();
   }
   view.subscribe(renderSurfaces);
   coord.subscribe(renderSurfaces);
