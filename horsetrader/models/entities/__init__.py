@@ -1,7 +1,7 @@
 from .entities import Entities
 from .entity import Entity
 
-from .character import Character, Characters, ThreeSizes
+from .character import Bio, Birthday, Character, Characters, ThreeSizes
 
 from .racetrack import Racetrack, Racetracks
 from .course import Course, Courses
@@ -12,6 +12,8 @@ from .trainee import Trainee, Trainees
 
 __all__ = [
     # Characters
+    "Bio",
+    "Birthday",
     "Character",
     "Characters",
     "ThreeSizes",

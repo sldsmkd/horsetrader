@@ -20,8 +20,10 @@ class UmapyoiCharacter(metaclass=SingletonMeta):
         """Fetch detail JSON for one character by game_id.
 
         Returns a raw record dict (no Character construction — that's Digitan's
-        job). `three_sizes` is returned as a plain dict since Transcend doesn't
-        need to know the project's typed `ThreeSizes` class.
+        job). `three_sizes` and `birthday` are returned as plain dicts since
+        Transcend doesn't need to know the project's typed `ThreeSizes` /
+        `Birthday` classes. `birthday` / `height` are `None` when umapyoi has no
+        value (NPCs, or simply not filled in yet).
         """
         url = f"https://umapyoi.net/api/v1/character/{char_id}"
         response = self._uc.get(url, cache=CacheTime.LEAF)
@@ -46,6 +48,14 @@ class UmapyoiCharacter(metaclass=SingletonMeta):
 
         portrait_url = data.get("sns_icon") or data.get("thumb_img")
 
+        birth_month = data.get("birth_month")
+        birth_day = data.get("birth_day")
+        birthday = (
+            {"month": birth_month, "day": birth_day}
+            if birth_month and birth_day
+            else None
+        )
+
         correlations: dict[str, int] = {}
         game_id = data.get("game_id")
         if str(game_id).isdigit():
@@ -58,6 +68,8 @@ class UmapyoiCharacter(metaclass=SingletonMeta):
                 "waist": data.get("size_w", 0),
                 "hips": data.get("size_h", 0),
             },
+            "birthday": birthday,
+            "height": data.get("height") or None,
             "quote": quote,
             "portrait_url": portrait_url,
             "correlations": correlations,

@@ -34,6 +34,27 @@ export interface CharacterRecord {
   quote: string | null;
   icon: string | null;
   portrait: string | null;
+  bio: BioRecord;
+}
+/**
+ * A character's vital-statistics bundle. Every member is optional: not all
+ * characters carry this (NPCs never had it, or umapyoi hasn't filled it in).
+ * `three_sizes` is always the container with nullable members; `birthday` /
+ * `height` (cm) are `null` wholesale when absent.
+ */
+export interface BioRecord {
+  three_sizes: ThreeSizesRecord;
+  birthday: null | BirthdayRecord;
+  height: number | null;
+}
+export interface ThreeSizesRecord {
+  bust: number | null;
+  waist: number | null;
+  hips: number | null;
+}
+export interface BirthdayRecord {
+  month: number;
+  day: number;
 }
 export interface CourseRecord {
   racetrack: string;
@@ -64,6 +85,7 @@ export interface SupportRecord {
   thumbnail: string | null;
   art: string | null;
   aliases: string[];
+  source: string | null;
 }
 export interface TraineeRecord {
   character: string;
@@ -74,4 +96,33 @@ export interface TraineeRecord {
   thumbnail: string | null;
   portrait: string | null;
   aliases: string[];
+  source: string | null;
+  aptitudes: null | AptitudesRecord;
+}
+/**
+ * A trainee's base aptitudes across all three axes. Each grade is a rank
+ * *slug* (`"g"` … `"s"`) — the front-end maps it to both the displayed letter
+ * and the `--ht-colour-aptitude-*` token. The whole object is `null` when the
+ * source page carried no aptitude block.
+ */
+export interface AptitudesRecord {
+  surface: SurfaceAptitudesRecord;
+  distance: DistanceAptitudesRecord;
+  strategy: StrategyAptitudesRecord;
+}
+export interface SurfaceAptitudesRecord {
+  turf: string;
+  dirt: string;
+}
+export interface DistanceAptitudesRecord {
+  short: string;
+  mile: string;
+  medium: string;
+  long: string;
+}
+export interface StrategyAptitudesRecord {
+  front: string;
+  pace: string;
+  late: string;
+  end: string;
 }

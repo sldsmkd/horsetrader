@@ -11,8 +11,8 @@ const EVENTS: EventsBundle = {
 };
 
 const ACADEMY: Academy = {
-  characters: { "char-1": { name: "Special Week", quote: null, icon: null, portrait: null } },
-  supports: { "support-1": { character: "char-1", display: "Special Week", type: "speed", rarity: "ssr", title: null, release: "2021", thumbnail: null, art: null, aliases: [] } },
+  characters: { "char-1": { name: "Special Week", quote: null, icon: null, portrait: null, bio: { three_sizes: { bust: null, waist: null, hips: null }, birthday: null, height: null } } },
+  supports: { "support-1": { character: "char-1", display: "Special Week", type: "speed", rarity: "ssr", title: null, release: "2021", thumbnail: null, art: null, aliases: [], source: null } },
   trainees: {},
   courses: {},
   races: {},

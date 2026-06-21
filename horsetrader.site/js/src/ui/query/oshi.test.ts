@@ -11,12 +11,12 @@ const EVENTS: EventsBundle = { events: [] };
 
 const ACADEMY: Academy = {
   characters: {
-    "char-admire-groove": { name: "Admire Groove", quote: null, icon: "/admire.webp", portrait: "/admire-portrait.webp" },
-    "char-haru-urara": { name: "Haru Urara", quote: null, icon: "/urara.webp", portrait: "/urara-portrait.webp" },
-    "char-maruzensky": { name: "Maruzensky", quote: null, icon: "/maruzensky.webp", portrait: "/maruzensky-portrait.webp" },
-    "char-teio": { name: "Tokai Teio", quote: null, icon: "/teio.webp", portrait: "/teio-portrait.webp" },
-    "char-tazuna": { name: "Hayakawa Tazuna", quote: null, icon: "/tazuna.webp", portrait: null },
-    "char-palmer": { name: "Mejiro Palmer", quote: null, icon: "/palmer.webp", portrait: null },
+    "char-admire-groove": { name: "Admire Groove", quote: null, icon: "/admire.webp", portrait: "/admire-portrait.webp", bio: { three_sizes: { bust: null, waist: null, hips: null }, birthday: null, height: null } },
+    "char-haru-urara": { name: "Haru Urara", quote: null, icon: "/urara.webp", portrait: "/urara-portrait.webp", bio: { three_sizes: { bust: null, waist: null, hips: null }, birthday: null, height: null } },
+    "char-maruzensky": { name: "Maruzensky", quote: null, icon: "/maruzensky.webp", portrait: "/maruzensky-portrait.webp", bio: { three_sizes: { bust: null, waist: null, hips: null }, birthday: null, height: null } },
+    "char-teio": { name: "Tokai Teio", quote: null, icon: "/teio.webp", portrait: "/teio-portrait.webp", bio: { three_sizes: { bust: null, waist: null, hips: null }, birthday: null, height: null } },
+    "char-tazuna": { name: "Hayakawa Tazuna", quote: null, icon: "/tazuna.webp", portrait: null, bio: { three_sizes: { bust: null, waist: null, hips: null }, birthday: null, height: null } },
+    "char-palmer": { name: "Mejiro Palmer", quote: null, icon: "/palmer.webp", portrait: null, bio: { three_sizes: { bust: null, waist: null, hips: null }, birthday: null, height: null } },
   },
   supports: {
     "support-tazuna": {
@@ -29,6 +29,7 @@ const ACADEMY: Academy = {
       thumbnail: null,
       art: null,
       aliases: [],
+      source: null,
     },
   },
   trainees: {
@@ -41,6 +42,7 @@ const ACADEMY: Academy = {
       thumbnail: null,
       portrait: null,
       aliases: [],
+      source: null, aptitudes: null,
     },
     "trainee-haru-urara": {
       character: "char-haru-urara",
@@ -51,6 +53,7 @@ const ACADEMY: Academy = {
       thumbnail: null,
       portrait: null,
       aliases: [],
+      source: null, aptitudes: null,
     },
     "trainee-maruzensky": {
       character: "char-maruzensky",
@@ -61,6 +64,7 @@ const ACADEMY: Academy = {
       thumbnail: null,
       portrait: null,
       aliases: [],
+      source: null, aptitudes: null,
     },
     "trainee-teio-autumn": {
       character: "char-teio",
@@ -71,6 +75,7 @@ const ACADEMY: Academy = {
       thumbnail: null,
       portrait: null,
       aliases: [],
+      source: null, aptitudes: null,
     },
     "trainee-palmer-reindeer": {
       character: "char-palmer",
@@ -81,6 +86,7 @@ const ACADEMY: Academy = {
       thumbnail: null,
       portrait: null,
       aliases: [],
+      source: null, aptitudes: null,
     },
   },
   courses: {},

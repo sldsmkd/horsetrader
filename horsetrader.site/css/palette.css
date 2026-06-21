@@ -57,6 +57,21 @@
   --ht-colour-minimap-line: #fff;
   --ht-colour-minimap-today: #fff;
 
+  /* Aptitude rank colours (G → S). These are the game's letter-grade icons —
+     the band a base trainee's aptitudes live in. We render the letters in our
+     own type, but the *colour* is the story: a player reads "C green / A orange
+     / S gold" at a glance without parsing the letter. Higher bands (SS, U, L)
+     belong to overall ratings / player stats and are out of scope here. Ordered
+     worst → best so the gradient reads as a ladder. */
+  --ht-colour-aptitude-g: #9aa0a6; /* grey  — floor */
+  --ht-colour-aptitude-f: #8c8cd8; /* periwinkle */
+  --ht-colour-aptitude-e: #a866d6; /* violet */
+  --ht-colour-aptitude-d: #4aa6e8; /* sky blue */
+  --ht-colour-aptitude-c: #5cc14a; /* green */
+  --ht-colour-aptitude-b: #ff7088; /* coral pink */
+  --ht-colour-aptitude-a: #ff8a3d; /* orange */
+  --ht-colour-aptitude-s: #f4c430; /* gold  — ceiling */
+
   /* Developer diagnostics. Kept separate from interactive green so perf chrome
      can stay low-risk and legible without becoming the app's action colour. */
   --ht-colour-diagnostic-accent: #7cf0c4;

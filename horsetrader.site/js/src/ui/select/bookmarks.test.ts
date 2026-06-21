@@ -26,9 +26,9 @@ const EVENTS: EventsBundle = {
 };
 
 const ACADEMY: Academy = {
-  characters: { "char-spe": { name: "Special Week", quote: null, icon: "/img/spe-icon.webp", portrait: "/img/spe-portrait.webp" } },
-  supports: { "s-spe": { character: "char-spe", display: "Special Week", type: "guts", rarity: "ssr", title: "The Setting Sun And Rising Stars", release: "2021", thumbnail: "/img/s-spe.webp", art: null, aliases: [] } },
-  trainees: { "t-spe": { character: "char-spe", variant: "Special Dreamer", title: null, rarity: 3, release: "2021", thumbnail: "/img/t-spe.webp", portrait: null, aliases: [] } },
+  characters: { "char-spe": { name: "Special Week", quote: null, icon: "/img/spe-icon.webp", portrait: "/img/spe-portrait.webp", bio: { three_sizes: { bust: null, waist: null, hips: null }, birthday: null, height: null } } },
+  supports: { "s-spe": { character: "char-spe", display: "Special Week", type: "guts", rarity: "ssr", title: "The Setting Sun And Rising Stars", release: "2021", thumbnail: "/img/s-spe.webp", art: null, aliases: [], source: null } },
+  trainees: { "t-spe": { character: "char-spe", variant: "Special Dreamer", title: null, rarity: 3, release: "2021", thumbnail: "/img/t-spe.webp", portrait: null, aliases: [], source: null, aptitudes: null } },
   courses: {},
   races: {},
   racetracks: {},

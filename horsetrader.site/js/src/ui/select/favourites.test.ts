@@ -20,14 +20,14 @@ const EVENTS: EventsBundle = {
 };
 
 const ACADEMY: Academy = {
-  characters: { "char-spe": { name: "Special Week", quote: null, icon: null, portrait: null } },
+  characters: { "char-spe": { name: "Special Week", quote: null, icon: null, portrait: null, bio: { three_sizes: { bust: null, waist: null, hips: null }, birthday: null, height: null } } },
   supports: {
-    "s-spe": { character: "char-spe", display: "Special Week", type: "guts", rarity: "ssr", title: null, release: "2021", thumbnail: null, art: null, aliases: [] },
-    "s-other": { character: "char-spe", display: "Other Support", type: "speed", rarity: "ssr", title: null, release: "2021", thumbnail: null, art: null, aliases: [] },
+    "s-spe": { character: "char-spe", display: "Special Week", type: "guts", rarity: "ssr", title: null, release: "2021", thumbnail: null, art: null, aliases: [], source: null },
+    "s-other": { character: "char-spe", display: "Other Support", type: "speed", rarity: "ssr", title: null, release: "2021", thumbnail: null, art: null, aliases: [], source: null },
   },
   trainees: {
-    "t-spe": { character: "char-spe", variant: "Original", title: null, rarity: 3, release: "2021", thumbnail: null, portrait: null, aliases: [] },
-    "t-other": { character: "char-spe", variant: "Other", title: null, rarity: 3, release: "2021", thumbnail: null, portrait: null, aliases: [] },
+    "t-spe": { character: "char-spe", variant: "Original", title: null, rarity: 3, release: "2021", thumbnail: null, portrait: null, aliases: [], source: null, aptitudes: null },
+    "t-other": { character: "char-spe", variant: "Other", title: null, rarity: 3, release: "2021", thumbnail: null, portrait: null, aliases: [], source: null, aptitudes: null },
   },
   courses: {},
   races: {},

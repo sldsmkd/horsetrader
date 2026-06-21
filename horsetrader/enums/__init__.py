@@ -1,3 +1,4 @@
+from .aptitude_rank import AptitudeRank
 from .cache_time import CacheTime
 from .costume_variants import CostumeVariants
 from .course_variant import CourseVariant
@@ -11,6 +12,7 @@ from .support_type import SupportType
 from .surface import Surface
 
 __all__ = [
+    "AptitudeRank",
     "CacheTime",
     "CostumeVariants",
     "CourseVariant",

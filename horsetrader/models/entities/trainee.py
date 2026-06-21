@@ -4,7 +4,7 @@ from typing import Any, ClassVar
 from ethicrawl import ResourceList
 
 from horsetrader.core import Config, Japlish, Period, SingletonMeta, StableKey
-from horsetrader.enums import CostumeVariants, Sources
+from horsetrader.enums import AptitudeRank, CostumeVariants, Sources
 from horsetrader.extractors.gametora import Gametora
 from horsetrader.extractors.static import Static
 from horsetrader.extractors.umapyoi import Umapyoi
@@ -43,6 +43,48 @@ class TraineeVariant:
 
 @digitan
 @dataclass
+class SurfaceAptitudes:
+    """Aptitude grades on the two running surfaces."""
+
+    turf: AptitudeRank  # 芝
+    dirt: AptitudeRank  # ダート
+
+
+@digitan
+@dataclass
+class DistanceAptitudes:
+    """Aptitude grades across the four distance bands."""
+
+    short: AptitudeRank  # 短距離 (sprint)
+    mile: AptitudeRank  # マイル
+    medium: AptitudeRank  # 中距離
+    long: AptitudeRank  # 長距離
+
+
+@digitan
+@dataclass
+class StrategyAptitudes:
+    """Aptitude grades for the four running styles."""
+
+    front: AptitudeRank  # 逃げ (front runner)
+    pace: AptitudeRank  # 先行 (pace chaser)
+    late: AptitudeRank  # 差し (late surger)
+    end: AptitudeRank  # 追込 (end closer)
+
+
+@digitan
+@dataclass
+class Aptitudes:
+    """A trainee's base aptitudes across all three axes — surface, distance,
+    and running style. Each grade is an `AptitudeRank` (G → S)."""
+
+    surface: SurfaceAptitudes
+    distance: DistanceAptitudes
+    strategy: StrategyAptitudes
+
+
+@digitan
+@dataclass
 class Trainee(Entity):
     KEY_PREFIX: ClassVar[str] = "trainee-"
     character: Character
@@ -53,6 +95,12 @@ class Trainee(Entity):
     # Card-specific community nicknames; the bake unions these with the
     # character's onto this atom's baked search phrases. Curated.
     aliases: list[str] = field(default_factory=list)
+    # Canonical reader-facing source page (Gametora's English entity page),
+    # reported by the scraper. The card surface deep-links here; `None` if absent.
+    source: str | None = None
+    # Base aptitudes (surface / distance / running style), scraped from the
+    # trainee's Gametora detail page. `None` if the page carried no aptitude block.
+    aptitudes: Aptitudes | None = None
 
     def match(self, query: str) -> bool:
         return (
@@ -142,11 +190,29 @@ class Trainees(Entities[Trainee], metaclass=SingletonMeta):
                     ),
                     thumbnail=thumbnail,
                     portrait=portrait,
+                    source=record.get("source"),
+                    aptitudes=self._build_aptitudes(record.get("aptitudes")),
                     correlations=dict(record.get("correlations", {})),
                     references=references,
                 )
             )
         return trainees
+
+    @staticmethod
+    def _build_aptitudes(
+        raw: dict[str, dict[str, AptitudeRank]] | None,
+    ) -> Aptitudes | None:
+        """Fold the scraper's `{axis: {slot: AptitudeRank}}` into an `Aptitudes`.
+
+        `None` (no aptitude block on the page) passes straight through; the
+        scraper guarantees a present block is complete, so this is a plain fan-out."""
+        if raw is None:
+            return None
+        return Aptitudes(
+            surface=SurfaceAptitudes(**raw["surface"]),
+            distance=DistanceAptitudes(**raw["distance"]),
+            strategy=StrategyAptitudes(**raw["strategy"]),
+        )
 
     @staticmethod
     def _has_character(

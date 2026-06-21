@@ -12,6 +12,8 @@
  * render path. See the store split in docs/frontend/interaction.md.
  */
 
+import type { BannerKind } from "../select/aboveLane.ts";
+
 export interface ViewState {
   /** The selected entity id (a banner, a favourite), or `null`. */
   selection: string | null;
@@ -42,6 +44,10 @@ export interface ViewState {
    *  like the others — spawned from the trainer card's Cloud button, modal to every
    *  spawnable window, the timeline behind it stays live (feedback_shield_vs_unfold). */
   cloudConnecting: boolean;
+  /** The trainee/support atom whose card detail surface is up, or `null`. A modal
+   *  like the others — spawned at source (today the commit dossier's featured cards),
+   *  modal to every spawnable window (twinkle-monthly/step-1-card-surface.md). */
+  cardDetail: { kind: BannerKind; id: string } | null;
 }
 
 export interface ViewStore {
@@ -62,6 +68,7 @@ const INITIAL: ViewState = {
   resourcesEditing: false,
   committing: null,
   cloudConnecting: false,
+  cardDetail: null,
 };
 
 export function createViewStore(initial: Partial<ViewState> = {}): ViewStore {

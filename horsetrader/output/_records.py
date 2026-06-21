@@ -58,11 +58,39 @@ class GachaConfig(msgspec.Struct):
 # ── academy.json ──────────────────────────────────────────────────────────────
 
 @eishin
+class ThreeSizesRecord(msgspec.Struct):
+    # Bust / waist / hips in cm; any may be `null` (NPCs, or simply not on file).
+    bust: int | None
+    waist: int | None
+    hips: int | None
+
+
+@eishin
+class BirthdayRecord(msgspec.Struct):
+    # Month + day only — these girls are ageless.
+    month: int
+    day: int
+
+
+@eishin
+class BioRecord(msgspec.Struct):
+    """A character's vital-statistics bundle. Every member is optional: not all
+    characters carry this (NPCs never had it, or umapyoi hasn't filled it in).
+    `three_sizes` is always the container with nullable members; `birthday` /
+    `height` (cm) are `null` wholesale when absent."""
+
+    three_sizes: ThreeSizesRecord
+    birthday: BirthdayRecord | None
+    height: int | None
+
+
+@eishin
 class CharacterRecord(msgspec.Struct):
     name: str | None
     quote: str | None
     icon: str | None
     portrait: str | None
+    bio: BioRecord
 
 
 @eishin
@@ -78,6 +106,44 @@ class SupportRecord(msgspec.Struct):
     # Community search phrases the front-end typeahead matches on, folded from
     # this card's own alias entry plus its character's. Always present, often [].
     aliases: list[str]
+    # The canonical source-of-record deep-link (Gametora's English entity page),
+    # for the card surface's "full stats" link. `null` when no source URL is on
+    # the record's provenance; the front-end omits the link then.
+    source: str | None
+
+
+@eishin
+class SurfaceAptitudesRecord(msgspec.Struct):
+    turf: str
+    dirt: str
+
+
+@eishin
+class DistanceAptitudesRecord(msgspec.Struct):
+    short: str
+    mile: str
+    medium: str
+    long: str
+
+
+@eishin
+class StrategyAptitudesRecord(msgspec.Struct):
+    front: str
+    pace: str
+    late: str
+    end: str
+
+
+@eishin
+class AptitudesRecord(msgspec.Struct):
+    """A trainee's base aptitudes across all three axes. Each grade is a rank
+    *slug* (`"g"` … `"s"`) — the front-end maps it to both the displayed letter
+    and the `--ht-colour-aptitude-*` token. The whole object is `null` when the
+    source page carried no aptitude block."""
+
+    surface: SurfaceAptitudesRecord
+    distance: DistanceAptitudesRecord
+    strategy: StrategyAptitudesRecord
 
 
 @eishin
@@ -97,6 +163,13 @@ class TraineeRecord(msgspec.Struct):
     # Community search phrases the front-end typeahead matches on, folded from
     # this card's own alias entry plus its character's. Always present, often [].
     aliases: list[str]
+    # The canonical source-of-record deep-link (Gametora's English entity page),
+    # for the card surface's "full stats" link. `null` when no source URL is on
+    # the record's provenance; the front-end omits the link then.
+    source: str | None
+    # Base aptitudes (surface / distance / running style), each grade a `"g"`…`"s"`
+    # slug. `null` when the source page carried no aptitude block.
+    aptitudes: AptitudesRecord | None
 
 
 @eishin

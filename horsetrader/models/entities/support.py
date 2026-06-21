@@ -35,6 +35,9 @@ class Support(Entity):
     # Card-specific community nicknames; the bake unions these with the
     # character's onto this atom's baked search phrases. Curated.
     aliases: list[str] = field(default_factory=list)
+    # Canonical reader-facing source page (Gametora's English entity page),
+    # reported by the scraper. The card surface deep-links here; `None` if absent.
+    source: str | None = None
 
     def match(self, query: str) -> bool:
         return (
@@ -120,6 +123,7 @@ class Supports(Entities[Support], metaclass=SingletonMeta):
                     rarity=SupportRarity.UNKNOWN,
                     thumbnail=thumbnail,
                     art=art,
+                    source=record.get("source"),
                     correlations=dict(record.get("correlations", {})),
                     references=references,
                 )

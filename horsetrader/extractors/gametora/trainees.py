@@ -146,6 +146,12 @@ class GametoraTrainees(metaclass=SingletonMeta):
                     # two here is exactly the bug this split fixes.
                     "thumbnail_url": record["thumbnail_url"],
                     "portrait_url": record["portrait_url"],
+                    # Canonical reader-facing deep-link (Gametora EN page), reported
+                    # by the detail scraper — not sniffed back out of `references`.
+                    "source": record.get("source"),
+                    # Base aptitudes ({axis: {slot: AptitudeRank}}) from the detail
+                    # scraper; the model folds them into an `Aptitudes`.
+                    "aptitudes": record.get("aptitudes"),
                     "correlations": correlations,
                     "references": references,
                 }

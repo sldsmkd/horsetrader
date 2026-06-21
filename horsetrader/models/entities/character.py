@@ -30,10 +30,33 @@ class ThreeSizes:
 
 @digitan
 @dataclass
+class Birthday:
+    """A character's birthday — month and day only (these girls are ageless)."""
+
+    month: int
+    day: int
+
+
+@digitan
+@dataclass
+class Bio:
+    """A character's vital-statistics bundle (BWH, birthday, height). Every
+    member is optional: not every character carries this info — some NPCs never
+    had it, and umapyoi may simply not have filled it in yet. `three_sizes` is
+    always the container (its own fields nullable); `birthday`/`height` are
+    nullable wholesale."""
+
+    three_sizes: ThreeSizes
+    birthday: Birthday | None = None
+    height: int | None = None  # cm
+
+
+@digitan
+@dataclass
 class Character(Entity):
     KEY_PREFIX: ClassVar[str] = "char-"
     name: Japlish
-    three_sizes: ThreeSizes
+    bio: Bio
     icon: Image | None = None
     portrait: Image | None = None
     quote: Optional[Japlish] = None
@@ -115,7 +138,7 @@ class Characters(Entities[Character], metaclass=SingletonMeta):
                 Character(
                     key=StableKey(f"{Character.KEY_PREFIX}{record['key']}"),
                     name=record["name"],
-                    three_sizes=ThreeSizes(),
+                    bio=Bio(three_sizes=ThreeSizes()),
                     icon=icon,
                     portrait=portrait,
                     quote=record.get("quote"),
@@ -173,18 +196,25 @@ class Characters(Entities[Character], metaclass=SingletonMeta):
     def _enrich_with_umapyoi(self, c: Character) -> None:
         """Fold Umapyoi data into the character's fields.
 
-        Umapyoi is source-of-truth for `name` and `three_sizes`. For `quote`,
-        Gametora's bilingual payload is preferred; only the EN slot is backfilled
-        if Umapyoi has EN text that Gametora's Japlish doesn't carry yet.
+        Umapyoi is source-of-truth for `name` and the whole `bio` bundle
+        (three sizes, birthday, height). For `quote`, Gametora's bilingual
+        payload is preferred; only the EN slot is backfilled if Umapyoi has EN
+        text that Gametora's Japlish doesn't carry yet.
         """
         # Umapyoi is keyed by the bare character slug, not our prefixed key.
         record = Umapyoi().character(c.key.removeprefix(Character.KEY_PREFIX))
         sizes = record.get("three_sizes", {})
 
         c.name = record.get("name", c.name)
-        c.three_sizes.bust = sizes.get("bust", c.three_sizes.bust)
-        c.three_sizes.waist = sizes.get("waist", c.three_sizes.waist)
-        c.three_sizes.hips = sizes.get("hips", c.three_sizes.hips)
+        c.bio.three_sizes.bust = sizes.get("bust", c.bio.three_sizes.bust)
+        c.bio.three_sizes.waist = sizes.get("waist", c.bio.three_sizes.waist)
+        c.bio.three_sizes.hips = sizes.get("hips", c.bio.three_sizes.hips)
+        # Umapyoi returns birthday as a plain {month, day} dict (or None);
+        # Digitan owns the typed `Birthday`.
+        birthday = record.get("birthday")
+        if birthday is not None:
+            c.bio.birthday = Birthday(month=birthday["month"], day=birthday["day"])
+        c.bio.height = record.get("height", c.bio.height)
 
         umapyoi_quote = record.get("quote")
         if not self._has_text(c.quote):

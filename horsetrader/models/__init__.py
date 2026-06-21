@@ -12,6 +12,8 @@ is what makes it part of the discoverable set.
 
 from .core import References, TracenModel, TracenModels
 from .entities import (
+    Bio,
+    Birthday,
     Character,
     Characters,
     Entities,
@@ -39,6 +41,8 @@ __all__ = [
     "Entities",
     "Entity",
     # Characters
+    "Bio",
+    "Birthday",
     "Character",
     "Characters",
     "ThreeSizes",

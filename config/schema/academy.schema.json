@@ -95,13 +95,109 @@
               "type": "null"
             }
           ]
+        },
+        "bio": {
+          "$ref": "#/$defs/BioRecord"
         }
       },
       "required": [
         "name",
         "quote",
         "icon",
-        "portrait"
+        "portrait",
+        "bio"
+      ]
+    },
+    "BioRecord": {
+      "title": "BioRecord",
+      "description": "A character's vital-statistics bundle. Every member is optional: not all\ncharacters carry this (NPCs never had it, or umapyoi hasn't filled it in).\n`three_sizes` is always the container with nullable members; `birthday` /\n`height` (cm) are `null` wholesale when absent.",
+      "type": "object",
+      "properties": {
+        "three_sizes": {
+          "$ref": "#/$defs/ThreeSizesRecord"
+        },
+        "birthday": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/BirthdayRecord"
+            }
+          ]
+        },
+        "height": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "three_sizes",
+        "birthday",
+        "height"
+      ]
+    },
+    "ThreeSizesRecord": {
+      "title": "ThreeSizesRecord",
+      "type": "object",
+      "properties": {
+        "bust": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "waist": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "hips": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "bust",
+        "waist",
+        "hips"
+      ]
+    },
+    "BirthdayRecord": {
+      "title": "BirthdayRecord",
+      "type": "object",
+      "properties": {
+        "month": {
+          "type": "integer"
+        },
+        "day": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "month",
+        "day"
       ]
     },
     "CourseRecord": {
@@ -318,6 +414,16 @@
           "items": {
             "type": "string"
           }
+        },
+        "source": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "required": [
@@ -329,7 +435,8 @@
         "release",
         "thumbnail",
         "art",
-        "aliases"
+        "aliases",
+        "source"
       ]
     },
     "TraineeRecord": {
@@ -383,6 +490,26 @@
           "items": {
             "type": "string"
           }
+        },
+        "source": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "aptitudes": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/AptitudesRecord"
+            }
+          ]
         }
       },
       "required": [
@@ -393,7 +520,94 @@
         "release",
         "thumbnail",
         "portrait",
-        "aliases"
+        "aliases",
+        "source",
+        "aptitudes"
+      ]
+    },
+    "AptitudesRecord": {
+      "title": "AptitudesRecord",
+      "description": "A trainee's base aptitudes across all three axes. Each grade is a rank\n*slug* (`\"g\"` … `\"s\"`) — the front-end maps it to both the displayed letter\nand the `--ht-colour-aptitude-*` token. The whole object is `null` when the\nsource page carried no aptitude block.",
+      "type": "object",
+      "properties": {
+        "surface": {
+          "$ref": "#/$defs/SurfaceAptitudesRecord"
+        },
+        "distance": {
+          "$ref": "#/$defs/DistanceAptitudesRecord"
+        },
+        "strategy": {
+          "$ref": "#/$defs/StrategyAptitudesRecord"
+        }
+      },
+      "required": [
+        "surface",
+        "distance",
+        "strategy"
+      ]
+    },
+    "SurfaceAptitudesRecord": {
+      "title": "SurfaceAptitudesRecord",
+      "type": "object",
+      "properties": {
+        "turf": {
+          "type": "string"
+        },
+        "dirt": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "turf",
+        "dirt"
+      ]
+    },
+    "DistanceAptitudesRecord": {
+      "title": "DistanceAptitudesRecord",
+      "type": "object",
+      "properties": {
+        "short": {
+          "type": "string"
+        },
+        "mile": {
+          "type": "string"
+        },
+        "medium": {
+          "type": "string"
+        },
+        "long": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "short",
+        "mile",
+        "medium",
+        "long"
+      ]
+    },
+    "StrategyAptitudesRecord": {
+      "title": "StrategyAptitudesRecord",
+      "type": "object",
+      "properties": {
+        "front": {
+          "type": "string"
+        },
+        "pace": {
+          "type": "string"
+        },
+        "late": {
+          "type": "string"
+        },
+        "end": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "front",
+        "pace",
+        "late",
+        "end"
       ]
     }
   }

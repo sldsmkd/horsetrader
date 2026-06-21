@@ -153,6 +153,9 @@ class GametoraSupports(metaclass=SingletonMeta):
                     "release": record["release"],
                     "thumbnail_url": record["thumbnail_url"],
                     "art_url": record["art_url"],
+                    # Canonical reader-facing deep-link (Gametora EN page), reported
+                    # by the detail scraper — not sniffed back out of `references`.
+                    "source": record.get("source"),
                     "correlations": correlations,
                     "references": references,
                 }

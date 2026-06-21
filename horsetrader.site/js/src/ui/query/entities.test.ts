@@ -20,11 +20,11 @@ const EVENTS: EventsBundle = {
 
 const ACADEMY: Academy = {
   characters: {
-    "char-teio": { name: "Tokai Teio", quote: null, icon: null, portrait: null },
-    "char-ardan": { name: "Mejiro Ardan", quote: null, icon: null, portrait: null },
-    "char-ryan": { name: "Mejiro Ryan", quote: null, icon: null, portrait: null },
-    "char-ramonu": { name: "Mejiro Ramonu", quote: null, icon: null, portrait: null },
-    "char-palmer": { name: "Mejiro Palmer", quote: null, icon: null, portrait: null },
+    "char-teio": { name: "Tokai Teio", quote: null, icon: null, portrait: null, bio: { three_sizes: { bust: null, waist: null, hips: null }, birthday: null, height: null } },
+    "char-ardan": { name: "Mejiro Ardan", quote: null, icon: null, portrait: null, bio: { three_sizes: { bust: null, waist: null, hips: null }, birthday: null, height: null } },
+    "char-ryan": { name: "Mejiro Ryan", quote: null, icon: null, portrait: null, bio: { three_sizes: { bust: null, waist: null, hips: null }, birthday: null, height: null } },
+    "char-ramonu": { name: "Mejiro Ramonu", quote: null, icon: null, portrait: null, bio: { three_sizes: { bust: null, waist: null, hips: null }, birthday: null, height: null } },
+    "char-palmer": { name: "Mejiro Palmer", quote: null, icon: null, portrait: null, bio: { three_sizes: { bust: null, waist: null, hips: null }, birthday: null, height: null } },
   },
   supports: {
     "support-teio-speed": {
@@ -37,6 +37,7 @@ const ACADEMY: Academy = {
       thumbnail: null,
       art: null,
       aliases: ["kaicho junior"],
+      source: null,
     },
     "support-teio-speed-dupe": {
       character: "char-teio",
@@ -48,6 +49,7 @@ const ACADEMY: Academy = {
       thumbnail: null,
       art: null,
       aliases: [],
+      source: null,
     },
     "support-teio-stamina": {
       character: "char-teio",
@@ -59,6 +61,7 @@ const ACADEMY: Academy = {
       thumbnail: null,
       art: null,
       aliases: ["finished teio"],
+      source: null,
     },
     "support-ardan-speed": {
       character: "char-ardan",
@@ -70,6 +73,7 @@ const ACADEMY: Academy = {
       thumbnail: null,
       art: null,
       aliases: [],
+      source: null,
     },
     "support-ryan-stamina": {
       character: "char-ryan",
@@ -81,6 +85,7 @@ const ACADEMY: Academy = {
       thumbnail: null,
       art: null,
       aliases: [],
+      source: null,
     },
     "support-ramonu-wit": {
       character: "char-ramonu",
@@ -92,6 +97,7 @@ const ACADEMY: Academy = {
       thumbnail: null,
       art: null,
       aliases: [],
+      source: null,
     },
   },
   trainees: {
@@ -104,6 +110,7 @@ const ACADEMY: Academy = {
       thumbnail: null,
       portrait: null,
       aliases: ["festival teio"],
+      source: null, aptitudes: null,
     },
     "trainee-palmer-reindeer": {
       character: "char-palmer",
@@ -114,6 +121,7 @@ const ACADEMY: Academy = {
       thumbnail: null,
       portrait: null,
       aliases: [],
+      source: null, aptitudes: null,
     },
   },
   courses: {},

@@ -38,6 +38,7 @@ import type { ResourcesSurfaceHandle } from "./views/surfaces/resourcesSurface.t
 import { resourcesEditor } from "./views/surfaces/resourcesEditor.ts";
 import { commitDossier, commitTitle } from "./views/surfaces/commitDossier.ts";
 import { commitContext } from "./select/commit.ts";
+import { cardSurface } from "./views/surfaces/cardSurface.ts";
 import type { CommitBinding } from "./views/bannerGroup.ts";
 import { betaSurface } from "./views/surfaces/betaSurface.ts";
 import { presentConfirm } from "./views/surfaces/confirm.ts";
@@ -462,7 +463,8 @@ export function mountApp(
       left === "playstyle-club" ||
       view.get().resourcesEditing ||
       view.get().committing !== null ||
-      view.get().cloudConnecting
+      view.get().cloudConnecting ||
+      view.get().cardDetail !== null
     );
   };
 
@@ -658,11 +660,34 @@ export function mountApp(
           // Persist the pity as the unit of account; the carat cost stays derived
           // (principle 10). A null clears the commitment (0 through `commit`).
           onCommit: (pity, usePaid) => coord.commit(committing, pity ?? 0, usePaid),
+          // Inspect a featured card → its detail surface (twinkle-monthly step 1).
+          // The dossier rebuilds (losing an unsaved pity draft) — accepted for now.
+          onInspect: (atom) => view.set({ cardDetail: { kind: ctx.kind, id: atom.id } }),
           onClose: () => view.set({ committing: null }),
         }),
         onClose: () => view.set({ committing: null }),
       });
       children.push(commitCard);
+    }
+
+    // The card detail surface (twinkle-monthly step 1): an art-forward peek at one
+    // trainee/support atom, spawned at source (today the commit dossier's featured
+    // cards). A modal like the others — it sits above the dossier that spawned it.
+    const cardDetail = view.get().cardDetail;
+    if (cardDetail !== null) {
+      const detailCard = surface({
+        title: "Card detail",
+        placement: "center",
+        headerless: true,
+        body: cardSurface({
+          bundle,
+          kind: cardDetail.kind,
+          id: cardDetail.id,
+          onClose: () => view.set({ cardDetail: null }),
+        }),
+        onClose: () => view.set({ cardDetail: null }),
+      });
+      children.push(detailCard);
     }
 
     // MODALITY — the lock fan-out, declared once (grand-masters/byerley-turk.md). A

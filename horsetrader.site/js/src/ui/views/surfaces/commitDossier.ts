@@ -34,6 +34,9 @@ export interface CommitDossierOpts {
   /** Commit a pity count (or `null` to clear), and whether to spend owned paid carats
    *  at full price beyond the daily window (#65). */
   onCommit: (pity: number | null, usePaid: boolean) => void;
+  /** Inspect a featured card — open its detail surface (twinkle-monthly step 1).
+   *  Optional: the dossier renders read-only cards when absent. */
+  onInspect?: (atom: CommitAtom) => void;
   onClose: () => void;
 }
 
@@ -51,23 +54,41 @@ export function commitTitle(ctx: CommitContext): string {
   return `${TITLE[ctx.kind]} · ${formatDate(ctx.start)} – ${formatDate(ctx.end)}`;
 }
 
-/** One featured card: art, rarity badge, attribute pip (supports), and name. */
-function featuredCard(atom: CommitAtom): HTMLElement {
+/** One featured card: art, rarity badge, attribute pip (supports), and name. When
+ *  `onInspect` is given the card body is a button opening that atom's detail
+ *  surface (twinkle-monthly step 1); otherwise it's an inert block. */
+function featuredCard(atom: CommitAtom, onInspect?: (atom: CommitAtom) => void): HTMLElement {
+  const art = h(
+    "div",
+    { class: "commit-dossier__card-art" },
+    atom.image
+      ? h("img", { class: "commit-dossier__card-img", attr: { src: atom.image, alt: "", loading: "lazy" } })
+      : h("div", { class: "commit-dossier__card-img commit-dossier__card-img--empty", attr: { "aria-hidden": "true" } }),
+    h("span", { class: `commit-dossier__rarity commit-dossier__rarity--${atom.rarityTier}` }, atom.rarity),
+    atom.attribute
+      ? h("img", { class: "commit-dossier__attr", attr: { src: `/icons/old/${atom.attribute}.png`, alt: atom.attribute, width: 18, height: 18, loading: "lazy" } })
+      : null,
+  );
+  const name = h("span", { class: "commit-dossier__card-name" }, atom.name);
+
+  const body = onInspect
+    ? h(
+        "button",
+        {
+          class: "commit-dossier__card-inspect",
+          attr: { type: "button", "aria-label": `Inspect ${atom.name}` },
+          on: { click: () => onInspect(atom) },
+        },
+        art,
+        name,
+      )
+    : null;
+
   return h(
     "li",
     { class: `commit-dossier__card commit-dossier__card--${atom.rarityTier}` },
-    h(
-      "div",
-      { class: "commit-dossier__card-art" },
-      atom.image
-        ? h("img", { class: "commit-dossier__card-img", attr: { src: atom.image, alt: "", loading: "lazy" } })
-        : h("div", { class: "commit-dossier__card-img commit-dossier__card-img--empty", attr: { "aria-hidden": "true" } }),
-      h("span", { class: `commit-dossier__rarity commit-dossier__rarity--${atom.rarityTier}` }, atom.rarity),
-      atom.attribute
-        ? h("img", { class: "commit-dossier__attr", attr: { src: `/icons/old/${atom.attribute}.png`, alt: atom.attribute, width: 18, height: 18, loading: "lazy" } })
-        : null,
-    ),
-    h("span", { class: "commit-dossier__card-name" }, atom.name),
+    body ?? art,
+    body ? null : name,
   );
 }
 
@@ -180,7 +201,7 @@ export function commitDossier(opts: CommitDossierOpts): HTMLElement {
       h(
         "ul",
         { class: `commit-dossier__cards${ctx.atoms.length > FEATURED_SCROLL_THRESHOLD ? " commit-dossier__cards--scroll" : ""}` },
-        ...ctx.atoms.map(featuredCard),
+        ...ctx.atoms.map((atom) => featuredCard(atom, opts.onInspect)),
       ),
     ),
 

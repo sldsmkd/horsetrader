@@ -127,6 +127,9 @@ class GametoraSupport(metaclass=SingletonMeta):
 
         return {
             "source_url": source_url,
+            # The canonical reader-facing page: Gametora's English mirror (the
+            # `/ja/` source is the Japanese page). The card surface deep-links here.
+            "source": en_url,
             "release": self._extract_release(tree),
             "title": title,
             "character_name": character_name,
