@@ -263,6 +263,58 @@ test("commit stores the dict form only when use-paid is on; flat otherwise", () 
   assert.equal(coord.document().commitments?.["banner-kita"], 60);
 });
 
+test("setNote normalises on the way in (trim + cap) and clears on blank", () => {
+  const coord = coordinator();
+  coord.setNote("trainee-gold-ship", "  won't leave the gate  ");
+  assert.equal(coord.document().notes?.["trainee-gold-ship"], "won't leave the gate"); // trimmed
+  const long = "x".repeat(400);
+  coord.setNote("support-tazuna", long);
+  assert.equal(coord.document().notes?.["support-tazuna"].length, 240); // capped at a cleat
+  // Excess whitespace is collapsed so a cleat can't be all blank lines (DoS the
+  // surface): runs of spaces → one, at most one blank line between paragraphs.
+  coord.setNote("trainee-gold-ship", "a" + "\n".repeat(240) + "b");
+  assert.equal(coord.document().notes?.["trainee-gold-ship"], "a\n\nb");
+  coord.setNote("trainee-gold-ship", "lots     of   space");
+  assert.equal(coord.document().notes?.["trainee-gold-ship"], "lots of space");
+  // A blank/whitespace note clears the key (sparse, never stored empty).
+  coord.setNote("trainee-gold-ship", "   \n\n\n  ");
+  assert.equal(coord.document().notes?.["trainee-gold-ship"], undefined);
+});
+
+test("setUsername allow-lists, grapheme-caps, and trims the trainer name", () => {
+  const coord = coordinator();
+  coord.setUsername("  Xelene  ");
+  assert.equal(coord.username(), "Xelene"); // trimmed at commit
+  coord.setUsername("x".repeat(40));
+  assert.equal(coord.username().length, 24); // capped at TRAINER_NAME_MAX
+  // A NUL control char and an RTL-override are outside the allow-list → dropped.
+  coord.setUsername("Foo" + String.fromCharCode(0, 0x202e) + "Bar");
+  assert.equal(coord.username(), "FooBar");
+  coord.setUsername("   ");
+  assert.equal(coord.username(), ""); // blank clears
+});
+
+test("saveSnapshot clamps each resource to its width (non-negative int, per-resource cap)", () => {
+  const coord = coordinator();
+  coord.saveSnapshot({
+    date: "2026-06-21",
+    recordedAt: "2026-06-21T00:00:00.000Z",
+    resources: {
+      free_carats: 12_345_678, // over int[7]
+      trainee_tickets: 5000, // over int[3]
+      rainbow_crystal: 500, // over int[2]
+      paid_carats: -50, // negative
+      support_tickets: 3.9, // fractional
+    },
+  });
+  const r = coord.document().snapshot!.resources;
+  assert.equal(r.free_carats, 9_999_999);
+  assert.equal(r.trainee_tickets, 999);
+  assert.equal(r.rainbow_crystal, 99);
+  assert.equal(r.paid_carats, 0);
+  assert.equal(r.support_tickets, 3); // floored, not rounded
+});
+
 // ── the boundary (typed mutators, observe, toggles) ─────────────────────────
 
 test("a legacy flat v1 save is durably migrated to the envelope on load (not deferred)", () => {
@@ -274,7 +326,7 @@ test("a legacy flat v1 save is durably migrated to the envelope on load (not def
   // Construct + immediately discard — loading alone must rewrite the store.
   createCoordinator({ bundle: bundle(), config: config(), now: NOW, store });
   const written = JSON.parse(store.read("horsetrader.plan") as string);
-  assert.equal(written.remote.version, 2);
+  assert.equal(written.remote.version, CURRENT_VERSION); // migrated all the way to current
   // The display name now syncs — it stays in the remote plan; only the retired
   // Trainer ID is stripped, and nothing lands in local.
   assert.equal(written.remote.config.identity.trainerName, "Xelene");

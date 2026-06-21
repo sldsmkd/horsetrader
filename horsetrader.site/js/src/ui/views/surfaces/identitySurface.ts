@@ -4,6 +4,7 @@ import { h } from "../../h.ts";
 import { collapsePill } from "../widgets/collapsePill.ts";
 import { playStylePresetGrid } from "./playStylePreset.ts";
 import { clubRankIcon } from "./clubSelector.ts";
+import { normaliseName, TRAINER_NAME_MAX } from "../../../core/persistence/validate.ts";
 import type { PlayStyleKey } from "./playStylePreset.ts";
 import type { ClubIdentity } from "../../../core/identity/clubrank.ts";
 import type { PlayStyleStrings } from "../../strings.ts";
@@ -27,26 +28,6 @@ export interface IdentitySurfaceOpts {
   onClose?: (() => void) | undefined;
 }
 
-// Trainer name entry is clamped at the keystroke: at most 24 *grapheme clusters*
-// (so a ZWJ emoji counts as one and never gets sliced mid-sequence), drawn from a
-// safe set — letters, numbers, spaces, and emoji (pictographs + their modifiers,
-// regional-indicator flag pairs, and the ZWJ/variation-selector joiners that
-// compose them). Everything else — control chars, combining marks (zalgo), RTL
-// overrides — is dropped, so a pasted name can't smuggle layout-breaking junk in.
-const NAME_MAX_GRAPHEMES = 24;
-const NAME_ALLOWED =
-  /[\p{L}\p{N} \p{Extended_Pictographic}\p{Emoji_Modifier}\p{Regional_Indicator}\u200D\uFE0F]/gu;
-const graphemeSegmenter =
-  typeof Intl !== "undefined" && "Segmenter" in Intl ? new Intl.Segmenter(undefined, { granularity: "grapheme" }) : null;
-
-function graphemes(s: string): string[] {
-  return graphemeSegmenter ? [...graphemeSegmenter.segment(s)].map((seg) => seg.segment) : [...s];
-}
-
-function sanitizeTrainerName(raw: string): string {
-  const kept = (raw.normalize("NFC").match(NAME_ALLOWED) ?? []).join("");
-  return graphemes(kept).slice(0, NAME_MAX_GRAPHEMES).join("");
-}
 
 // The Matikane stable names — Matikanetannhauser and Matikanefukukitaru — are the
 // only oshi names long enough to overrun the portrait. They're a family prefix
@@ -95,22 +76,30 @@ function editableTrainerName(opts: IdentitySurfaceOpts): HTMLElement {
     class: "identity-surface__name-input",
     attr: { type: "text", value: opts.trainerName, "aria-label": "Trainer name" },
   });
-  // Clamp every keystroke (and paste) to the safe set + 16-grapheme cap. `maxlength`
-  // can't do this — it counts UTF-16 units, so it would slice emoji mid-sequence.
+  // Clamp every keystroke (and paste) to the safe set + grapheme cap via the shared
+  // name normaliser. `maxlength` can't do this — it counts UTF-16 units, so it would
+  // slice an emoji mid-sequence.
   input.addEventListener("input", () => {
-    const clean = sanitizeTrainerName(input.value);
+    const clean = normaliseName(input.value, TRAINER_NAME_MAX);
     if (clean !== input.value) {
       input.value = clean;
       input.setSelectionRange(clean.length, clean.length);
     }
   });
   const commit = (): void => {
-    const name = sanitizeTrainerName(input.value).trim() || "Trainer";
+    const name = normaliseName(input.value, TRAINER_NAME_MAX).trim() || "Trainer";
     input.value = name;
     if (name !== opts.trainerName) opts.onTrainerNameChange(name);
   };
   input.addEventListener("change", commit);
   input.addEventListener("blur", commit);
+  // Enter = "I'm done": blur to commit and drop focus, the same as clicking away.
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      input.blur();
+    }
+  });
   // No pencil: the input edits in place, with a hover/focus highlight that reads
   // as editable the same way the club row does.
   input.title = "Edit trainer name";

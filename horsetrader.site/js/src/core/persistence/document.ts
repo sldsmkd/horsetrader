@@ -18,7 +18,7 @@
  */
 
 /** Bump when the `remote` plan shape changes; pair with a migration in `migrations`. */
-export const CURRENT_VERSION = 2;
+export const CURRENT_VERSION = 3;
 
 /** A resource reading is a keyed vector — free/paid carats, tickets, shards, … */
 export type ResourceVector = { [resource: string]: number };
@@ -84,15 +84,26 @@ export function commitmentUsePaid(commitment: Commitment): boolean {
 
 /**
  * A favourited entity. Sparse by construction: a bare favourite is `{}` (the
- * key's presence *is* the fact); a note is added only when the user wrote one.
- * Never `{ note: "" }`.
+ * key's presence *is* the fact). The old `note` field is gone — notes are their
+ * own orthogonal layer now ([[Notes]]), not a property of a favourite (a note
+ * floats free of wanting: you can note a subject you never starred).
  */
-export interface FavouriteEntry {
-  note?: string;
-}
+export type FavouriteEntry = Record<string, never>;
 
 /** Favourited entities keyed by ETL stable entity id; absent key ⇒ not a favourite. */
 export type Favourites = { [entityId: string]: FavouriteEntry };
+
+/**
+ * Free-text notes — the trainer's *why*, an orthogonal intent layer independent of
+ * favourites and commitments (Twinkle Monthly · The Interview). Keyed by the ETL
+ * stable **subject** id, which is already globally unique and prefix-typed
+ * (`trainee-…` / `support-…`), so one flat map holds every atom's note. Sparse:
+ * the key's presence is the fact; a value is always a non-empty trimmed string
+ * (clearing the text deletes the key, never `""`). The string is normalised at
+ * ingress (trimmed, capped, control-chars stripped) and is user data — *never*
+ * markup; render escaped.
+ */
+export type Notes = { [subjectId: string]: string };
 
 /**
  * Rushed events keyed by ETL stable event id → the UTC instant the rush flag was
@@ -114,6 +125,7 @@ export interface PlanDocument {
   commitments?: Commitments;
   favourites?: Favourites;
   rushed?: Rushed;
+  notes?: Notes;
 }
 
 /** A clean document for a first-time user or after a fail-soft recovery. */

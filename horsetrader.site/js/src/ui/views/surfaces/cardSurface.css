@@ -156,6 +156,42 @@
 .card-surface__apt-rank[data-rank="a"] { color: var(--ht-colour-aptitude-a); }
 .card-surface__apt-rank[data-rank="s"] { color: var(--ht-colour-aptitude-s); }
 
+/* NOTE — the trainer's why; reads as text, lifts to an input on focus. */
+.card-surface__note {
+  display: flex;
+  flex-direction: column;
+  gap: calc(0.31 * var(--glass-u));
+  width: 100%;
+}
+
+.card-surface__note-label {
+  font-size: var(--ht-type-micro-size);
+  text-transform: uppercase;
+  letter-spacing: var(--ht-type-label-spacing);
+  line-height: var(--ht-type-label-line);
+  opacity: 0.55;
+}
+
+.card-surface__note-input {
+  width: 100%;
+  min-width: 0;
+  resize: vertical;
+  padding: calc(0.5 * var(--glass-u)) calc(0.63 * var(--glass-u));
+  border: 1px solid var(--ht-control-border-quiet);
+  border-radius: var(--ht-control-radius-soft);
+  background: var(--ht-control-bg);
+  color: inherit;
+  font: inherit;
+  font-size: var(--ht-type-label-size);
+  line-height: var(--ht-type-label-line);
+}
+
+.card-surface__note-input:focus {
+  outline: 2px solid color-mix(in srgb, var(--ht-colour-interactive) 70%, currentColor 18%);
+  outline-offset: 0.1rem;
+  border-color: var(--ht-control-selected-border);
+}
+
 /* OUTBOUND LINK — a quiet deep-link to the borrowed stat table. */
 .card-surface__link {
   font-size: var(--ht-type-label-size);

@@ -44,6 +44,11 @@ function isObject(value: unknown): value is Record<string, unknown> {
  * Trainer ID. `trainerName` STAYS in the synced plan — it travels to the cloud and
  * is the human-legible "sync worked" signal (the brief local-only era is reversed;
  * a save that stashed it in `local.username` is folded back into `remote` by `load`).
+ *
+ * v2 → v3 (Twinkle Monthly · The Interview): notes become their own orthogonal
+ * layer. The old per-favourite `note` (never surfaced) is folded into the new
+ * `notes` map, keyed by the same entity id, and stripped from the favourite — a
+ * note no longer implies a star. A favourite with no note collapses to bare `{}`.
  */
 const migrations: Record<number, (doc: Record<string, unknown>) => Record<string, unknown>> = {
   1: (doc) => {
@@ -58,6 +63,24 @@ const migrations: Record<number, (doc: Record<string, unknown>) => Record<string
       if (Object.keys(cfg).length) next["config"] = cfg;
       else delete next["config"];
     }
+    return next;
+  },
+  2: (doc) => {
+    const next: Record<string, unknown> = { ...doc, version: 3 };
+    const favourites = next["favourites"];
+    if (!isObject(favourites)) return next;
+    const notes = isObject(next["notes"]) ? { ...next["notes"] } : {};
+    const cleanedFavourites: Record<string, unknown> = {};
+    for (const [id, entry] of Object.entries(favourites)) {
+      if (isObject(entry) && typeof entry["note"] === "string" && entry["note"].trim()) {
+        // A new note wins only where one doesn't already exist (notes are the newer truth).
+        if (!(id in notes)) notes[id] = entry["note"];
+      }
+      cleanedFavourites[id] = {}; // strip note; the star is just the key now
+    }
+    if (Object.keys(cleanedFavourites).length) next["favourites"] = cleanedFavourites;
+    else delete next["favourites"];
+    if (Object.keys(notes).length) next["notes"] = notes;
     return next;
   },
 };

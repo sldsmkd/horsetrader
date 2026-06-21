@@ -683,6 +683,9 @@ export function mountApp(
           bundle,
           kind: cardDetail.kind,
           id: cardDetail.id,
+          // Notes are keyed by the subject's stable id (already prefix-unique).
+          note: coord.document().notes?.[cardDetail.id] ?? "",
+          onSetNote: (text) => coord.setNote(cardDetail.id, text),
           onClose: () => view.set({ cardDetail: null }),
         }),
         onClose: () => view.set({ cardDetail: null }),

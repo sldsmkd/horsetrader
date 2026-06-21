@@ -36,8 +36,9 @@ test("inputs incl. the synced trainer name round-trip through save → load", ()
         config: { identity: { trainerName: "Xelene", oshiId: "1001" } },
         snapshot: { date: "2026-05-28", recordedAt: "2026-05-28T09:15:00.000Z", resources: { free_carats: 1200 } },
         commitments: { "30096": 50 },
-        favourites: { "108301": { note: "save him" } },
+        favourites: { "108301": {} },
         rushed: { "banner-30096": "2026-06-08T11:30:00.000Z" },
+        notes: { "108301": "save him" },
       },
     },
     store,
@@ -52,8 +53,29 @@ test("inputs incl. the synced trainer name round-trip through save → load", ()
   assert.equal(doc.snapshot?.recordedAt, "2026-05-28T09:15:00.000Z");
   assert.equal(doc.snapshot?.resources.free_carats, 1200);
   assert.equal(doc.commitments?.["30096"], 50);
-  assert.equal(doc.favourites?.["108301"]?.note, "save him");
+  assert.deepEqual(doc.favourites?.["108301"], {}); // bare star — note rides its own map now
+  assert.equal(doc.notes?.["108301"], "save him");
   assert.equal(doc.rushed?.["banner-30096"], "2026-06-08T11:30:00.000Z");
+});
+
+test("v2 → v3 migration: a favourite's note moves into the notes map; the star goes bare", () => {
+  const store = memoryStore();
+  store.write(
+    DOCUMENT_KEY,
+    JSON.stringify({
+      local: {},
+      remote: {
+        version: 2,
+        favourites: { "108301": { note: "won't leave the gate" }, "30107": {} },
+      },
+    }),
+  );
+  const { envelope, migrated } = quietly(() => load(store));
+  assert.equal(migrated, true);
+  assert.equal(envelope.remote.version, CURRENT_VERSION);
+  assert.equal(envelope.remote.notes?.["108301"], "won't leave the gate");
+  assert.deepEqual(envelope.remote.favourites?.["108301"], {}); // star stripped of its note
+  assert.deepEqual(envelope.remote.favourites?.["30107"], {});
 });
 
 test("the trainer name DOES ride into the synced remote plan", () => {
@@ -219,6 +241,7 @@ test("the egress shape gate passes a real plan and rejects obvious garbage", () 
       commitments: { "30096": 50 },
       favourites: { "108301": {} },
       rushed: { "banner-30096": "2026-06-08T11:30:00.000Z" },
+      notes: { "108301": "save him" },
     }),
   );
 

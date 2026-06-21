@@ -14,6 +14,7 @@ import "./resourcesEditor.css";
 import { h } from "../../h.ts";
 import { RESOURCE_ROWS, cellHeading, resourceGrid, type Cell } from "./resourceLayout.ts";
 import { surfaceActions } from "./surfaceActions.ts";
+import { normaliseCount, resourceCap } from "../../../core/persistence/validate.ts";
 import type { ResourceVector } from "../../../core/projection/index.ts";
 import type { Snapshot } from "../../../core/persistence/document.ts";
 
@@ -38,11 +39,6 @@ export interface ResourcesEditorOpts {
 
 const MS_PER_DAY = 86_400_000;
 
-/** Cap on any single resource field. Generous beyond any real balance (a heavy hoarder
- *  holds well under a million carats), but it stops a typo / fat-finger from storing a
- *  nonsense nine-digit value that breaks the projection maths and overflows the readout. */
-const MAX_RESOURCE = 9_999_999;
-
 /** The days-to-top-up countdown for a stored cycle-boundary date, "" when unset. */
 function daysUntil(dateStr: string | null): string {
   if (!dateStr) return "";
@@ -58,7 +54,28 @@ export function resourcesEditor(opts: ResourcesEditorOpts): HTMLElement {
   const editCell = (cell: Cell): HTMLElement => {
     const input = h("input", {
       class: "resource-field__input",
-      attr: { type: "number", min: "0", max: String(MAX_RESOURCE), step: "1", value: String(values[cell.key] ?? 0), id: `rs-${cell.key}` },
+      attr: { type: "number", min: "0", max: String(resourceCap(cell.key)), step: "1", inputmode: "numeric", value: String(values[cell.key] ?? 0), id: `rs-${cell.key}` },
+    });
+    // Clamp every keystroke through the same normaliser the commit/ingress use, so a
+    // negative or a decimal can't sit in the field. The cap is handled differently: an
+    // over-cap edit is *rejected* (we restore the last good value) rather than snapped to
+    // the cap, so typing an 8th digit onto 2000000 just doesn't take — snapping it to
+    // 9999999 reads as the field rewriting your number. An empty field is left alone
+    // while editing (commit reads it as 0).
+    let lastValid = input.value;
+    input.addEventListener("input", () => {
+      if (input.value === "") {
+        lastValid = "";
+        return;
+      }
+      const n = input.valueAsNumber;
+      if (Number.isFinite(n) && n > resourceCap(cell.key)) {
+        input.value = lastValid;
+        return;
+      }
+      const clean = String(normaliseCount(n, resourceCap(cell.key)));
+      if (clean !== input.value) input.value = clean;
+      lastValid = input.value;
     });
     inputs.set(cell.key, input);
     return h("div", { class: "resources-editor__cell" }, cellHeading(cell, "label", { for: `rs-${cell.key}` }), input);
@@ -105,10 +122,10 @@ export function resourcesEditor(opts: ResourcesEditorOpts): HTMLElement {
   const collect = (): ResourcesDraft => {
     const resources: ResourceVector = {};
     for (const row of RESOURCE_ROWS) {
-      // Clamp on commit too — `max` only guides the spinner, it doesn't stop a typed or
-      // pasted value, so the cap is enforced here where the draft is read.
+      // Normalise on commit too — `max` only guides the spinner, it doesn't stop a typed
+      // or pasted value, so the shared rule is enforced here where the draft is read.
       for (const cell of row) {
-        resources[cell.key] = Math.min(MAX_RESOURCE, Math.max(0, inputs.get(cell.key)!.valueAsNumber || 0));
+        resources[cell.key] = normaliseCount(inputs.get(cell.key)!.valueAsNumber, resourceCap(cell.key));
       }
     }
     const recordedAt = new Date().toISOString();

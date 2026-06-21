@@ -16,8 +16,8 @@ import type {
   Commitments,
   Config,
   Favourites,
-  FavouriteEntry,
   LocalState,
+  Notes,
   PlanDocument,
   ResourceVector,
   Rushed,
@@ -26,6 +26,124 @@ import type {
 
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/**
+ * A note is a **cleat** — a short, self-contained line, long enough for a real
+ * thought, short enough to never wall a glass card, and a *publishable* unit if
+ * Canter ever shares it. `str[240]`. Code points, not UTF-16 units, so an emoji or
+ * a CJK character each count once and a cap never splits a surrogate pair.
+ */
+export const NOTE_MAX_LENGTH = 240;
+
+/** Trainer name — `str[24]`, honouring the limit the player field has always
+ *  carried. A handle, not prose: whatever the player wants, within reason. */
+export const TRAINER_NAME_MAX = 24;
+
+/** Club name — `str[16]` (the game allows fewer; this is the comfortable ceiling). */
+export const CLUB_NAME_MAX = 16;
+
+/** Cap on any single transcribed resource count. Carats are `int[7]` — a balance
+ *  tops out at 9,999,999 (a heavy hoarder holds far less; that many paid carats is
+ *  half an Aston Martin). The cap stops a typo / fat-finger from storing a nonsense
+ *  value that overflows the readout and breaks the projection maths. One home for
+ *  the rule (UI spinner + commit clamp + persistence ingress). */
+export const MAX_RESOURCE = 9_999_999;
+
+// Disallowed control characters: every C0 control plus DEL, **except** newline
+// (a note may be multi-line) — stripped so a save can't carry terminal escapes or
+// other invisible junk.
+const CONTROL_CHARS_KEEP_NEWLINE = /[\u0000-\u0009\u000B-\u001F\u007F]/g;
+// Names are a handle: letters, numbers, spaces and emoji only (pictographs + their
+// modifiers, regional-indicator flag pairs, ZWJ/variation-selector joiners). Combining
+// marks (zalgo), RTL overrides, control chars and punctuation are dropped so a pasted
+// name can't smuggle layout-breaking junk.
+const NAME_ALLOWED = /[\p{L}\p{N} \p{Extended_Pictographic}\p{Emoji_Modifier}\p{Regional_Indicator}\u200D\uFE0F]/gu;
+
+// One grapheme segmenter for every length cap — a name's 24/16 and a cleat's 240 are
+// all *grapheme* counts, so a ZWJ emoji counts as one and a slice never garbles it
+// mid-sequence. Falls back to code points where Intl.Segmenter is unavailable.
+const graphemeSegmenter =
+  typeof Intl !== "undefined" && "Segmenter" in Intl ? new Intl.Segmenter(undefined, { granularity: "grapheme" }) : null;
+function graphemes(s: string): string[] {
+  return graphemeSegmenter ? [...graphemeSegmenter.segment(s)].map((seg) => seg.segment) : [...s];
+}
+
+/**
+ * The single note normaliser — the **cleater**, the input contract for the notes
+ * layer (Twinkle Monthly · The Interview). Strips control characters (keeping
+ * newlines), collapses excess whitespace so a cleat can't be all blank lines
+ * (240 newlines pass the grapheme cap but wall the card — a cheap denial of the
+ * surface), trims, and caps at `NOTE_MAX_LENGTH`. Whitespace policy: spaces around
+ * a newline are dropped, runs of spaces collapse to one, and at most two newlines
+ * may sit together (a single blank line for a paragraph break). Returns `""` for a
+ * non-string or an empty-after-trim value; the caller treats `""` as "no note"
+ * (delete the key, never store empty). Used both at the live write seam (the
+ * coordinator) and at the persistence ingress (`validateNotes`), so a typed-in
+ * cleat and a hand-edited save get the exact same rules.
+ */
+export function normaliseNote(raw: unknown): string {
+  if (typeof raw !== "string") return "";
+  const cleaned = raw
+    .replace(CONTROL_CHARS_KEEP_NEWLINE, "")
+    .replace(/ +/g, " ") // collapse space runs
+    .replace(/ *\n */g, "\n") // drop spaces hugging a newline
+    .replace(/\n{3,}/g, "\n\n") // at most one blank line between paragraphs
+    .trim();
+  return graphemes(cleaned).slice(0, NOTE_MAX_LENGTH).join("");
+}
+
+/**
+ * The single name normaliser — for the trainer name and the club name. A name is a
+ * one-line handle: NFC-normalised and reduced to the allow-list (letters, numbers,
+ * spaces, emoji), then capped at `max` *graphemes*. It does NOT trim — callers trim
+ * at commit, so live keystroke editing can still type an internal/trailing space.
+ * Returns `""` for a non-string or empty value. Shared by the coordinator's
+ * `setUsername` / `setClub` (each passing its own cap) so both names take one path.
+ */
+export function normaliseName(raw: unknown, max: number): string {
+  if (typeof raw !== "string") return "";
+  const kept = (raw.normalize("NFC").match(NAME_ALLOWED) ?? []).join("");
+  return graphemes(kept).slice(0, max).join("");
+}
+
+/**
+ * Per-resource caps — the integer width each balance can legitimately reach, so a
+ * fat-finger can't store a value the game can't hold:
+ *   - carats (free/paid): `int[7]` — 9,999,999 (the `MAX_RESOURCE` default);
+ *   - scout tickets: `int[3]` — 999;
+ *   - limit-breaker crystals: `int[2]` — 99 (unbuyable, ~3–5 a year);
+ *   - their shards: `int[2]` — 99 (20 shards = 1 crystal).
+ * Unlisted keys fall back to the carat cap. The one home for the rule, shared by
+ * the balance editor (spinner max + commit clamp) and the persistence ingress.
+ */
+const RESOURCE_CAPS: Record<string, number> = {
+  free_carats: MAX_RESOURCE,
+  paid_carats: MAX_RESOURCE,
+  trainee_tickets: 999,
+  support_tickets: 999,
+  rainbow_crystal: 99,
+  gold_crystal: 99,
+  rainbow_crystal_shards: 99,
+  gold_crystal_shards: 99,
+};
+
+/** The cap for a resource key — its declared width, or the carat default. */
+export function resourceCap(key: string): number {
+  return RESOURCE_CAPS[key] ?? MAX_RESOURCE;
+}
+
+/**
+ * The single resource-count normaliser — a transcribed balance is a non-negative
+ * integer, capped at the resource's width. Coerces strings, floors fractions,
+ * clamps the range, and reads non-finite/garbage as 0. The one home shared by the
+ * balance editor (spinner + commit clamp) and the persistence ingress
+ * (`numberVector`).
+ */
+export function normaliseCount(raw: unknown, max: number = MAX_RESOURCE): number {
+  const n = typeof raw === "number" ? raw : Number(raw);
+  if (!Number.isFinite(n)) return 0;
+  return Math.min(max, Math.max(0, Math.floor(n)));
 }
 
 /**
@@ -69,7 +187,7 @@ export function assertPlausiblePlan(value: unknown): asserts value is PlanDocume
     throw new Error(`egress: implausible plan version ${value.version}`);
   }
   const obj = value as Record<string, unknown>;
-  for (const key of ["snapshot", "config", "commitments", "favourites", "rushed"] as const) {
+  for (const key of ["snapshot", "config", "commitments", "favourites", "rushed", "notes"] as const) {
     if (obj[key] !== undefined && !isObject(obj[key])) {
       throw new Error(`egress: plan field "${key}" is not an object`);
     }
@@ -84,7 +202,9 @@ function numberVector(value: unknown): ResourceVector {
   const out: ResourceVector = {};
   if (!isObject(value)) return out;
   for (const [k, v] of Object.entries(value)) {
-    if (typeof v === "number" && Number.isFinite(v)) out[k] = v;
+    // Normalise every count to its resource's width (non-negative int, capped) so a
+    // stale/tampered snapshot can't carry a negative, a fraction, or an overflow.
+    if (typeof v === "number" && Number.isFinite(v)) out[k] = normaliseCount(v, resourceCap(k));
     else console.warn(`persistence: dropping non-numeric resource "${k}"`);
   }
   return out;
@@ -142,9 +262,21 @@ function validateFavourites(value: unknown): Favourites | undefined {
       console.warn(`persistence: dropping malformed favourite "${entityId}"`);
       continue;
     }
-    const favourite: FavouriteEntry = {};
-    if (typeof entry["note"] === "string" && entry["note"] !== "") favourite.note = entry["note"];
-    out[entityId] = favourite;
+    out[entityId] = {}; // bare: the key's presence is the fact (notes are their own layer now)
+  }
+  return Object.keys(out).length ? out : undefined;
+}
+
+/** Validate the notes map: each value normalised (trimmed, capped, control-chars
+ *  stripped), entries that normalise to empty dropped. A malformed save can't
+ *  carry an oversized or junk-laden note past this gate. */
+function validateNotes(value: unknown): Notes | undefined {
+  if (!isObject(value)) return undefined;
+  const out: Notes = {};
+  for (const [subjectId, raw] of Object.entries(value)) {
+    const note = normaliseNote(raw);
+    if (note) out[subjectId] = note;
+    else console.warn(`persistence: dropping empty/malformed note "${subjectId}"`);
   }
   return Object.keys(out).length ? out : undefined;
 }
@@ -179,5 +311,7 @@ export function validateDocument(value: unknown): PlanDocument {
   if (favourites) doc.favourites = favourites;
   const rushed = validateRushed(obj["rushed"]);
   if (rushed) doc.rushed = rushed;
+  const notes = validateNotes(obj["notes"]);
+  if (notes) doc.notes = notes;
   return doc;
 }

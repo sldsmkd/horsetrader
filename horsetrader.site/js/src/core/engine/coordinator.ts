@@ -23,6 +23,7 @@ import type { ClubRankTier } from "../identity/clubrank.ts";
 import type { Snapshot, SyncMeta } from "../persistence/document.ts";
 import type { LocalState, PlanDocument } from "../persistence/index.ts";
 import { load, save } from "../persistence/index.ts";
+import { normaliseNote, normaliseName, normaliseCount, resourceCap, TRAINER_NAME_MAX, CLUB_NAME_MAX } from "../persistence/validate.ts";
 import type { KeyValueStore } from "../persistence/storage.ts";
 import { defaultStore } from "../persistence/storage.ts";
 import type { PlayStyleKey, PlayStyleSettings } from "../playstyle/index.ts";
@@ -84,7 +85,11 @@ export interface Coordinator {
   /** Rush an event: its discrete payout attributes at `start` instead of `end`. */
   setRushed(eventKey: string, on: boolean): void;
   /** Bookmark an entity (view-only; no money effect). */
-  setFavourite(id: string, on: boolean, note?: string): void;
+  setFavourite(id: string, on: boolean): void;
+  /** Write the free-text note on a subject (a trainee/support stable id), or clear
+   *  it with an empty/blank string. The text is normalised (trimmed, tweet-capped,
+   *  control-chars stripped) on the way in (Twinkle Monthly · The Interview). */
+  setNote(subjectId: string, text: string): void;
   /** View-identity fields (oshi, club) — persisted in the plan, fold-inert. */
   patchIdentity(patch: Record<string, unknown>): void;
   /** Set the trainer's display name (synced plan state; "" clears it). */
@@ -191,6 +196,7 @@ function planHasContent(doc: PlanDocument): boolean {
     Object.keys(doc.commitments ?? {}).length > 0 ||
     Object.keys(doc.favourites ?? {}).length > 0 ||
     Object.keys(doc.rushed ?? {}).length > 0 ||
+    Object.keys(doc.notes ?? {}).length > 0 ||
     doc.snapshot != null ||
     trainerNameOf(doc) !== ""
   );
@@ -279,7 +285,7 @@ export function createCoordinator(options: CoordinatorOptions): Coordinator {
 
   /** The one write path: patch, persist, re-derive, notify. Every mutator is
    *  sugar over this (commit pity ≡ change a slider — same operation). */
-  function update(patch: Partial<Pick<PlanDocument, "snapshot" | "config" | "commitments" | "favourites" | "rushed">>): void {
+  function update(patch: Partial<Pick<PlanDocument, "snapshot" | "config" | "commitments" | "favourites" | "rushed" | "notes">>): void {
     doc = { ...doc, ...patch };
     // Any change to the syncable plan diverges it from the last-synced cloud rev.
     local = { ...local, sync: { etag: local.sync?.etag ?? null, dirty: true } };
@@ -318,8 +324,9 @@ export function createCoordinator(options: CoordinatorOptions): Coordinator {
       patchIdentitySection({ playStyleKey: key, playStyleSettings: settings });
     },
     setClub(name, rank) {
-      if (rank === null || !name) patchIdentitySection({ clubName: "" });
-      else patchIdentitySection({ clubName: name, clubRank: rank });
+      const clean = normaliseName(name, CLUB_NAME_MAX).trim(); // one path with the trainer name (allow-list + cap)
+      if (rank === null || !clean) patchIdentitySection({ clubName: "" });
+      else patchIdentitySection({ clubName: clean, clubRank: rank });
     },
     setSubscriptions(patch) {
       const cfg = { ...(doc.config ?? {}) };
@@ -334,7 +341,11 @@ export function createCoordinator(options: CoordinatorOptions): Coordinator {
       update({ config: cfg });
     },
     saveSnapshot(snapshot) {
-      update({ snapshot });
+      // Normalise every transcribed count to its resource width (non-negative int,
+      // capped) at the write seam — one path with the persistence ingress.
+      const resources: ResourceVector = {};
+      for (const [k, v] of Object.entries(snapshot.resources)) resources[k] = normaliseCount(v, resourceCap(k));
+      update({ snapshot: { ...snapshot, resources } });
     },
     setRushed(eventKey, on) {
       const next = { ...(doc.rushed ?? {}) };
@@ -342,18 +353,25 @@ export function createCoordinator(options: CoordinatorOptions): Coordinator {
       else delete next[eventKey];
       update({ rushed: next });
     },
-    setFavourite(id, on, note) {
+    setFavourite(id, on) {
       const next = { ...(doc.favourites ?? {}) };
-      if (on) next[id] = note ? { note } : {}; // never { note: "" }
+      if (on) next[id] = {}; // bare: the key's presence is the fact (notes are their own layer)
       else delete next[id];
       update({ favourites: next });
+    },
+    setNote(subjectId, text) {
+      const note = normaliseNote(text);
+      const next = { ...(doc.notes ?? {}) };
+      if (note) next[subjectId] = note; // normalised: trimmed, capped, control-chars stripped
+      else delete next[subjectId]; // empty clears (sparse, never "")
+      update({ notes: next });
     },
     patchIdentity: patchIdentitySection,
     setUsername(name) {
       // The display name lives in the synced plan (config.identity.trainerName), so
       // a change diverges the cloud rev like any plan edit — route it through the
       // identity patch (update → dirty → re-derive → notify). Empty clears it.
-      patchIdentitySection({ trainerName: name.trim() ? name : "" });
+      patchIdentitySection({ trainerName: normaliseName(name, TRAINER_NAME_MAX).trim() }); // allow-list + cap; "" clears
     },
     markSynced(etag) {
       // A clean push/pull: the local plan now matches this cloud rev. Local-only,

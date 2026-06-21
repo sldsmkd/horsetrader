@@ -4,6 +4,7 @@ import { h } from "../../h.ts";
 import { pressedGroup } from "../widgets/pressedGroup.ts";
 import { surfaceActions } from "./surfaceActions.ts";
 import { CLUB_RANK_TIERS, DEFAULT_CLUB_RANK } from "../../../core/identity/clubrank.ts";
+import { CLUB_NAME_MAX, normaliseName } from "../../../core/persistence/validate.ts";
 import type { ClubRankTier } from "../../../core/identity/clubrank.ts";
 
 // The modal badge per rank. The icon ladder runs club_rank_01 (D) → _11 (SS),
@@ -57,8 +58,28 @@ export function clubSelector(opts: ClubSelectorOpts): HTMLElement {
       placeholder: "Club name",
       "aria-label": "Club name",
       autocomplete: "off",
-      maxlength: 24,
     },
+  });
+  // Clamp every keystroke (and paste) to the safe set + grapheme cap via the shared
+  // name normaliser — the same path as the trainer name. `maxlength` can't do this:
+  // it counts UTF-16 units, so it would slice an emoji mid-sequence.
+  name.addEventListener("input", () => {
+    const clean = normaliseName(name.value, CLUB_NAME_MAX);
+    if (clean !== name.value) {
+      name.value = clean;
+      name.setSelectionRange(clean.length, clean.length);
+    }
+  });
+  const commit = (): void => {
+    opts.onCommit({ name: name.value.trim() || "Club", rank: selectedRank });
+    opts.onClose();
+  };
+  // Enter = "I'm done": commit the membership, the same as clicking OK/Join.
+  name.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      commit();
+    }
   });
 
   const optionButton = (tier: ClubRankTier): HTMLButtonElement => {
@@ -123,12 +144,7 @@ export function clubSelector(opts: ClubSelectorOpts): HTMLElement {
         {
           class: "club-selector__ok",
           attr: { type: "button" },
-          on: {
-            click: () => {
-              opts.onCommit({ name: name.value.trim() || "Club", rank: selectedRank });
-              opts.onClose();
-            },
-          },
+          on: { click: commit },
         },
         inClub ? "OK" : "Join",
       ),

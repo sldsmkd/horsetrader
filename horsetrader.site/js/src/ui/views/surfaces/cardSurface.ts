@@ -18,6 +18,7 @@ import "./cardSurface.css";
 
 import { h } from "../../h.ts";
 import { formatDate } from "../../format.ts";
+import { NOTE_MAX_LENGTH } from "../../../core/persistence/validate.ts";
 import type { Bundle } from "../../bundle/access.ts";
 import type { BannerKind } from "../../select/aboveLane.ts";
 import { cardDetails, type AptitudeAxis, type Facet } from "../../select/cardDetail.ts";
@@ -26,7 +27,38 @@ export interface CardSurfaceOpts {
   bundle: Bundle;
   kind: BannerKind;
   id: string;
+  /** The subject's current note ("" when none) — the surface's only mutable input. */
+  note: string;
+  /** Commit the note (normalised + persisted by the coordinator; "" clears). */
+  onSetNote: (text: string) => void;
   onClose: () => void;
+}
+
+/** The note box — the trainer's *why* (Twinkle Monthly · The Interview). A plain
+ *  textarea that reads as text and commits on blur; the value is normalised and
+ *  rendered escaped by the coordinator/`h` (user data is never markup). Enter commits
+ *  and drops focus (the same "I'm done" as the trainer name); Shift+Enter still inserts
+ *  a newline — the note normaliser preserves them. */
+function noteBox(note: string, onSetNote: (text: string) => void): HTMLElement {
+  return h(
+    "label",
+    { class: "card-surface__note" },
+    h("span", { class: "card-surface__note-label" }, "Note"),
+    h("textarea", {
+      class: "card-surface__note-input",
+      attr: { placeholder: "Why this one?", maxlength: NOTE_MAX_LENGTH, rows: 2 },
+      on: {
+        blur: (e) => onSetNote((e.target as HTMLTextAreaElement).value),
+        keydown: (e) => {
+          const ke = e as KeyboardEvent;
+          if (ke.key === "Enter" && !ke.shiftKey) {
+            ke.preventDefault();
+            (ke.target as HTMLTextAreaElement).blur();
+          }
+        },
+      },
+    }, note),
+  );
 }
 
 function facetRow(facet: Facet): HTMLElement {
@@ -108,6 +140,9 @@ export function cardSurface(opts: CardSurfaceOpts): HTMLElement {
     card.aptitudes
       ? h("div", { class: "card-surface__aptitudes" }, ...card.aptitudes.map(aptitudeAxis))
       : null,
+
+    // The note — the trainer's voice on this subject.
+    noteBox(opts.note, opts.onSetNote),
 
     // The outbound deep-link — only when the bake carries a source URL.
     card.source
