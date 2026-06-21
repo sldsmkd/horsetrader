@@ -26,6 +26,7 @@ import { timeline } from "./views/timeline.ts";
 import { minimap } from "./views/minimap.ts";
 import { scenarioArt } from "./views/scenarioArt.ts";
 import { perfHud } from "./views/perfHud.ts";
+import { perfInstrument } from "./perf.ts";
 import type { BakeStats } from "../core/bundle/stats.gen.ts";
 import { belowCard } from "./views/belowCard.ts";
 import { bannerGroup } from "./views/bannerGroup.ts";
@@ -183,14 +184,17 @@ export function mountApp(
     view.set({ right: current === member ? null : member, resourcesEditing: false });
   };
   let cardStats = { cards: 0, aboveCards: 0, belowCards: 0 };
+  // Darley's perf instrument owns the measurement loop + churn collection + frame budget;
+  // the HUD is a dumb view over its snapshots.
+  const perf = perfInstrument({ drainChurn: () => tl.drainChurn() });
   const hud = perfHud({
+    perf,
     bake: bakeStats,
     stats: () => ({
       ...cardStats,
       ...tl.visibility(),
       domNodes: root.getElementsByTagName("*").length,
     }),
-    drainChurn: () => tl.drainChurn(),
   });
 
   // The minimap is the primary navigation: dragging its track seeks, which pans

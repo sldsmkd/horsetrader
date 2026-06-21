@@ -63,3 +63,10 @@
   color: var(--ht-colour-text-on-accent);
   text-align: right;
 }
+
+/* Budget adherence made visible: the instrument flags a sustained miss of the device's
+   refresh budget, and the readout lights up (Darley's perf verdict, not just a number). */
+.perf-hud__value--over {
+  color: var(--ht-colour-diagnostic-accent);
+  font-weight: 700;
+}

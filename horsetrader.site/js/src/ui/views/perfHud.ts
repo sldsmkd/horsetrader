@@ -2,20 +2,11 @@ import "./perfHud.css";
 
 import { h } from "../h.ts";
 import type { BakeStats } from "../../core/bundle/stats.gen.ts";
+import type { PerfInstrument, PerfSnapshot } from "../perf.ts";
 
 const GRAPH_SAMPLES = 72;
 const GRAPH_W = 144;
 const GRAPH_H = 34;
-const SAMPLE_MS = 250;
-// Per-frame churn history for the live percentile readout — ~28s @144Hz, ~68s
-// @60Hz. The all-time high watermark (`max`) is tracked separately so it survives
-// the ring wrapping.
-const CHURN_WINDOW = 4096;
-
-function percentile(sorted: number[], p: number): number {
-  if (sorted.length === 0) return 0;
-  return sorted[Math.min(sorted.length - 1, Math.floor((p / 100) * sorted.length))];
-}
 
 function cssVar(el: Element, name: string): string {
   return getComputedStyle(el).getPropertyValue(name).trim();
@@ -32,6 +23,7 @@ function withAlpha(colour: string, alpha: number): string {
   return rgb ? `rgba(${rgb[1]}, ${rgb[2]}, ${rgb[3]}, ${alpha})` : colour || "transparent";
 }
 
+/** Point-in-time scene counts — supplied by the app each render; not measured here. */
 export interface PerfHudStats {
   cards: number;
   aboveCards: number;
@@ -48,28 +40,23 @@ export interface PerfHud {
 }
 
 export interface PerfHudOptions {
+  /** Darley's perf instrument — the HUD subscribes to its snapshots while visible. */
+  perf: PerfInstrument;
+  /** Scene counts read at render time (the timeline/culling already own this collection). */
   stats(): PerfHudStats;
-  // Read+reset the DOM node churn since the last call. Drained once per frame to
-  // bucket churn by frame for the high-watermark / percentile readout.
-  drainChurn(): number;
-  // Build-time vanity counters from stats.json — static, set once at construction.
+  /** Build-time vanity counters from stats.json — static, set once at construction. */
   bake: BakeStats;
 }
 
-export function perfHud({ stats, drainChurn, bake }: PerfHudOptions): PerfHud {
+/**
+ * MangoHorse — the performance HUD. A dumb surface (the debut-era joke that grew up): it
+ * MEASURES nothing. The frame loop, churn collection and frame budget live in the perf
+ * instrument (ui/perf.ts, Darley's); this view subscribes while visible and renders the
+ * snapshot alongside the app's scene counts and the build-time bake report.
+ */
+export function perfHud({ perf, stats, bake }: PerfHudOptions): PerfHud {
   let visible = false;
-  let lastFrame = performance.now();
-  let lastSample = lastFrame;
-  let frames = 0;
-  let fps = 0;
-  const samples: number[] = [];
-
-  // Per-frame churn ring + all-time high watermark, drained every frame (regardless
-  // of HUD visibility) so each entry is one frame's worth.
-  const churn = new Float64Array(CHURN_WINDOW);
-  let churnIdx = 0;
-  let churnCount = 0;
-  let churnMax = 0;
+  let unsubscribe: (() => void) | null = null;
 
   const fpsValue = h("span", { class: "perf-hud__value" }, "0");
   const frameValue = h("span", { class: "perf-hud__value" }, "0.0ms");
@@ -116,20 +103,7 @@ export function perfHud({ stats, drainChurn, bake }: PerfHudOptions): PerfHud {
     staticRow("BAKED", `${bake.baked_at.slice(5, 16).replace("T", " ")} UTC`),
   );
 
-  const setVisible = (next: boolean) => {
-    visible = next;
-    el.classList.toggle("perf-hud--visible", visible);
-    el.setAttribute("aria-hidden", String(!visible));
-  };
-
-  window.addEventListener("keydown", (ev) => {
-    if (ev.key === "F2") {
-      ev.preventDefault();
-      setVisible(!visible);
-    }
-  });
-
-  const draw = () => {
+  const draw = (samples: readonly number[]): void => {
     if (!ctx) return;
     const gridColour = withAlpha(cssVar(el, "--ht-colour-text-on-accent"), 0.18);
     const graphColour = withAlpha(cssVar(el, "--ht-colour-diagnostic-accent"), 0.92);
@@ -155,43 +129,44 @@ export function perfHud({ stats, drainChurn, bake }: PerfHudOptions): PerfHud {
     ctx.stroke();
   };
 
-  const tick = (t: number) => {
-    const frameMs = t - lastFrame;
-    lastFrame = t;
-    frames += 1;
-    // Drain churn every frame (even when hidden) so each entry is one frame's worth.
-    const frameChurn = drainChurn();
-    churn[churnIdx] = frameChurn;
-    churnIdx = (churnIdx + 1) % CHURN_WINDOW;
-    if (churnCount < CHURN_WINDOW) churnCount += 1;
-    if (frameChurn > churnMax) churnMax = frameChurn;
-    if (t - lastSample >= SAMPLE_MS) {
-      fps = (frames * 1000) / (t - lastSample);
-      frames = 0;
-      lastSample = t;
-      samples.push(fps);
-      if (samples.length > GRAPH_SAMPLES) samples.shift();
-
-      if (visible) {
-        const s = stats();
-        fpsValue.textContent = String(Math.round(fps));
-        frameValue.textContent = `${frameMs.toFixed(1)}ms`;
-        cardsValue.textContent = String(s.cards);
-        lanesValue.textContent = `${s.aboveCards} / ${s.belowCards}`;
-        onscreenValue.textContent = `${s.visible} / ${s.near} / ${s.offscreen}`;
-        const offscreenPct = s.cards ? Math.round((s.offscreen / s.cards) * 100) : 0;
-        offscreenValue.textContent = `${offscreenPct}%`;
-        // Live churn readout (p99 / p99.9 / max) over the ring.
-        const sorted = Array.from(churn.subarray(0, churnCount)).sort((a, b) => a - b);
-        churnValue.textContent = `${percentile(sorted, 99)} / ${percentile(sorted, 99.9)} / ${churnMax}`;
-        domValue.textContent = String(s.domNodes);
-        viewportValue.textContent = viewportResolution();
-        draw();
-      }
-    }
-    requestAnimationFrame(tick);
+  const render = (snap: PerfSnapshot): void => {
+    const s = stats();
+    fpsValue.textContent = String(Math.round(snap.fps));
+    // Adherence made visible: flag the readout when the instrument says we're missing budget.
+    fpsValue.classList.toggle("perf-hud__value--over", snap.overBudget);
+    frameValue.textContent = `${snap.frameMs.toFixed(1)}ms`;
+    cardsValue.textContent = String(s.cards);
+    lanesValue.textContent = `${s.aboveCards} / ${s.belowCards}`;
+    onscreenValue.textContent = `${s.visible} / ${s.near} / ${s.offscreen}`;
+    const offscreenPct = s.cards ? Math.round((s.offscreen / s.cards) * 100) : 0;
+    offscreenValue.textContent = `${offscreenPct}%`;
+    churnValue.textContent = `${snap.churnP99} / ${snap.churnP999} / ${snap.churnMax}`;
+    domValue.textContent = String(s.domNodes);
+    viewportValue.textContent = viewportResolution();
+    draw(snap.fpsSamples);
   };
-  requestAnimationFrame(tick);
+
+  const setVisible = (next: boolean): void => {
+    visible = next;
+    el.classList.toggle("perf-hud--visible", visible);
+    el.setAttribute("aria-hidden", String(!visible));
+    // Only subscribe (and so only build snapshots) while shown — the instrument's loop
+    // keeps measuring regardless, but the HUD pays nothing when hidden.
+    if (visible) {
+      render(perf.snapshot()); // immediate paint, don't wait for the next sample
+      unsubscribe = perf.subscribe(render);
+    } else {
+      unsubscribe?.();
+      unsubscribe = null;
+    }
+  };
+
+  window.addEventListener("keydown", (ev) => {
+    if (ev.key === "F2") {
+      ev.preventDefault();
+      setVisible(!visible);
+    }
+  });
 
   return { el };
 }
