@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { pullCapacity, spend, remainingAfterSpend, remainingCapacityAfterSpend, bannerDays, type PullSources, type PullCaps } from "./pulls.ts";
+import { pullCapacity, spend, remainingAfterSpend, remainingCapacityAfterSpend, commitmentStatus, bannerDays, type PullSources, type PullCaps } from "./pulls.ts";
 
 const CAPS: PullCaps = { caratsPerPull: 150, paidDailyPull: 50, bannerDays: 12 };
 const EMPTY: PullSources = { freePulls: 0, tickets: 0, freeCarats: 0, paidCarats: 0 };
@@ -117,4 +117,25 @@ test("remainingCapacityAfterSpend: own commitment consumes sources but available
   // carats. The resource balance can go negative; the card's available-pull read cannot.
   assert.deepEqual(remainingAfterSpend(sources, caps, 200, 1, false), { freePulls: 0, tickets: 0, freeCarats: -16950, paidCarats: 0 });
   assert.deepEqual(remainingCapacityAfterSpend(sources, caps, 200, 1, false), { freePulls: 0, tickets: 0, dailyPaid: 0, freeCaratPulls: 0, total: 0 });
+});
+
+const GACHA = { caratsPerPull: 150, paidDailyPull: 50, sparkThreshold: 200 };
+
+test("commitmentStatus: assembles kind-narrowed sources, fundable with capacity left over", () => {
+  // Support banner → support tickets; balance comfortably covers a 2-pity (400 pull)
+  // commitment, leaving 47,800 free carats → ⌊47800/150⌋ = 318 pulls of headroom.
+  const status = commitmentStatus("support", 10, "2026-06-10", "2026-06-22", { free_carats: 100000, paid_carats: 600, support_tickets: 30 }, GACHA, 2, false);
+  assert.equal(status.kind, "support");
+  assert.equal(status.pity, 2);
+  assert.equal(status.unfundable, false);
+  assert.equal(status.capacity.total, 318);
+  assert.equal(status.capacity.freeCaratPulls, 318);
+});
+
+test("commitmentStatus: flags unfundable when the reservation drives free carats negative", () => {
+  // 1 pity = 200 pulls; 60 gifts + 8 tickets + 19 daily paid fall far short, so free
+  // carats surge negative → unfundable, and no capacity remains.
+  const status = commitmentStatus("trainee", 60, "2026-07-20T22:00:00+00:00", "2026-08-08T22:00:00+00:00", { free_carats: 0, paid_carats: 950, trainee_tickets: 8 }, GACHA, 1, false);
+  assert.equal(status.unfundable, true);
+  assert.equal(status.capacity.total, 0);
 });

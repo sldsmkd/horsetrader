@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import { aboveLaneGroups } from "./aboveLane.ts";
+import type { CommitmentStatus } from "../../core/projection/pulls.ts";
 import { createBundle } from "../bundle/access.ts";
 import { TEST_CONFIG } from "../bundle/fixtures.ts";
 import { createAxis } from "../axis.ts";
@@ -82,16 +83,15 @@ test("contents resolve to atoms in the kind's grammar — trainee stars, support
   assert.deepEqual(support.atoms, [{ id: "s-spe", name: "Special Week", rarity: "SSR", rarityTier: "crystal", attribute: "guts" }]);
 });
 
-test("committed banners show pull capacity remaining after their own reservation", () => {
-  const groups = aboveLaneGroups(settled(EVENTS), bundle(), axis(), NOW, {
-    balanceAt: () => ({ free_carats: 30000, paid_carats: 600, trainee_tickets: 10 }),
-    availableFor: () => ({ free_carats: 30000, paid_carats: 600, trainee_tickets: 10 }),
-    commitments: { "banner-t": 1 },
-  });
+test("committed banners surface the cached funding status (pity + capacity)", () => {
+  // The pull-math lives in commitmentStatus (see pulls.test.ts); the card just reads
+  // the coordinator's cached answer instead of re-deriving it.
+  const statuses = new Map<string, CommitmentStatus>([
+    ["banner-t", { kind: "trainee", pity: 1, unfundable: false, capacity: { freePulls: 0, tickets: 0, dailyPaid: 6, freeCaratPulls: 16, total: 22 } }],
+  ]);
+  const groups = aboveLaneGroups(settled(EVENTS), bundle(), axis(), NOW, { balanceAt: () => ({}), availableFor: () => undefined, commitmentStatuses: statuses });
   const banner = groups.find((g) => g.date === "2026-06-10")!.banners.find((b) => b.key === "banner-t")!;
 
-  // The committed banner reads a self-excluded balance (earlier claims only), then
-  // its own commitment consumes the card gutter's available-source read.
   assert.equal(banner.pullsAvailable, 22);
   assert.equal(banner.ticketPulls, 0);
   assert.equal(banner.paidCaratPulls, 6);
@@ -100,12 +100,11 @@ test("committed banners show pull capacity remaining after their own reservation
   assert.equal(banner.commitmentUnfundable, false);
 });
 
-test("committed banners flag unfundable when the reservation drives free carats negative", () => {
-  const groups = aboveLaneGroups(settled(EVENTS), bundle(), axis(), NOW, {
-    balanceAt: () => ({ free_carats: 0, paid_carats: 0, trainee_tickets: 0 }),
-    availableFor: () => ({ free_carats: 0, paid_carats: 0, trainee_tickets: 0 }),
-    commitments: { "banner-t": 1 },
-  });
+test("committed banners surface the cached unfundable flag", () => {
+  const statuses = new Map<string, CommitmentStatus>([
+    ["banner-t", { kind: "trainee", pity: 1, unfundable: true, capacity: { freePulls: 0, tickets: 0, dailyPaid: 0, freeCaratPulls: 0, total: 0 } }],
+  ]);
+  const groups = aboveLaneGroups(settled(EVENTS), bundle(), axis(), NOW, { balanceAt: () => ({}), availableFor: () => undefined, commitmentStatuses: statuses });
   const banner = groups.find((g) => g.date === "2026-06-10")!.banners.find((b) => b.key === "banner-t")!;
 
   assert.equal(banner.committedPity, 1);
@@ -116,7 +115,7 @@ test("uncommitted banners show pull capacity available before any own reservatio
   const groups = aboveLaneGroups(settled(EVENTS), bundle(), axis(), NOW, {
     balanceAt: () => ({ free_carats: 30000, paid_carats: 600, trainee_tickets: 10 }),
     availableFor: () => undefined,
-    commitments: {},
+    commitmentStatuses: new Map(),
   });
   const banner = groups.find((g) => g.date === "2026-06-10")!.banners.find((b) => b.key === "banner-t")!;
 
@@ -134,7 +133,7 @@ test("banner-local free pulls are surfaced as the intrinsic value signal", () =>
   const groups = aboveLaneGroups(settled(events), createBundle(events, ACADEMY, TEST_CONFIG), axis(), NOW, {
     balanceAt: () => ({}),
     availableFor: () => undefined,
-    commitments: {},
+    commitmentStatuses: new Map(),
   });
   const banner = groups[0]!.banners[0]!;
 

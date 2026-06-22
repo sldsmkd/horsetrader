@@ -6,7 +6,17 @@ import { createBundle } from "../bundle/access.ts";
 import { TEST_CONFIG } from "../bundle/fixtures.ts";
 import type { EventsBundle } from "../../core/bundle/events.gen.ts";
 import type { Academy } from "../../core/bundle/academy.gen.ts";
+import type { CommitmentStatus } from "../../core/projection/pulls.ts";
 import { cal } from "../../core/projection/dates.ts";
+
+/** A cached commitment status, as the coordinator would hand it in (capacity is
+ *  irrelevant to the plan rows, so it's a zero stub here). */
+const status = (kind: "trainee" | "support", pity: number, unfundable = false): CommitmentStatus => ({
+  kind,
+  pity,
+  unfundable,
+  capacity: { freePulls: 0, tickets: 0, dailyPaid: 0, freeCaratPulls: 0, total: 0 },
+});
 
 const EVENTS: EventsBundle = {
   events: [
@@ -30,7 +40,13 @@ const ACADEMY: Academy = {
 const bundle = () => createBundle(EVENTS, ACADEMY, TEST_CONFIG);
 
 test("plannerRows: committed open-or-future banners only, sorted by start date", () => {
-  const rows = plannerRows(bundle(), { "banner-past": 1, "banner-open": 2, "banner-future": 3, "banner-uncommitted": 0, "cm-1": 1 }, cal("2026-06-01"));
+  const statuses = new Map<string, CommitmentStatus>([
+    ["banner-past", status("trainee", 1)],
+    ["banner-open", status("trainee", 2)],
+    ["banner-future", status("support", 3)],
+    ["cm-1", status("trainee", 1)], // not a gacha banner — filtered by kind
+  ]);
+  const rows = plannerRows(bundle(), statuses, cal("2026-06-01"));
 
   assert.deepEqual(
     rows.map((row) => ({ key: row.key, kind: row.kind, date: row.date, predicted: row.predicted, pity: row.pity, atoms: row.atoms.map((atom) => atom.name) })),
@@ -41,16 +57,9 @@ test("plannerRows: committed open-or-future banners only, sorted by start date",
   );
 });
 
-test("plannerRows: unfundable mirrors the commit badge pressure state", () => {
-  const [row] = plannerRows(
-    bundle(),
-    { "banner-future": 1 },
-    cal("2026-06-01"),
-    {
-      balanceAt: () => ({ free_carats: 0, paid_carats: 0, support_tickets: 0 }),
-      availableFor: () => undefined,
-    },
-  );
+test("plannerRows: unfundable is read straight from the cached status", () => {
+  const statuses = new Map<string, CommitmentStatus>([["banner-future", status("support", 1, true)]]);
+  const [row] = plannerRows(bundle(), statuses, cal("2026-06-01"));
 
   assert.equal(row?.unfundable, true);
 });

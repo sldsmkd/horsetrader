@@ -253,12 +253,6 @@ export function mountApp(
     setFavourited: (id, on) => coord.setFavourite(id, on),
   };
 
-  // The affordability inputs the planner-derived views read (the plan bar's rows
-  // and the film strip's commitment-band colours). Reads the live coordinator.
-  const plannerInputs = {
-    balanceAt: (date: CalendarDate) => coord.balanceAt(date),
-    availableFor: (key: string) => coord.availableFor(key),
-  };
 
   // The bookmarks drawer: layer-2 chrome, twin of the minimap dots over the same
   // favourites map. Its open/collapsed state is independent view-state (it coexists
@@ -325,14 +319,14 @@ export function mountApp(
     });
     // The film strip is a third view over the same favourites map — the minimap's
     // ordinal twin. Each capsule's colour is the banner's commitment band (the same
-    // grey/green/purple/red rule the badge + dossier use), so the strip carries the
-    // plan, not just the want; the band map comes from the planner's affordability.
-    const commitments = coord.document().commitments ?? {};
+    // grey/green/purple/red rule the badge + dossier use). The funding state is the
+    // coordinator's cached `commitmentStatuses` — derived once, not re-run here.
+    const statuses = coord.commitmentStatuses();
     const bands = new Map<string, PityBand>();
-    for (const row of plannerRows(bundle, commitments, now, plannerInputs)) {
-      bands.set(row.key, pityBand(row.pity, row.unfundable, PITY_WASTE_ABOVE[row.kind]));
+    for (const [key, status] of statuses) {
+      bands.set(key, pityBand(status.pity, status.unfundable, PITY_WASTE_ABOVE[status.kind]));
     }
-    strip.refresh(filmFrames(bundle, coord.document().favourites ?? {}, commitments, now, (key) => bands.get(key) ?? "empty"));
+    strip.refresh(filmFrames(bundle, coord.document().favourites ?? {}, coord.document().commitments ?? {}, now, (key) => bands.get(key) ?? "empty"));
     // The extent is the displayed card range — all known time, first arrival to
     // last — so every card fits the canvas. `layout` pads PAD_DAYS either side
     // (the prototype's fixed buffer) and centres on today on first load.
@@ -346,7 +340,7 @@ export function mountApp(
     const above = aboveLaneGroups(world, bundle, axis, now, {
       balanceAt: (date) => coord.balanceAt(date),
       availableFor: (key) => coord.availableFor(key),
-      commitments: coord.document().commitments ?? {},
+      commitmentStatuses: statuses,
     });
     const belowEls = below.map((card) => belowCard(card, rush));
     const aboveEls = above.map((group) => bannerGroup(group, fav, commit));
@@ -754,7 +748,7 @@ export function mountApp(
   function renderBookmarks(): void {
     book.refresh({
       rows: bookmarkRows(bundle, coord.document().favourites ?? {}, now),
-      plannerRows: plannerRows(bundle, coord.document().commitments ?? {}, now, plannerInputs),
+      plannerRows: plannerRows(bundle, coord.commitmentStatuses(), now),
       open: view.get().bookmarks,
       face: view.get().bookmarksFace,
     });

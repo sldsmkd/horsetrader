@@ -15,6 +15,8 @@
  *   - **Free carats** are the full-price floor: `⌊free / 150⌋` pulls at 150 each.
  */
 
+import type { ResourceVector } from "./ledger.ts";
+
 /** A banner's spendable sources at its measurement instant — tickets already narrowed
  *  to the banner's kind, carats split into the free (full-price) and paid (daily-only)
  *  pools. */
@@ -140,6 +142,50 @@ export function remainingAfterSpend(s: PullSources, c: PullCaps, sparkThreshold:
  *  account sources, then `pullCapacity` floors each remaining source at zero. */
 export function remainingCapacityAfterSpend(s: PullSources, c: PullCaps, sparkThreshold: number, pity: number, usePaid: boolean): PullCapacity {
   return pullCapacity(remainingAfterSpend(s, c, sparkThreshold, pity, usePaid), c);
+}
+
+/** A committed banner's funding state — the one derivation every surface reads off
+ *  instead of re-running the pull-math: its pity, whether it can be funded from the
+ *  projected balance (`unfundable` → the red band), and the pull capacity left after
+ *  the commitment reserves its spend. The coordinator computes this once per write and
+ *  caches it (see `commitmentStatuses`); the strip, plan drawer and timeline badge all
+ *  read it, so they cannot disagree. `pity`/`unfundable` feed the shared `pityBand`. */
+export interface CommitmentStatus {
+  kind: "trainee" | "support";
+  pity: number;
+  unfundable: boolean;
+  capacity: PullCapacity;
+}
+
+/** The gacha constants a commitment's funding reads against. */
+export interface GachaRates {
+  caratsPerPull: number;
+  paidDailyPull: number;
+  sparkThreshold: number;
+}
+
+/** Derive a committed banner's funding state from the balance it measures against —
+ *  the single home for "commitment → fundability + capacity", assembling the
+ *  kind-narrowed pull sources and running the spend once for both outputs. */
+export function commitmentStatus(
+  kind: "trainee" | "support",
+  freePulls: number,
+  start: string,
+  end: string,
+  balance: ResourceVector,
+  gacha: GachaRates,
+  pity: number,
+  usePaid: boolean,
+): CommitmentStatus {
+  const caps: PullCaps = { caratsPerPull: gacha.caratsPerPull, paidDailyPull: gacha.paidDailyPull, bannerDays: bannerDays(start, end) };
+  const sources: PullSources = {
+    freePulls,
+    tickets: (kind === "support" ? balance.support_tickets : balance.trainee_tickets) ?? 0,
+    freeCarats: balance.free_carats ?? 0,
+    paidCarats: balance.paid_carats ?? 0,
+  };
+  const remaining = remainingAfterSpend(sources, caps, gacha.sparkThreshold, pity, usePaid);
+  return { kind, pity, unfundable: remaining.freeCarats < 0, capacity: pullCapacity(remaining, caps) };
 }
 
 /** Banner duration in whole days (`end − start`), the daily-pull cap. At least 1 — a

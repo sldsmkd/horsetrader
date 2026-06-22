@@ -15,24 +15,26 @@
 import type { Axis } from "../axis.ts";
 import type { Bundle } from "../bundle/access.ts";
 import type { SettledEvent } from "../../core/engine/index.ts";
-import type { ResourceVector, Commitments } from "../../core/persistence/document.ts";
-import { commitmentPity, commitmentUsePaid } from "../../core/persistence/document.ts";
-import { pullCapacity, remainingAfterSpend, remainingCapacityAfterSpend, bannerDays } from "../../core/projection/pulls.ts";
+import type { ResourceVector } from "../../core/persistence/document.ts";
+import { pullCapacity, bannerDays } from "../../core/projection/pulls.ts";
+import type { CommitmentStatus } from "../../core/projection/pulls.ts";
 import type { CalendarDate } from "../../core/projection/dates.ts";
 
-/** The live reads the above-lane readout folds in: balance-at-date, the per-event
- *  self-excluded available (for committed banners), and commitments. */
+/** The live reads the above-lane readout folds in: balance-at-date and the
+ *  per-event self-excluded available (both only needed to size *uncommitted*
+ *  capacity), plus the coordinator's cached commitment funding state. */
 export interface AboveLaneInputs {
   /** The income fold surfaced at a spend point — `balanceAt(bannerDate)` (ui.md). */
   balanceAt: (date: CalendarDate) => ResourceVector;
   /** A committed event's resources *before its own claim* (self-excluded — see
    *  project_spend_model); `undefined` when uncommitted, which reads the series. */
   availableFor: (eventKey: string) => ResourceVector | undefined;
-  /** Per-banner committed pities, keyed by event key (the persisted plan). */
-  commitments: Commitments;
+  /** Cached funding state per committed banner (`coord.commitmentStatuses`) — the
+   *  pity, fundability and post-commit capacity, derived once and shared. */
+  commitmentStatuses: ReadonlyMap<string, CommitmentStatus>;
 }
 
-const NO_INPUTS: AboveLaneInputs = { balanceAt: () => ({}), availableFor: () => undefined, commitments: {} };
+const NO_INPUTS: AboveLaneInputs = { balanceAt: () => ({}), availableFor: () => undefined, commitmentStatuses: new Map() };
 
 export type BannerKind = "trainee" | "support";
 
@@ -150,7 +152,7 @@ export function aboveLaneGroups(
   // Every known banner, past and future — the timeline spans all known time, not
   // just the projection horizon (you scroll back into history too).
   const byDate = new Map<string, BannerGroup>();
-  const { carats_per_pull: caratsPerPull, paid_daily_pull: paidDailyPull, spark_threshold: sparkThreshold } = bundle.config().gacha;
+  const { carats_per_pull: caratsPerPull, paid_daily_pull: paidDailyPull } = bundle.config().gacha;
   for (const ev of events) {
     if (!ev.visible) continue; // ledger-only cadence, or the bake's opt-out
     const record = ev.record;
@@ -162,7 +164,6 @@ export function aboveLaneGroups(
     // Ammo is measured at the banner's **end** (project_spend_model). A committed banner
     // reads its self-excluded available (income minus *earlier* claims, not its own); an
     // uncommitted one reads the series at its end (which already nets out earlier claims).
-    const balance = inputs.availableFor(ev.key) ?? inputs.balanceAt(ev.end);
     const atoms = record.contents
       .map((id) => atomOf(bundle, record.type, id))
       .filter((a): a is BannerAtom => a !== null)
@@ -171,23 +172,24 @@ export function aboveLaneGroups(
     // This banner's own free-pull grant — banner-scoped, never banked, so it lives
     // on the baked record, not the settled face (rules/settle.ts strips `pulls`).
     const freePulls = typeof record.rewards?.pulls === "number" ? record.rewards.pulls : 0;
-    // The effective pulls under the spend model: free pulls + kind-appropriate tickets
-    // + duration-capped daily paid pulls + full-price free carats (shared with the
-    // commit dossier's reservation so card and modal never disagree).
-    const pullCaps = { caratsPerPull, paidDailyPull, bannerDays: bannerDays(ev.start, ev.end) };
-    const pullSources = {
-      freePulls,
-      tickets: (record.type === "support" ? balance.support_tickets : balance.trainee_tickets) ?? 0,
-      freeCarats: balance.free_carats ?? 0,
-      paidCarats: balance.paid_carats ?? 0,
-    };
-    const commitment = inputs.commitments[ev.key];
-    const committedPity = commitment === undefined ? null : commitmentPity(commitment);
-    const committedUsePaid = commitment === undefined ? false : commitmentUsePaid(commitment);
-    const remainingSources = committedPity === null ? null : remainingAfterSpend(pullSources, pullCaps, sparkThreshold, committedPity, committedUsePaid);
-    // The card gutter shows what remains available on this banner after its own
-    // commitment, but each source floors at zero: you cannot use negative tickets.
-    const capacity = committedPity === null ? pullCapacity(pullSources, pullCaps) : remainingCapacityAfterSpend(pullSources, pullCaps, sparkThreshold, committedPity, committedUsePaid);
+    // Committed banners read their funding (pity / capacity-after-commit / fundability)
+    // straight from the cache — the one home for the pull-math. Uncommitted banners
+    // have no commitment to reserve, so the gutter sizes raw capacity off the live
+    // balance here (each source floored at zero: you cannot use negative tickets).
+    const status = inputs.commitmentStatuses.get(ev.key);
+    let capacity = status?.capacity;
+    if (!capacity) {
+      const balance = inputs.availableFor(ev.key) ?? inputs.balanceAt(ev.end);
+      capacity = pullCapacity(
+        {
+          freePulls,
+          tickets: (record.type === "support" ? balance.support_tickets : balance.trainee_tickets) ?? 0,
+          freeCarats: balance.free_carats ?? 0,
+          paidCarats: balance.paid_carats ?? 0,
+        },
+        { caratsPerPull, paidDailyPull, bannerDays: bannerDays(ev.start, ev.end) },
+      );
+    }
     group.banners.push({
       key: ev.key,
       kind: record.type,
@@ -202,8 +204,8 @@ export function aboveLaneGroups(
       // The value signal — *this banner's own* free-pull count (ui.md), shown
       // separately even though it's also part of the total above.
       freePulls,
-      committedPity,
-      commitmentUnfundable: (remainingSources?.freeCarats ?? 0) < 0,
+      committedPity: status?.pity ?? null,
+      commitmentUnfundable: status?.unfundable ?? false,
     });
   }
 

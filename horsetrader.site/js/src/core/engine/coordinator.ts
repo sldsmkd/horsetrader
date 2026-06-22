@@ -32,6 +32,9 @@ import { UTC_TIME_ZONE, cal, dateStringInTimeZone } from "../projection/dates.ts
 import type { CalendarDate } from "../projection/dates.ts";
 import type { Projection } from "../projection/project.ts";
 import type { ResourceVector } from "../projection/ledger.ts";
+import { commitmentStatus } from "../projection/pulls.ts";
+import type { CommitmentStatus } from "../projection/pulls.ts";
+import { commitmentPity, commitmentUsePaid } from "../persistence/document.ts";
 import { resolveDailyPack } from "../projection/streams/dailypack.ts";
 import { resolveTrainingPass } from "../projection/streams/trainingpass.ts";
 import { deriveEmissions, foldIncome } from "./fold.ts";
@@ -58,6 +61,10 @@ export interface Coordinator {
    *  earlier-by-start claim, self-excluded (a P_income query, never P_final).
    *  `undefined` when the event carries no claim. */
   availableFor(eventKey: string): ResourceVector | undefined;
+  /** Funding state per committed banner (pity / unfundable / capacity), derived once
+   *  per write. The read model behind the commitment band colour, the plan drawer's
+   *  affordability and the card gutter — so they never re-run the pull-math or disagree. */
+  commitmentStatuses(): ReadonlyMap<string, CommitmentStatus>;
   /** The persisted account state (read-only view) — the syncable `remote` plan. */
   document(): PlanDocument;
   /** The trainer's display name (lives in the synced plan now), "" when unset. */
@@ -207,6 +214,10 @@ interface Derived {
   world: SettledEvent[];
   projection: Projection;
   available: Map<string, ResourceVector>;
+  /** Per committed banner: its funding state (pity / unfundable / capacity), derived
+   *  once here so every surface reads the same answer instead of re-running the
+   *  pull-math (the band colour, the plan drawer's red, the card gutter). */
+  commitStatus: Map<string, CommitmentStatus>;
 }
 
 export function createCoordinator(options: CoordinatorOptions): Coordinator {
@@ -274,7 +285,22 @@ export function createCoordinator(options: CoordinatorOptions): Coordinator {
     const tail = reconcile(doc.commitments ?? {}, byKey, pIncome.series.balanceAt, gacha, after);
     const pFinal = foldIncome({ resources: base }, [...income, { stream: RECONCILIATION_STREAM, emissions: tail.emissions }]);
 
-    return { world, projection: pFinal, available: tail.available };
+    // Funding state per committed banner — one derivation, cached for every reader.
+    // Affordability is measured against the claim's self-excluded available (income
+    // minus earlier claims), falling back to the P_final balance at the banner's end.
+    const commitStatus = new Map<string, CommitmentStatus>();
+    for (const [key, commitment] of Object.entries(doc.commitments ?? {})) {
+      const pity = commitmentPity(commitment);
+      if (pity <= 0) continue;
+      const ev = byKey.get(key);
+      const record = ev?.record;
+      if (!ev || !record || (ev.type !== "trainee" && ev.type !== "support")) continue;
+      const freePulls = typeof record.rewards?.pulls === "number" ? record.rewards.pulls : 0;
+      const balance = tail.available.get(key) ?? pFinal.series.balanceAt(ev.end);
+      commitStatus.set(key, commitmentStatus(ev.type, freePulls, ev.start, ev.end, balance, gacha, pity, commitmentUsePaid(commitment)));
+    }
+
+    return { world, projection: pFinal, available: tail.available, commitStatus };
   }
 
   let current = derive();
@@ -306,6 +332,7 @@ export function createCoordinator(options: CoordinatorOptions): Coordinator {
     projection: () => current.projection,
     balanceAt: (date) => current.projection.series.balanceAt(date),
     availableFor: (eventKey) => current.available.get(eventKey),
+    commitmentStatuses: () => current.commitStatus,
     document: () => doc,
     username: () => trainerNameOf(doc),
     syncMeta: () => local.sync ?? { etag: null, dirty: false },
