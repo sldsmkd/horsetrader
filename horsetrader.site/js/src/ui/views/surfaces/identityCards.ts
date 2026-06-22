@@ -60,6 +60,7 @@ export function buildOshiSelector(
       selectedId: selectedOshi.id,
       selected: selectedOshi,
       search: identity.oshiSearch(),
+      costumes: identity.oshiCostumes(),
       onCommit: (oshi) => identity.setOshiId(oshi.id),
       onClose: on.onClose,
     }),

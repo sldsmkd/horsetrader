@@ -41,10 +41,12 @@ all:
 	$(MAKE) build
 
 # Stage 0 — seed the deploy root from the hand-authored shell. README.md is the
-# stage's own doc, not a deploy asset, so it never crosses into static/.
+# stage's own doc, and aseprite/ holds editable source art; neither is a deploy
+# asset, so they never cross into static/.
 seed:
 	mkdir -p $(STATIC)
-	rsync -a --exclude=README.md skeleton/ $(STATIC)/
+	rm -rf $(STATIC)/aseprite
+	rsync -a --exclude=README.md --exclude=aseprite/ skeleton/ $(STATIC)/
 
 # Stage 1 — ETL bake: JSON + images into static/, schema into config/schema/.
 bake:

@@ -1,9 +1,9 @@
-import { createOshiIndex, DEFAULT_OSHI_ID, selectedOshiOption } from "../query/index.ts";
+import { createOshiCostumeIndex, createOshiIndex, DEFAULT_OSHI_ID, selectedOshiOption } from "../query/index.ts";
 import { resolveClub } from "../../core/identity/clubrank.ts";
 import type { ClubIdentity, ClubRankTier } from "../../core/identity/clubrank.ts";
 import { resolvePlayStyle } from "../../core/playstyle/index.ts";
 import type { PlayStyleKey, PlayStyleSettings } from "../../core/playstyle/index.ts";
-import type { OshiOption, OshiSearchIndex } from "../query/index.ts";
+import type { OshiCostumeIndex, OshiOption, OshiSearchIndex } from "../query/index.ts";
 import type { Coordinator } from "../../core/engine/index.ts";
 import type { Bundle } from "../bundle/access.ts";
 
@@ -17,6 +17,7 @@ export interface IdentityController {
   trainerName(): string;
   currentOshi(): OshiOption;
   oshiSearch(): OshiSearchIndex;
+  oshiCostumes(): OshiCostumeIndex;
   /** The trainer's club, or `null` when they aren't in one. */
   club(): ClubIdentity | null;
   savedPlayStyleKey(): PlayStyleKey;
@@ -32,6 +33,7 @@ export interface IdentityController {
 
 export function createIdentityController(coord: Coordinator, bundle: Bundle): IdentityController {
   const _oshiSearch = createOshiIndex(bundle);
+  const _oshiCostumes = createOshiCostumeIndex(bundle);
 
   function identityConfig(): Record<string, unknown> {
     const config = coord.document().config;
@@ -77,6 +79,7 @@ export function createIdentityController(coord: Coordinator, bundle: Bundle): Id
     trainerName,
     currentOshi,
     oshiSearch: () => _oshiSearch,
+    oshiCostumes: () => _oshiCostumes,
     club: () => resolveClub(coord.document().config),
     savedPlayStyleKey: playStyleKey,
     savedPlayStyleSettings: playStyleSettings,

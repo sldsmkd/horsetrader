@@ -8,10 +8,11 @@
 export type { SearchIndex, SearchKind, SearchResult } from "./entities.ts";
 export { createSearchIndex } from "./entities.ts";
 
-export type { OshiOption, OshiSearchIndex } from "./oshi.ts";
+export type { OshiCostumeIndex, OshiOption, OshiSearchIndex } from "./oshi.ts";
 export {
   CURATED_OSHIS,
   DEFAULT_OSHI_ID,
+  createOshiCostumeIndex,
   createOshiIndex,
   oshiChoices,
   searchOshis,

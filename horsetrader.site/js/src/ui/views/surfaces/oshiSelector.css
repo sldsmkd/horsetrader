@@ -34,7 +34,7 @@
   grid-auto-rows: calc(8.75 * var(--glass-u));
   align-content: start;
   gap: calc(0.69 * var(--glass-u));
-  min-height: calc(27.63 * var(--glass-u));
+  min-height: calc(18.19 * var(--glass-u));
 }
 
 .oshi-selector__option {
@@ -76,6 +76,61 @@
   line-height: var(--ht-type-label-line);
 }
 
+.oshi-selector__costumes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(calc(10.5 * var(--glass-u)), 1fr));
+  gap: calc(0.69 * var(--glass-u));
+  max-width: 100%;
+  padding-top: calc(1 * var(--glass-u));
+  padding-bottom: calc(0.13 * var(--glass-u));
+  border-top: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+}
+
+.oshi-selector__costumes[hidden] {
+  display: none;
+}
+
+.oshi-selector__costume {
+  display: grid;
+  grid-template-columns: calc(4.75 * var(--glass-u)) minmax(0, 1fr);
+  align-items: center;
+  gap: calc(0.56 * var(--glass-u));
+  min-width: 0;
+  min-height: calc(5.75 * var(--glass-u));
+  padding: calc(0.5 * var(--glass-u));
+  border: 1px solid var(--ht-control-border-quiet);
+  border-radius: var(--ht-control-radius-soft);
+  background: var(--ht-control-bg);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.oshi-selector__costume:hover,
+.oshi-selector__costume:focus-visible,
+.oshi-selector__costume--selected {
+  border-color: var(--ht-control-selected-border);
+  background: var(--ht-control-selected-bg);
+  outline: 0;
+}
+
+.oshi-selector__costume-portrait {
+  width: calc(4.75 * var(--glass-u));
+  height: calc(4.75 * var(--glass-u));
+  border-radius: 0.35rem;
+  object-fit: cover;
+  object-position: 50% 14%;
+}
+
+.oshi-selector__costume-name {
+  min-width: 0;
+  font-size: var(--ht-type-label-size);
+  font-weight: var(--ht-type-label-weight);
+  line-height: var(--ht-type-label-line);
+  overflow-wrap: anywhere;
+}
+
 .oshi-selector__cancel,
 .oshi-selector__ok {
   min-width: calc(6.88 * var(--glass-u));
@@ -113,6 +168,10 @@
   .oshi-selector__grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     grid-auto-rows: calc(8.75 * var(--glass-u));
-    min-height: calc(37.07 * var(--glass-u));
+    min-height: calc(27.63 * var(--glass-u));
+  }
+
+  .oshi-selector__costumes {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
