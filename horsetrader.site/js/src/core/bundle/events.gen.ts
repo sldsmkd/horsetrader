@@ -13,6 +13,7 @@ export interface EventsBundle {
     | TraineeBannerRecord
     | ScenarioRecord
     | StoryRecord
+    | MainStoryRecord
     | CMRecord
     | ShowtimeRecord
     | SkillTestRecord
@@ -99,6 +100,25 @@ export interface StoryRecord {
   banner: string | null;
   art: string | null;
   era: string | null;
+  start: string;
+  end: string;
+  predicted: boolean;
+  key: string;
+  rewards?: {
+    [k: string]:
+      | number
+      | {
+          [k: string]: number | string | (number | null)[];
+        };
+  };
+  visible?: boolean;
+  rushable?: boolean;
+}
+export interface MainStoryRecord {
+  type: "mainstory";
+  title: string | null;
+  contents: string[];
+  banner: string | null;
   start: string;
   end: string;
   predicted: boolean;

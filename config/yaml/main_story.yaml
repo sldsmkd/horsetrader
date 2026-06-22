@@ -1,0 +1,235 @@
+## Main Story (メインストーリー) — the permanent narrative campaign + its welfare grants.
+##
+## WHAT THIS IS. The game's main story is a PERMANENT, one-time campaign — distinct
+## from the limited-window story EVENTS already scraped from Gametora (see
+## models/events/story.py). Each chapter, once cleared, hands the player a welfare
+## reward and stays cleared; there is no run-window. So these are milestone grants,
+## not windowed events — captured here as facts first; how they're modelled (Event
+## subtype vs. something flatter) is deferred until we plumb a loader.
+##
+## SOURCES.
+##   • JP — wikiru's ストーリー一覧 table, the one page carrying the part/chapter/title/
+##     reward/date matrix Gametora doesn't, plus its per-chapter pages for clear carats:
+##       https://umamusume.wikiru.jp/index.php?メインストーリー
+##     It lists 10 chapters: 第1部 (1章–5章, 最終章 前編/後編) and 第2部 (前編/中編/後編).
+##   • EN — Game8's main-story page, read off the ACTUAL live Global release (so these
+##     are real EN dates/titles, not predictions). Covers chapters 1–6 so far:
+##       https://game8.co/games/Umamusume-Pretty-Derby/archives/541829
+##
+## REWARDS. Each chapter grants a welfare SUPPORT card (almost always one SSR). The
+## two PART FINALES additionally grant a ★3 育成ウマ娘 (trainee). One reward is the
+## TEAM SIRIUS group welfare card (最終章前編) — character=null, keyed by display slug,
+## which is why a character search misses it (see [[project-group-support-cards]]).
+## `rewards:` lists the resolved STABLE KEYS (support-* / trainee-*), not titles.
+##
+## HOW WE VALIDATED IT (scratch/correlate_main_story.py). We did NOT take wikiru on
+## faith. For every chapter we resolved its reward card in our own Supports/Trainees
+## models and checked the card's `release` Period against the chapter date. ALL 12
+## reward cards' `release.start` matched their chapter date EXACTLY — independent
+## corroboration that the table is accurate and that we have the right card (the
+## welfare SSR shares its release DAY with that character's generic トレセン学園 SR, so
+## the title — not the date — disambiguates which card is the grant). Game8's EN card
+## names cross-check too (ch1 "Your Team Ace" = エースとして, etc.).
+##
+## DATES. JP `start` is 12:00 JST (the canonical content-drop): wikiru prints the time
+## for the 2021.04–2022.07 rows, and for the rest we INHERIT it from each reward card's
+## cross-validated `release` Period (which carries 12:00 JST) — confirmed for 7–10 by
+## the official announce post_at. EN `start` is 22:00 UTC (the Global content-refresh
+## instant, same convention as stories/scenarios); Game8 gives the DATE off the live
+## release, the 22:00 time is the house convention. All timestamps fully-qualified
+## ([[feedback-fq-timestamps-in-yaml]]).
+##
+## CADENCE. There is NONE to lean on. Part 1 trickled out every 2–5 months across
+## 2021–mid-2022, then a ~20-month dead gap before Part 2 opened (2024.03), and
+## Part 2's own chapters are irregular (6mo, 10mo). The dates do NOT track the
+## anniversary clock (MM.24 Feb/Aug): the only .02.24 chapters are 1章/2章 = LAUNCH
+## day, and the closest near-misses (最終章後編 07.20 vs 1.5 08.24; 2部前編 03.21 vs
+## 3.0 02.24) are a month off. So: no formula, no EN predictor can place these — EN
+## dates are hand-curated as Global arrives.
+##
+## STORY-CLEAR CARATS (a SECOND reward dimension). Beyond the welfare card, reading
+## a chapter's episodes pays carats (jewels) — a fixed 30 per episode, granted once
+## on clear. This lives on wikiru's PER-CHAPTER detail pages, not the index table
+## above (which is why a fetch of the index alone misses it). Captured as
+## `clear_carats: {episodes: N, each: 30, bonus: B}` — one-time total = N × each + B.
+## `bonus` is an OPTIONAL flat top-up some chapters carry on top of the per-episode
+## carats (e.g. 最終章後編 = 12×30 + 150); omit it when there's no top-up.
+## PROVENANCE/CONFIDENCE: counts are read off wikiru's chapter pages and MANUALLY
+## VERIFIED one chapter at a time (第1部): 1章 = 17×30 (510); 2章–最終章前編 (chapters
+## 2–6) = 16×30 (480) each; 最終章後編 (chapter 7) = 12×30 + 150 bonus (510). The 17-vs-16
+## variance is REAL and confirmed — 1章 is an exception, it carries one extra part; the
+## rest are a flat 16. Game8's "Total Carats" off the live EN release INDEPENDENTLY
+## CONFIRMS these totals for 1–6 (510, then 480×5) — a second corroboration.
+##   第2部: 前編 (chapter 8) = 16×30 + 150 (630), manually verified. WIKIRU CONVENTION —
+##   wikiru stops re-recording a chapter's reward once it just repeats the previous one,
+##   so 中編/後編 (9, 10) are BLANK on the page = "same as previous"; they INHERIT 08's
+##   16×30+150 (630). That's a derived value, not an independent reading — flagged inline.
+##
+## BANNERS. All 10 chapters have a `banner:`, from one of TWO sources — resolved ONCE
+## during curation, so there's no live News join at model time (this is a static
+## one-time file, unlike anniversaries/legend-races):
+##   • REMOTE (chapters 7–10) — the official umamusume.com announcement image, pulled
+##     from the umapyoi news corpus. Stored as the full https URL with the `?c=` CDN
+##     cache-buster stripped for a stable URL (matching golden_week.yaml's form). For
+##     7/9/10 it's the Thumbnail on the chapter's own release ("公開！") article (857/
+##     2139/2664). Chapter 8 is the ODD ONE: its own release article (1848) carried no
+##     image, but the banner shipped as a Header image bundled into that day's 3rd-
+##     anniversary-campaign announce (1844). Either way the filename sequence confirms
+##     the set — banner_3040001N, N = 010/012/014/016 for chapters 7/8/9/10.
+##   • LOCAL (chapters 1–6) — these predate the indexed news, so the banner is a hand-
+##     sourced PNG under config/img/main/ (`s1eNN.png`, s1eNN = Season 1 chapter NN).
+##     Stored as the bare filename; at plumb time it feeds CurrenChan via a file:// URI,
+##     the way the stories banner loader does (Url(path.as_uri())).
+##   DISCRIMINATOR: a `banner:` value starting with http(s):// is REMOTE, otherwise it's
+##   a LOCAL filename under config/img/main/.
+##   SIZING (plumb-time): the two sources differ in scale and crop — LOCAL (Game8) are
+##   564×148 (~3.81 AR), REMOTE (akamai) are 936×228 (~4.11 AR). 228px is modest, so no
+##   shrink is actually needed (the heavy-akamai worry didn't hold). If we normalize to
+##   a common `width` via CurrenChan (as anniversaries/holidays do) purely for visual
+##   consistency, note it rescales by WIDTH only, preserving aspect (no crop), so the
+##   ~0.3 AR gap leaves a small height mismatch between the two crops — harmless.
+##
+## EN. Global has reached chapters 1–6 (through 最終章前編, 2026-03-26); each carries an
+## `en:` block (name + start) sourced from Game8's live release. Chapters 7–10 have NOT
+## reached Global on a captured date — they stay JP-only until then; absence of an
+## `en:` block = not-yet-on-Global, never a derived/predicted date.
+##
+## STRUCTURE. `title` lives inside the locale blocks as `jp.name` / `en.name` (the
+## scenarios.yaml shape) — JP and EN names differ, so the name is region-specific.
+## `lead` (主役) and `song` (ライブシアター楽曲) are JP-only flavour kept top-level.
+
+main-story-01:
+  part: "第1部"
+  chapter: "1章"
+  lead: "メジロマックイーン"
+  song: "はじまりのSignal"
+  rewards: [support-30022-mejiro-mcqueen]
+  clear_carats: {episodes: 17, each: 30}   # = 510, wikiru + Game8 (live EN) confirm
+  banner: s1e01.png   # local (config/img/main/) — predates news corpus
+  jp:
+    name: "駆け出しの一等星"
+    start: 2021-02-24T12:00:00+09:00   # launch day (wikiru lists date only)
+  en:
+    name: "Set Off for the Brightest Star"
+    start: 2025-06-26T22:00:00+00:00   # Global launch day
+
+main-story-02:
+  part: "第1部"
+  chapter: "2章"
+  lead: "ライスシャワー"
+  song: "ささやかな祈り"
+  rewards: [support-30023-rice-shower]
+  clear_carats: {episodes: 16, each: 30}   # = 480, wikiru + Game8 (live EN) confirm
+  banner: s1e02.png   # local (config/img/main/) — predates news corpus
+  jp:
+    name: "小さながんばり屋"
+    start: 2021-02-24T12:00:00+09:00   # launch day (wikiru lists date only)
+  en:
+    name: "Little Big Ambition"
+    start: 2025-06-26T22:00:00+00:00   # Global launch day
+
+main-story-03:
+  part: "第1部"
+  chapter: "3章"
+  lead: "ウイニングチケット"
+  song: "涙ひかって明日になれ！"
+  rewards: [support-30033-winning-ticket]
+  clear_carats: {episodes: 16, each: 30}   # = 480, wikiru + Game8 (live EN) confirm
+  banner: s1e03.png   # local (config/img/main/) — predates news corpus
+  jp:
+    name: "夢を掴む特急券"
+    start: 2021-04-26T12:00:00+09:00
+  en:
+    name: "Embarking on the Dream Express"
+    start: 2025-08-03T22:00:00+00:00
+
+main-story-04:
+  part: "第1部"
+  chapter: "4章"
+  lead: "ナリタブライアン"
+  song: "BLAZE"
+  rewards: [support-30044-narita-brian]
+  clear_carats: {episodes: 16, each: 30}   # = 480, wikiru + Game8 (live EN) confirm
+  banner: s1e04.png   # local (config/img/main/) — predates news corpus
+  jp:
+    name: "滾り、渇望す"
+    start: 2021-07-20T12:00:00+09:00
+  en:
+    name: "Roiling Craving"
+    start: 2025-10-07T22:00:00+00:00
+
+main-story-05:
+  part: "第1部"
+  chapter: "5章"
+  lead: "サイレンススズカ"
+  song: "transforming"
+  rewards: [support-30076-silence-suzuka]
+  clear_carats: {episodes: 16, each: 30}   # = 480, wikiru + Game8 (live EN) confirm
+  banner: s1e05.png   # local (config/img/main/) — predates news corpus
+  jp:
+    name: "scenery"
+    start: 2021-12-22T12:00:00+09:00
+  en:
+    name: "Scenery"
+    start: 2026-01-22T22:00:00+00:00
+
+main-story-06:
+  part: "第1部"
+  chapter: "最終章 前編"
+  lead: "スペシャルウィーク"
+  song: "NEXT FRONTIER"
+  rewards: [support-30081-team-sirius]   # Team Sirius GROUP welfare card (character=null)
+  clear_carats: {episodes: 16, each: 30}   # = 480, wikiru + Game8 (live EN) confirm
+  banner: s1e06.png   # local (config/img/main/) — predates news corpus
+  jp:
+    name: "夢の原石"
+    start: 2022-03-18T12:00:00+09:00
+  en:
+    name: "A Dream in the Making"
+    start: 2026-03-26T22:00:00+00:00
+
+main-story-07:
+  part: "第1部"
+  chapter: "最終章 後編"
+  lead: "スペシャルウィーク"
+  song: "笑顔の宝物 -Beyond The Future!-"
+  rewards: [support-30105-special-week, trainee-100103-special-week]   # finale: + ★3 trainee
+  clear_carats: {episodes: 12, each: 30, bonus: 150}   # = 510, wikiru, manually verified
+  banner: https://prd-info-umamusume.akamaized.net/announce/857/Thumbnail/banner_30400010.png   # umamusume.com announce 857 (via umapyoi news)
+  jp:
+    name: "煌めきはどこまでも"
+    start: 2022-07-20T12:00:00+09:00
+
+main-story-08:
+  part: "第2部"
+  chapter: "前編"
+  lead: "ラインクラフト"
+  rewards: [support-30194-rhein-kraft]
+  clear_carats: {episodes: 16, each: 30, bonus: 150}   # = 630, wikiru, manually verified
+  banner: https://prd-info-umamusume.akamaized.net/announce/1844/Header/banner_30400012.png   # embedded in 3rd-anniv-campaign announce 1844 (ch8's own release 1848 carried none); banner_304…012 fits the main-story sequence (010/012/014/016)
+  jp:
+    name: "ヒカリ射し、芽吹くとき！"
+    start: 2024-03-21T12:00:00+09:00   # wikiru lists date only
+
+main-story-09:
+  part: "第2部"
+  chapter: "中編"
+  lead: "シーザリオ"
+  rewards: [support-30217-cesario]
+  clear_carats: {episodes: 16, each: 30, bonus: 150}   # = 630, inherited from 08 (wikiru left blank = same as previous)
+  banner: https://prd-info-umamusume.akamaized.net/announce/2139/Thumbnail/banner_30400014.png   # umamusume.com announce 2139 (via umapyoi news)
+  jp:
+    name: "盛夏の星、晩秋の華"
+    start: 2024-09-20T12:00:00+09:00   # wikiru lists date only
+
+main-story-10:
+  part: "第2部"
+  chapter: "後編"
+  lead: "フサイチパンドラ"
+  song: "ギフト"
+  rewards: [support-30259-fusaichi-pandora, trainee-110902-rhein-kraft]   # finale: + ★3 trainee
+  clear_carats: {episodes: 16, each: 30, bonus: 150}   # = 630, inherited from 08 (wikiru left blank = same as previous)
+  banner: https://prd-info-umamusume.akamaized.net/announce/2664/Thumbnail/banner_30400016.png   # umamusume.com announce 2664 (via umapyoi news)
+  jp:
+    name: "種を貴方に、希望は巡る"
+    start: 2025-07-22T12:00:00+09:00   # wikiru lists date only

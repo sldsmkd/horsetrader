@@ -23,6 +23,9 @@
                 "$ref": "#/$defs/StoryRecord"
               },
               {
+                "$ref": "#/$defs/MainStoryRecord"
+              },
+              {
                 "$ref": "#/$defs/CMRecord"
               },
               {
@@ -75,6 +78,7 @@
                 "trainee": "#/$defs/TraineeBannerRecord",
                 "scenario": "#/$defs/ScenarioRecord",
                 "story": "#/$defs/StoryRecord",
+                "mainstory": "#/$defs/MainStoryRecord",
                 "cm": "#/$defs/CMRecord",
                 "showtime": "#/$defs/ShowtimeRecord",
                 "skilltest": "#/$defs/SkillTestRecord",
@@ -510,6 +514,107 @@
         "banner",
         "art",
         "era",
+        "start",
+        "end",
+        "predicted",
+        "key"
+      ]
+    },
+    "MainStoryRecord": {
+      "title": "MainStoryRecord",
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "mainstory"
+          ]
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "contents": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "banner": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "start": {
+          "type": "string"
+        },
+        "end": {
+          "type": "string"
+        },
+        "predicted": {
+          "type": "boolean"
+        },
+        "key": {
+          "type": "string"
+        },
+        "rewards": {
+          "type": "object",
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "object",
+                "additionalProperties": {
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "type": "integer"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        "visible": {
+          "type": "boolean"
+        },
+        "rushable": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "type",
+        "title",
+        "contents",
+        "banner",
         "start",
         "end",
         "predicted",

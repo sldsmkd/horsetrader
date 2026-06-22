@@ -8,6 +8,7 @@ from . import anniversaries as _anniversaries
 from . import banners as _banners
 from . import champions_meetings as _champions_meetings
 from . import golden_week as _golden_week
+from . import main_story as _main_story
 from . import new_year as _new_year
 from . import legend_races as _legend_races
 from . import misc as _misc
@@ -57,6 +58,18 @@ class Static(metaclass=SingletonMeta):
         and an 'en' key (dict | None) with the EN period, title, and source.
         """
         return _scenarios.load()
+
+    def main_story(self) -> list[dict]:
+        """Records from the curated main_story.yaml — the 10-chapter main-story
+        campaign (JP + optional EN).
+
+        Each record carries key, title_jp/title_en, period (span-0 JP launch),
+        rewards (welfare card stable keys), carats (flattened story-clear total),
+        banner (local filename | remote URL), source, and an 'en' key (dict | None)
+        with the EN period + title once a chapter has reached Global. Daitaku builds
+        the `MainStory` events.
+        """
+        return _main_story.load()
 
     def golden_weeks(self) -> list[dict]:
         """Golden Week launches (`holiday-golden-week-*`), consolidated JP + EN.

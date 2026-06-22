@@ -9,6 +9,7 @@ from .factor_studies import FactorStudies, FactorStudiesEvents
 from .holiday import Holiday, Holidays
 from .league_of_heroes import LeagueOfHeroes, LeaguesOfHeroes
 from .legend_race import LegendLeg, LegendRace, LegendRaces
+from .main_story import MainStories, MainStory
 from .masters_challenge import MastersChallenge, MastersChallenges
 from .mission import Mission, Missions
 from .racing_carnival import RacingCarnival, RacingCarnivals
@@ -41,6 +42,8 @@ __all__ = [
     "LegendLeg",
     "LegendRace",
     "LegendRaces",
+    "MainStories",
+    "MainStory",
     "MastersChallenge",
     "MastersChallenges",
     "Mission",

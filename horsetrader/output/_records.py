@@ -270,6 +270,19 @@ class StoryRecord(EventRecord, tag="story"):
 
 
 @eishin
+class MainStoryRecord(EventRecord, tag="mainstory"):
+    # A main-story chapter release — a single-day welfare milestone (permanent
+    # campaign, not a windowed event; start == end). `title` is the Japlish chapter
+    # title (EN-projected). `contents` are the welfare reward cards it grants — a
+    # combo of support-* and, on the part finales, the ★3 trainee-*. `banner` is the
+    # chapter banner. The flattened story-clear carats ride the shared `rewards`
+    # envelope (all the per-episode jewels land on the one release day).
+    title: str | None
+    contents: list[str]
+    banner: str | None
+
+
+@eishin
 class CMRecord(EventRecord, tag="cm"):
     name: str | None
     banner: str | None | UnsetType = UNSET
@@ -418,6 +431,7 @@ EventRecordUnion = (
     | TraineeBannerRecord
     | ScenarioRecord
     | StoryRecord
+    | MainStoryRecord
     | CMRecord
     | ShowtimeRecord
     | SkillTestRecord
