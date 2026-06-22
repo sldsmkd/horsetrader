@@ -1,4 +1,5 @@
 import json
+import re
 
 from horsetrader.core import Japlish, SingletonMeta
 from horsetrader.enums import CacheTime
@@ -9,6 +10,16 @@ from horsetrader.transport import UmaClient
 logger = Logger.get(__name__)
 
 _OUTFIT_LIST_URL_PREFIX = "https://umapyoi.net/api/v1/outfit/character"
+
+# Some umapyoi EN titles are dirty with a doubled outer bracket pair
+# ("[[unsigned]]") where the dataset's convention is a single pair
+# ("[Special Dreamer]"). Collapse the redundant wrap to one.
+_DOUBLED_BRACKETS = re.compile(r"^\[(\[[^\[\]]*\])\]$")
+
+
+def _normalise_title(value: str) -> str:
+    match = _DOUBLED_BRACKETS.match(value)
+    return match.group(1) if match else value
 
 
 @transcend
@@ -37,6 +48,10 @@ class UmapyoiTrainees(metaclass=SingletonMeta):
         en = title_en.strip() if isinstance(title_en, str) and title_en.strip() else None
         if jp is None and en is None:
             return None
+        if jp:
+            jp = _normalise_title(jp)
+        if en:
+            en = _normalise_title(en)
 
         title = Japlish(jp) if jp else Japlish(en, encoding="en")  # type: ignore[arg-type]
         if en and jp:
