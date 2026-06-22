@@ -20,7 +20,7 @@ import { daysBetween } from "../../core/projection/dates.ts";
 import type { Bundle } from "../bundle/access.ts";
 import type { Commitments, Favourites } from "../../core/persistence/document.ts";
 import type { BannerKind, HeatBand } from "./aboveLane.ts";
-import { atomOf, bannerHeatBand } from "./aboveLane.ts";
+import { atomOf, atomImage, bannerHeatBand } from "./aboveLane.ts";
 import type { PityBand } from "../views/widgets/pityBand.ts"; // type-only: erased, no CSS side-effect
 
 /** The favourited atom a frame represents — its identity + portrait. The strip is
@@ -54,19 +54,6 @@ export interface FilmFrame {
   /** The banner's heat tier — the face inherits the same lane-coloured glow the
    *  banner card carries (bannerGroup.css `banner--hot-N`). Closed banners are cold. */
   heat: HeatBand;
-}
-
-/** The favourited atom's portrait, by the same precedence the bookmarks drawer uses
- *  (`select/bookmarks.ts`): the card art first, then the character's. */
-function atomImage(bundle: Bundle, kind: BannerKind, id: string): string | null {
-  if (kind === "trainee") {
-    const trainee = bundle.trainee(id);
-    const character = bundle.character(trainee.character);
-    return trainee.thumbnail ?? trainee.portrait ?? character.icon ?? character.portrait;
-  }
-  const support = bundle.support(id);
-  const character = support.character ? bundle.character(support.character) : null;
-  return support.thumbnail ?? support.art ?? character?.icon ?? character?.portrait ?? null;
 }
 
 /** The favourited atoms on a banner — every favourited content that resolves (R/1★

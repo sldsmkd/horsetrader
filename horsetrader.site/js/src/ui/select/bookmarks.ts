@@ -20,6 +20,7 @@ import type { Bundle } from "../bundle/access.ts";
 import type { Favourites } from "../../core/persistence/document.ts";
 import type { CalendarDate } from "../../core/projection/dates.ts";
 import type { BannerKind, RarityTier } from "./aboveLane.ts";
+import { atomImage } from "./aboveLane.ts";
 import { favouriteBannerAppearances } from "./favourites.ts";
 
 export interface BookmarkAppearance {
@@ -76,7 +77,7 @@ function rowFor(bundle: Bundle, id: string, kind: BannerKind): BookmarkRow | nul
       subtext,
       rarity: `${trainee.rarity}★`,
       rarityTier: trainee.rarity >= 3 ? "crystal" : "gold",
-      image: trainee.thumbnail ?? trainee.portrait ?? character.icon ?? character.portrait,
+      image: atomImage(bundle, kind, id),
       appearances: [],
     };
   }
@@ -95,7 +96,7 @@ function rowFor(bundle: Bundle, id: string, kind: BannerKind): BookmarkRow | nul
     subtext,
     rarity: rarityLabel,
     rarityTier: rarity === "ssr" ? "crystal" : "gold",
-    image: support.thumbnail ?? support.art ?? character?.icon ?? character?.portrait ?? null,
+    image: atomImage(bundle, kind, id),
     ...(support.type ? { attribute: support.type } : {}),
     appearances: [],
   };

@@ -138,6 +138,20 @@ export function atomOf(bundle: Bundle, kind: BannerKind, id: string): BannerAtom
   };
 }
 
+/** An atom's portrait, by the shared precedence the bookmark drawer and film strip
+ *  both read: the card's own art first (trainee thumbnail→portrait, support
+ *  thumbnail→art), then the character's icon→portrait. Null when none exists. */
+export function atomImage(bundle: Bundle, kind: BannerKind, id: string): string | null {
+  if (kind === "trainee") {
+    const trainee = bundle.trainee(id);
+    const character = bundle.character(trainee.character);
+    return trainee.thumbnail ?? trainee.portrait ?? character.icon ?? character.portrait;
+  }
+  const support = bundle.support(id);
+  const character = support.character ? bundle.character(support.character) : null;
+  return support.thumbnail ?? support.art ?? character?.icon ?? character?.portrait ?? null;
+}
+
 function compareAtoms(a: BannerAtom, b: BannerAtom): number {
   return RARITY_ORDER[a.rarityTier] - RARITY_ORDER[b.rarityTier] || NAME_ORDER.compare(a.name, b.name);
 }
