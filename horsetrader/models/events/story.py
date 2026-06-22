@@ -72,7 +72,10 @@ class Story(Rushable, Event):
         return StoryRecord(
             **self._envelope(period),
             title=self.title,
-            contents=[],
+            # A story's contents are its Event Support Cards — the welfare grant. Only
+            # ever supports (the 4★ trainee block is featured art, not a grant), so the
+            # contents are support keys; Stories._validate_item warns if that breaks.
+            contents=[s.key for s in self.supports],
             image=str(self.thumb.url) if self.thumb else None,
             banner=str(self.banner.url) if self.banner else None,
             art=str(self.art.url) if self.art else None,
@@ -90,6 +93,12 @@ class Stories(Events[Story], metaclass=SingletonMeta):
     def _validate_item(self, item: Story) -> None:
         if not item.periods:
             logger.warning("Story %s has no periods", item.key)
+        # A story's contents are its Event Support Cards (the welfare grant) — every
+        # story grants at least one, so an empty list is a data-quality signal (the
+        # welfare section didn't resolve), like the banner empty-contents check. The
+        # trainee cast is a separate, always-present concern and is not contents.
+        if not item.supports:
+            logger.warning("Story %s has no resolvable support contents", item.key)
 
     def _enrichers(self):
 
@@ -158,13 +167,20 @@ class Stories(Events[Story], metaclass=SingletonMeta):
                 else:
                     logger.warning("No trainee for character %s in %s", char_slug, gametora_key)
 
+            # The welfare grant — distinct cards only. A card is listed once per copy
+            # granted (completion + the roulette), but contents is the *set* of cards
+            # the story grants, so dedupe on resolved key, preserving first-seen order.
             supports: list[Support] = []
+            seen: set[StableKey] = set()
             for sup_slug in record.get("support_ids", []):
                 s = supports_col.get(StableKey(f"{Support.KEY_PREFIX}{sup_slug}"))
-                if s is not None:
-                    supports.append(s)
-                else:
+                if s is None:
                     logger.warning("No support for slug %s in %s", sup_slug, gametora_key)
+                    continue
+                if s.key in seen:
+                    continue
+                seen.add(s.key)
+                supports.append(s)
 
             stories.append(
                 Story(
