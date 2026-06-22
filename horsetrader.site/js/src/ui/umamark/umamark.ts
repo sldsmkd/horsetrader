@@ -31,7 +31,7 @@ const WARMUP_STEP = 0.2; // screen-width fraction advanced per frame
 const FILLRATE_STEP = 0.5;
 const TRANS_STEP = 0.1;
 const WARMUP_TRIPS = 1;
-const FILLRATE_TRIPS = 10;
+const FILLRATE_TRIPS = 3;
 const TRANS_CYCLES = 1;
 
 export interface UmaMarkOptions {
