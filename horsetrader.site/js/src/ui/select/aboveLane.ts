@@ -16,7 +16,7 @@ import type { Axis } from "../axis.ts";
 import type { Bundle } from "../bundle/access.ts";
 import type { SettledEvent } from "../../core/engine/index.ts";
 import type { ResourceVector } from "../../core/persistence/document.ts";
-import { pullCapacity, bannerDays } from "../../core/projection/pulls.ts";
+import { pullCapacity, bannerDays, bannerPullSources } from "../../core/projection/pulls.ts";
 import type { CommitmentStatus } from "../../core/projection/pulls.ts";
 import type { CalendarDate } from "../../core/projection/dates.ts";
 
@@ -194,15 +194,7 @@ export function aboveLaneGroups(
     let capacity = status?.capacity;
     if (!capacity) {
       const balance = inputs.availableFor(ev.key) ?? inputs.balanceAt(ev.end);
-      capacity = pullCapacity(
-        {
-          freePulls,
-          tickets: (record.type === "support" ? balance.support_tickets : balance.trainee_tickets) ?? 0,
-          freeCarats: balance.free_carats ?? 0,
-          paidCarats: balance.paid_carats ?? 0,
-        },
-        { caratsPerPull, paidDailyPull, bannerDays: bannerDays(ev.start, ev.end) },
-      );
+      capacity = pullCapacity(bannerPullSources(balance, record.type, freePulls), { caratsPerPull, paidDailyPull, bannerDays: bannerDays(ev.start, ev.end) });
     }
     group.banners.push({
       key: ev.key,

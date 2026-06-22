@@ -17,7 +17,7 @@ import type { Bundle } from "../bundle/access.ts";
 import type { ResourceVector, Commitments } from "../../core/persistence/document.ts";
 import { commitmentPity, commitmentUsePaid } from "../../core/persistence/document.ts";
 import { atomOf, type BannerAtom, type BannerKind, type RarityTier } from "./aboveLane.ts";
-import { remainingAfterSpend, bannerDays, type PullSources } from "../../core/projection/pulls.ts";
+import { remainingAfterSpend, bannerDays, bannerPullSources, type PullSources } from "../../core/projection/pulls.ts";
 import type { CalendarDate } from "../../core/projection/dates.ts";
 
 /** Featured-card sort: hero rarity bands first (crystal → gold → silver), then alpha within
@@ -112,17 +112,18 @@ export function commitContext(bundle: Bundle, bannerKey: string, inputs: CommitI
     .filter((a): a is CommitAtom => a !== null)
     .sort((a, b) => RARITY_RANK[a.rarityTier] - RARITY_RANK[b.rarityTier] || a.name.localeCompare(b.name));
 
+  // The kind-narrowed spend sources off this banner's measured balance — the shared
+  // assembly (the other kind's tickets can't be spent here).
+  const sources = bannerPullSources(v, kind, freePulls);
   return {
     bannerKey,
     kind,
     start: ev.start,
     end: ev.end,
     atoms,
-    freeCarats: v.free_carats ?? 0,
-    paidCarats: v.paid_carats ?? 0,
-    // The kind-appropriate scout ticket: a support banner draws support tickets, a
-    // trainee banner trainee tickets (the other kind can't be spent here).
-    tickets: (kind === "support" ? v.support_tickets : v.trainee_tickets) ?? 0,
+    freeCarats: sources.freeCarats,
+    paidCarats: sources.paidCarats,
+    tickets: sources.tickets,
     freePulls,
     bannerDays: bannerDays(ev.start, ev.end),
     committedPity,

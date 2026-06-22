@@ -164,6 +164,19 @@ export interface GachaRates {
   sparkThreshold: number;
 }
 
+/** Assemble a banner's spendable sources from an account balance: the banner's own
+ *  free-pull grant, the kind-appropriate scout tickets (the other kind can't be
+ *  spent here), and the free/paid carat pools. The one place a `ResourceVector`
+ *  becomes `PullSources`, so every spend reads the balance the same way. */
+export function bannerPullSources(balance: ResourceVector, kind: "trainee" | "support", freePulls: number): PullSources {
+  return {
+    freePulls,
+    tickets: (kind === "support" ? balance.support_tickets : balance.trainee_tickets) ?? 0,
+    freeCarats: balance.free_carats ?? 0,
+    paidCarats: balance.paid_carats ?? 0,
+  };
+}
+
 /** Derive a committed banner's funding state from the balance it measures against —
  *  the single home for "commitment → fundability + capacity", assembling the
  *  kind-narrowed pull sources and running the spend once for both outputs. */
@@ -178,13 +191,7 @@ export function commitmentStatus(
   usePaid: boolean,
 ): CommitmentStatus {
   const caps: PullCaps = { caratsPerPull: gacha.caratsPerPull, paidDailyPull: gacha.paidDailyPull, bannerDays: bannerDays(start, end) };
-  const sources: PullSources = {
-    freePulls,
-    tickets: (kind === "support" ? balance.support_tickets : balance.trainee_tickets) ?? 0,
-    freeCarats: balance.free_carats ?? 0,
-    paidCarats: balance.paid_carats ?? 0,
-  };
-  const remaining = remainingAfterSpend(sources, caps, gacha.sparkThreshold, pity, usePaid);
+  const remaining = remainingAfterSpend(bannerPullSources(balance, kind, freePulls), caps, gacha.sparkThreshold, pity, usePaid);
   return { kind, pity, unfundable: remaining.freeCarats < 0, capacity: pullCapacity(remaining, caps) };
 }
 
