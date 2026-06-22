@@ -18,7 +18,7 @@ import { formatDateRange, formatBalance } from "../format.ts";
 import { PITY_WASTE_ABOVE, bannerHeatBand } from "../select/aboveLane.ts";
 import type { Banner, BannerGroup, BannerKind } from "../select/aboveLane.ts";
 import { atomChip } from "./widgets/atomChip.ts";
-import type { FavouriteBinding } from "./widgets/atomChip.ts";
+import type { FavouriteBinding, InspectBinding } from "./widgets/atomChip.ts";
 import { commitmentBadge } from "./widgets/commitmentBadge.ts";
 
 /** The commit seam handed to the banner readout: spawn the commit dossier for a
@@ -28,7 +28,7 @@ export interface CommitBinding {
   open: (bannerKey: string) => void;
 }
 
-export function bannerGroup(group: BannerGroup, fav: FavouriteBinding, commit: CommitBinding): HTMLElement {
+export function bannerGroup(group: BannerGroup, fav: FavouriteBinding, commit: CommitBinding, inspect: InspectBinding): HTMLElement {
   const el = h(
     "div",
     { class: `card card--above${group.past ? " card--past" : ""}` },
@@ -38,8 +38,8 @@ export function bannerGroup(group: BannerGroup, fav: FavouriteBinding, commit: C
       h(
         "div",
         { class: "banner-group__lanes" },
-        lane("trainee", group.banners, fav, commit, group.past),
-        lane("support", group.banners, fav, commit, group.past),
+        lane("trainee", group.banners, fav, commit, inspect, group.past),
+        lane("support", group.banners, fav, commit, inspect, group.past),
       ),
       h("span", { class: "banner-group__date" }, formatDateRange(group.date, group.end)),
     ),
@@ -52,14 +52,14 @@ export function bannerGroup(group: BannerGroup, fav: FavouriteBinding, commit: C
 /** Internal group lanes keep a stable scanline: trainees above, supports below.
  *  Each lane flows horizontally, so busy launch beats grow sideways instead of
  *  into a tall stack that disappears off the top of the viewport. */
-function lane(kind: BannerKind, banners: readonly Banner[], fav: FavouriteBinding, commit: CommitBinding, groupPast = false): HTMLElement | null {
+function lane(kind: BannerKind, banners: readonly Banner[], fav: FavouriteBinding, commit: CommitBinding, inspect: InspectBinding, groupPast = false): HTMLElement | null {
   const matches = banners.filter((banner) => banner.kind === kind);
   if (matches.length === 0) return null;
-  return h("div", { class: `banner-group__lane banner-group__lane--${kind}` }, ...matches.map((banner) => bannerCard(banner, fav, commit, groupPast)));
+  return h("div", { class: `banner-group__lane banner-group__lane--${kind}` }, ...matches.map((banner) => bannerCard(banner, fav, commit, inspect, groupPast)));
 }
 
-function bannerCard(banner: Banner, fav: FavouriteBinding, commit: CommitBinding, groupPast: boolean): HTMLElement {
-  const atoms = atomList(banner, fav);
+function bannerCard(banner: Banner, fav: FavouriteBinding, commit: CommitBinding, inspect: InspectBinding, groupPast: boolean): HTMLElement {
+  const atoms = atomList(banner, fav, inspect);
   const heatBand = banner.open ? bannerHeatBand(banner.freePulls) : 0;
   const el = h(
     "div",
@@ -86,7 +86,7 @@ function commitBadge(banner: Banner, commit: CommitBinding): HTMLElement {
   );
 }
 
-function atomList(banner: Banner, fav: FavouriteBinding): HTMLUListElement {
+function atomList(banner: Banner, fav: FavouriteBinding, inspect: InspectBinding): HTMLUListElement {
   const el = h(
     "ul",
     {
@@ -100,7 +100,7 @@ function atomList(banner: Banner, fav: FavouriteBinding): HTMLUListElement {
         },
       },
     },
-    ...banner.atoms.map((atom) => atomChip(atom, fav)),
+    ...banner.atoms.map((atom) => atomChip(atom, banner.kind, fav, inspect)),
   );
   // The timeline card layer is pointer-transparent so panning works over cards.
   // Only genuinely overflowing chip lists opt back into pointer handling; otherwise

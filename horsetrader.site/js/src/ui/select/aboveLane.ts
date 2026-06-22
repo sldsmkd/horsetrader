@@ -71,8 +71,14 @@ export interface BannerAtom {
   rarity: string;
   /** Normalised tier for the border/surround grammar — crystal (SSR/3★) or gold (SR/2★). */
   rarityTier: RarityTier;
+  /** The chip's second line — rarity + facet, e.g. `3★ Original` (trainee variant) or
+   *  `SSR Speed` (support type). The readable identity under the name. */
+  subtitle: string;
   /** Support type badge icon key — `"speed"`, `"guts"`, etc. Absent for trainees. */
   attribute?: string;
+  /** The atom's portrait by the shared `atomImage` precedence — null when the bake
+   *  has no art. The chip leads with this thumbnail; absent ⇒ a text-only pill. */
+  image: string | null;
 }
 
 /** One banner within a group — its identity, art and content pills. */
@@ -118,22 +124,41 @@ export interface BannerGroup {
   banners: Banner[];
 }
 
+/** Title-case a support type key (`"speed"` → `"Speed"`) for the chip subtitle. */
+function capitalise(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
 /** Resolve one banner-content id to its display atom; returns null for R/1★ (culled by design). */
 export function atomOf(bundle: Bundle, kind: BannerKind, id: string): BannerAtom | null {
   if (kind === "trainee") {
     const trainee = bundle.trainee(id);
     if (trainee.rarity < 2) return null;
     const character = bundle.character(trainee.character);
-    return { id, name: character.name ?? id, rarity: `${trainee.rarity}★`, rarityTier: trainee.rarity >= 3 ? "crystal" : "gold" };
+    // Star count only carries meaning for the Original variant (the only one with
+    // sub-3★ copies); every themed variant is 3★ by definition, so it reads as just
+    // its name (`Summer`, `New Year`) — the stars would be noise.
+    const subtitle = trainee.variant === "Original" ? "★".repeat(trainee.rarity) : trainee.variant;
+    return {
+      id,
+      name: character.name ?? id,
+      rarity: `${trainee.rarity}★`,
+      rarityTier: trainee.rarity >= 3 ? "crystal" : "gold",
+      subtitle,
+      image: atomImage(bundle, kind, id),
+    };
   }
   const support = bundle.support(id);
   const r = (support.rarity ?? "").toLowerCase();
   if (r === "r" || r === "") return null;
+  const rarity = r.toUpperCase();
   return {
     id,
     name: support.display ?? id,
-    rarity: r.toUpperCase(),
+    rarity,
     rarityTier: r === "ssr" ? "crystal" : "gold",
+    subtitle: support.type ? `${rarity} ${capitalise(support.type)}` : rarity,
+    image: atomImage(bundle, kind, id),
     ...(support.type ? { attribute: support.type } : {}),
   };
 }

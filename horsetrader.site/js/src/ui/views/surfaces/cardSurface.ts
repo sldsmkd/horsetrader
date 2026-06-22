@@ -27,11 +27,38 @@ export interface CardSurfaceOpts {
   bundle: Bundle;
   kind: BannerKind;
   id: string;
+  /** Whether the subject is currently favourited — the favourite now lives here, not
+   *  on the banner chip (the chip just reflects this state as a pressed button). */
+  favourited: boolean;
+  /** Toggle the favourite (persisted by the coordinator). */
+  onToggleFavourite: (on: boolean) => void;
   /** The subject's current note ("" when none) — the surface's only mutable input. */
   note: string;
   /** Commit the note (normalised + persisted by the coordinator; "" clears). */
   onSetNote: (text: string) => void;
   onClose: () => void;
+}
+
+/** The favourite toggle — the *write* home for the favourite (the banner chip only
+ *  reflects it). A pressed-state button: ★ held down when favourited, ☆ when not. */
+function favouriteToggle(favourited: boolean, onToggle: (on: boolean) => void): HTMLElement {
+  return h(
+    "button",
+    {
+      class: "card-surface__fav",
+      attr: { type: "button", "aria-pressed": String(favourited), "aria-label": "Favourite" },
+      on: {
+        click: (ev) => {
+          const btn = ev.currentTarget as HTMLButtonElement;
+          const next = btn.getAttribute("aria-pressed") !== "true";
+          btn.setAttribute("aria-pressed", String(next));
+          btn.textContent = next ? "★ Favourited" : "☆ Favourite";
+          onToggle(next);
+        },
+      },
+    },
+    favourited ? "★ Favourited" : "☆ Favourite",
+  );
 }
 
 /** The note box — the trainer's *why* (Twinkle Monthly · The Interview). A plain
@@ -134,6 +161,7 @@ export function cardSurface(opts: CardSurfaceOpts): HTMLElement {
           h("h2", { class: "card-surface__name" }, card.name),
           card.rarity ? h("span", { class: `card-surface__rarity card-surface__rarity--${card.rarityTier}` }, card.rarity) : null,
           card.tagline ? h("p", { class: "card-surface__tagline" }, card.tagline) : null,
+          favouriteToggle(opts.favourited, opts.onToggleFavourite),
         ),
 
         // Facets — the kind-appropriate identity lines + bio vitals + release.

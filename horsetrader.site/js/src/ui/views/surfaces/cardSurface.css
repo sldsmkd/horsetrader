@@ -95,6 +95,29 @@
   background: color-mix(in srgb, var(--ht-colour-rarity-gold) 85%, var(--ht-colour-shadow));
 }
 
+/* FAVOURITE — the write home for the favourite (the banner chip only reflects it).
+   A pressed-state button: quiet outline when off, filled + inset when held down. */
+.card-surface__fav {
+  margin-top: calc(0.25 * var(--glass-u));
+  padding: calc(0.31 * var(--glass-u)) calc(0.75 * var(--glass-u));
+  border: 1px solid var(--ht-control-border);
+  border-radius: var(--ht-control-radius);
+  background: var(--ht-control-bg);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition: background 0.12s, box-shadow 0.12s, color 0.12s;
+}
+.card-surface__fav:hover,
+.card-surface__fav:focus-visible {
+  background: var(--ht-control-bg-hover-subtle);
+  outline: 0;
+}
+.card-surface__fav[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--ht-colour-rarity-gold) 30%, var(--ht-control-bg));
+  box-shadow: inset 0 calc(0.06 * var(--glass-u)) calc(0.25 * var(--glass-u)) rgb(0 0 0 / 0.4);
+}
+
 /* FACETS — labelled identity lines. */
 .card-surface__facets {
   display: grid;

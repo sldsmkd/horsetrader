@@ -33,7 +33,7 @@ import type { BakeStats } from "../core/bundle/stats.gen.ts";
 import { belowCard } from "./views/belowCard.ts";
 import { bannerGroup } from "./views/bannerGroup.ts";
 import type { RushBinding } from "./views/widgets/rushedToggle.ts";
-import type { FavouriteBinding } from "./views/widgets/atomChip.ts";
+import type { FavouriteBinding, InspectBinding } from "./views/widgets/atomChip.ts";
 import { surface, lockSurface } from "./views/surfaces/surface.ts";
 import { resourcesSurface } from "./views/surfaces/resourcesSurface.ts";
 import type { ResourcesSurfaceHandle } from "./views/surfaces/resourcesSurface.ts";
@@ -324,7 +324,7 @@ export function mountApp(
       commitmentStatuses: statuses,
     });
     const belowEls = below.map((card) => belowCard(card, rush));
-    const aboveEls = above.map((group) => bannerGroup(group, fav, commit));
+    const aboveEls = above.map((group) => bannerGroup(group, fav, commit, inspect));
     cardStats = { cards: belowEls.length + aboveEls.length, aboveCards: aboveEls.length, belowCards: belowEls.length };
     tl.setCards([...belowEls, ...aboveEls]);
     // Mounted now → heights are measurable. Pack each lane (below returns its
@@ -476,6 +476,16 @@ export function mountApp(
   const commit: CommitBinding = {
     open: (bannerKey) => {
       if (!modalOpen()) view.set({ committing: bannerKey });
+    },
+  };
+
+  // The card-detail spawn seam, handed to every banner atom chip: clicking an atom
+  // opens its card surface, refused while any modal is already up (same guard as the
+  // commit seam). Until now the only door to the card was the commit dossier's
+  // featured grid — the banner chip is where a person actually clicks the atom.
+  const inspect: InspectBinding = {
+    open: (kind, id) => {
+      if (!modalOpen()) view.set({ cardDetail: { kind, id } });
     },
   };
 
@@ -683,6 +693,9 @@ export function mountApp(
           bundle,
           kind: cardDetail.kind,
           id: cardDetail.id,
+          // The favourite lives here now — the banner chip only reflects it.
+          favourited: fav.isFavourited(cardDetail.id),
+          onToggleFavourite: (on) => fav.setFavourited(cardDetail.id, on),
           // Notes are keyed by the subject's stable id (already prefix-unique).
           note: coord.document().notes?.[cardDetail.id] ?? "",
           onSetNote: (text) => coord.setNote(cardDetail.id, text),

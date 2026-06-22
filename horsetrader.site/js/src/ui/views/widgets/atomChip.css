@@ -1,17 +1,84 @@
-/* Banner-content atom chip — one trainee or support card pill. */
+/* The bare list item — the chip itself is the button inside it. */
+.atom-chip__slot {
+  list-style: none;
+  display: flex;
+  min-width: 0;
+}
+
+/* Banner-content atom chip — one trainee or support card, and a button: its pressed
+ * state IS the favourite. Portrait + a two-line text column (name over rarity/facet).
+ * Clicking opens the card surface, where the favourite is toggled. */
 .atom-chip {
   display: inline-flex;
   align-items: center;
-  gap: calc(0.31 * var(--glass-u));
-  padding: calc(0.19 * var(--glass-u)) calc(0.38 * var(--glass-u));
+  /* No padding — the portrait and pip sit flush to the chip's edges (bookends); the
+   * text carries its own breathing via margins below. */
+  padding: 0;
+  /* Height pinned to the two text rows (name ~0.875u + subtitle ~1u + breathing); the
+   * portrait and type pip then fill 100% of it, bookending the text. */
+  height: calc(2.6 * var(--glass-u));
   max-width: 100%;
-  border-radius: 999px;
+  /* Squared edges — a card, not a pill. */
+  border-radius: calc(0.5 * var(--glass-u));
   border: 1px solid currentColor;
+  overflow: hidden;
   font-size: var(--ht-type-chip-size);
   line-height: var(--ht-type-chip-line);
-  list-style: none;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  pointer-events: auto;
   background: color-mix(in srgb, currentColor 12%, transparent);
   background-origin: padding-box, border-box;
+  /* Unfavourited reads "raised but quiet" — dimmed; pressing it in (favourited) lifts
+   * it to full saturation with an inset shadow. The whole control carries the state. */
+  opacity: 0.62;
+  transition: opacity 0.12s, box-shadow 0.12s, filter 0.12s;
+}
+
+.atom-chip:hover {
+  opacity: 0.85;
+}
+
+/* Pressed in = favourited: full saturation + an inset shadow so it reads as held down. */
+.atom-chip[aria-pressed="true"] {
+  opacity: 1;
+  box-shadow: inset 0 calc(0.06 * var(--glass-u)) calc(0.25 * var(--glass-u)) rgb(0 0 0 / 0.45);
+}
+
+/* The leading portrait — a square thumbnail of the atom's art, filling the chip's
+ * full height. Faces sit toward the top of the art. */
+.atom-chip__portrait {
+  flex-shrink: 0;
+  height: 100%;
+  width: auto;
+  aspect-ratio: 1;
+  object-fit: cover;
+  object-position: top center;
+  /* Flush to the left edge — outer corners follow the chip's radius (overflow clip). */
+  background: color-mix(in srgb, currentColor 18%, transparent);
+}
+
+/* The two-line text column — name over the rarity/facet subtitle. Carries its own
+ * horizontal margins so it breathes between the flush bookend icons. */
+.atom-chip__text {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: calc(0.06 * var(--glass-u));
+  margin: 0 calc(0.44 * var(--glass-u));
+  min-width: 0;
+  text-align: left;
+}
+
+.atom-chip__subtitle {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--ht-type-caption-size);
+  line-height: 1.1;
+  color: color-mix(in srgb, currentColor 60%, var(--ht-colour-text-on-accent));
 }
 
 /* Crystal (SSR / 3★) — gem border, purple → blue gradient grammar. */
@@ -37,8 +104,13 @@
   color: var(--ht-colour-rarity-silver);
 }
 
+/* The support type pip — a full-height square on the chip's right edge. */
 .atom-chip__attr {
   flex-shrink: 0;
+  height: 100%;
+  width: auto;
+  aspect-ratio: 1;
+  object-fit: contain;
   image-rendering: pixelated;
 }
 
@@ -48,22 +120,4 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   color: color-mix(in srgb, currentColor 78%, var(--ht-colour-text-on-accent));
-}
-
-.atom-chip__star {
-  flex-shrink: 0;
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  pointer-events: auto;
-  font-size: var(--ht-type-caption-size);
-  line-height: 1;
-  color: inherit;
-  opacity: 0.5;
-  transition: opacity 0.1s;
-}
-.atom-chip__star:hover,
-.atom-chip__star[aria-pressed="true"] {
-  opacity: 1;
 }

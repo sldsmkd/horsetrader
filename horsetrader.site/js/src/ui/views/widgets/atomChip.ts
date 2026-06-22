@@ -1,7 +1,7 @@
 import "./atomChip.css";
 
 import { h } from "../../h.ts";
-import type { BannerAtom } from "../../select/aboveLane.ts";
+import type { BannerAtom, BannerKind } from "../../select/aboveLane.ts";
 
 /** The persisted-favourite seam handed to atom chips: read whether an entity is
  *  favourited, and flip it. Keyed by ETL stable entity id. */
@@ -10,44 +10,55 @@ export interface FavouriteBinding {
   setFavourited: (entityId: string, on: boolean) => void;
 }
 
+/** Open an atom's card-detail surface (twinkle-monthly). Keyed by kind + stable id;
+ *  refused while a modal is already up (app.ts guards it, like the commit seam). */
+export interface InspectBinding {
+  open: (kind: BannerKind, id: string) => void;
+}
+
+/** The support type badge — a full-height pip on the chip's right edge (trainees
+ *  carry none). Sized by CSS off the chip height, not a fixed px. */
 function attributeIcon(attribute: string): HTMLElement {
   return h("img", {
     class: "atom-chip__attr",
-    attr: { src: `/icons/old/${attribute}.png`, alt: attribute, width: 14, height: 14, loading: "lazy", decoding: "async" },
+    attr: { src: `/icons/old/${attribute}.png`, alt: attribute, loading: "lazy", decoding: "async" },
   });
 }
 
-/** A banner-content pill chip: favourite action, name, and support attribute as
- *  trailing metadata inside the rarity border grammar (crystal/gold). */
-export function atomChip(atom: BannerAtom, fav: FavouriteBinding): HTMLElement {
-  const on = fav.isFavourited(atom.id);
+/** A banner-content atom chip in the rarity border grammar (crystal/gold). The chip
+ *  *is* a button: its pressed state (`aria-pressed`) is whether the atom is favourited,
+ *  so the favourite reads straight off the control's posture — no separate star chrome.
+ *  Clicking opens the atom's card surface, where the favourite is actually toggled. It
+ *  opts into pointer handling and swallows `pointerdown` so the timeline doesn't steal
+ *  the gesture as a pan (the in-timeline two-opt-in pattern). */
+export function atomChip(atom: BannerAtom, kind: BannerKind, fav: FavouriteBinding, inspect: InspectBinding): HTMLElement {
+  const portrait = atom.image
+    ? h("img", { class: "atom-chip__portrait", attr: { src: atom.image, alt: "", loading: "lazy", decoding: "async", draggable: false } })
+    : null;
 
-  const star = h(
+  const chip = h(
     "button",
     {
-      class: "atom-chip__star",
-      attr: { type: "button", "aria-label": "Favourite", "aria-pressed": String(on) },
+      class: `atom-chip atom-chip--${atom.rarityTier}`,
+      attr: { type: "button", "aria-pressed": String(fav.isFavourited(atom.id)), "aria-label": `Inspect ${atom.name}` },
       on: {
         pointerdown: (ev) => ev.stopPropagation(),
         dblclick: (ev) => ev.stopPropagation(),
         click: (ev) => {
           ev.stopPropagation();
-          const btn = ev.currentTarget as HTMLButtonElement;
-          const next = btn.getAttribute("aria-pressed") !== "true";
-          btn.setAttribute("aria-pressed", String(next));
-          btn.textContent = next ? "★" : "☆";
-          fav.setFavourited(atom.id, next);
+          inspect.open(kind, atom.id);
         },
       },
     },
-    on ? "★" : "☆",
-  );
-
-  return h(
-    "li",
-    { class: `atom-chip atom-chip--${atom.rarityTier}` },
-    star,
-    h("span", { class: "atom-chip__name" }, atom.name),
+    portrait,
+    h(
+      "span",
+      { class: "atom-chip__text" },
+      h("span", { class: "atom-chip__name" }, atom.name),
+      h("span", { class: "atom-chip__subtitle" }, atom.subtitle),
+    ),
     atom.attribute ? attributeIcon(atom.attribute) : null,
   );
+
+  return h("li", { class: "atom-chip__slot" }, chip);
 }
