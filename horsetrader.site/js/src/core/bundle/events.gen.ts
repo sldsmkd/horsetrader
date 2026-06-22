@@ -329,6 +329,7 @@ export interface AnniversaryMissionRecord {
   banner: string | null;
   anniversary: string;
   part: number;
+  contents: string[];
   start: string;
   end: string;
   predicted: boolean;

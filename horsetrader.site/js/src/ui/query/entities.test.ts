@@ -17,6 +17,8 @@ const EVENTS: EventsBundle = {
     { type: "trainee", rushable: true, contents: ["trainee-palmer-reindeer"], image: "", start: "2026-07-03", end: "2026-07-10", predicted: false, key: "banner-reindeer" },
     // A story whose welfare grant is a support that appears on no banner.
     { type: "story", rushable: true, title: "Creek Story", contents: ["support-creek-welfare"], image: null, banner: null, art: null, era: "1m", start: "2026-06-20", end: "2026-06-27", predicted: false, key: "story-creek" },
+    // An anniversary mission Part 2 whose welfare grant appears on no banner.
+    { type: "anniversarymission", name: "1st Anniversary Missions Part 2", contents: ["support-urara-welfare"], image: null, banner: null, anniversary: "anniversary-1_0", part: 2, start: "2026-06-22", end: "2026-06-29", predicted: false, key: "anni-mission-welfare" },
   ],
 };
 
@@ -28,6 +30,7 @@ const ACADEMY: Academy = {
     "char-ramonu": { name: "Mejiro Ramonu", quote: null, icon: null, portrait: null, bio: { three_sizes: { bust: null, waist: null, hips: null }, birthday: null, height: null } },
     "char-palmer": { name: "Mejiro Palmer", quote: null, icon: null, portrait: null, bio: { three_sizes: { bust: null, waist: null, hips: null }, birthday: null, height: null } },
     "char-creek": { name: "Super Creek", quote: null, icon: null, portrait: null, bio: { three_sizes: { bust: null, waist: null, hips: null }, birthday: null, height: null } },
+    "char-urara": { name: "Haru Urara", quote: null, icon: null, portrait: null, bio: { three_sizes: { bust: null, waist: null, hips: null }, birthday: null, height: null } },
   },
   supports: {
     "support-teio-speed": {
@@ -73,6 +76,19 @@ const ACADEMY: Academy = {
       type: "stamina",
       rarity: "sr",
       title: "Welfare Card",
+      release: "2021-02-24",
+      thumbnail: null,
+      art: null,
+      aliases: [],
+      source: null,
+    },
+    // A welfare card granted only by an anniversary mission's Part 2.
+    "support-urara-welfare": {
+      character: "char-urara",
+      display: "Haru Urara",
+      type: "guts",
+      rarity: "ssr",
+      title: "Anniversary Card",
       release: "2021-02-24",
       thumbnail: null,
       art: null,
@@ -191,6 +207,13 @@ test("search finds a story-only welfare support, warping to the story that grant
   assert.deepEqual(
     search()("super creek").map((result) => [result.kind, result.label, result.date, result.eventKey]),
     [["support", "SR Super Creek (Stamina)", "2026-06-20", "story-creek"]],
+  );
+});
+
+test("search finds an anniversary-mission welfare support, warping to the mission", () => {
+  assert.deepEqual(
+    search()("haru urara").map((result) => [result.kind, result.label, result.date, result.eventKey]),
+    [["support", "SSR Haru Urara (Guts)", "2026-06-22", "anni-mission-welfare"]],
   );
 });
 

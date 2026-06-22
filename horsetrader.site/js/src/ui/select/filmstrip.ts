@@ -87,10 +87,10 @@ export function filmFrames(
 ): FilmFrame[] {
   const frames: FilmFrame[] = [];
   for (const ev of bundle.all()) {
-    // Stories grant welfare supports — favourited welfare earns a frame too, even
-    // though it isn't pullable: a bookmark beat with no commitment band and no heat
-    // (it's a grant, not a gacha). Its frame warps to the story that grants it.
-    if (ev.type === "story") {
+    // Stories and anniversary missions grant welfare supports — favourited welfare
+    // earns a frame too, even though it isn't pullable: a bookmark beat with no
+    // commitment band and no heat (a grant, not a gacha), warping to the granting event.
+    if (ev.type === "story" || ev.type === "anniversarymission") {
       const past = ev.end < now;
       for (const atom of favouritedAtoms(bundle, "support", ev.contents, favourites)) {
         frames.push({ date: ev.start, kind: "support", state: "bookmark", past, atom, group: ev.key, band: "empty", heat: 0 });

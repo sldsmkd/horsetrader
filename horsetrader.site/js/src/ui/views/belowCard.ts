@@ -127,7 +127,7 @@ export function belowCard(card: BelowCard, rush: RushBinding, fav: FavouriteBind
   const hideRush = bannerCarriesRushControl(card);
   const cls = `card card--below card--${card.kind}${card.banner ? " card--bannered" : ""}${hideLabel ? " card--banner-label-art" : ""}${card.image && !card.banner ? " card--mission-art" : ""}${card.compact ? " card--compact" : ""}${card.past ? " card--past" : ""}`;
   const body = card.image && !card.banner
-    ? h("div", { class: "card__body" }, missionBody(card, rush))
+    ? h("div", { class: "card__body" }, missionBody(card, rush), atomList(card, fav, inspect))
     : h(
         "div",
         { class: "card__body" },

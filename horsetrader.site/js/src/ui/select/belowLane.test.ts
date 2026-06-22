@@ -304,6 +304,7 @@ test("an anniversary mission's card combines its flat face and its minted daily 
         banner: null,
         anniversary: "anniversary-1_0",
         part: 1,
+        contents: [],
         start: "2026-07-01",
         end: "2026-07-10",
         predicted: false,

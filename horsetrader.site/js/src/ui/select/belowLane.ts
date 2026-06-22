@@ -102,10 +102,11 @@ export interface BelowCard {
   contents: BannerAtom[];
 }
 
-/** A story's welfare grant resolved to display atoms — all supports (the bake's
- *  distinct welfare set). R/empty supports cull to null, like banner contents. */
+/** A below-lane event's welfare grant resolved to display atoms — all supports (the
+ *  bake's distinct welfare set). Stories grant their Event Support Cards; anniversary
+ *  missions grant their Part-2 anniversary card. R/empty supports cull to null. */
 function contentsOf(record: NonNullable<SettledEvent["record"]>, bundle: Bundle): BannerAtom[] {
-  if (record.type !== "story") return [];
+  if (record.type !== "story" && record.type !== "anniversarymission") return [];
   return record.contents
     .map((id) => atomOf(bundle, "support", id))
     .filter((a): a is BannerAtom => a !== null);

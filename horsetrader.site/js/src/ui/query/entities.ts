@@ -72,13 +72,17 @@ function sortResults(a: { entry: SearchEntry; rank: number }, b: { entry: Search
   );
 }
 
-// Stories carry support contents too (their welfare grant), so a welfare card that
-// never appears on a support banner (a story-only welfare) is still searchable, and
-// warps to the story that grants it.
+// Stories and anniversary missions carry support contents too (their welfare grant),
+// so a welfare card that never appears on a support banner is still searchable, and
+// warps to the event that grants it.
 function searchableEvents(bundle: Bundle, now: string): readonly EventRecord[] {
   return bundle
     .all()
-    .filter((event) => (event.type === "support" || event.type === "trainee" || event.type === "story") && event.end >= now);
+    .filter(
+      (event) =>
+        (event.type === "support" || event.type === "trainee" || event.type === "story" || event.type === "anniversarymission") &&
+        event.end >= now,
+    );
 }
 
 function appearanceMap(events: readonly EventRecord[]): Map<string, { date: CalendarDate; eventKey: string }> {
@@ -89,7 +93,7 @@ function appearanceMap(events: readonly EventRecord[]): Map<string, { date: Cale
   };
 
   for (const event of events) {
-    if (event.type === "support" || event.type === "trainee" || event.type === "story") {
+    if (event.type === "support" || event.type === "trainee" || event.type === "story" || event.type === "anniversarymission") {
       for (const id of event.contents) noteAppearance(id, event);
     }
   }
@@ -127,7 +131,7 @@ export function createSearchIndex(bundle: Bundle, now: string): SearchIndex {
   };
 
   for (const event of events) {
-    if (event.type === "support" || event.type === "story") {
+    if (event.type === "support" || event.type === "story" || event.type === "anniversarymission") {
       for (const id of event.contents) addSupportEntry(id);
     } else if (event.type === "trainee") {
       for (const id of event.contents) {
