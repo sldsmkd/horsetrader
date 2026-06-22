@@ -31,8 +31,9 @@
   --ht-colour-rarity-crystal-edge-b: #2c8dff;
   --ht-colour-rarity-crystal-edge-c: #c86cff;
 
-  /* Commitment state colours: a positive plan, waste past the useful target,
-     and commitments that cannot be funded from projected resources. */
+  /* Commitment state colours: no commitment yet, a positive plan, waste past the
+     useful target, and commitments that cannot be funded from projected resources. */
+  --ht-colour-commit-none: slategray;
   --ht-colour-commit-positive: seagreen;
   --ht-colour-commit-waste: rebeccapurple;
   --ht-colour-commit-unfundable: crimson;

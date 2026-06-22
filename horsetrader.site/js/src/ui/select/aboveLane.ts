@@ -41,6 +41,18 @@ export type BannerKind = "trainee" | "support";
  *  a support card wants ~3 to reach a usable MLB before the same applies. */
 export const PITY_WASTE_ABOVE: Record<BannerKind, number> = { trainee: 1, support: 3 };
 
+/** A banner's "heat" tier — how much free-pull value it grants, driving the card's
+ *  glow (bannerGroup.css `banner--hot-N`). Shared so any other view of a banner (the
+ *  film strip) glows by the same rule. Closed banners read cold; the caller zeroes. */
+export type HeatBand = 0 | 1 | 2 | 3 | 4;
+export function bannerHeatBand(freePulls: number): HeatBand {
+  if (freePulls <= 0) return 0;
+  if (freePulls < 10) return 1;
+  if (freePulls < 40) return 2;
+  if (freePulls < 80) return 3;
+  return 4;
+}
+
 /** Within a group, trainee gacha read before support gacha (the prototype order). */
 const KIND_ORDER: Record<BannerKind, number> = { trainee: 0, support: 1 };
 const NAME_ORDER = new Intl.Collator("en", { numeric: true, sensitivity: "base" });

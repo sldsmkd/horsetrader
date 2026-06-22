@@ -24,6 +24,8 @@ import "./app.css";
 import { h, qs } from "./h.ts";
 import { timeline } from "./views/timeline.ts";
 import { minimap } from "./views/minimap.ts";
+import { filmstrip } from "./views/filmstrip.ts";
+import { filmFrames } from "./select/filmstrip.ts";
 import { scenarioArt } from "./views/scenarioArt.ts";
 import { perfHud } from "./views/perfHud.ts";
 import { perfInstrument } from "./perf.ts";
@@ -51,6 +53,8 @@ import { cloudControls } from "./views/widgets/cloudControls.ts";
 import { bookmarks } from "./views/bookmarks.ts";
 import { bookmarkRows, nextBookmarkDate } from "./select/bookmarks.ts";
 import { plannerRows } from "./select/planner.ts";
+import { pityBand } from "./views/widgets/pityBand.ts";
+import type { PityBand } from "./views/widgets/pityBand.ts";
 import { scenarioLookup } from "./select/scenario.ts";
 import { buildTrainerCard, buildOshiSelector, buildClubSelector, buildPlayStyle, matchPlayStyleHeight } from "./views/surfaces/identityCards.ts";
 import { menubar } from "./views/menubar.ts";
@@ -66,7 +70,7 @@ import type { PlayStyleKey, PlayStyleSettings } from "../core/playstyle/index.ts
 
 import type { UiStrings } from "./strings.ts";
 import { belowLaneCards } from "./select/belowLane.ts";
-import { aboveLaneGroups } from "./select/aboveLane.ts";
+import { aboveLaneGroups, PITY_WASTE_ABOVE } from "./select/aboveLane.ts";
 import { createSearchIndex } from "./query/index.ts";
 import { packBelow, packAbove } from "./pack/pack.ts";
 import type { BelowCard } from "./select/belowLane.ts";
@@ -211,6 +215,9 @@ export function mountApp(
   // vertical well offset back so the window tracks the pan — a two-way cheap-path
   // binding, no broadcast.
   const mini = minimap({ onSeek: (date) => tl.centerOn(date) });
+  // The film strip: the favourites face, an ordinal twin of the minimap squares.
+  // It follows the view on the cheap path; clicking a face warps to that banner.
+  const strip = filmstrip({ onWarp: (date) => tl.warpTo(date) });
   const scen = scenarioArt();
   const scenarioAt = scenarioLookup(bundle);
 
@@ -234,6 +241,7 @@ export function mountApp(
       menu.setDate(date);
       menu.setResources(balance);
       mini.setView(date, verticalOffset);
+      strip.setView(date);
       scen.setScenario(scenarioAt(date));
       book.setView(date);
       liveResources?.update({ viewDate: date, projected: balance });
@@ -243,6 +251,13 @@ export function mountApp(
   const fav: FavouriteBinding = {
     isFavourited: (id) => id in (coord.document().favourites ?? {}),
     setFavourited: (id, on) => coord.setFavourite(id, on),
+  };
+
+  // The affordability inputs the planner-derived views read (the plan bar's rows
+  // and the film strip's commitment-band colours). Reads the live coordinator.
+  const plannerInputs = {
+    balanceAt: (date: CalendarDate) => coord.balanceAt(date),
+    availableFor: (key: string) => coord.availableFor(key),
   };
 
   // The bookmarks drawer: layer-2 chrome, twin of the minimap dots over the same
@@ -308,6 +323,16 @@ export function mountApp(
       extent,
       now,
     });
+    // The film strip is a third view over the same favourites map — the minimap's
+    // ordinal twin. Each capsule's colour is the banner's commitment band (the same
+    // grey/green/purple/red rule the badge + dossier use), so the strip carries the
+    // plan, not just the want; the band map comes from the planner's affordability.
+    const commitments = coord.document().commitments ?? {};
+    const bands = new Map<string, PityBand>();
+    for (const row of plannerRows(bundle, commitments, now, plannerInputs)) {
+      bands.set(row.key, pityBand(row.pity, row.unfundable, PITY_WASTE_ABOVE[row.kind]));
+    }
+    strip.refresh(filmFrames(bundle, coord.document().favourites ?? {}, commitments, now, (key) => bands.get(key) ?? "empty"));
     // The extent is the displayed card range — all known time, first arrival to
     // last — so every card fits the canvas. `layout` pads PAD_DAYS either side
     // (the prototype's fixed buffer) and centres on today on first load.
@@ -729,10 +754,7 @@ export function mountApp(
   function renderBookmarks(): void {
     book.refresh({
       rows: bookmarkRows(bundle, coord.document().favourites ?? {}, now),
-      plannerRows: plannerRows(bundle, coord.document().commitments ?? {}, now, {
-        balanceAt: (date) => coord.balanceAt(date),
-        availableFor: (key) => coord.availableFor(key),
-      }),
+      plannerRows: plannerRows(bundle, coord.document().commitments ?? {}, now, plannerInputs),
       open: view.get().bookmarks,
       face: view.get().bookmarksFace,
     });
@@ -744,7 +766,7 @@ export function mountApp(
   // drawer, then the surface layer (paints over the drawer where they share the
   // top-left zone), with the menubar/minimap lifted above all of it (their own
   // z-index) so the always-reachable chrome is never occluded.
-  root.replaceChildren(menu.el, scen.el, tl.el, book.el, mini.el, chromeDropdowns, surfaceLayer, hud.el);
+  root.replaceChildren(menu.el, scen.el, tl.el, book.el, mini.el, strip.el, chromeDropdowns, surfaceLayer, hud.el);
   refresh();
   renderSurfaces();
   renderBookmarks();

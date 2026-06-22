@@ -15,7 +15,7 @@ import "./bannerGroup.css";
 
 import { h } from "../h.ts";
 import { formatDateRange, formatBalance } from "../format.ts";
-import { PITY_WASTE_ABOVE } from "../select/aboveLane.ts";
+import { PITY_WASTE_ABOVE, bannerHeatBand } from "../select/aboveLane.ts";
 import type { Banner, BannerGroup, BannerKind } from "../select/aboveLane.ts";
 import { atomChip } from "./widgets/atomChip.ts";
 import type { FavouriteBinding } from "./widgets/atomChip.ts";
@@ -84,14 +84,6 @@ function commitBadge(banner: Banner, commit: CommitBinding): HTMLElement {
     { class: "banner__commit-badge" },
     commitmentBadge({ pity: banner.committedPity ?? 0, unfundable: banner.commitmentUnfundable, wasteAbove: PITY_WASTE_ABOVE[banner.kind], onOpen: () => commit.open(banner.key) }),
   );
-}
-
-function bannerHeatBand(freePulls: number): 0 | 1 | 2 | 3 | 4 {
-  if (freePulls <= 0) return 0;
-  if (freePulls < 10) return 1;
-  if (freePulls < 40) return 2;
-  if (freePulls < 80) return 3;
-  return 4;
 }
 
 function atomList(banner: Banner, fav: FavouriteBinding): HTMLUListElement {

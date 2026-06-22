@@ -1,0 +1,190 @@
+/* The film strip — the favourites face as an ordinal row of squares, floating just
+   above the minimap. No panel: the squares stand on their own over the timeline
+   (the strip is just the clipped track they slide along), so it reads as marks on
+   the canvas rather than a second docked instrument. Same trainee/support colours
+   and empty/filled semantics as the minimap, but compressed to sequence. */
+.filmstrip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--timeline-chrome-bottom) + var(--minimap-h) + 0.5 * var(--glass-u-base));
+  /* The frames are a fixed 48px, so the strip clears them in px — not the glass-u
+     grid, which collapses below the frame on short viewports and clips the squares'
+     top/bottom borders. Only the *position* rides the chrome unit; the box doesn't. */
+  height: 64px;
+  width: min(var(--timeline-chrome-width), var(--timeline-chrome-max-width), calc(100vw - 1.88 * var(--glass-u)));
+  box-sizing: border-box;
+  z-index: var(--glass-z-chrome);
+  overflow: hidden;
+  transform: translateX(-50%);
+  pointer-events: none; /* the band passes panning through; only the faces opt back in */
+}
+/* No favourites yet → nothing to read; fold the strip away rather than float empty. */
+.filmstrip--empty {
+  display: none;
+}
+
+/* The frame row. Equidistant frames; the transform glides only when the focused
+   index changes (a pan within one frame's reach leaves the value untouched), so a
+   60 Hz scrub doesn't animate — it just re-centres in steps. */
+.filmstrip__track {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  transform: translateX(0);
+  translate: 0 -50%;
+  transition: transform 160ms ease-out;
+  will-change: transform;
+}
+
+/* One frame — the face (or, art-less, the square). It carries no outline of its
+   own; the banner capsule behind it is the only border. Empty = favourited content
+   with no art, filled = committed banner; trainee/support carry the lane colour. */
+.filmstrip__frame {
+  width: 48px;
+  height: 48px;
+  box-sizing: border-box;
+  border-radius: 6px;
+  background: transparent;
+  flex: 0 0 auto;
+  position: relative; /* lift the faces above the capsule behind them */
+  z-index: 1;
+  pointer-events: auto; /* the faces opt back in (the band itself stays pass-through) */
+  cursor: pointer;
+}
+
+/* The banner capsule — the strip's only outline. One per banner: a lone favourite
+   is a one-wide capsule; several share a wider one, the inner gaps showing the faint
+   tie-tint between faces so a multi-favourite banner reads as one pull's payoff.
+   Painted behind the frames. */
+.filmstrip__capsule {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 48px;
+  box-sizing: border-box;
+  border: 1.5px solid currentColor;
+  border-radius: 9px;
+  /* A firmer matte: the faces inset onto it, so this band colour shows as a frame
+     around every picture — strong enough that an overcommit red reads even under a
+     full-bleed support portrait, where a thin border alone would be swallowed. */
+  background: color-mix(in srgb, currentColor 34%, transparent);
+}
+/* Capsule colour = the commitment band, shared with the commitment badge + dossier
+   (pityBand.ts). The face says trainee/support, so the capsule carries the plan. */
+.filmstrip__capsule--empty {
+  color: var(--ht-colour-commit-none); /* grey — favourited, no commitment */
+}
+.filmstrip__capsule--positive {
+  color: var(--ht-colour-commit-positive); /* green — a sensible commit */
+}
+.filmstrip__capsule--waste {
+  color: var(--ht-colour-commit-waste); /* purple — past the guarantee, wasted pulls */
+}
+.filmstrip__capsule--unfundable {
+  color: var(--ht-colour-commit-unfundable); /* red — can't fund it */
+}
+.filmstrip__capsule--past {
+  color: color-mix(in srgb, var(--ht-colour-text-primary) 35%, transparent);
+}
+
+.filmstrip__frame--trainee {
+  color: var(--ht-colour-trainee);
+}
+.filmstrip__frame--support {
+  color: var(--ht-colour-support);
+}
+
+/* Heat glow inherited from the banner card (bannerGroup.css banner--hot-N): a bloom
+   scaling with the banner's free-pull value. It sits on the capsule, so currentColor
+   is the *outline* (commitment band) colour — the banner glows one hue, with heat as
+   the intensity. One bloom per banner, around its capsule. */
+.filmstrip__capsule--hot {
+  box-shadow:
+    0 0 var(--fs-glow-sm) color-mix(in srgb, currentColor var(--fs-glow), transparent),
+    0 0 var(--fs-glow-lg) color-mix(in srgb, currentColor var(--fs-wash), transparent);
+}
+.filmstrip__capsule--hot-1 {
+  --fs-glow-sm: 0.25rem;
+  --fs-glow-lg: 0.6rem;
+  --fs-glow: 16%;
+  --fs-wash: 8%;
+}
+.filmstrip__capsule--hot-2 {
+  --fs-glow-sm: 0.4rem;
+  --fs-glow-lg: 0.9rem;
+  --fs-glow: 24%;
+  --fs-wash: 12%;
+}
+.filmstrip__capsule--hot-3 {
+  --fs-glow-sm: 0.6rem;
+  --fs-glow-lg: 1.25rem;
+  --fs-glow: 32%;
+  --fs-wash: 19%;
+}
+.filmstrip__capsule--hot-4 {
+  --fs-glow-sm: 0.8rem;
+  --fs-glow-lg: 1.6rem;
+  --fs-glow: 40%;
+  --fs-wash: 26%;
+}
+/* A bare commitment with no favourite — an outline star prompting the player to go
+   star whoever they're pulling for. Dim placeholder centred in the band capsule. */
+.filmstrip__star {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-size: 26px;
+  line-height: 1;
+  color: color-mix(in srgb, var(--ht-colour-text-primary) 55%, transparent);
+}
+/* A closed window — kept in the sequence as a record, but dimmed: it drops its
+   lane hue for a neutral, faded grey so the road ahead reads forward. */
+.filmstrip__frame--past {
+  color: color-mix(in srgb, var(--ht-colour-text-primary) 35%, transparent);
+}
+
+/* A favourite with art shows its face: the portrait nests inside the frame with a
+   small inset, so the band-coloured capsule matte shows as a frame around it (the
+   commitment signal survives even a full-bleed portrait). Clipped to round corners. */
+.filmstrip__frame--portrait {
+  background: transparent;
+  overflow: hidden;
+  padding: 4px;
+}
+.filmstrip__portrait {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border-radius: 5px; /* nest the inset picture inside the capsule's rounder corners */
+}
+/* Past portraits desaturate and fade rather than tint — keep the face, dim it. */
+.filmstrip__frame--past .filmstrip__portrait {
+  filter: grayscale(0.85);
+  opacity: 0.5;
+}
+
+/* The read-head — the fixed midline the focused frame settles under, the strip's
+   answer to the minimap's "now" marker (here it marks *the view*, not today). */
+.filmstrip__head {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1.5px;
+  margin-left: -0.75px;
+  background: color-mix(in srgb, currentColor 28%, transparent);
+  pointer-events: none;
+  z-index: 1;
+}
+
+@media (max-width: 620px) {
+  .filmstrip {
+    width: calc(100vw - 1.88 * var(--glass-u));
+  }
+}
