@@ -50,9 +50,6 @@ import type { AuthState, SyncResult } from "../core/cloud/index.ts";
 import { presentCloudConflict } from "./views/surfaces/cloudConflict.ts";
 import { cloudProvider } from "./views/surfaces/cloudProvider.ts";
 import { cloudControls } from "./views/widgets/cloudControls.ts";
-import { bookmarks } from "./views/bookmarks.ts";
-import { bookmarkRows, nextBookmarkDate } from "./select/bookmarks.ts";
-import { plannerRows } from "./select/planner.ts";
 import { pityBand } from "./views/widgets/pityBand.ts";
 import type { PityBand } from "./views/widgets/pityBand.ts";
 import { scenarioLookup } from "./select/scenario.ts";
@@ -243,7 +240,6 @@ export function mountApp(
       mini.setView(date, verticalOffset);
       strip.setView(date);
       scen.setScenario(scenarioAt(date));
-      book.setView(date);
       liveResources?.update({ viewDate: date, projected: balance });
     },
   });
@@ -252,21 +248,6 @@ export function mountApp(
     isFavourited: (id) => id in (coord.document().favourites ?? {}),
     setFavourited: (id, on) => coord.setFavourite(id, on),
   };
-
-
-  // The bookmarks drawer: layer-2 chrome, twin of the minimap dots over the same
-  // favourites map. Its open/collapsed state is independent view-state (it coexists
-  // with surfaces, not modal); each row warps the timeline like Home/search do.
-  const book = bookmarks({
-    onToggle: () => view.set({ bookmarks: !view.get().bookmarks }),
-    onWarp: (row) => {
-      const date = nextBookmarkDate(row, viewDate);
-      if (date) tl.warpTo(date);
-    },
-    onPlannerWarp: (date) => tl.warpTo(date),
-    onPlannerCommit: (bannerKey) => view.set({ committing: bannerKey }),
-    onFace: (bookmarksFace) => view.set({ bookmarksFace }),
-  });
 
   const menu = menubar({
     initialDate: now,
@@ -393,7 +374,7 @@ export function mountApp(
     timeline: tl,
     perf,
     mount: root,
-    chrome: [menu.el, chromeDropdowns, surfaceLayer, book.el, mini.el, hud.el],
+    chrome: [menu.el, chromeDropdowns, surfaceLayer, strip.el, mini.el, hud.el],
   });
   const launchUmaMark = (): void => {
     presentConfirm({
@@ -743,27 +724,12 @@ export function mountApp(
   coord.subscribe(renderSurfaces);
   identityMachine.subscribe(renderSurfaces); // left group re-renders on its own events
 
-  // The drawer is a view over favourites (coord) and its open flag (view-state),
-  // so it re-renders on both paths — the same dual-subscribe as the surface layer.
-  function renderBookmarks(): void {
-    book.refresh({
-      rows: bookmarkRows(bundle, coord.document().favourites ?? {}, now),
-      plannerRows: plannerRows(bundle, coord.commitmentStatuses(), now),
-      open: view.get().bookmarks,
-      face: view.get().bookmarksFace,
-    });
-  }
-  view.subscribe(renderBookmarks);
-  coord.subscribe(renderBookmarks);
-
-  // Mount order is the z-band: scenario wallpaper (back), timeline, the bookmarks
-  // drawer, then the surface layer (paints over the drawer where they share the
-  // top-left zone), with the menubar/minimap lifted above all of it (their own
+  // Mount order is the z-band: scenario wallpaper (back), timeline, then the surface
+  // layer, with the menubar/minimap/film-strip lifted above all of it (their own
   // z-index) so the always-reachable chrome is never occluded.
-  root.replaceChildren(menu.el, scen.el, tl.el, book.el, mini.el, strip.el, chromeDropdowns, surfaceLayer, hud.el);
+  root.replaceChildren(menu.el, scen.el, tl.el, mini.el, strip.el, chromeDropdowns, surfaceLayer, hud.el);
   refresh();
   renderSurfaces();
-  renderBookmarks();
 
   // Resolve the cloud session once, in the background, then re-render so the trainer
   // card's Cloud button reflects connected/disconnected. Signed-out on any error.

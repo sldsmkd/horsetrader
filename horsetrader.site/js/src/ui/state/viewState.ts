@@ -19,11 +19,6 @@ export interface ViewState {
   selection: string | null;
   /** The current search query; the empty string when search is idle. */
   search: string;
-  /** Whether the bookmarks drawer is expanded. Layer-2 chrome, independent of
-   *  the surface groups — the drawer coexists with an open surface (not modal). */
-  bookmarks: boolean;
-  /** Which face the Favourites/Planner drawer is showing. */
-  bookmarksFace: "favourites" | "planner";
   /** The open member of the RIGHT surface group (`"resources"`),
    *  or `null`. Surfaces split into a left group (the identity machine, which
    *  owns its own state — not here) and a right group (this); each holds at most
@@ -62,8 +57,6 @@ export interface ViewStore {
 const INITIAL: ViewState = {
   selection: null,
   search: "",
-  bookmarks: false,
-  bookmarksFace: "favourites",
   right: null,
   resourcesEditing: false,
   committing: null,
