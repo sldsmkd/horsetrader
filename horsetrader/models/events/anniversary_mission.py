@@ -5,6 +5,7 @@ from ethicrawl import ResourceList, Url
 from horsetrader.core import Config, Period, SingletonMeta, StableKey
 from horsetrader.extractors.static import store
 from horsetrader.info import Logger
+from horsetrader.models.entities import Support
 from horsetrader.models.media import CurrenChan, Image, ImageRequest
 from horsetrader.models.rewards import FreeCarats, Rewards, SequenceReward
 from horsetrader.output._records import AnniversaryMissionRecord
@@ -54,6 +55,10 @@ class AnniversaryMission(Mission):
     anniversary: StableKey = field(kw_only=True)
     part: int = field(kw_only=True)
     banner: Image | None = field(default=None, kw_only=True)
+    contents: list[Support] = field(default_factory=list, kw_only=True)
+
+    def match(self, query: str) -> bool:
+        return super().match(query) or any(c.match(query) for c in self.contents)
 
     def bake(self, period: Period) -> AnniversaryMissionRecord:
         return AnniversaryMissionRecord(
@@ -63,6 +68,8 @@ class AnniversaryMission(Mission):
             banner=str(self.banner.url) if self.banner else None,
             anniversary=self.anniversary,
             part=self.part,
+            # The distinct welfare grant — Part 2's anniversary support card.
+            contents=[c.key for c in self.contents],
         )
 
 
@@ -103,6 +110,7 @@ class AnniversaryMissions(Events[AnniversaryMission], metaclass=SingletonMeta):
                 image=r["image"],
                 anniversary=anniversary,
                 part=part,
+                contents=r["contents"],
             )
             if r["flags"]:
                 mission.apply_flags(r["flags"])

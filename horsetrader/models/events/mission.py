@@ -9,6 +9,7 @@ from horsetrader.extractors.gametora import Gametora
 from horsetrader.extractors.static import Static, store
 from horsetrader.info import Logger
 from horsetrader.models.core import References
+from horsetrader.models.entities import Support, Supports
 from horsetrader.models.media import CurrenChan, Image, ImageRequest
 from horsetrader.models.rewards import Rewards, reward_for_gametora_icon
 from horsetrader.output._records import MissionRecord
@@ -53,6 +54,38 @@ def _resolve_rewards(reward_items: list[tuple[str, int]], key: str) -> Rewards |
     return rewards or None
 
 
+def _support_by_gametora_id() -> dict[str, Support]:
+    """Index the support catalogue by gametora id (the first segment of the
+    `support-{id}-{slug}` stable key) — how a mission reward-row's
+    `support_card_s_{id}` image resolves to a card."""
+    index: dict[str, Support] = {}
+    for s in Supports().values():
+        slug = s.key.removeprefix(Support.KEY_PREFIX)
+        index[slug.split("-", 1)[0]] = s
+    return index
+
+
+def _resolve_support_grants(
+    reward_supports: list[str], index: dict[str, Support], key: str
+) -> list[Support]:
+    """The distinct welfare support cards a mission grants — a card is listed once
+    per copy (3 mission tiers + login top to MLB), but contents is the *set*.
+    Deduped on resolved key, first-seen order; an unresolved id warns (a welfare
+    card we can't map is a real gap, not the reward long tail)."""
+    out: list[Support] = []
+    seen: set[StableKey] = set()
+    for sid in reward_supports:
+        support = index.get(sid)
+        if support is None:
+            logger.warning("Unmapped support reward %s in %s", sid, key)
+            continue
+        if support.key in seen:
+            continue
+        seen.add(support.key)
+        out.append(support)
+    return out
+
+
 def _process_images(records: list[dict]) -> dict[str, Image | None]:
     outdir = Config().static / "img" / "missions"
     requests: ResourceList[ImageRequest] = ResourceList()
@@ -81,6 +114,7 @@ def scraped_missions() -> list[dict]:
     en_by_key = {r["key"]: r for r in Gametora().missions_en()}
     records = list(Gametora().missions())
     images = _process_images(records)
+    support_index = _support_by_gametora_id()
 
     built: list[dict] = []
     for record in records:
@@ -120,6 +154,7 @@ def scraped_missions() -> list[dict]:
             "periods": periods,
             "references": references,
             "rewards": _resolve_rewards(record.get("reward_items", []), key),
+            "contents": _resolve_support_grants(record.get("reward_supports", []), support_index, key),
             "image": image,
             "flags": flags,
         })

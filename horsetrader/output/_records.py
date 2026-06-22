@@ -375,6 +375,9 @@ class AnniversaryMissionRecord(EventRecord, tag="anniversarymission"):
     banner: str | None
     anniversary: str
     part: int
+    # The distinct welfare support cards this mission grants (Part 2's anniversary
+    # card — granted to MLB across mission tiers + login, but contents is the set).
+    contents: list[str]
 
 
 @eishin

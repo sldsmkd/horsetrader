@@ -37,6 +37,13 @@ _REWARD_AMOUNT_EXPR = './/div[contains(@class, "missions_row_num__")]'
 _REWARD_ITEM_ID_PATTERN = re.compile(r"/items/item_icon_(\d+)\.png")
 _REWARD_AMOUNT_PATTERN = re.compile(r"x(\d+)")
 
+# Some reward rows grant a support card (a welfare grant) instead of an item — a
+# different image path. The id is the support's gametora id, matching our
+# `support-{id}-{slug}` stable key. Anniversary Part 2 is the only mission family
+# that carries these (the on-the-date anniversary card).
+_REWARD_SUPPORT_IMG_EXPR = './/img[contains(@src, "/supports/support_card_s_")]'
+_REWARD_SUPPORT_ID_PATTERN = re.compile(r"/supports/support_card_s_(\d+)")
+
 # JP block carries 開始日時/終了日時 and a <b> title.
 _JP_BLOCK_EXPR = (
     './/div[.//img[contains(@src, "tex_campaign_mission_logo_")] '
@@ -95,6 +102,18 @@ class GametoraMissions(metaclass=SingletonMeta):
                 continue
             rewards.append((id_match.group(1), int(amount_match.group(1))))
         return rewards
+
+    @staticmethod
+    def _reward_supports(block) -> list[str]:
+        """The support-card gametora ids granted in this mission's reward rows (a
+        card is listed once per copy granted; the model takes the distinct set)."""
+        ids: list[str] = []
+        for row in xpath_all(block, _REWARD_ROW_EXPR):
+            src = xpath_attr(row, _REWARD_SUPPORT_IMG_EXPR, "src") or ""
+            match = _REWARD_SUPPORT_ID_PATTERN.search(src)
+            if match:
+                ids.append(match.group(1))
+        return ids
 
     @staticmethod
     def _parse_jp_period(block_text: str) -> Period | None:
@@ -181,6 +200,7 @@ class GametoraMissions(metaclass=SingletonMeta):
             }
             if not en:
                 record["reward_items"] = self._reward_items(block)
+                record["reward_supports"] = self._reward_supports(block)
             records.append(record)
         logger.info("Extracted %d %s missions from %s", len(records), kind, url)
         return records
