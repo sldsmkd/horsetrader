@@ -186,7 +186,7 @@
   z-index: 3;
   width: 2.5rem;
   height: 2.5rem;
-  border-radius: 50%;
+  border-radius: var(--glass-radius); /* rounded square, the unified pane corner — not a circle */
   /* Ring + lift live on the wrapper: its currentColor is the card's grey
      foreground (the inner badge sets currentColor to white for its label, which
      would make this ring a near-invisible white line). Matches the card border. */
@@ -198,8 +198,8 @@
 .banner__commit-badge .commitment-badge {
   width: 100%;
   height: 100%;
-  border-radius: 50%;
-  font-size: var(--ht-type-number-size);
+  border-radius: var(--glass-radius);
+  font-size: var(--ht-type-surface-title-size);
 }
 
 /* The greeble is a fixture on the card, not a floating control, so a hot banner's
