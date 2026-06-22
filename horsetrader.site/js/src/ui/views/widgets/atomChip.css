@@ -14,9 +14,9 @@
   /* No padding — the portrait and pip sit flush to the chip's edges (bookends); the
    * text carries its own breathing via margins below. */
   padding: 0;
-  /* Height pinned to the two text rows (name ~0.875u + subtitle ~1u + breathing); the
-   * portrait and type pip then fill 100% of it, bookending the text. */
-  height: calc(2.6 * var(--glass-u));
+  /* Height pinned to the two text rows plus breathing top and bottom so the text isn't
+   * up against the border; the portrait and type pip fill 100% of it, bookending. */
+  height: calc(3 * var(--glass-u));
   max-width: 100%;
   /* Squared edges — a card, not a pill. */
   border-radius: calc(0.5 * var(--glass-u));
@@ -28,22 +28,10 @@
   text-align: left;
   cursor: pointer;
   pointer-events: auto;
+  /* Backdrop is the rarity tint, always — the favourite is carried by the ICONS now
+   * (portrait + pip dim when unfavourited; border and text stay full). */
   background: color-mix(in srgb, currentColor 12%, transparent);
   background-origin: padding-box, border-box;
-  /* Unfavourited reads "raised but quiet" — dimmed; pressing it in (favourited) lifts
-   * it to full saturation with an inset shadow. The whole control carries the state. */
-  opacity: 0.62;
-  transition: opacity 0.12s, box-shadow 0.12s, filter 0.12s;
-}
-
-.atom-chip:hover {
-  opacity: 0.85;
-}
-
-/* Pressed in = favourited: full saturation + an inset shadow so it reads as held down. */
-.atom-chip[aria-pressed="true"] {
-  opacity: 1;
-  box-shadow: inset 0 calc(0.06 * var(--glass-u)) calc(0.25 * var(--glass-u)) rgb(0 0 0 / 0.45);
 }
 
 /* The leading portrait — a square thumbnail of the atom's art, filling the chip's
@@ -57,6 +45,32 @@
   object-position: top center;
   /* Flush to the left edge — outer corners follow the chip's radius (overflow clip). */
   background: color-mix(in srgb, currentColor 18%, transparent);
+}
+
+/* The favourite signal: the chip's CONTENTS dim when unfavourited and come to full
+ * brightness when it is. The border alone never dims — dimming it read as
+ * "historical/past", which the favourite is not. The icons dim harder than the text,
+ * which only eases back a touch so it stays readable. */
+.atom-chip__portrait,
+.atom-chip__attr {
+  opacity: 0.4;
+  transition: opacity 0.12s;
+}
+.atom-chip__text {
+  opacity: 0.7;
+  transition: opacity 0.12s;
+}
+.atom-chip:hover .atom-chip__portrait,
+.atom-chip:hover .atom-chip__attr {
+  opacity: 0.65;
+}
+.atom-chip:hover .atom-chip__text {
+  opacity: 0.85;
+}
+.atom-chip[aria-pressed="true"] .atom-chip__portrait,
+.atom-chip[aria-pressed="true"] .atom-chip__text,
+.atom-chip[aria-pressed="true"] .atom-chip__attr {
+  opacity: 1;
 }
 
 /* The two-line text column — name over the rarity/facet subtitle. Carries its own

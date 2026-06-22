@@ -8,11 +8,11 @@
    on the tick while the body sits evenly either side (principle 4). The packer
    grows the stem to drop the body to its packed row; the stem never leaves x. */
 .card {
-  position: absolute;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  transform: translateX(-50%);
+   position: absolute;
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   transform: translateX(-50%);
 }
 
 /* The stem pins the card to its true-date tick on the line (principle 4). Mix
@@ -21,20 +21,20 @@
    half-device-pixel straddle composited those into a faint "double line". An
    opaque stem at the same perceived weight overlaps cleanly. */
 .card__stem {
-  /* The stem's length scales with the world (the packer grows it to drop the body
+   /* The stem's length scales with the world (the packer grows it to drop the body
      to its row), but its thickness must stay a constant ~2px tick — counter-scale
      by --zoom inherited from the content layer (zoom.md Infinitely-thin elements). */
-  width: calc(2px / var(--zoom, 1));
-  height: 1.1rem;
-  background: color-mix(in srgb, currentColor 50%, Canvas);
+   width: calc(2px / var(--zoom, 1));
+   height: 1.1rem;
+   background: color-mix(in srgb, currentColor 50%, Canvas);
 }
 
-/* Grey = already gone: past cards recede so the planning-relevant future stays
-   prominent. Dim via `filter`, not `opacity`: the card background is opaque
-   (`Canvas`), and fading the whole element would make it translucent so the
-   connector stems behind it bleed through. `brightness`+`saturate` recedes the
-   content while keeping the body opaque. */
+/* Already gone: past cards recede by losing their COLOUR, not their brightness — a
+   greyscale read says "historical" without the dimming that reads the same as an
+   unfavourited chip. Via `filter` (not `opacity`): the card background is opaque
+   (`Canvas`), and fading the element would make it translucent so the connector stems
+   behind it bleed through; `grayscale` keeps the body fully opaque. */
 .card--past,
 .banner--past {
-  filter: brightness(0.62) saturate(0.7);
+   filter: grayscale(0.65);
 }

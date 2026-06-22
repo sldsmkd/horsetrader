@@ -56,6 +56,25 @@ export function formatDate(iso: string): string {
   return date.format(new Date(`${iso}T00:00:00Z`));
 }
 
+/** The family-name prefixes. Only the Matikane pair is baked run-together
+ *  (`Matikanetannhauser`); Sakura/Mejiro/Symboli/Satono already carry a space. They're
+ *  all listed for completeness — the split below only fires on the run-together ones. */
+const FAMILY_PREFIXES = ["Matikane", "Sakura", "Mejiro", "Symboli", "Satono"];
+
+/** Display a character's stable name: where a family prefix is run together with the
+ *  given name (`Matikanetannhauser` → `Matikane Tannhauser`), split it so the only
+ *  over-long names wrap at a real space and the given name reads capitalised. Names
+ *  that already carry a space — or aren't a family name — pass through unchanged. */
+export function formatCharacterName(name: string): string {
+  for (const prefix of FAMILY_PREFIXES) {
+    if (name.length <= prefix.length || !name.startsWith(prefix)) continue;
+    const given = name.slice(prefix.length);
+    if (given.startsWith(" ")) return name; // already spaced — leave it
+    return `${prefix} ${given[0]!.toUpperCase()}${given.slice(1)}`;
+  }
+  return name;
+}
+
 /** A closed date range → a compact label, collapsing shared parts: same month
  *  `Aug 23 – 31, 2026`, same year `Aug 23 – Sep 5, 2026`, otherwise full both ends
  *  `Dec 28, 2026 – Jan 5, 2027`. A zero-length range falls back to the single date. */

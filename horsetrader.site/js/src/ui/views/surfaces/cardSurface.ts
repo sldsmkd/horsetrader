@@ -17,7 +17,7 @@
 import "./cardSurface.css";
 
 import { h } from "../../h.ts";
-import { formatDate } from "../../format.ts";
+import { formatDate, formatCharacterName } from "../../format.ts";
 import { NOTE_MAX_LENGTH } from "../../../core/persistence/validate.ts";
 import type { Bundle } from "../../bundle/access.ts";
 import type { BannerKind } from "../../select/aboveLane.ts";
@@ -40,7 +40,8 @@ export interface CardSurfaceOpts {
 }
 
 /** The favourite toggle — the *write* home for the favourite (the banner chip only
- *  reflects it). A pressed-state button: ★ held down when favourited, ☆ when not. */
+ *  reflects it). A large gold star in the surface's top-right corner: outline (☆) when
+ *  not favourited, filled (★) when it is. */
 function favouriteToggle(favourited: boolean, onToggle: (on: boolean) => void): HTMLElement {
   return h(
     "button",
@@ -52,12 +53,12 @@ function favouriteToggle(favourited: boolean, onToggle: (on: boolean) => void): 
           const btn = ev.currentTarget as HTMLButtonElement;
           const next = btn.getAttribute("aria-pressed") !== "true";
           btn.setAttribute("aria-pressed", String(next));
-          btn.textContent = next ? "★ Favourited" : "☆ Favourite";
+          btn.textContent = next ? "★" : "☆";
           onToggle(next);
         },
       },
     },
-    favourited ? "★ Favourited" : "☆ Favourite",
+    favourited ? "★" : "☆",
   );
 }
 
@@ -136,6 +137,9 @@ export function cardSurface(opts: CardSurfaceOpts): HTMLElement {
     "section",
     { class: `card-surface card-surface--${card.rarityTier}` },
 
+    // The favourite — a gold star pinned to the surface's top-right corner.
+    favouriteToggle(opts.favourited, opts.onToggleFavourite),
+
     // Top — the art hero beside its identity column (name, tagline, facets).
     h(
       "div",
@@ -158,10 +162,9 @@ export function cardSurface(opts: CardSurfaceOpts): HTMLElement {
         h(
           "header",
           { class: "card-surface__head" },
-          h("h2", { class: "card-surface__name" }, card.name),
+          h("h2", { class: "card-surface__name" }, formatCharacterName(card.name)),
           card.rarity ? h("span", { class: `card-surface__rarity card-surface__rarity--${card.rarityTier}` }, card.rarity) : null,
           card.tagline ? h("p", { class: "card-surface__tagline" }, card.tagline) : null,
-          favouriteToggle(opts.favourited, opts.onToggleFavourite),
         ),
 
         // Facets — the kind-appropriate identity lines + bio vitals + release.
