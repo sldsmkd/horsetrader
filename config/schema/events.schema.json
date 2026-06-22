@@ -1611,6 +1611,12 @@
         "part": {
           "type": "integer"
         },
+        "contents": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
         "start": {
           "type": "string"
         },
@@ -1673,6 +1679,7 @@
         "banner",
         "anniversary",
         "part",
+        "contents",
         "start",
         "end",
         "predicted",
