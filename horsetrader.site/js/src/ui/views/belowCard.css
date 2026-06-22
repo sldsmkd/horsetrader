@@ -73,6 +73,20 @@
   --card-accent: var(--ht-colour-card-accent-participate-story);
 }
 
+/* Content chips — a story's welfare grant, rendered with the banner content pill
+   widget. Lifted above the bannered card's left-accent overlay (z 1); the chips
+   themselves opt back into pointer events (the timeline card layer is transparent). */
+.card__atoms {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem;
+  margin: 0;
+  padding: 0.3rem 0.4rem;
+  list-style: none;
+}
+
 .card--scenario .card__body,
 .card--holiday .card__body,
 .card--anniversary .card__body,

@@ -15,6 +15,8 @@ const EVENTS: EventsBundle = {
     { type: "support", rushable: false, contents: ["support-teio-stamina"], image: "", start: "2026-05-10", end: "2026-05-17", predicted: false, key: "banner-past-support" },
     { type: "support", rushable: false, contents: ["support-ardan-speed", "support-ryan-stamina", "support-ramonu-wit"], image: "", start: "2026-06-25", end: "2026-07-02", predicted: false, key: "banner-mejiro" },
     { type: "trainee", rushable: true, contents: ["trainee-palmer-reindeer"], image: "", start: "2026-07-03", end: "2026-07-10", predicted: false, key: "banner-reindeer" },
+    // A story whose welfare grant is a support that appears on no banner.
+    { type: "story", rushable: true, title: "Creek Story", contents: ["support-creek-welfare"], image: null, banner: null, art: null, era: "1m", start: "2026-06-20", end: "2026-06-27", predicted: false, key: "story-creek" },
   ],
 };
 
@@ -25,6 +27,7 @@ const ACADEMY: Academy = {
     "char-ryan": { name: "Mejiro Ryan", quote: null, icon: null, portrait: null, bio: { three_sizes: { bust: null, waist: null, hips: null }, birthday: null, height: null } },
     "char-ramonu": { name: "Mejiro Ramonu", quote: null, icon: null, portrait: null, bio: { three_sizes: { bust: null, waist: null, hips: null }, birthday: null, height: null } },
     "char-palmer": { name: "Mejiro Palmer", quote: null, icon: null, portrait: null, bio: { three_sizes: { bust: null, waist: null, hips: null }, birthday: null, height: null } },
+    "char-creek": { name: "Super Creek", quote: null, icon: null, portrait: null, bio: { three_sizes: { bust: null, waist: null, hips: null }, birthday: null, height: null } },
   },
   supports: {
     "support-teio-speed": {
@@ -61,6 +64,19 @@ const ACADEMY: Academy = {
       thumbnail: null,
       art: null,
       aliases: ["finished teio"],
+      source: null,
+    },
+    // A welfare card granted only by a story — it appears on no support banner.
+    "support-creek-welfare": {
+      character: "char-creek",
+      display: "Super Creek",
+      type: "stamina",
+      rarity: "sr",
+      title: "Welfare Card",
+      release: "2021-02-24",
+      thumbnail: null,
+      art: null,
+      aliases: [],
       source: null,
     },
     "support-ardan-speed": {
@@ -169,6 +185,13 @@ test("single-letter narrowing uses identity tokens, not costume/title tokens", (
 
 test("search folds duplicate labels onto their soonest actionable result", () => {
   assert.deepEqual(search()("tokai speed").map((result) => [result.id, result.date]), [["support-teio-speed", "2026-06-10"]]);
+});
+
+test("search finds a story-only welfare support, warping to the story that grants it", () => {
+  assert.deepEqual(
+    search()("super creek").map((result) => [result.kind, result.label, result.date, result.eventKey]),
+    [["support", "SR Super Creek (Stamina)", "2026-06-20", "story-creek"]],
+  );
 });
 
 test("search culls finished banners", () => {

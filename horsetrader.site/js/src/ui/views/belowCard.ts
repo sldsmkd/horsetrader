@@ -18,6 +18,20 @@ import type { BelowCard } from "../select/belowLane.ts";
 import { rewardStrip } from "./widgets/rewardStrip.ts";
 import { rushedToggleFor } from "./widgets/rushedToggle.ts";
 import type { RushBinding } from "./widgets/rushedToggle.ts";
+import { atomChip } from "./widgets/atomChip.ts";
+import type { FavouriteBinding, InspectBinding } from "./widgets/atomChip.ts";
+
+/** A story's welfare grant rendered as content chips — the same pill widget the
+ *  banner uses (favourite + inspect-to-card-surface). Story contents are all
+ *  supports. Null when the card grants none. */
+function atomList(card: BelowCard, fav: FavouriteBinding, inspect: InspectBinding): HTMLElement | null {
+  if (card.contents.length === 0) return null;
+  return h(
+    "ul",
+    { class: "card__atoms" },
+    ...card.contents.map((atom) => atomChip(atom, "support", fav, inspect)),
+  );
+}
 
 function missionBody(card: BelowCard, rush: RushBinding): HTMLElement {
   return h(
@@ -108,7 +122,7 @@ function bannerCarriesRushControl(card: BelowCard): boolean {
   );
 }
 
-export function belowCard(card: BelowCard, rush: RushBinding): HTMLElement {
+export function belowCard(card: BelowCard, rush: RushBinding, fav: FavouriteBinding, inspect: InspectBinding): HTMLElement {
   const hideLabel = bannerCarriesLabel(card);
   const hideRush = bannerCarriesRushControl(card);
   const cls = `card card--below card--${card.kind}${card.banner ? " card--bannered" : ""}${hideLabel ? " card--banner-label-art" : ""}${card.image && !card.banner ? " card--mission-art" : ""}${card.compact ? " card--compact" : ""}${card.past ? " card--past" : ""}`;
@@ -120,6 +134,7 @@ export function belowCard(card: BelowCard, rush: RushBinding): HTMLElement {
         rectangularMedia(card),
         hideLabel ? null : h("span", { class: "card__label", attr: { title: card.fullLabel } }, card.label),
         card.rushable && !hideRush ? rushedToggleFor(rush, card.key) : null,
+        atomList(card, fav, inspect),
         rewardStrip(card.reward),
       );
   const el = h(

@@ -186,7 +186,8 @@
   z-index: 3;
   width: 2.5rem;
   height: 2.5rem;
-  border-radius: var(--glass-radius); /* rounded square, the unified pane corner — not a circle */
+  border-radius: var(--glass-radius);
+  /* rounded square, the unified pane corner — not a circle */
   /* Ring + lift live on the wrapper: its currentColor is the card's grey
      foreground (the inner badge sets currentColor to white for its label, which
      would make this ring a near-invisible white line). Matches the card border. */
@@ -220,7 +221,9 @@
   align-content: flex-start;
   justify-content: center;
   gap: 0.2rem;
-  margin: 0.2rem 0 0;
+  /* Pulled up into the banner's bottom: the chibi figures project above the artwork,
+     so the card top already has headroom — reclaim the slack above the chips. */
+  margin: -0.0rem 0 0;
   padding: 0 0.75rem 0.25rem;
   list-style: none;
   max-height: 5.5rem;

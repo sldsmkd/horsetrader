@@ -317,13 +317,13 @@ export function mountApp(
     // Presence gating happens in the engine: a stream the player has toggled off
     // (e.g. missions) contributes no settled events, so its cards leave the
     // timeline with the income — no kind-hiding re-derivation here.
-    const below = belowLaneCards(world, axis, now);
+    const below = belowLaneCards(world, bundle, axis, now);
     const above = aboveLaneGroups(world, bundle, axis, now, {
       balanceAt: (date) => coord.balanceAt(date),
       availableFor: (key) => coord.availableFor(key),
       commitmentStatuses: statuses,
     });
-    const belowEls = below.map((card) => belowCard(card, rush));
+    const belowEls = below.map((card) => belowCard(card, rush, fav, inspect));
     const aboveEls = above.map((group) => bannerGroup(group, fav, commit, inspect));
     cardStats = { cards: belowEls.length + aboveEls.length, aboveCards: aboveEls.length, belowCards: belowEls.length };
     tl.setCards([...belowEls, ...aboveEls]);

@@ -3,9 +3,12 @@ import assert from "node:assert/strict";
 
 import { belowLaneCards } from "./belowLane.ts";
 import { createAxis } from "../axis.ts";
+import { createBundle } from "../bundle/access.ts";
+import { TEST_CONFIG } from "../bundle/fixtures.ts";
 import { settle } from "../../core/engine/index.ts";
 import type { SettledEvent, StreamCtx } from "../../core/engine/index.ts";
 import type { EventsBundle } from "../../core/bundle/events.gen.ts";
+import type { Academy } from "../../core/bundle/academy.gen.ts";
 import { cal } from "../../core/projection/dates.ts";
 
 const EVENTS: EventsBundle = {
@@ -24,6 +27,11 @@ const EVENTS: EventsBundle = {
 const NOW = cal("2026-06-08");
 const AXIS = createAxis({ origin: cal("2026-06-01"), pxPerDay: 10 });
 
+// Story contents are empty in these fixtures, so the bundle is never exercised for
+// atom resolution — an empty academy satisfies the selector signature.
+const ACADEMY: Academy = { characters: {}, supports: {}, trainees: {}, courses: {}, races: {}, racetracks: {} };
+const BUNDLE = createBundle(EVENTS, ACADEMY, TEST_CONFIG);
+
 /** Settle baked records through the real settlement rule — the same faces and
  *  minted cadence children the engine's settled world carries. The selector only
  *  reads `timeZone`/`after` through `settle`, so a minimal ctx suffices. */
@@ -33,7 +41,7 @@ function settled(events: EventsBundle, after = cal("2026-01-01")): SettledEvent[
 }
 
 test("below-lane cards: below-lane events only, resolved + positioned, sorted by date", () => {
-  const cards = belowLaneCards(settled(EVENTS), AXIS, NOW);
+  const cards = belowLaneCards(settled(EVENTS), BUNDLE, AXIS, NOW);
 
   // The trainee banner (above-lane) is excluded; everything else gets a card.
   assert.deepEqual(cards.map((c) => c.key), ["story-1", "holiday-1", "cm-1", "sce-1", "cm-2"]);
@@ -41,7 +49,7 @@ test("below-lane cards: below-lane events only, resolved + positioned, sorted by
 });
 
 test("a reward-less below-lane event still gets a card, with an empty reward", () => {
-  const cards = belowLaneCards(settled(EVENTS), AXIS, NOW);
+  const cards = belowLaneCards(settled(EVENTS), BUNDLE, AXIS, NOW);
   const card = cards.find((c) => c.key === "cm-2");
 
   assert.ok(card, "the reward-less CM is on the lane — existence is the appearance, not a payout");
@@ -66,7 +74,7 @@ test("an invisible scenario launch is left to the scenario wallpaper", () => {
     ],
   };
 
-  const cards = belowLaneCards(settled(events), AXIS, NOW);
+  const cards = belowLaneCards(settled(events), BUNDLE, AXIS, NOW);
   assert.deepEqual(cards, []);
 });
 
@@ -78,13 +86,13 @@ test("visibility is opt-out: an explicit `visible: false` hides the card, absenc
       { type: "cm", name: "Shown CM", start: "2026-09-10", end: "2026-09-15", predicted: false, key: "cm-shown" },
     ],
   };
-  const cards = belowLaneCards(settled(events), AXIS, NOW);
+  const cards = belowLaneCards(settled(events), BUNDLE, AXIS, NOW);
 
   assert.deepEqual(cards.map((c) => c.key), ["cm-shown"]); // only the visible one
 });
 
 test("each card resolves its label (name/title, falling back to key) and predicted flag", () => {
-  const cards = belowLaneCards(settled(EVENTS), AXIS, NOW);
+  const cards = belowLaneCards(settled(EVENTS), BUNDLE, AXIS, NOW);
   const byKey = new Map(cards.map((c) => [c.key, c]));
 
   assert.equal(byKey.get("cm-1")!.label, "Summer CM");
@@ -119,7 +127,7 @@ test("story cards carry baked banner art when present", () => {
     ],
   };
 
-  const cards = belowLaneCards(settled(events), AXIS, NOW);
+  const cards = belowLaneCards(settled(events), BUNDLE, AXIS, NOW);
   assert.equal(cards[0]!.banner, "/img/stories/story-015-banner.webp");
 });
 
@@ -138,7 +146,7 @@ test("holiday cards carry baked banner art when present", () => {
     ],
   };
 
-  const cards = belowLaneCards(settled(events), AXIS, NOW);
+  const cards = belowLaneCards(settled(events), BUNDLE, AXIS, NOW);
   assert.equal(cards[0]!.banner, "/img/holidays/holiday-golden-week-2023-banner.webp");
 });
 
@@ -158,7 +166,7 @@ test("skill test cards carry baked misc banner art", () => {
     ],
   };
 
-  const cards = belowLaneCards(settled(events), AXIS, NOW);
+  const cards = belowLaneCards(settled(events), BUNDLE, AXIS, NOW);
   assert.equal(cards[0]!.banner, "/img/misc/trainers-skill-test.webp");
 });
 
@@ -178,7 +186,7 @@ test("factor studies cards carry baked misc banner art", () => {
     ],
   };
 
-  const cards = belowLaneCards(settled(events), AXIS, NOW);
+  const cards = belowLaneCards(settled(events), BUNDLE, AXIS, NOW);
   assert.equal(cards[0]!.banner, "/img/misc/event-factors.webp");
 });
 
@@ -197,7 +205,7 @@ test("masters challenge cards carry baked misc banner art", () => {
     ],
   };
 
-  const cards = belowLaneCards(settled(events), AXIS, NOW);
+  const cards = belowLaneCards(settled(events), BUNDLE, AXIS, NOW);
   assert.equal(cards[0]!.banner, "/img/misc/masters-challenge.webp");
 });
 
@@ -217,7 +225,7 @@ test("showtime cards carry baked misc banner art", () => {
     ],
   };
 
-  const cards = belowLaneCards(settled(events), AXIS, NOW);
+  const cards = belowLaneCards(settled(events), BUNDLE, AXIS, NOW);
   assert.equal(cards[0]!.banner, "/img/misc/showtime.webp");
 });
 
@@ -237,7 +245,7 @@ test("racing carnival cards carry baked misc banner art", () => {
     ],
   };
 
-  const cards = belowLaneCards(settled(events), AXIS, NOW);
+  const cards = belowLaneCards(settled(events), BUNDLE, AXIS, NOW);
   assert.equal(cards[0]!.banner, "/img/misc/racing-carnival.webp");
 });
 
@@ -256,12 +264,12 @@ test("strongest team cards carry baked misc banner art", () => {
     ],
   };
 
-  const cards = belowLaneCards(settled(events), AXIS, NOW);
+  const cards = belowLaneCards(settled(events), BUNDLE, AXIS, NOW);
   assert.equal(cards[0]!.banner, "/img/misc/strongest-team.webp");
 });
 
 test("past cards are marked after their end date", () => {
-  const cards = belowLaneCards(settled(EVENTS), AXIS, cal("2026-07-02"));
+  const cards = belowLaneCards(settled(EVENTS), BUNDLE, AXIS, cal("2026-07-02"));
   const byKey = new Map(cards.map((c) => [c.key, c]));
 
   assert.equal(byKey.get("story-1")!.past, true);
@@ -270,7 +278,7 @@ test("past cards are marked after their end date", () => {
 });
 
 test("x is true-to-date off the axis (arrival date = start) and reward is the resolved face", () => {
-  const cards = belowLaneCards(settled(EVENTS), AXIS, NOW);
+  const cards = belowLaneCards(settled(EVENTS), BUNDLE, AXIS, NOW);
   const byKey = new Map(cards.map((c) => [c.key, c]));
 
   assert.equal(byKey.get("story-1")!.date, "2026-06-14"); // start, not end
@@ -304,7 +312,7 @@ test("an anniversary mission's card combines its flat face and its minted daily 
       } as EventsBundle["events"][number],
     ],
   };
-  const cards = belowLaneCards(settled(events), AXIS, NOW);
+  const cards = belowLaneCards(settled(events), BUNDLE, AXIS, NOW);
 
   assert.deepEqual(cards.map((c) => c.kind), ["anniversarymission"]);
   assert.equal(cards[0]!.label, "1st Anniversary Part 1");
@@ -401,7 +409,7 @@ test("mission-shaped cards use compact display labels without losing the source 
     ],
   };
 
-  const cards = belowLaneCards(settled(events), AXIS, NOW);
+  const cards = belowLaneCards(settled(events), BUNDLE, AXIS, NOW);
   const labels = new Map(cards.map((c) => [c.key, [c.label, c.fullLabel]]));
   const compact = new Map(cards.map((c) => [c.key, c.compact]));
 
@@ -469,13 +477,13 @@ test("presence is the stream's call: a gated-off mission is absent from the inpu
   };
 
   // Missions ON: both events are in the settled world — both carded.
-  const on = belowLaneCards(settled(events), AXIS, NOW);
+  const on = belowLaneCards(settled(events), BUNDLE, AXIS, NOW);
   assert.deepEqual(on.map((c) => c.key), ["mission-1", "cm-1"]);
   assert.deepEqual(on.find((c) => c.key === "mission-1")!.reward, { free_carats: 150 });
   assert.equal(on.find((c) => c.key === "mission-1")!.image, "/img/missions/mission-1.webp");
 
   // Missions OFF: the stream contributed nothing — the mission card is gone.
-  const off = belowLaneCards(settled(events).filter((ev) => ev.type !== "mission"), AXIS, NOW);
+  const off = belowLaneCards(settled(events).filter((ev) => ev.type !== "mission"), BUNDLE, AXIS, NOW);
   assert.deepEqual(off.map((c) => c.key), ["cm-1"]);
 });
 
@@ -486,6 +494,6 @@ test("a graded face (story) reads straight off the settled event — no second l
   const ctx = { timeZone: "UTC", after: cal("2026-01-01") } as StreamCtx;
   const world = settle(record, ctx, { free_carats: 690, gold_crystal_shards: 1 });
 
-  const cards = belowLaneCards(world, AXIS, NOW);
+  const cards = belowLaneCards(world, BUNDLE, AXIS, NOW);
   assert.deepEqual(cards.find((c) => c.key === "story-1")!.reward, { free_carats: 690, gold_crystal_shards: 1 });
 });

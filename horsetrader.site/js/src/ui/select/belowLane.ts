@@ -26,6 +26,8 @@ import type { SettledEvent } from "../../core/engine/index.ts";
 import type { ResourceVector, CalendarDate } from "../../core/projection/index.ts";
 import { isRushable } from "../../core/bundle/flags.ts";
 import type { Axis } from "../axis.ts";
+import type { Bundle } from "../bundle/access.ts";
+import { atomOf, type BannerAtom } from "./aboveLane.ts";
 
 /** The below-lane (income / "doing") event kinds — everything that isn't a
  *  banner (trainee/support, the two above-lane kinds). */
@@ -95,6 +97,18 @@ export interface BelowCard {
   compact: boolean;
   /** This event's resolved reward face (its height/breakdown signal). */
   reward: ResourceVector;
+  /** Resolved content atoms — a story's distinct welfare support grant (the same
+   *  pill grammar as banner contents). Empty for every other below-lane kind. */
+  contents: BannerAtom[];
+}
+
+/** A story's welfare grant resolved to display atoms — all supports (the bake's
+ *  distinct welfare set). R/empty supports cull to null, like banner contents. */
+function contentsOf(record: NonNullable<SettledEvent["record"]>, bundle: Bundle): BannerAtom[] {
+  if (record.type !== "story") return [];
+  return record.contents
+    .map((id) => atomOf(bundle, "support", id))
+    .filter((a): a is BannerAtom => a !== null);
 }
 
 /** The display name for an event; the `name`/`title` it carries, else its key. */
@@ -159,7 +173,7 @@ function cadenceParent(key: string): string | null {
   return m ? m[1] : null;
 }
 
-export function belowLaneCards(events: readonly SettledEvent[], axis: Axis, now: CalendarDate): BelowCard[] {
+export function belowLaneCards(events: readonly SettledEvent[], bundle: Bundle, axis: Axis, now: CalendarDate): BelowCard[] {
   // First pass: the visible below-lane events become cards, faces read straight
   // off the settled event. Presence is the stream's call (a play gate already
   // removed what the player doesn't do); the lane only filters lane-visibility.
@@ -188,6 +202,7 @@ export function belowLaneCards(events: readonly SettledEvent[], axis: Axis, now:
       image,
       compact: image !== null && compactMissionArtOf(record, fullLabel),
       reward: { ...ev.rewards },
+      contents: contentsOf(record, bundle),
     };
     cards.push(card);
     byKey.set(card.key, card);

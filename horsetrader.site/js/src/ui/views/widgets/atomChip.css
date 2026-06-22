@@ -15,11 +15,13 @@
    * text carries its own breathing via margins below. */
   padding: 0;
   /* Height pinned to the two text rows plus breathing top and bottom so the text isn't
-   * up against the border; the portrait and type pip fill 100% of it, bookending. */
-  height: calc(3 * var(--glass-u));
+   * up against the border; the portrait and type pip fill 100% of it, bookending. rem,
+   * not --glass-u: chips ride a WORLD card (scaled by the camera), so they measure like
+   * their parent (bannerGroup.css), not on the glass plane (Grand Masters). */
+  height: 2.4rem;
   max-width: 100%;
   /* Squared edges — a card, not a pill. */
-  border-radius: calc(0.5 * var(--glass-u));
+  border-radius: 0.4rem;
   border: 1px solid currentColor;
   overflow: hidden;
   font-size: var(--ht-type-chip-size);
@@ -79,8 +81,8 @@
   display: inline-flex;
   flex-direction: column;
   justify-content: center;
-  gap: calc(0.06 * var(--glass-u));
-  margin: 0 calc(0.44 * var(--glass-u));
+  gap: 0.05rem;
+  margin: 0 0.35rem;
   min-width: 0;
   text-align: left;
 }
