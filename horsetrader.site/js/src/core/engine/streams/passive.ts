@@ -17,6 +17,11 @@ function passiveEventStream(id: string, type: string, enabled: Stream["enabled"]
   };
 }
 
+// Main-story chapters are permanent story content with no deadline — everyone has
+// (or will) clear them, so the stream is ALWAYS enabled and carries no play gate.
+// The baked face (the flattened story-clear carats) settles as-is, in its own bucket
+// rather than hiding inside `ground.events`.
+export const eventMainStory = passiveEventStream("event.main-story", "mainstory");
 export const eventAnniversaryMissions = passiveEventStream("event.anniversary-missions", "anniversarymission", (ctx) => ctx.play.anniversaryMissions === "on");
 export const eventFactorStudies = passiveEventStream("event.factor-studies", "factorstudies", (ctx) => ctx.play.factorStudies === "on");
 export const eventHolidays = passiveEventStream("event.holidays", "holiday", (ctx) => ctx.play.holidays === "on");

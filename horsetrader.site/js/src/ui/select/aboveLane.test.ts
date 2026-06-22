@@ -76,11 +76,11 @@ test("contents resolve to atoms in the kind's grammar — trainee stars, support
 
   const trainee = shared.banners.find((b) => b.key === "banner-t")!;
   assert.deepEqual(trainee.atoms, [
-    { id: "t-suzuka", name: "Silence Suzuka", rarity: "3★", rarityTier: "crystal", subtitle: "Silent Innocence", image: null },
-    { id: "t-spe", name: "Special Week", rarity: "3★", rarityTier: "crystal", subtitle: "Special Dreamer", image: null },
+    { id: "t-suzuka", kind: "trainee", name: "Silence Suzuka", rarity: "3★", rarityTier: "crystal", subtitle: "Silent Innocence", image: null },
+    { id: "t-spe", kind: "trainee", name: "Special Week", rarity: "3★", rarityTier: "crystal", subtitle: "Special Dreamer", image: null },
   ]);
   const support = shared.banners.find((b) => b.key === "banner-s2")!;
-  assert.deepEqual(support.atoms, [{ id: "s-spe", name: "Special Week", rarity: "SSR", rarityTier: "crystal", subtitle: "Tracen Academy", image: null, attribute: "guts" }]);
+  assert.deepEqual(support.atoms, [{ id: "s-spe", kind: "support", name: "Special Week", rarity: "SSR", rarityTier: "crystal", subtitle: "Tracen Academy", image: null, attribute: "guts" }]);
 });
 
 test("committed banners surface the cached funding status (pity + capacity)", () => {

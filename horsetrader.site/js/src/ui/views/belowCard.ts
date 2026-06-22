@@ -21,15 +21,16 @@ import type { RushBinding } from "./widgets/rushedToggle.ts";
 import { atomChip } from "./widgets/atomChip.ts";
 import type { FavouriteBinding, InspectBinding } from "./widgets/atomChip.ts";
 
-/** A story's welfare grant rendered as content chips — the same pill widget the
- *  banner uses (favourite + inspect-to-card-surface). Story contents are all
- *  supports. Null when the card grants none. */
+/** A below-lane welfare grant rendered as content chips — the same pill widget the
+ *  banner uses (favourite + inspect-to-card-surface). Story/anniversary contents are
+ *  all supports; a main-story chapter's are a support/trainee mix, so each chip reads
+ *  its own `atom.kind`. Null when the card grants none. */
 function atomList(card: BelowCard, fav: FavouriteBinding, inspect: InspectBinding): HTMLElement | null {
   if (card.contents.length === 0) return null;
   return h(
     "ul",
     { class: "card__atoms" },
-    ...card.contents.map((atom) => atomChip(atom, "support", fav, inspect)),
+    ...card.contents.map((atom) => atomChip(atom, atom.kind, fav, inspect)),
   );
 }
 

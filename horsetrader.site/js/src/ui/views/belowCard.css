@@ -69,7 +69,8 @@
   --card-accent: var(--ht-colour-card-accent-compete-pvp);
 }
 
-.card--story .card__body {
+.card--story .card__body,
+.card--mainstory .card__body {
   --card-accent: var(--ht-colour-card-accent-participate-story);
 }
 

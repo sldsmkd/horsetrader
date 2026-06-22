@@ -111,7 +111,7 @@ test("registry: a mint prefix colliding with a baked key fails to construct", ()
 
 test("registry: the full roster constructs against the real shapes", () => {
   const registry = buildRegistry(DEFAULT_STREAMS, bundle());
-  assert.equal(registry.streams.length, 23);
+  assert.equal(registry.streams.length, 24);
 });
 
 // ── the settled world (the render source) ───────────────────────────────────

@@ -34,6 +34,7 @@ import { atomOf, type BannerAtom } from "./aboveLane.ts";
 export type BelowKind =
   | "cm"
   | "story"
+  | "mainstory"
   | "scenario"
   | "holiday"
   | "mission"
@@ -51,6 +52,7 @@ export type BelowKind =
 const BELOW_LANE = new Set<string>([
   "cm",
   "story",
+  "mainstory",
   "scenario",
   "holiday",
   "mission",
@@ -102,10 +104,16 @@ export interface BelowCard {
   contents: BannerAtom[];
 }
 
-/** A below-lane event's welfare grant resolved to display atoms — all supports (the
- *  bake's distinct welfare set). Stories grant their Event Support Cards; anniversary
- *  missions grant their Part-2 anniversary card. R/empty supports cull to null. */
+/** A below-lane event's welfare grant resolved to display atoms. Stories grant their
+ *  Event Support Cards and anniversary missions their Part-2 anniversary card (all
+ *  supports); a main-story chapter grants a support/trainee MIX (the finale ★3), so
+ *  each id is resolved by its own `support-`/`trainee-` prefix. R/empty atoms cull. */
 function contentsOf(record: NonNullable<SettledEvent["record"]>, bundle: Bundle): BannerAtom[] {
+  if (record.type === "mainstory") {
+    return record.contents
+      .map((id) => atomOf(bundle, id.startsWith("trainee-") ? "trainee" : "support", id))
+      .filter((a): a is BannerAtom => a !== null);
+  }
   if (record.type !== "story" && record.type !== "anniversarymission") return [];
   return record.contents
     .map((id) => atomOf(bundle, "support", id))

@@ -80,7 +80,7 @@ function searchableEvents(bundle: Bundle, now: string): readonly EventRecord[] {
     .all()
     .filter(
       (event) =>
-        (event.type === "support" || event.type === "trainee" || event.type === "story" || event.type === "anniversarymission") &&
+        (event.type === "support" || event.type === "trainee" || event.type === "story" || event.type === "anniversarymission" || event.type === "mainstory") &&
         event.end >= now,
     );
 }
@@ -93,7 +93,7 @@ function appearanceMap(events: readonly EventRecord[]): Map<string, { date: Cale
   };
 
   for (const event of events) {
-    if (event.type === "support" || event.type === "trainee" || event.type === "story" || event.type === "anniversarymission") {
+    if (event.type === "support" || event.type === "trainee" || event.type === "story" || event.type === "anniversarymission" || event.type === "mainstory") {
       for (const id of event.contents) noteAppearance(id, event);
     }
   }
@@ -130,26 +130,33 @@ export function createSearchIndex(bundle: Bundle, now: string): SearchIndex {
     });
   };
 
+  // A trainee → its search entry, shared by trainee-banner and main-story contents
+  // (a chapter's finale grants a ★3 trainee).
+  const addTraineeEntry = (id: string) => {
+    const trainee = bundle.trainee(id);
+    const character = bundle.character(trainee.character);
+    const appearance = firstAppearance.get(id);
+    if (!appearance) return;
+    const label = traineeLabel(id, trainee, bundle);
+    addEntry({
+      id,
+      kind: "trainee",
+      label,
+      date: appearance.date,
+      eventKey: appearance.eventKey,
+      identityHaystack: termsFor(character.name),
+      haystack: termsFor(label, character.name, trainee.variant, `${trainee.rarity}`, aliasesOf(trainee)),
+    });
+  };
+
   for (const event of events) {
     if (event.type === "support" || event.type === "story" || event.type === "anniversarymission") {
       for (const id of event.contents) addSupportEntry(id);
     } else if (event.type === "trainee") {
-      for (const id of event.contents) {
-        const trainee = bundle.trainee(id);
-        const character = bundle.character(trainee.character);
-        const appearance = firstAppearance.get(id);
-        if (!appearance) continue;
-        const label = traineeLabel(id, trainee, bundle);
-        addEntry({
-          id,
-          kind: "trainee",
-          label,
-          date: appearance.date,
-          eventKey: appearance.eventKey,
-          identityHaystack: termsFor(character.name),
-          haystack: termsFor(label, character.name, trainee.variant, `${trainee.rarity}`, aliasesOf(trainee)),
-        });
-      }
+      for (const id of event.contents) addTraineeEntry(id);
+    } else if (event.type === "mainstory") {
+      // A chapter's welfare grant is a support/trainee mix — dispatch by id prefix.
+      for (const id of event.contents) (id.startsWith("trainee-") ? addTraineeEntry : addSupportEntry)(id);
     }
   }
 

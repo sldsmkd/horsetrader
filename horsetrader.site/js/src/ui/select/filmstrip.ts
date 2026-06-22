@@ -97,6 +97,18 @@ export function filmFrames(
       }
       continue;
     }
+    // A main-story chapter grants a support/trainee mix — favourited welfare of either
+    // kind earns a bookmark frame (a grant, not a gacha), partitioned by id prefix.
+    if (ev.type === "mainstory") {
+      const past = ev.end < now;
+      for (const kind of ["support", "trainee"] as const) {
+        const ids = ev.contents.filter((id) => (kind === "trainee") === id.startsWith("trainee-"));
+        for (const atom of favouritedAtoms(bundle, kind, ids, favourites)) {
+          frames.push({ date: ev.start, kind, state: "bookmark", past, atom, group: ev.key, band: "empty", heat: 0 });
+        }
+      }
+      continue;
+    }
     if (ev.type !== "trainee" && ev.type !== "support") continue;
     const committed = ev.key in commitments;
     const past = ev.end < now;

@@ -66,6 +66,10 @@ const RARITY_ORDER: Record<RarityTier, number> = { crystal: 0, gold: 1, silver: 
 /** One resolved banner-content pill — the borrowed rarity/attribute grammar (principle 5). */
 export interface BannerAtom {
   id: string;
+  /** Which entity family this pill is — `support` or `trainee`. Uniform within a
+   *  banner, but mixed within a main-story chapter's welfare grant, so each atom
+   *  carries its own kind for the chip widget / inspect routing. */
+  kind: BannerKind;
   name: string;
   /** A display rarity token — trainee stars (`3★`) or support tier (`SSR`). */
   rarity: string;
@@ -139,6 +143,7 @@ export function atomOf(bundle: Bundle, kind: BannerKind, id: string): BannerAtom
     const character = bundle.character(trainee.character);
     return {
       id,
+      kind,
       name: character.name ?? id,
       rarity: `${trainee.rarity}★`,
       rarityTier: trainee.rarity >= 3 ? "crystal" : "gold",
@@ -153,6 +158,7 @@ export function atomOf(bundle: Bundle, kind: BannerKind, id: string): BannerAtom
   if (r === "r" || r === "") return null;
   return {
     id,
+    kind,
     name: support.display ?? id,
     rarity: r.toUpperCase(),
     rarityTier: r === "ssr" ? "crystal" : "gold",
