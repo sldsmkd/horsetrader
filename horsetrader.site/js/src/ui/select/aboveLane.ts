@@ -124,9 +124,11 @@ export interface BannerGroup {
   banners: Banner[];
 }
 
-/** Title-case a support type key (`"speed"` → `"Speed"`) for the chip subtitle. */
-function capitalise(s: string): string {
-  return s.charAt(0).toUpperCase() + s.slice(1);
+/** The chip subtitle from a card's flavour title — brackets stripped (trainee titles
+ *  are baked as `[Fair Lady of the Waves]`, supports bare). Null/absent → "" (the row
+ *  stays, non-collapsing). */
+function titleSubtitle(title: string | null | undefined): string {
+  return title ? title.replace(/^\[/, "").replace(/\]$/, "") : "";
 }
 
 /** Resolve one banner-content id to its display atom; returns null for R/1★ (culled by design). */
@@ -135,29 +137,28 @@ export function atomOf(bundle: Bundle, kind: BannerKind, id: string): BannerAtom
     const trainee = bundle.trainee(id);
     if (trainee.rarity < 2) return null;
     const character = bundle.character(trainee.character);
-    // Star count only carries meaning for the Original variant (the only one with
-    // sub-3★ copies); every themed variant is 3★ by definition, so it reads as just
-    // its name (`Summer`, `New Year`) — the stars would be noise.
-    const subtitle = trainee.variant === "Original" ? "★".repeat(trainee.rarity) : trainee.variant;
     return {
       id,
       name: character.name ?? id,
       rarity: `${trainee.rarity}★`,
       rarityTier: trainee.rarity >= 3 ? "crystal" : "gold",
-      subtitle,
+      // The flavour title as the subtitle (`Fair Lady of the Waves`) — trying it in
+      // place of the variant/star glyphs.
+      subtitle: titleSubtitle(trainee.title),
       image: atomImage(bundle, kind, id),
     };
   }
   const support = bundle.support(id);
   const r = (support.rarity ?? "").toLowerCase();
   if (r === "r" || r === "") return null;
-  const rarity = r.toUpperCase();
   return {
     id,
     name: support.display ?? id,
-    rarity,
+    rarity: r.toUpperCase(),
     rarityTier: r === "ssr" ? "crystal" : "gold",
-    subtitle: support.type ? `${rarity} ${capitalise(support.type)}` : rarity,
+    // The card's flavour title as the subtitle — trying it (some supports are still
+    // untranslated, so this is partly a read on how that lands).
+    subtitle: titleSubtitle(support.title),
     image: atomImage(bundle, kind, id),
     ...(support.type ? { attribute: support.type } : {}),
   };

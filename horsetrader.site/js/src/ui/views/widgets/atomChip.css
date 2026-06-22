@@ -71,13 +71,20 @@
   text-align: left;
 }
 
+/* The modifier line — smaller than the name (the subject), golden ratio below it.
+ * Centred and italic; holds its row height even when empty (supports carry no
+ * subtitle — rarity/type are read off the border + pip — but the chip keeps its
+ * two-line shape). */
 .atom-chip__subtitle {
   min-width: 0;
+  min-height: calc(var(--ht-type-chip-modifier-size) * var(--ht-type-chip-stack-line));
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: var(--ht-type-caption-size);
-  line-height: 1.1;
+  text-align: center;
+  font-size: var(--ht-type-chip-modifier-size);
+  font-style: italic;
+  line-height: var(--ht-type-chip-stack-line);
   color: color-mix(in srgb, currentColor 60%, var(--ht-colour-text-on-accent));
 }
 
@@ -114,10 +121,13 @@
   image-rendering: pixelated;
 }
 
+/* The subject line — the larger of the two rows (golden ratio over the modifier). */
 .atom-chip__name {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-size: var(--ht-type-chip-subject-size);
+  line-height: var(--ht-type-chip-stack-line);
   color: color-mix(in srgb, currentColor 78%, var(--ht-colour-text-on-accent));
 }

@@ -28,10 +28,10 @@ const EVENTS: EventsBundle = {
 
 const ACADEMY: Academy = {
   characters: { "char-spe": { name: "Special Week", quote: null, icon: null, portrait: null, bio: { three_sizes: { bust: null, waist: null, hips: null }, birthday: null, height: null } }, "char-suzuka": { name: "Silence Suzuka", quote: null, icon: null, portrait: null, bio: { three_sizes: { bust: null, waist: null, hips: null }, birthday: null, height: null } } },
-  supports: { "s-spe": { character: "char-spe", display: "Special Week", type: "guts", rarity: "ssr", title: null, release: "2021", thumbnail: null, art: null, aliases: [], source: null } },
+  supports: { "s-spe": { character: "char-spe", display: "Special Week", type: "guts", rarity: "ssr", title: "Tracen Academy", release: "2021", thumbnail: null, art: null, aliases: [], source: null } },
   trainees: {
-    "t-spe": { character: "char-spe", variant: "Original", title: null, rarity: 3, release: "2021", thumbnail: null, portrait: null, aliases: [], source: null, aptitudes: null },
-    "t-suzuka": { character: "char-suzuka", variant: "Original", title: null, rarity: 3, release: "2021", thumbnail: null, portrait: null, aliases: [], source: null, aptitudes: null },
+    "t-spe": { character: "char-spe", variant: "Original", title: "[Special Dreamer]", rarity: 3, release: "2021", thumbnail: null, portrait: null, aliases: [], source: null, aptitudes: null },
+    "t-suzuka": { character: "char-suzuka", variant: "Original", title: "[Silent Innocence]", rarity: 3, release: "2021", thumbnail: null, portrait: null, aliases: [], source: null, aptitudes: null },
   },
   courses: {},
   races: {},
@@ -76,11 +76,11 @@ test("contents resolve to atoms in the kind's grammar — trainee stars, support
 
   const trainee = shared.banners.find((b) => b.key === "banner-t")!;
   assert.deepEqual(trainee.atoms, [
-    { id: "t-suzuka", name: "Silence Suzuka", rarity: "3★", rarityTier: "crystal", subtitle: "★★★", image: null },
-    { id: "t-spe", name: "Special Week", rarity: "3★", rarityTier: "crystal", subtitle: "★★★", image: null },
+    { id: "t-suzuka", name: "Silence Suzuka", rarity: "3★", rarityTier: "crystal", subtitle: "Silent Innocence", image: null },
+    { id: "t-spe", name: "Special Week", rarity: "3★", rarityTier: "crystal", subtitle: "Special Dreamer", image: null },
   ]);
   const support = shared.banners.find((b) => b.key === "banner-s2")!;
-  assert.deepEqual(support.atoms, [{ id: "s-spe", name: "Special Week", rarity: "SSR", rarityTier: "crystal", subtitle: "SSR Guts", image: null, attribute: "guts" }]);
+  assert.deepEqual(support.atoms, [{ id: "s-spe", name: "Special Week", rarity: "SSR", rarityTier: "crystal", subtitle: "Tracen Academy", image: null, attribute: "guts" }]);
 });
 
 test("committed banners surface the cached funding status (pity + capacity)", () => {
