@@ -19,15 +19,20 @@
 import "./filmstrip.css";
 
 import { h } from "../h.ts";
+import { resolveLengthPx } from "../glassUnit.ts";
 import type { CalendarDate } from "../../core/projection/dates.ts";
 import { focusIndex } from "../select/filmstrip.ts";
 import type { FilmFrame } from "../select/filmstrip.ts";
 
-/** Frame edge (px) and the gap between frames — the equidistant step. The strip's
- *  whole claim is uniform spacing, so these are the time-compression constant. */
-const FRAME_PX = 48;
-const GAP_PX = 12;
-const STEP_PX = FRAME_PX + GAP_PX;
+/** The strip's geometry rides the glass plane (Grand Masters): the frame edge and
+ *  gap are `--glass-u-base` multiples declared in the CSS (`--fs-frame`/`--fs-gap`),
+ *  so the strip scales with the chrome tier instead of pinning device px. The view
+ *  resolves them to px (the calibration bridge) on every refresh — i.e. on resize —
+ *  and the equidistant-step math reads the resolved values, never a literal. */
+interface Metrics {
+  frame: number;
+  step: number;
+}
 
 export interface Filmstrip {
   /** The always-mounted strip. */
@@ -84,12 +89,12 @@ function runs(frames: readonly FilmFrame[]): Run[] {
 /** The banner capsules — one rounded rectangle per banner (the strip's only
  *  outline). A lone favourite is a one-wide capsule; a banner with several is a
  *  wider one wrapping its faces, so they read as one pull's twofer while keeping
- *  their own spacing inside. Positioned by the same index geometry `settle` uses,
- *  painted under the frames. */
-function buildCapsules(frames: readonly FilmFrame[]): HTMLElement[] {
+ *  their own spacing inside. Positioned by the same index geometry `settle` uses
+ *  (off the resolved unit metrics), painted under the frames. */
+function buildCapsules(frames: readonly FilmFrame[], m: Metrics): HTMLElement[] {
   return runs(frames).map((run) => {
-    const left = run.start * STEP_PX;
-    const width = (run.len - 1) * STEP_PX + FRAME_PX;
+    const left = run.start * m.step;
+    const width = (run.len - 1) * m.step + m.frame;
     return h("div", {
       class:
         `filmstrip__capsule filmstrip__capsule--${run.frame.band}` +
@@ -101,23 +106,27 @@ function buildCapsules(frames: readonly FilmFrame[]): HTMLElement[] {
 }
 
 export function filmstrip({ onWarp }: FilmstripHandlers): Filmstrip {
-  // The frames the last refresh built, and the last view date — kept so a refresh
-  // can re-settle the strip under the read-head without waiting for the next pan.
+  // The frames the last refresh built, the last view date, and the unit metrics
+  // resolved at that refresh — kept so `setView` (the per-pan cheap path) re-settles
+  // off cached values without forcing a layout, while a refresh (incl. resize) picks
+  // up the live glass unit.
   let frames: readonly FilmFrame[] = [];
   let viewDate: CalendarDate | null = null;
+  let metrics: Metrics = { frame: 0, step: 0 };
 
   const track = h("div", { class: "filmstrip__track" });
   const head = h("div", { class: "filmstrip__head" }); // the fixed read-head line
   const el = h("section", { class: "filmstrip", attr: { "aria-label": "Favourites" } }, track, head);
 
   /** Translate the track so frame `i` centres under the read-head (the strip's
-   *  midline). The frames are equidistant, so the offset is pure index arithmetic. */
+   *  midline). The frames are equidistant, so the offset is pure index arithmetic
+   *  off the resolved unit metrics. */
   const settle = () => {
-    if (viewDate === null || frames.length === 0) return;
+    if (viewDate === null || frames.length === 0 || metrics.step === 0) return;
     const i = focusIndex(frames, viewDate);
     if (i < 0) return;
     const centreX = el.clientWidth / 2;
-    const frameCentre = i * STEP_PX + FRAME_PX / 2;
+    const frameCentre = i * metrics.step + metrics.frame / 2;
     track.style.transform = `translateX(${centreX - frameCentre}px)`;
   };
 
@@ -125,9 +134,13 @@ export function filmstrip({ onWarp }: FilmstripHandlers): Filmstrip {
     el,
     refresh(next) {
       frames = next;
+      // Resolve the frame + gap off the live glass unit (the calibration bridge) —
+      // a refresh is a view change (resize/recompute), the right cadence for this.
+      const frame = resolveLengthPx(el, "var(--fs-frame)");
+      metrics = { frame, step: frame + resolveLengthPx(el, "var(--fs-gap)") };
       el.classList.toggle("filmstrip--empty", frames.length === 0);
       // Capsules paint first → under the frames they outline.
-      track.replaceChildren(...buildCapsules(frames), ...frames.map((f) => frameEl(f, onWarp)));
+      track.replaceChildren(...buildCapsules(frames, metrics), ...frames.map((f) => frameEl(f, onWarp)));
       settle();
     },
     setView(date) {

@@ -4,13 +4,17 @@
    the canvas rather than a second docked instrument. Same trainee/support colours
    and empty/filled semantics as the minimap, but compressed to sequence. */
 .filmstrip {
+  /* Geometry rides the glass plane (Grand Masters / Byerley + Darley): the frame and
+     gap are --glass-u-base multiples — plane-fixed chrome, like the minimap — so the
+     strip scales with the chrome tier instead of pinning device px. The view resolves
+     these two tokens to px for its equidistant-step math (the calibration bridge). */
+  --fs-frame: calc(3.75 * var(--glass-u-base)); /* ≈48px at the dev calibration */
+  --fs-gap: calc(0.94 * var(--glass-u-base)); /* ≈12px */
   position: absolute;
   left: 50%;
   bottom: calc(var(--timeline-chrome-bottom) + var(--minimap-h) + 0.5 * var(--glass-u-base));
-  /* The frames are a fixed 48px, so the strip clears them in px — not the glass-u
-     grid, which collapses below the frame on short viewports and clips the squares'
-     top/bottom borders. Only the *position* rides the chrome unit; the box doesn't. */
-  height: 64px;
+  /* Same height tier as the minimap; the frame (3.75u) clears it with room either side. */
+  height: var(--minimap-h);
   width: min(var(--timeline-chrome-width), var(--timeline-chrome-max-width), calc(100vw - 1.88 * var(--glass-u)));
   box-sizing: border-box;
   z-index: var(--glass-z-chrome);
@@ -31,7 +35,7 @@
   top: 50%;
   left: 0;
   display: flex;
-  gap: 12px;
+  gap: var(--fs-gap);
   align-items: center;
   transform: translateX(0);
   translate: 0 -50%;
@@ -43,8 +47,8 @@
    own; the banner capsule behind it is the only border. Empty = favourited content
    with no art, filled = committed banner; trainee/support carry the lane colour. */
 .filmstrip__frame {
-  width: 48px;
-  height: 48px;
+  width: var(--fs-frame);
+  height: var(--fs-frame);
   box-sizing: border-box;
   border-radius: 6px;
   background: transparent;
@@ -63,7 +67,7 @@
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  height: 48px;
+  height: var(--fs-frame);
   box-sizing: border-box;
   border: 1.5px solid currentColor;
   border-radius: 9px;
@@ -138,7 +142,7 @@
   justify-content: center;
   width: 100%;
   height: 100%;
-  font-size: 26px;
+  font-size: calc(0.54 * var(--fs-frame)); /* the star scales with the face */
   line-height: 1;
   color: color-mix(in srgb, var(--ht-colour-text-primary) 55%, transparent);
 }
