@@ -169,6 +169,17 @@ def optional_bool(fields: dict, name: str, label: str) -> bool | None:
     return value
 
 
+def optional_int(fields: dict, name: str, label: str, default: int = 0) -> int:
+    """Validate an optional non-negative integer field from a curated mapping,
+    falling back to ``default`` when absent (an omitted count reads as zero)."""
+    value = fields.get(name)
+    if value is None:
+        return default
+    if not isinstance(value, int) or isinstance(value, bool) or value < 0:
+        raise ValueError(f"{label}: {name} must be a non-negative integer; got {value!r}")
+    return value
+
+
 def require_zone(value, expected: tzinfo, label: str) -> datetime:
     """Validate ``value`` is a tz-aware datetime in ``expected``, or raise."""
     if not isinstance(value, datetime) or value.tzinfo != expected:

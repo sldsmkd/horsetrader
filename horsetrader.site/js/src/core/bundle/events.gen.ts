@@ -328,6 +328,8 @@ export interface MissionRecord {
 export interface AnniversaryRecord {
   type: "anniversary";
   name: string | null;
+  paid_ssr_selectors?: number;
+  paid_trainee_selectors?: number;
   start: string;
   end: string;
   predicted: boolean;

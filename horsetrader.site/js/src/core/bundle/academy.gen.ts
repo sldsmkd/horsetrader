@@ -22,6 +22,9 @@ export interface Academy {
   racetracks: {
     [k: string]: RacetrackRecord;
   };
+  selectors: {
+    [k: string]: SelectorRecord;
+  };
   supports: {
     [k: string]: SupportRecord;
   };
@@ -74,6 +77,20 @@ export interface RaceRecord {
 export interface RacetrackRecord {
   name: string | null;
   icon: string | null;
+}
+/**
+ * An anniversary card-exchange voucher pool — its ``name`` and what it's valid
+ * for. The pool is a recipe the client expands: every ``kind`` card up to and
+ * including the ``cutoff`` banner (by release order), minus ``excludes``. ``kind``
+ * is ``"ssr_support"`` | ``"trainee"``. How it's acquired (free grant vs paid
+ * packs) is a separate reward layer, not carried here.
+ */
+export interface SelectorRecord {
+  name: string;
+  anniversary: string;
+  kind: string;
+  cutoff: string;
+  excludes: string[];
 }
 export interface SupportRecord {
   character: string | null;

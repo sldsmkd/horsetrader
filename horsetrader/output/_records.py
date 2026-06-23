@@ -392,6 +392,11 @@ class AnniversaryRecord(EventRecord, tag="anniversary"):
     # A scenario-shaped anniversary launch: the shared envelope plus a derived
     # display `name` ("1st Anniversary", "Half Anniversary").
     name: str | None
+    # Paid selector packs the store offered this anniversary, per type (0/1/2 —
+    # the dolphin/whale escalation). Per-level paid-carat cost = the ladder in
+    # config `reward_maps.anniversary-selectors`.
+    paid_ssr_selectors: int = 0
+    paid_trainee_selectors: int = 0
 
 
 @eishin

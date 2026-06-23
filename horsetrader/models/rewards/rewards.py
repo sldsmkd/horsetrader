@@ -126,6 +126,33 @@ class Pull(CounterReward):
 
 @yayoi
 @dataclass(frozen=True)
+class SsrSelector(CounterReward):
+    """An SSR-support exchange voucher (引換券) — a free pick of any SSR support
+    card from a cutoff pool. Anniversaries grant one free (the 記念ミッション Part 3
+    baseline) and sell more in the paid packs.
+
+    A counted resource in its own right, tracked like a currency — NOT valued into
+    carats (the bake says "you have N", the client tallies them, see #4). Carries
+    no `item_key`: each anniversary's voucher is a *distinct* Gametora item, so
+    there's no single backing item — which pool a granted selector draws from is
+    resolved by the anniversary → `Selector` join, not by this reward. (Same
+    keyless shape as `Pull`.)"""
+
+    key: ClassVar[str] = "ssr_selectors"
+
+
+@yayoi
+@dataclass(frozen=True)
+class TraineeSelector(CounterReward):
+    """A ★3 trainee exchange voucher — the paid-only sibling of `SsrSelector`
+    (trainee selectors are never granted free). Same keyless, unvalued shape; the
+    pool is resolved via the anniversary → `Selector` join."""
+
+    key: ClassVar[str] = "trainee_selectors"
+
+
+@yayoi
+@dataclass(frozen=True)
 class RainbowCrystalShard(CounterReward):
     key: ClassVar[str] = "rainbow_crystal_shards"
     item_key: ClassVar[str] = "item-00149"
