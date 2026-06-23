@@ -26,7 +26,7 @@ REPORTS := reports
 # + eslint config). The security stage discovers them here and runs each one's
 # `security:audit` + `security:sast` scripts — so a new service is covered the
 # moment it adopts the per-service template (see horsetrader.cloud/README.md).
-CLOUD_SERVICES := $(wildcard horsetrader.cloud/*/)
+CLOUD_SERVICES := $(dir $(wildcard horsetrader.cloud/*/package.json))
 PYTHON ?= venv/bin/python
 PYTHON_REPORT ?= python
 ANNIVERSARY_FLAGS ?=

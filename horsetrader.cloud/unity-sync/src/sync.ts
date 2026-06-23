@@ -33,6 +33,7 @@ export interface SyncEnv {
 // ~5 MB, so this never touches a legitimate client — it's a one-`if` reject for a
 // hand-crafted request that bypasses localStorage (design.md §4).
 const MAX_BLOB_BYTES = 5 * 1024 * 1024;
+const ENTITLEMENTS_KEY = "entitlements.json";
 
 /**
  * Cheap plausibility sniff — the ingress twin of the client's `assertPlausiblePlan`
@@ -50,8 +51,39 @@ function looksLikePlan(body: ArrayBuffer): boolean {
   return text.startsWith("{") && text.includes('"version"');
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function parsePlan(body: ArrayBuffer): Record<string, unknown> | null {
+  try {
+    const data = JSON.parse(new TextDecoder().decode(body)) as unknown;
+    return isRecord(data) ? data : null;
+  } catch {
+    return null;
+  }
+}
+
+function planBytes(plan: Record<string, unknown>): Uint8Array {
+  return new TextEncoder().encode(JSON.stringify(plan));
+}
+
 /** The R2 key for an account — one object holds the whole save. Identity = (provider, sub), no linking (design.md §6). */
 const saveKey = (s: Session): string => `${s.provider}:${s.sub}`;
+
+async function isSupporter(env: SyncEnv, key: string): Promise<boolean> {
+  try {
+    const obj = await env.BUCKET.get(ENTITLEMENTS_KEY);
+    if (!obj) return false;
+    const data = (await obj.json()) as unknown;
+    if (!isRecord(data)) return false;
+    const supporters = data["supporters"];
+    return Array.isArray(supporters) && supporters.includes(key);
+  } catch (err) {
+    console.warn("failed to read entitlements", err);
+    return false;
+  }
+}
 
 function json(body: unknown, init: ResponseInit = {}): Response {
   return new Response(JSON.stringify(body), {
@@ -74,7 +106,12 @@ export async function handleSync(request: Request, env: SyncEnv, session: Sessio
     // the response and rewrite the header to a WEAK validator (`W/"…"`), which then
     // never matches R2's strong etag on the next push → a permanent-412 deadlock.
     // `obj.etag` is the bare strong hash; the client echoes it straight back.
-    return json({ etag: obj.etag, plan: await obj.json() });
+    const plan = (await obj.json()) as unknown;
+    if (isRecord(plan)) {
+      if (await isSupporter(env, key)) plan["supporter"] = true;
+      else delete plan["supporter"];
+    }
+    return json({ etag: obj.etag, plan });
   }
 
   // ── push ────────────────────────────────────────────────────────────────
@@ -106,8 +143,14 @@ export async function handleSync(request: Request, env: SyncEnv, session: Sessio
     if (!looksLikePlan(body)) {
       return json({ error: "implausible_plan" }, { status: 422 });
     }
+    const plan = parsePlan(body);
+    if (!plan) {
+      return json({ error: "implausible_plan" }, { status: 422 });
+    }
+    delete plan["supporter"];
+    const storedBody = planBytes(plan);
 
-    const result = await env.BUCKET.put(key, body, {
+    const result = await env.BUCKET.put(key, storedBody, {
       onlyIf,
       httpMetadata: { contentType: "application/json" },
     });
