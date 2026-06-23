@@ -18,30 +18,34 @@ import "./cardSurface.css";
 
 import { h } from "../../h.ts";
 import { formatDate, formatCharacterName } from "../../format.ts";
-import { NOTE_MAX_LENGTH } from "../../../core/persistence/validate.ts";
+import { NOTE_MAX_LENGTH, normaliseNote } from "../../../core/persistence/validate.ts";
 import type { Bundle } from "../../bundle/access.ts";
 import type { BannerKind } from "../../select/aboveLane.ts";
 import { cardDetails, type AptitudeAxis, type Facet } from "../../select/cardDetail.ts";
+import { surfaceActions } from "./surfaceActions.ts";
+import { surfaceCancel } from "./surface.ts";
 
 export interface CardSurfaceOpts {
   bundle: Bundle;
   kind: BannerKind;
   id: string;
-  /** Whether the subject is currently favourited — the favourite now lives here, not
-   *  on the banner chip (the chip just reflects this state as a pressed button). */
+  /** Whether the subject is favourited as the surface opens — the staged baseline for the
+   *  ★ toggle. The favourite lives here, not on the banner chip (the chip just reflects it). */
   favourited: boolean;
-  /** Toggle the favourite (persisted by the coordinator). */
-  onToggleFavourite: (on: boolean) => void;
-  /** The subject's current note ("" when none) — the surface's only mutable input. */
+  /** The subject's note as the surface opens ("" when none) — the staged baseline. */
   note: string;
-  /** Commit the note (normalised + persisted by the coordinator; "" clears). */
-  onSetNote: (text: string) => void;
-  onClose: () => void;
+  /** Apply the staged edits (favourite + note) — called on Update; the surface then closes.
+   *  This is the only write, so editing the card never touches the coordinator (and so never
+   *  rebuilds the timeline) until the trainer deliberately commits. */
+  onCommit: (next: { favourited: boolean; note: string }) => void;
+  /** Discard the staged edits and close (Cancel, or a pristine Esc). */
+  onCancel: () => void;
 }
 
-/** The favourite toggle — the *write* home for the favourite (the banner chip only
- *  reflects it). A large gold star in the surface's top-right corner: outline (☆) when
- *  not favourited, filled (★) when it is. */
+/** The favourite toggle — a large gold star in the surface's top-right corner: outline (☆)
+ *  when not favourited, filled (★) when it is. It flips a *staged* flag (the chip on the
+ *  timeline only learns the new state on Update), so its `onToggle` mutates the draft, not
+ *  the coordinator. */
 function favouriteToggle(favourited: boolean, onToggle: (on: boolean) => void): HTMLElement {
   return h(
     "button",
@@ -62,30 +66,19 @@ function favouriteToggle(favourited: boolean, onToggle: (on: boolean) => void): 
   );
 }
 
-/** The note box — the trainer's *why* (Twinkle Monthly · The Interview). A plain
- *  textarea that reads as text and commits on blur; the value is normalised and
- *  rendered escaped by the coordinator/`h` (user data is never markup). Enter commits
- *  and drops focus (the same "I'm done" as the trainer name); Shift+Enter still inserts
- *  a newline — the note normaliser preserves them. */
-function noteBox(note: string, onSetNote: (text: string) => void): HTMLElement {
+/** The note input — the trainer's *why* (Twinkle Monthly · The Interview). A plain textarea
+ *  that reads as text; the value is normalised on commit and rendered escaped by the
+ *  coordinator/`h` (user data is never markup). It is a *staged* draft: there is no
+ *  commit-on-blur — the surface's Update button is the only write — so Enter is an ordinary
+ *  newline and leaving the field never persists. */
+function noteInput(note: string): HTMLTextAreaElement {
   return h(
-    "label",
-    { class: "card-surface__note" },
-    h("span", { class: "card-surface__note-label" }, "Note"),
-    h("textarea", {
+    "textarea",
+    {
       class: "card-surface__note-input",
       attr: { placeholder: "Why this one?", maxlength: NOTE_MAX_LENGTH, rows: 4 },
-      on: {
-        blur: (e) => onSetNote((e.target as HTMLTextAreaElement).value),
-        keydown: (e) => {
-          const ke = e as KeyboardEvent;
-          if (ke.key === "Enter" && !ke.shiftKey) {
-            ke.preventDefault();
-            (ke.target as HTMLTextAreaElement).blur();
-          }
-        },
-      },
-    }, note),
+    },
+    note,
   );
 }
 
@@ -133,12 +126,46 @@ function aptitudeAxis(axis: AptitudeAxis): HTMLElement {
 export function cardSurface(opts: CardSurfaceOpts): HTMLElement {
   const card = cardDetails(opts.bundle, opts.kind, opts.id);
 
+  // Staged draft — the favourite flag + the note input. Nothing here writes through; the
+  // surface only mutates these locally and applies them on Update, so editing never hits
+  // the coordinator (and so never refreshes the timeline) mid-interaction.
+  let draftFav = opts.favourited;
+  const note = noteInput(opts.note);
+  // Pristine ⇒ no staged edits: Esc may back out, and the timeline may swap this card for
+  // another (app.ts keys both on this guard via the dismiss button). Notes compare
+  // normalised so trailing whitespace doesn't read as a pending edit.
+  const pristine = (): boolean => draftFav === opts.favourited && normaliseNote(note.value) === opts.note;
+
+  // The actions reflect the draft live (editing fires no re-render, so they update
+  // themselves): with nothing staged the surface shows a lone "Close"; the first edit reveals
+  // Update and turns that button into a "Cancel" (discard).
+  const cancel = surfaceCancel({ class: "card-surface__cancel", onCancel: opts.onCancel, escSafe: pristine });
+  const update = h(
+    "button",
+    {
+      class: "card-surface__update",
+      attr: { type: "button" },
+      on: { click: () => opts.onCommit({ favourited: draftFav, note: note.value }) },
+    },
+    "Update",
+  );
+  const sync = (): void => {
+    const clean = pristine();
+    update.hidden = clean;
+    cancel.textContent = clean ? "Close" : "Cancel";
+  };
+  sync(); // open pristine: a lone "Close", Update hidden until an edit
+
   return h(
     "section",
-    { class: `card-surface card-surface--${card.rarityTier}` },
+    // Note edits bubble `input` to the section, where one listener resyncs the buttons.
+    { class: `card-surface card-surface--${card.rarityTier}`, on: { input: sync } },
 
     // The favourite — a gold star pinned to the surface's top-right corner.
-    favouriteToggle(opts.favourited, opts.onToggleFavourite),
+    favouriteToggle(opts.favourited, (on) => {
+      draftFav = on;
+      sync();
+    }),
 
     // Top — the art hero beside its identity column (name, tagline, facets).
     h(
@@ -185,7 +212,12 @@ export function cardSurface(opts: CardSurfaceOpts): HTMLElement {
       : null,
 
     // The note — the trainer's voice on this subject.
-    noteBox(opts.note, opts.onSetNote),
+    h(
+      "label",
+      { class: "card-surface__note" },
+      h("span", { class: "card-surface__note-label" }, "Note"),
+      note,
+    ),
 
     // The outbound deep-link — only when the bake carries a source URL.
     card.source
@@ -199,10 +231,6 @@ export function cardSurface(opts: CardSurfaceOpts): HTMLElement {
         )
       : null,
 
-    h(
-      "button",
-      { class: "card-surface__close", attr: { type: "button" }, on: { click: opts.onClose } },
-      "Close",
-    ),
+    surfaceActions(cancel, update),
   );
 }

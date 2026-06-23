@@ -38,7 +38,19 @@ export interface ConfirmOpts {
  *  callers never touch the mount/scrim glue. */
 export function presentConfirm(opts: ConfirmOpts): void {
   let modal: HTMLElement;
-  const close = (): void => modal.remove();
+  const close = (): void => {
+    document.removeEventListener("keydown", onKeydown, true);
+    modal.remove();
+  };
+  // Escape cancels — same as the scrim. Capture phase so this blocking modal owns the key
+  // before the app's surface-level Esc handler (which would otherwise dismiss the surface
+  // beneath us). Inert while the action is running (the buttons are disabled too).
+  const onKeydown = (e: KeyboardEvent): void => {
+    if (e.key === "Escape" && !cancelBtn.disabled) {
+      e.preventDefault();
+      cancel();
+    }
+  };
 
   const error = h("p", { class: "confirm__error", attr: { hidden: true } });
   const cancelBtn = h(
@@ -97,4 +109,5 @@ export function presentConfirm(opts: ConfirmOpts): void {
     ),
   );
   document.body.appendChild(modal);
+  document.addEventListener("keydown", onKeydown, true);
 }

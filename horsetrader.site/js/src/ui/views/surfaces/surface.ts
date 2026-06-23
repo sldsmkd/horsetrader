@@ -24,6 +24,64 @@ export interface SurfaceOpts {
   onClose: () => void;
 }
 
+/** Marker stamped on a surface's *dismiss* affordance — the way out the Escape key
+ *  reaches for. The topmost surface is keyboard-dismissable iff its body carries one of
+ *  these. */
+export const SURFACE_DISMISS_ATTR = "data-surface-dismiss";
+
+/** A dismiss button that also exposes a live guard to the Escape handler. */
+interface DismissButton extends HTMLButtonElement {
+  /** May Escape activate this dismiss *right now*? Absent ⇒ always (a viewer's Close,
+   *  which has nothing to lose). An editor sets it to gate on pending state, so Esc
+   *  abandons a pristine editor but is inert while a decision is waiting to be committed. */
+  escSafe?: () => boolean;
+}
+
+function dismissButton(opts: { class: string; onDismiss: () => void; label: string; escSafe?: () => boolean }): HTMLButtonElement {
+  const btn = h(
+    "button",
+    { class: opts.class, attr: { type: "button", [SURFACE_DISMISS_ATTR]: "" }, on: { click: opts.onDismiss } },
+    opts.label,
+  ) as DismissButton;
+  if (opts.escSafe) btn.escSafe = opts.escSafe;
+  return btn;
+}
+
+/** A viewer's *Close* — the neutral dismiss of a read-only surface (the Desk, a card
+ *  detail). Always Esc-dismissable: there is no pending state to discard. */
+export function surfaceClose(opts: { class: string; onClose: () => void; label?: string }): HTMLButtonElement {
+  return dismissButton({ class: opts.class, onDismiss: opts.onClose, label: opts.label ?? "Close" });
+}
+
+/** An editor's *Cancel* — abandons edits/selection. Esc reaches it only when `escSafe`
+ *  reports nothing pending (a pristine editor); with a decision waiting to be committed
+ *  Esc is inert and the button stays the explicit, deliberate way out. Omit `escSafe`
+ *  for a stateless surface that is always safe to back out of. */
+export function surfaceCancel(opts: { class: string; onCancel: () => void; label?: string; escSafe?: () => boolean }): HTMLButtonElement {
+  return dismissButton({
+    class: opts.class,
+    onDismiss: opts.onCancel,
+    label: opts.label ?? "Cancel",
+    ...(opts.escSafe ? { escSafe: opts.escSafe } : {}),
+  });
+}
+
+/** Resolve which dismiss button Escape should activate, given the surface layers in
+ *  paint order topmost-first (the modal layer above the chrome rail). Escape acts on the
+ *  topmost surface only: the first non-empty layer's last child. Returns its dismiss
+ *  button when one is present *and* its `escSafe` guard allows; otherwise null — Escape
+ *  never falls through a surface to dismiss one painted beneath it. */
+export function escDismissTarget(...layersTopFirst: ParentNode[]): HTMLButtonElement | null {
+  for (const layer of layersTopFirst) {
+    const top = layer.lastElementChild;
+    if (!top) continue; // empty layer — look beneath it
+    const btn = top.querySelector<DismissButton>(`[${SURFACE_DISMISS_ATTR}]`);
+    if (!btn) return null; // topmost surface isn't Esc-dismissable; don't reach past it
+    return (btn.escSafe?.() ?? true) ? btn : null;
+  }
+  return null;
+}
+
 export function suspendSurface(card: HTMLElement): HTMLElement {
   card.classList.add("surface--locked");
   card.setAttribute("aria-hidden", "true");

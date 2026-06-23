@@ -129,8 +129,17 @@ export function presentCloudConflict(
 ): void {
   let dialog: HTMLElement;
   const done = (outcome: string): void => {
+    document.removeEventListener("keydown", onKeydown, true);
     dialog.remove();
     onResolved?.(outcome);
+  };
+  // Escape cancels (local kept, not synced) — same as the explicit Cancel. Capture phase so
+  // this blocking dialog owns the key before the app's surface-level Esc handler.
+  const onKeydown = (e: KeyboardEvent): void => {
+    if (e.key === "Escape") {
+      e.preventDefault();
+      done("cancelled (local kept, not synced)");
+    }
   };
   dialog = cloudConflictDialog({
     local: conflict.localFacts,
@@ -150,4 +159,5 @@ export function presentCloudConflict(
     onCancel: () => done("cancelled (local kept, not synced)"),
   });
   document.body.appendChild(dialog);
+  document.addEventListener("keydown", onKeydown, true);
 }

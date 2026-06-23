@@ -5,6 +5,7 @@ import type { OshiCostumeIndex, OshiOption, OshiSearchIndex } from "../../query/
 import { h } from "../../h.ts";
 import { pressedGroup } from "../widgets/pressedGroup.ts";
 import { surfaceActions } from "./surfaceActions.ts";
+import { surfaceCancel } from "./surface.ts";
 
 export interface OshiSelectorOpts {
   selectedId?: string;
@@ -16,7 +17,8 @@ export interface OshiSelectorOpts {
 }
 
 export function oshiSelector(opts: OshiSelectorOpts): HTMLElement {
-  let selectedId = opts.selectedId ?? DEFAULT_OSHI_ID;
+  const initialId = opts.selectedId ?? DEFAULT_OSHI_ID;
+  let selectedId = initialId;
   let selectedOshi = opts.selected;
   let selectedCharacterId = selectedOshi.characterId;
   const characterButtons = new Map<string, HTMLButtonElement>();
@@ -122,7 +124,9 @@ export function oshiSelector(opts: OshiSelectorOpts): HTMLElement {
     grid,
     costumeGrid,
     surfaceActions(
-      h("button", { class: "oshi-selector__cancel", attr: { type: "button" }, on: { click: opts.onClose } }, "Cancel"),
+      // Esc backs out while the shown oshi is still the committed one; a staged pick the
+      // player hasn't OK'd is pending, so Esc holds.
+      surfaceCancel({ class: "oshi-selector__cancel", onCancel: opts.onClose, escSafe: () => selectedId === initialId }),
       h(
         "button",
         {

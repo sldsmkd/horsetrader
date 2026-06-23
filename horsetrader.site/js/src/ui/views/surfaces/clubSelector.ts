@@ -3,6 +3,7 @@ import "./clubSelector.css";
 import { h } from "../../h.ts";
 import { pressedGroup } from "../widgets/pressedGroup.ts";
 import { surfaceActions } from "./surfaceActions.ts";
+import { surfaceCancel } from "./surface.ts";
 import { CLUB_RANK_TIERS, DEFAULT_CLUB_RANK } from "../../../core/identity/clubrank.ts";
 import { CLUB_NAME_MAX, normaliseName } from "../../../core/persistence/validate.ts";
 import type { ClubRankTier } from "../../../core/identity/clubrank.ts";
@@ -46,7 +47,8 @@ export interface ClubSelectorOpts {
  */
 export function clubSelector(opts: ClubSelectorOpts): HTMLElement {
   const inClub = opts.club !== null;
-  let selectedRank = opts.club?.rank ?? DEFAULT_CLUB_RANK;
+  const initialRank = opts.club?.rank ?? DEFAULT_CLUB_RANK;
+  let selectedRank = initialRank;
   const buttons = new Map<ClubRankTier, HTMLButtonElement>();
   const setPressed = pressedGroup(buttons, "club-selector__option--selected");
 
@@ -138,7 +140,13 @@ export function clubSelector(opts: ClubSelectorOpts): HTMLElement {
     grid,
     surfaceActions(
       ...(inClub ? [leaveButton] : []),
-      h("button", { class: "club-selector__cancel", attr: { type: "button" }, on: { click: opts.onClose } }, "Cancel"),
+      // Esc backs out while name + rank still match the membership as opened; an edited
+      // name or a re-picked rank is pending, so Esc holds.
+      surfaceCancel({
+        class: "club-selector__cancel",
+        onCancel: opts.onClose,
+        escSafe: () => name.value === name.defaultValue && selectedRank === initialRank,
+      }),
       h(
         "button",
         {

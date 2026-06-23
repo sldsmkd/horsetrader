@@ -320,6 +320,19 @@ export function createCoordinator(options: CoordinatorOptions): Coordinator {
     notify();
   }
 
+  /** The note write — the one exception to the single `update` path. A note is pure
+   *  annotation: it dirties the synced plan, but it is *not* an economic input (so there
+   *  is nothing to re-derive) and it renders nowhere on the timeline (so a notify, which
+   *  fans out to the whole-timeline rebuild, would be wasted — and, fired on the editor's
+   *  blur, would tear down the very chip the click is landing on). Every surface reads
+   *  `notes` fresh on its next render and the editor itself is the live value, so persist
+   *  is all correctness needs. */
+  function persistNote(notes: NonNullable<PlanDocument["notes"]>): void {
+    doc = { ...doc, notes };
+    local = { ...local, sync: { etag: local.sync?.etag ?? null, dirty: true } };
+    persist();
+  }
+
   function patchIdentitySection(patch: Record<string, unknown>): void {
     const cfg = doc.config ?? {};
     const identity = cfg["identity"];
@@ -391,7 +404,7 @@ export function createCoordinator(options: CoordinatorOptions): Coordinator {
       const next = { ...(doc.notes ?? {}) };
       if (note) next[subjectId] = note; // normalised: trimmed, capped, control-chars stripped
       else delete next[subjectId]; // empty clears (sparse, never "")
-      update({ notes: next });
+      persistNote(next);
     },
     patchIdentity: patchIdentitySection,
     setUsername(name) {

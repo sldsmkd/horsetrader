@@ -184,21 +184,33 @@
   justify-content: flex-end;
 }
 
-/* Dismiss — the standard control-language button at its natural width, centred (matches the
-   card surface's close; the bare button had no styling and read as a raw browser control). */
-.plan__close {
-  align-self: center;
+/* Actions — Cancel (discard the staged note edits) beside Update (write the changed rows),
+   the shared control-language pair (matches the card/oshi/balance editors). */
+.plan__cancel,
+.plan__update {
   min-width: calc(6.88 * var(--glass-u));
   padding: calc(0.69 * var(--glass-u)) calc(1.13 * var(--glass-u));
-  border: 1px solid var(--ht-control-border);
   border-radius: var(--ht-control-radius);
-  background: var(--ht-control-bg);
   color: inherit;
   font: inherit;
   cursor: pointer;
 }
-.plan__close:hover,
-.plan__close:focus-visible {
+.plan__cancel {
+  border: 1px solid var(--ht-control-border);
+  background: var(--ht-control-bg);
+}
+.plan__cancel:hover,
+.plan__cancel:focus-visible {
   background: var(--ht-control-bg-hover-subtle);
+  outline: 0;
+}
+.plan__update {
+  border: 1px solid var(--ht-control-primary-border);
+  background: var(--ht-control-primary-bg);
+  font-weight: var(--ht-type-surface-title-weight);
+}
+.plan__update:hover,
+.plan__update:focus-visible {
+  background: var(--ht-control-primary-bg-hover);
   outline: 0;
 }

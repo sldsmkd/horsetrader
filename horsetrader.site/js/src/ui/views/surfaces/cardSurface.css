@@ -276,21 +276,34 @@
   outline: 0;
 }
 
-/* Dismiss — a standard control-language button at its natural width, centred (the card
-   stretches its rows, so this opts back out rather than reading as a full-width bar). */
-.card-surface__close {
-  align-self: center;
+/* Actions — Cancel (discard) beside Update (apply the staged favourite + note), the shared
+   control-language pair (matches the oshi/balance editors). The card is now a staged editor:
+   nothing writes until Update. */
+.card-surface__cancel,
+.card-surface__update {
   min-width: calc(6.88 * var(--glass-u));
   padding: calc(0.69 * var(--glass-u)) calc(1.13 * var(--glass-u));
-  border: 1px solid var(--ht-control-border);
   border-radius: var(--ht-control-radius);
-  background: var(--ht-control-bg);
   color: inherit;
   font: inherit;
   cursor: pointer;
 }
-.card-surface__close:hover,
-.card-surface__close:focus-visible {
+.card-surface__cancel {
+  border: 1px solid var(--ht-control-border);
+  background: var(--ht-control-bg);
+}
+.card-surface__cancel:hover,
+.card-surface__cancel:focus-visible {
   background: var(--ht-control-bg-hover-subtle);
+  outline: 0;
+}
+.card-surface__update {
+  border: 1px solid var(--ht-control-primary-border);
+  background: var(--ht-control-primary-bg);
+  font-weight: var(--ht-type-surface-title-weight);
+}
+.card-surface__update:hover,
+.card-surface__update:focus-visible {
+  background: var(--ht-control-primary-bg-hover);
   outline: 0;
 }

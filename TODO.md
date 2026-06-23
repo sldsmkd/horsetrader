@@ -2,6 +2,27 @@
 
 ---
 
+## Revisit: staged-editor surfaces + the app-locking suspicion
+
+Card detail + the Desk (plan surface) were reworked into staged editors: drafts
+held locally, nothing writes until an explicit Update, dismiss button starts as
+"Close" and swaps to a "Cancel"/"Update" pair on first edit. Esc + the
+timeline-chip swap are both gated on the same pristine guard.
+
+The trigger was a two-click swap bug, root-caused to a note `blur` →
+`coord.setNote` → `notify()` → `refresh()` + `renderSurfaces` firing **mid-gesture**,
+tearing down the very chip/textarea being interacted with. Fixed two ways: notes
+now persist silently (non-economic, no re-derive/notify — `coordinator.persistNote`),
+and edits no longer write on blur at all.
+
+**Suspicion to confirm:** this reentrant write→refresh-during-render was likely
+behind the intermittent **app locking** I've been seeing. Watch whether it stops
+now. Then revisit and reason the whole staged-editor / dismiss model through
+properly — it was built iteratively across a session and deserves a clean-headed
+second pass (esp. the render architecture rebuilding whole surfaces on any change,
+which is what forced the Desk's note-draft store). See memory
+`project_esc_dismiss_staged_editors`. Branch `twinkle-monthly-plan-selectors`, uncommitted.
+
 ## ✅ Favourites bar — atom cards + cyclic navigation
 
 ~~- Show a counter: how many times the character still appears ahead in the timeline

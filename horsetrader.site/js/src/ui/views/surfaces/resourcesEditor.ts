@@ -14,6 +14,7 @@ import "./resourcesEditor.css";
 import { h } from "../../h.ts";
 import { RESOURCE_ROWS, cellHeading, resourceGrid, type Cell } from "./resourceLayout.ts";
 import { surfaceActions } from "./surfaceActions.ts";
+import { surfaceCancel } from "./surface.ts";
 import { normaliseCount, resourceCap } from "../../../core/persistence/validate.ts";
 import type { ResourceVector } from "../../../core/projection/index.ts";
 import type { Snapshot } from "../../../core/persistence/document.ts";
@@ -142,6 +143,14 @@ export function resourcesEditor(opts: ResourcesEditorOpts): HTMLElement {
     return { snapshot, dailyPack, trainingPass: passToggle.checked };
   };
 
+  // Pristine ⇒ nothing transcribed yet, so Esc may back out; any edited field is a
+  // pending transcription the player would lose, so Esc holds (the native
+  // defaultValue/defaultChecked carry the as-opened baseline).
+  const pristine = (): boolean =>
+    [...inputs.values(), packDays].every((input) => input.value === input.defaultValue) &&
+    packToggle.checked === packToggle.defaultChecked &&
+    passToggle.checked === passToggle.defaultChecked;
+
   return h(
     "section",
     { class: "resources-editor" },
@@ -167,11 +176,7 @@ export function resourcesEditor(opts: ResourcesEditorOpts): HTMLElement {
       "I buy the Training Pass premium track",
     ),
     surfaceActions(
-      h(
-        "button",
-        { class: "resources-editor__cancel", attr: { type: "button" }, on: { click: opts.onClose } },
-        "Cancel",
-      ),
+      surfaceCancel({ class: "resources-editor__cancel", onCancel: opts.onClose, escSafe: pristine }),
       h(
         "button",
         {

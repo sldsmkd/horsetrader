@@ -34,7 +34,7 @@ import { belowCard } from "./views/belowCard.ts";
 import { bannerGroup } from "./views/bannerGroup.ts";
 import type { RushBinding } from "./views/widgets/rushedToggle.ts";
 import type { FavouriteBinding, InspectBinding } from "./views/widgets/atomChip.ts";
-import { surface, lockSurface } from "./views/surfaces/surface.ts";
+import { surface, lockSurface, escDismissTarget } from "./views/surfaces/surface.ts";
 import { resourcesSurface } from "./views/surfaces/resourcesSurface.ts";
 import type { ResourcesSurfaceHandle } from "./views/surfaces/resourcesSurface.ts";
 import { resourcesEditor } from "./views/surfaces/resourcesEditor.ts";
@@ -371,6 +371,19 @@ export function mountApp(
   // both together next.
   const chromeDropdowns = h("div", { class: "chrome-dropdowns" });
 
+  // Escape dismisses the topmost open surface — but only via its declared dismiss
+  // affordance (surfaceClose / surfaceCancel), so it closes a viewer or backs out of a
+  // pristine editor while staying inert over a pending decision. The modal layer paints
+  // above the chrome rail, so it's offered first. Clicking the button reuses the surface's
+  // own teardown (view-state set + side effects) — no separate dismiss path to keep in sync.
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape" || e.defaultPrevented) return;
+    const target = escDismissTarget(surfaceLayer, chromeDropdowns);
+    if (!target) return;
+    e.preventDefault();
+    target.click();
+  });
+
   // UmaMark — the deterministic benchmark (grand-masters/umamark.md). It scripts the camera
   // (tl.bench) and reads Darley's perf instrument; for the run it hides all chrome so the
   // world is the only thing stressed, then restores it. Constructed here, once every chrome
@@ -491,9 +504,25 @@ export function mountApp(
   // featured grid — the banner chip is where a person actually clicks the atom.
   const inspect: InspectBinding = {
     open: (kind, id) => {
-      if (!modalOpen()) view.set({ cardDetail: { kind, id } });
+      // The timeline is always interactive (surface principle 1: the canvas stays live behind
+      // a modal), so a banner-chip inspect lands whenever it safely can. With a card detail
+      // already open it *swaps* the subject in place — but only while that card is pristine,
+      // the same guard Esc uses: `escDismissTarget` is non-null iff the topmost surface (the
+      // card) has no staged edits. A dirty card blocks the swap until Update/Cancel resolves
+      // it (no silent loss of a staged note). With no card open, a *different* modal still
+      // refuses the spawn (belt-and-braces past suspension).
+      if (view.get().cardDetail !== null) {
+        if (escDismissTarget(surfaceLayer)) view.set({ cardDetail: { kind, id } });
+      } else if (!modalOpen()) {
+        view.set({ cardDetail: { kind, id } });
+      }
     },
   };
+
+  // The Desk's in-progress note drafts, keyed by banner id. Held here — outside the
+  // per-render surface tree — so a half-typed note survives the rebuild the Desk's own
+  // children (card/dossier) trigger when they open. Cleared by the Desk on Update/Cancel.
+  const planNoteDrafts = new Map<string, string>();
 
   function renderSurfaces(): void {
     const identityUi = identityMachine.get();
@@ -689,6 +718,7 @@ export function mountApp(
           // The banner note (the *why*) — keyed by the banner's stable id, same setNote
           // seam the card surface uses for atom notes (normalised + persisted by coord).
           onSetNote: (key, text) => coord.setNote(key, text),
+          noteDrafts: planNoteDrafts,
           onClose: () => view.set({ plan: false }),
         }),
         onClose: () => view.set({ plan: false }),
@@ -741,13 +771,19 @@ export function mountApp(
           bundle,
           kind: cardDetail.kind,
           id: cardDetail.id,
-          // The favourite lives here now — the banner chip only reflects it.
+          // Both fields are staged in the surface and applied together on Update — the only
+          // write, so editing the card never refreshes the timeline until then. The favourite
+          // lives here (the banner chip only reflects it); notes key by the subject's stable id.
           favourited: fav.isFavourited(cardDetail.id),
-          onToggleFavourite: (on) => fav.setFavourited(cardDetail.id, on),
-          // Notes are keyed by the subject's stable id (already prefix-unique).
           note: coord.document().notes?.[cardDetail.id] ?? "",
-          onSetNote: (text) => coord.setNote(cardDetail.id, text),
-          onClose: () => view.set({ cardDetail: null }),
+          onCommit: ({ favourited, note }) => {
+            // Only touch the favourite when it actually flipped — setFavourite refreshes the
+            // timeline (the chip's pressed state), while the note write is silent.
+            if (favourited !== fav.isFavourited(cardDetail.id)) fav.setFavourited(cardDetail.id, favourited);
+            coord.setNote(cardDetail.id, note);
+            view.set({ cardDetail: null });
+          },
+          onCancel: () => view.set({ cardDetail: null }),
         }),
         onClose: () => view.set({ cardDetail: null }),
       });

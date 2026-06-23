@@ -13,6 +13,7 @@ import "./betaSurface.css";
 
 import { h } from "../../h.ts";
 import { surfaceActions } from "./surfaceActions.ts";
+import { surfaceCancel } from "./surface.ts";
 
 export interface BetaSurfaceOptions {
   onClose: () => void;
@@ -35,6 +36,6 @@ export function betaSurface({ onClose, onRunUmaMark }: BetaSurfaceOptions): HTML
       { class: "beta-surface__run", attr: { type: "button" }, on: { click: onRunUmaMark } },
       "Run UmaMark",
     ),
-    surfaceActions(h("button", { class: "beta-surface__cancel", attr: { type: "button" }, on: { click: onClose } }, "Cancel")),
+    surfaceActions(surfaceCancel({ class: "beta-surface__cancel", onCancel: onClose })),
   );
 }

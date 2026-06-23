@@ -29,6 +29,7 @@ import "./cloudProvider.css";
 import { h } from "../../h.ts";
 import { presentConfirm } from "./confirm.ts";
 import { surfaceActions } from "./surfaceActions.ts";
+import { surfaceCancel } from "./surface.ts";
 import { CLOUD_PROVIDERS, connect, disconnect, switchProvider } from "../../../core/cloud/index.ts";
 import type { AuthState, CloudProvider } from "../../../core/cloud/index.ts";
 import type { Coordinator } from "../../../core/engine/index.ts";
@@ -119,7 +120,7 @@ export function cloudProvider(opts: CloudProviderOpts): HTMLElement {
     h("h2", { class: "cloud-provider__title" }, "Cloud Save"),
     intro,
     list,
-    surfaceActions(h("button", { class: "cloud-provider__cancel", attr: { type: "button" }, on: { click: opts.onClose } }, "Cancel")),
+    surfaceActions(surfaceCancel({ class: "cloud-provider__cancel", onCancel: opts.onClose })),
   );
 }
 

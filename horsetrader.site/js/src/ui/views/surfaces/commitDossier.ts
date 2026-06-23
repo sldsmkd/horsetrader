@@ -27,6 +27,7 @@ import { PITY_WASTE_ABOVE } from "../../select/aboveLane.ts";
 import { forecastWidget } from "../widgets/forecast.ts";
 import { pityBand } from "../widgets/pityBand.ts";
 import { surfaceActions } from "./surfaceActions.ts";
+import { surfaceCancel } from "./surface.ts";
 import { checkbox } from "../widgets/checkbox.ts";
 
 export interface CommitDossierOpts {
@@ -270,7 +271,13 @@ export function commitDossier(opts: CommitDossierOpts): HTMLElement {
 
     // Save writes the pity through to the commitments map; 0 clears it.
     surfaceActions(
-      h("button", { class: "commit-dossier__cancel", attr: { type: "button" }, on: { click: opts.onClose } }, "Cancel"),
+      surfaceCancel({
+        class: "commit-dossier__cancel",
+        onCancel: opts.onClose,
+        // Pristine ⇒ Esc backs out; a dialled-but-unsaved pity/paid draft is a pending
+        // decision, so Esc holds and Cancel stays the deliberate way out.
+        escSafe: () => pity === (ctx.committedPity ?? 0) && usePaid === ctx.committedUsePaid,
+      }),
       h(
         "button",
         {
