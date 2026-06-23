@@ -43,6 +43,11 @@ export interface ViewState {
    *  like the others — spawned at source (today the commit dossier's featured cards),
    *  modal to every spawnable window (twinkle-monthly/step-1-card-surface.md). */
   cardDetail: { kind: BannerKind; id: string } | null;
+  /** Whether The Plan (the Desk) is up — the whole-plan reading surface spawned from
+   *  the menubar's tablet button (twinkle-monthly/cover.md). A modal like the commit
+   *  dossier: modal to every spawnable window, the timeline behind it stays live. The
+   *  button only appears once a commitment exists, so this is never opened over 0 rows. */
+  plan: boolean;
 }
 
 export interface ViewStore {
@@ -62,6 +67,7 @@ const INITIAL: ViewState = {
   committing: null,
   cloudConnecting: false,
   cardDetail: null,
+  plan: false,
 };
 
 export function createViewStore(initial: Partial<ViewState> = {}): ViewStore {

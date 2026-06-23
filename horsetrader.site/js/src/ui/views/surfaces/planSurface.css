@@ -1,0 +1,85 @@
+.plan {
+  display: flex;
+  flex-direction: column;
+  gap: calc(1.38 * var(--glass-u));
+  min-width: calc(30 * var(--glass-u));
+  max-width: calc(40 * var(--glass-u));
+}
+
+/* Title hero — centred spine like the other surfaces, replacing the window title bar. */
+.plan__mast {
+  display: flex;
+  flex-direction: column;
+  gap: calc(0.19 * var(--glass-u));
+  text-align: center;
+}
+
+.plan__title {
+  margin: 0;
+  font-size: var(--ht-type-surface-title-size);
+  font-weight: var(--ht-type-surface-title-weight);
+  line-height: 1.1;
+}
+
+.plan__count {
+  margin: 0;
+  font-size: var(--ht-type-caption-size);
+  line-height: var(--ht-type-caption-line);
+  opacity: 0.6;
+}
+
+/* The rows — the readable whole-plan, one banner each, stacked along the time spine. */
+.plan__rows {
+  display: flex;
+  flex-direction: column;
+  gap: calc(0.5 * var(--glass-u));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.plan__row {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto auto;
+  align-items: center;
+  gap: calc(0.94 * var(--glass-u));
+  padding: calc(0.5 * var(--glass-u)) calc(0.75 * var(--glass-u));
+  border: 1px solid var(--ht-control-border);
+  border-radius: var(--ht-control-radius-soft);
+  background: color-mix(in srgb, Canvas 64%, transparent);
+}
+
+/* The kind pill, tinted by the affordability band (.pity-band--<band>, shared). */
+.plan__band {
+  padding: calc(0.13 * var(--glass-u)) calc(0.5 * var(--glass-u));
+  border-radius: var(--ht-control-radius-soft);
+  font-size: var(--ht-type-micro-size);
+  text-transform: uppercase;
+  letter-spacing: var(--ht-type-label-spacing);
+  white-space: nowrap;
+}
+
+.plan__label {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.plan__window {
+  font-size: var(--ht-type-caption-size);
+  opacity: 0.6;
+  white-space: nowrap;
+}
+
+.plan__pity {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.plan__forecast {
+  display: inline-flex;
+  justify-content: flex-end;
+}

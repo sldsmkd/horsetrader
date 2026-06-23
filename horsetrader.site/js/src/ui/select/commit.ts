@@ -19,6 +19,7 @@ import { commitmentPity, commitmentUsePaid } from "../../core/persistence/docume
 import { atomOf, type BannerAtom, type BannerKind, type RarityTier } from "./aboveLane.ts";
 import { remainingAfterSpend, bannerDays, bannerPullSources, type PullSources } from "../../core/projection/pulls.ts";
 import type { CalendarDate } from "../../core/projection/dates.ts";
+import type { ForecastInput } from "./forecast.ts";
 
 /** Featured-card sort: hero rarity bands first (crystal → gold → silver), then alpha within
  *  a band — so the highest-rarity pickups lead from the left. */
@@ -74,11 +75,30 @@ const MAX_COPIES = 5;
  *  target, so take the **highest-tier** featured card (the SSR/3★ you'd pick) and read
  *  its rate — a banner-local override if present, else the tier default. Ties at the
  *  top tier resolve to the best rate (the most favourable single target). */
-function featuredRate(ev: { rate_overrides?: Record<string, number> }, atoms: CommitAtom[], defaults: Record<string, number>): number {
+function featuredRate(ev: { rate_overrides?: Record<string, number> }, atoms: readonly { id: string; rarityTier: RarityTier }[], defaults: Record<string, number>): number {
   const topTier: RarityTier = atoms.some((a) => a.rarityTier === "crystal") ? "crystal" : "gold";
   const overrides = ev.rate_overrides ?? {};
   const rates = atoms.filter((a) => a.rarityTier === topTier).map((a) => overrides[a.id] ?? defaults[topTier] ?? 0);
   return rates.length ? Math.max(...rates) : 0;
+}
+
+/** The per-banner forecast parameters — everything the outcome distribution needs
+ *  *except* the committed pity (which the caller supplies): the spark threshold, the
+ *  top-tier featured rate, and the copy cap (MLB / 5★). */
+export type ForecastBase = Omit<ForecastInput, "pity">;
+
+/** Assemble a banner's forecast parameters from the bundle — shared by the commit
+ *  dossier and the Desk's per-row forecast so the two model identical odds. The
+ *  committed pity is folded in by the caller (`{ ...bannerForecast(...), pity }`).
+ *  Resolve-or-throw on a non-banner key, the trust-the-bake stance of the lookups. */
+export function bannerForecast(bundle: Bundle, bannerKey: string): ForecastBase {
+  const ev = bundle.event(bannerKey);
+  if (ev.type !== "trainee" && ev.type !== "support") throw new Error(`bannerForecast: "${bannerKey}" is not a banner (${ev.type})`);
+  const { spark_threshold: sparkThreshold, featured_rates } = bundle.config().gacha;
+  const atoms = ev.contents
+    .map((id) => atomOf(bundle, ev.type, id))
+    .filter((a): a is BannerAtom => a !== null);
+  return { pullsPerPity: sparkThreshold, featuredRate: featuredRate(ev, atoms, featured_rates), maxCopies: MAX_COPIES };
 }
 
 /** The two live reads the modal folds in, mirroring `AboveLaneInputs`. */

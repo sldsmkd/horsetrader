@@ -39,6 +39,8 @@ import { resourcesSurface } from "./views/surfaces/resourcesSurface.ts";
 import type { ResourcesSurfaceHandle } from "./views/surfaces/resourcesSurface.ts";
 import { resourcesEditor } from "./views/surfaces/resourcesEditor.ts";
 import { commitDossier, commitTitle } from "./views/surfaces/commitDossier.ts";
+import { planSurface } from "./views/surfaces/planSurface.ts";
+import { planRows } from "./select/plan.ts";
 import { commitContext } from "./select/commit.ts";
 import { cardSurface } from "./views/surfaces/cardSurface.ts";
 import type { CommitBinding } from "./views/bannerGroup.ts";
@@ -256,6 +258,9 @@ export function mountApp(
     onHome: () => tl.warpTo(now),
     onIdentity: () => sendIdentityEvent({ type: "toggle-identity" }),
     onResources: () => toggleRight("resources"),
+    onPlan: () => {
+      if (!modalOpen()) view.set({ plan: true });
+    },
     onBeta: () => toggleRight("beta"),
     showBeta: umamarkEnabled,
     search,
@@ -464,7 +469,8 @@ export function mountApp(
       view.get().resourcesEditing ||
       view.get().committing !== null ||
       view.get().cloudConnecting ||
-      view.get().cardDetail !== null
+      view.get().cardDetail !== null ||
+      view.get().plan
     );
   };
 
@@ -501,6 +507,8 @@ export function mountApp(
     menu.setIdentity(identity.menuIdentity());
     menu.setLeftActive(left !== "closed");
     menu.setRightActive(right);
+    // The Plan door appears only once the plan is non-empty (cached committed set).
+    menu.setPlanAvailable(coord.commitmentStatuses().size > 0);
     menu.setLocked(anyModal);
 
     const trainerCardOn = {
@@ -704,6 +712,27 @@ export function mountApp(
         onClose: () => view.set({ cardDetail: null }),
       });
       children.push(detailCard);
+    }
+
+    // The Plan — the Desk (twinkle-monthly/cover.md): the whole-plan reading surface,
+    // spawned from the menubar's tablet button. A modal like the commit dossier — it
+    // sits in `anyModal` above (locking the menu + suspending the others), the timeline
+    // behind it stays live. Reads the cached committed set + the shared pity-band rule,
+    // so its rows agree with the strip and the badge by construction.
+    if (view.get().plan) {
+      const statuses = coord.commitmentStatuses();
+      const rows = planRows(bundle, statuses, (key) => {
+        const s = statuses.get(key);
+        return s ? pityBand(s.pity, s.unfundable, PITY_WASTE_ABOVE[s.kind]) : "empty";
+      });
+      const planCard = surface({
+        title: "The Plan",
+        placement: "center",
+        headerless: true,
+        body: planSurface({ rows, onClose: () => view.set({ plan: false }) }),
+        onClose: () => view.set({ plan: false }),
+      });
+      children.push(planCard);
     }
 
     // MODALITY — the lock fan-out, declared once (grand-masters/byerley-turk.md). A
