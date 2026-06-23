@@ -70,3 +70,29 @@ export function forecastWidget(base: Omit<ForecastInput, "pity">, kind: BannerKi
 
   return { el, update };
 }
+
+/**
+ * A compact, static forecast for a plan row — the same outcome distribution shrunk to
+ * a label-less sparkline plus the expected-copies scalar. No reactive `update`: a Desk
+ * row rebuilds on every render, so it takes the committed pity baked into `input` and
+ * draws once. The bar shape (guaranteed floor solid, random tail tapering) is the
+ * recognisable miniature of the full widget; the number is the single cross-kind unit.
+ */
+export function compactForecast(input: ForecastInput): HTMLElement {
+  const dist = forecast(input);
+  const chart = h("div", { class: "forecast-mini__chart" });
+  // copies 1..maxCopies — the 0-copy bar is dropped, exactly like the full chart.
+  for (let copies = 1; copies <= input.maxCopies; copies++) {
+    const { prob, guaranteed } = dist[copies];
+    const fill = h("div", { class: `forecast-mini__fill${guaranteed ? " forecast-mini__fill--guaranteed" : ""}` });
+    fill.style.height = `${(prob * 100).toFixed(2)}%`;
+    chart.append(h("div", { class: "forecast-mini__bar" }, fill));
+  }
+  const expected = expectedCopies(input).toFixed(1);
+  return h(
+    "div",
+    { class: "forecast-mini", attr: { title: `≈ ${expected} expected copies` } },
+    chart,
+    h("span", { class: "forecast-mini__value" }, `≈${expected}`),
+  );
+}

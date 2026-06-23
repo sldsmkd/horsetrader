@@ -1607,6 +1607,14 @@
             }
           ]
         },
+        "paid_ssr_selectors": {
+          "type": "integer",
+          "default": 0
+        },
+        "paid_trainee_selectors": {
+          "type": "integer",
+          "default": 0
+        },
         "start": {
           "type": "string"
         },

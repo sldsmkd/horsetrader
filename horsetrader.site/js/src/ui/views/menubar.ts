@@ -27,6 +27,9 @@ export interface Menubar {
   setLeftActive(active: boolean): void;
   /** Highlight which right-group surface is open (balance), or none. */
   setRightActive(member: RightSurface | null): void;
+  /** Reveal the Plan (tablet) button. The Desk has nothing to show with no
+   *  commitments, so the door only appears once the plan is non-empty. */
+  setPlanAvailable(available: boolean): void;
   /** Lock the surface-spawning buttons while a modal (modal child window) is up.
    *  Navigation (home, search) stays live; so do the independent higher layers
    *  (bookmarks, minimap, timeline). A modal is modal only against its peers —
@@ -46,6 +49,10 @@ export interface MenubarOpts {
   onHome: () => void;
   onIdentity: () => void;
   onResources: () => void;
+  /** The Plan (Desk) spawn seam — the tablet button left of the carat balance. A modal
+   *  like the commit dossier (twinkle-monthly/cover.md). Shown only once `setPlanAvailable`
+   *  reveals it (a commitment exists). */
+  onPlan: () => void;
   /** The beta chamber's spawn seam. Rendered only when `showBeta` is set (the `?umamark`
    *  flag), revealing the chamber that hosts UmaMark — see grand-masters/umamark.md. */
   onBeta: () => void;
@@ -70,6 +77,19 @@ export function menubar(opts: MenubarOpts): Menubar {
       h("span", { class: "menubar__balance-unit" }, "carats"),
     ),
   );
+  // The Plan (Desk) door — a tablet button immediately left of the carat balance.
+  // Hidden until a commitment exists (`setPlanAvailable`); the Desk has nothing to
+  // render over an empty plan (twinkle-monthly/cover.md).
+  const plan = h(
+    "button",
+    {
+      class: "menubar__item menubar__button menubar__plan menubar__plan--hidden",
+      attr: { type: "button", "aria-label": "Plan", title: "Plan" },
+      on: { click: opts.onPlan },
+    },
+    h("img", { class: "menubar__plan-icon", attr: { src: "/icons/tablet.png", alt: "", width: 28, height: 28 } }),
+  );
+
   const search = searchBox({ search: opts.search, onSearch: opts.onSearch });
   const identityIcon = h("img", {
     class: "menubar__identity-icon",
@@ -109,8 +129,8 @@ export function menubar(opts: MenubarOpts): Menubar {
     : null;
 
   const rightCluster = beta
-    ? h("div", { class: "menubar__cluster menubar__cluster--right" }, beta, balance)
-    : h("div", { class: "menubar__cluster menubar__cluster--right" }, balance);
+    ? h("div", { class: "menubar__cluster menubar__cluster--right" }, beta, plan, balance)
+    : h("div", { class: "menubar__cluster menubar__cluster--right" }, plan, balance);
 
   const el = h(
     "nav",
@@ -150,7 +170,7 @@ export function menubar(opts: MenubarOpts): Menubar {
 
   // The surface spawners a modal locks — every *live* menu item that opens a
   // same-layer surface (not home/search, which are navigation).
-  const lockable: HTMLButtonElement[] = [identity, balance, ...(beta ? [beta] : [])];
+  const lockable: HTMLButtonElement[] = [identity, plan, balance, ...(beta ? [beta] : [])];
   function setLocked(locked: boolean): void {
     for (const button of lockable) {
       button.disabled = locked;
@@ -173,6 +193,7 @@ export function menubar(opts: MenubarOpts): Menubar {
     },
     setLeftActive,
     setRightActive: (member) => setRightPressed(member),
+    setPlanAvailable: (available) => plan.classList.toggle("menubar__plan--hidden", !available),
     setLocked,
   };
 }

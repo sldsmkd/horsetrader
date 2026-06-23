@@ -1,0 +1,204 @@
+/* The Desk is a spreadsheet, not a dialog — it runs wider than the standard modal. Snug to
+   the current columns for now (commit · chips · half-note · forecast); it'll grow as more
+   info lands. Widened on the card itself (.surface--modal fixes the width + clips overflow),
+   scoped to the plan via :has so no other modal changes. Capped to the viewport. */
+.surface--modal:has(.plan) {
+  width: min(calc(64 * var(--glass-u)), calc(100vw - 1.88 * var(--glass-u)));
+}
+
+.plan {
+  display: flex;
+  flex-direction: column;
+  gap: calc(1.38 * var(--glass-u));
+  width: 100%; /* fill the (now wide) card; the row grid distributes the columns */
+}
+
+/* Title hero — personalised: the oshi's portrait beside "Xelene's Plan" + the count. */
+.plan__mast {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(1 * var(--glass-u));
+}
+
+/* The oshi portrait — a larger character mark than the menubar pill icon. Round, ringed. */
+.plan__oshi {
+  width: calc(5 * var(--glass-u));
+  height: calc(5 * var(--glass-u));
+  flex-shrink: 0;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: top center;
+  box-shadow: 0 0 0 1px color-mix(in srgb, currentColor 25%, transparent);
+}
+
+.plan__masthead {
+  display: flex;
+  flex-direction: column;
+  gap: calc(0.19 * var(--glass-u));
+}
+
+.plan__title {
+  margin: 0;
+  font-size: var(--ht-type-surface-title-size);
+  font-weight: var(--ht-type-surface-title-weight);
+  line-height: 1.1;
+}
+
+.plan__count {
+  margin: 0;
+  font-size: var(--ht-type-caption-size);
+  line-height: var(--ht-type-caption-line);
+  opacity: 0.6;
+}
+
+/* The rows — the readable whole-plan, one banner each, stacked along the time spine. */
+.plan__rows {
+  display: flex;
+  flex-direction: column;
+  gap: calc(0.5 * var(--glass-u));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+/* Year rule between rows — a centred YYYY flanked by hairlines (the dates lost their year).
+   Small gap each side; a touch of breathing above/below so it reads as a section break. */
+.plan__year {
+  display: flex;
+  align-items: center;
+  gap: calc(0.75 * var(--glass-u));
+  margin: calc(0.31 * var(--glass-u)) 0;
+  font-size: var(--ht-type-caption-size);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--ht-type-label-spacing);
+  opacity: 0.5;
+}
+
+.plan__year::before,
+.plan__year::after {
+  content: "";
+  flex: 1;
+  border-top: 1px solid var(--ht-control-border);
+}
+
+.plan__row {
+  display: grid;
+  /* Shared cell size for the commit box + the chips, so the pity box and the portraits line
+     up at the same height (the pity box's two lines set the floor; the chips grow to match). */
+  --plan-cell: 2.9rem;
+  /* commit box · fixed-width chips · note (fills, but text capped ~half) · forecast right. */
+  grid-template-columns: auto auto 1fr auto;
+  /* Everything hangs from the top — the note wraps to several lines, the rest stays put. */
+  align-items: start;
+  gap: calc(0.94 * var(--glass-u));
+  padding: calc(0.5 * var(--glass-u)) calc(0.75 * var(--glass-u));
+  border: 1px solid var(--ht-control-border);
+  /* The kind (trainee/support) reads off the left edge — the chips' own border tells
+     them apart, so this is reinforcement, not the sole signal. Flat for now. */
+  border-left: calc(0.31 * var(--glass-u)) solid var(--plan-kind);
+  border-radius: var(--ht-control-radius-soft);
+  background: color-mix(in srgb, Canvas 64%, transparent);
+}
+
+.plan__row--trainee {
+  --plan-kind: var(--ht-colour-trainee);
+}
+
+.plan__row--support {
+  --plan-kind: var(--ht-colour-support);
+}
+
+/* The content chips — the banner's featured atoms as pure-icon portrait pills. A fixed
+ *  4-slot row (capped at MAX_CHIPS): every banner reserves the same width so the rest of
+ *  the row aligns, even with one chip. The chip is its own button (favourite + inspect). */
+.plan__chips {
+  display: grid;
+  grid-template-columns: repeat(4, var(--plan-cell));
+  gap: calc(0.38 * var(--glass-u));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Grow the compact chips to the shared cell size so they match the pity box height. Scoped
+   to the Desk — the compact chip is only used here, but keep the global default untouched. */
+.plan .atom-chip--compact {
+  height: var(--plan-cell);
+}
+
+/* The badge box — wraps planCommit (pity number + date inside), wearing the *banner's*
+   badge chrome: band fill + ring, squared corners. Sized to its content (two lines) rather
+   than the chip square. Mirrors .banner__commit-badge: the ring lives on the WRAPPER (its
+   currentColor is the grey row text) so the badge's own white label doesn't wash it out. */
+.plan__badge {
+  display: inline-flex;
+  min-width: var(--plan-cell);
+  height: var(--plan-cell); /* same height as the chips (shared --plan-cell) */
+  border-radius: 0.4rem; /* match the chips' squared corners, not the glass pane radius */
+  /* Ring inset so it doesn't add to the box size; drop shadow stays outside. */
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, currentColor 35%, Canvas),
+    0 1px 4px color-mix(in srgb, var(--ht-colour-shadow) 45%, transparent);
+}
+
+/* The banner note (the "why") — the middle column, editable. Capped to ~half so it wraps to
+   a few lines instead of running the row's full width. Reads as plain text (borderless, faded)
+   until hovered/focused, when the field reveals itself — the glass-table hover-to-edit idiom. */
+.plan__note {
+  margin: 0;
+  min-width: 0;
+  width: 100%;
+  max-width: calc(38 * var(--glass-u));
+  resize: none;
+  padding: calc(0.31 * var(--glass-u)) calc(0.44 * var(--glass-u));
+  border: 1px solid transparent;
+  border-radius: var(--ht-control-radius-soft);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: var(--ht-type-caption-size);
+  line-height: 1.3;
+  opacity: 0.55;
+  transition: opacity 0.12s, border-color 0.12s, background 0.12s;
+}
+.plan__note::placeholder {
+  color: inherit;
+  opacity: 0.5;
+}
+.plan__note:hover {
+  border-color: var(--ht-control-border);
+  opacity: 0.8;
+}
+.plan__note:focus {
+  border-color: var(--ht-control-border);
+  background: var(--ht-control-bg);
+  opacity: 1;
+  outline: 0;
+}
+
+.plan__forecast {
+  display: inline-flex;
+  justify-content: flex-end;
+}
+
+/* Dismiss — the standard control-language button at its natural width, centred (matches the
+   card surface's close; the bare button had no styling and read as a raw browser control). */
+.plan__close {
+  align-self: center;
+  min-width: calc(6.88 * var(--glass-u));
+  padding: calc(0.69 * var(--glass-u)) calc(1.13 * var(--glass-u));
+  border: 1px solid var(--ht-control-border);
+  border-radius: var(--ht-control-radius);
+  background: var(--ht-control-bg);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.plan__close:hover,
+.plan__close:focus-visible {
+  background: var(--ht-control-bg-hover-subtle);
+  outline: 0;
+}

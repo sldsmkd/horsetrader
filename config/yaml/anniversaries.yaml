@@ -41,19 +41,24 @@ anniversary-0_5:
     start: 2021-08-24T12:00:00+09:00
   en:
     start: 2025-11-03T22:00:00+00:00 # Unity Cup
+  paid_ssr_selectors: 0     # live ops not yet established — free SSR only, no paid packs
+  paid_trainee_selectors: 0
 mission-00100:                                   # p1 countdown 第1弾 (8d → 1200)
   en: {name: "Half Anniversary Celebration Part 1", duration: P8D}
   login: [150, 150, 150, 150, 150, 150, 150, 150]
 mission-00101:                                   # p2 main 第2弾
   en: {name: "Half Anniversary Celebration Part 2", duration: P12D}
   login: [3300, 300, Null, 300, 300, 300, 300, 300, Null, 300, 300, 300]   # day-0 = 300 + 3000 present
-# p3 (mission-00102) = late, mission carats only — no login
+mission-00102:                                   # p3 late — no login (mission carats only)
+  ssr_selectors: 1                               # free SSR exchange voucher (引換券), via 第3弾 missions
 
 anniversary-1_0:
   jp:
     start: 2022-02-24T12:00:00+09:00
   en:
     start: 2026-03-12T22:00:00+00:00 # Trackblazer
+  paid_ssr_selectors: 1     # dolphin (value) pack introduced; whale not yet
+  paid_trainee_selectors: 1
 
 mission-00137:                                   # p1 countdown 第1弾
   en: {name: "1st Anniversary Celebration Part 1", duration: P10D}
@@ -64,21 +69,26 @@ mission-00138:                                   # p2 main 第2弾
 mission-00139:                                   # p3 mid 第3弾
   en: {name: "1st Anniversary Celebration Part 3", duration: P15D}
   login: [150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150]
+  ssr_selectors: 1                               # free SSR exchange voucher (引換券)
 
 anniversary-1_5:
   jp:
     start: 2022-08-24T12:00:00+09:00
+  paid_ssr_selectors: 1     # dolphin SSR pack; no trainee pack this half
+  paid_trainee_selectors: 0
 mission-00217:                                   # p1 countdown 第1弾 (8d → 1200)
   en: {name: "1.5th Anniversary Celebration Part 1", duration: P8D}
   login: [150, 150, 150, 150, 150, 150, 150, 150]
 mission-00218:                                   # p2 main 第2弾
   en: {name: "1.5th Anniversary Celebration Part 2", duration: P12D}
   login: [3300, 300, Null, 300, 300, 300, 300, 300, Null, 300, 300, 300]   # day-0 = 300 + 3000 present
-# no 第3弾 — 1.5's "late" was permanent missions, no peg
+  ssr_selectors: 1 # This isn't strictly true; it came from a permanent mission we dont and wont model as it was the last of it's kind
 
 anniversary-2_0:
   jp:
     start: 2023-02-24T12:00:00+09:00
+  paid_ssr_selectors: 2     # whale (escalation) pack added — 2 of each type from here on
+  paid_trainee_selectors: 2
 mission-00301:                                   # p1 countdown 第1弾
   en: {name: "2nd Anniversary Celebration Part 1", duration: P10D}
   login: [150, 150, 150, 150, 150, 150, 150, 150, 150, 150]
@@ -88,21 +98,27 @@ mission-00302:                                   # p2 main 第2弾
 mission-00303:                                   # p3 mid 第3弾
   en: {name: "2nd Anniversary Celebration Part 3", duration: P15D}
   login: [150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150]
+  ssr_selectors: 1                               # free SSR exchange voucher (引換券)
 
 anniversary-2_5:
   jp:
     start: 2023-08-24T12:00:00+09:00
+  paid_ssr_selectors: 2
+  paid_trainee_selectors: 2
 mission-00372:                                   # p1 countdown 第1弾
   en: {name: "2.5th Anniversary Celebration Part 1", duration: P10D}
   login: [150, 150, 150, 150, 150, 150, 150, 150, 150, 150]
 mission-00373:                                   # p2 main 第2弾
   en: {name: "2.5th Anniversary Celebration Part 2", duration: P12D}
   login: [3300, 300, Null, 300, 300, 300, 300, 300, Null, 300, 300, 300]   # day-0 = 300 + 3000 present
-# p3 (mission-00374) = late, mission carats only — no login
+mission-00374:                                   # p3 late — no login (mission carats only)
+  ssr_selectors: 1                               # free SSR exchange voucher (引換券), via 第3弾 missions
 
 anniversary-3_0:
   jp:
     start: 2024-02-24T12:00:00+09:00
+  paid_ssr_selectors: 2
+  paid_trainee_selectors: 2
 mission-00631:                                   # p1 countdown 第1弾
   en: {name: "3rd Anniversary Celebration Part 1", duration: P10D}
   login: [150, 150, 150, 150, 150, 150, 150, 150, 150, 150]
@@ -112,21 +128,27 @@ mission-00632:                                   # p2 main 第2弾
 mission-00633:                                   # p3 mid 第3弾
   en: {name: "3rd Anniversary Celebration Part 3", duration: P15D}
   login: [150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150]
+  ssr_selectors: 1                               # free SSR exchange voucher (引換券)
 
 anniversary-3_5:
   jp:
     start: 2024-08-24T12:00:00+09:00
+  paid_ssr_selectors: 2
+  paid_trainee_selectors: 2
 mission-00675:                                   # p1 countdown 第1弾
   en: {name: "3.5th Anniversary Celebration Part 1", duration: P10D}
   login: [150, 150, 150, 150, 150, 150, 150, 150, 150, 150]
 mission-00676:                                   # p2 main 第2弾
   en: {name: "3.5th Anniversary Celebration Part 2", duration: P12D}
   login: [3300, 300, Null, 300, 300, 300, 300, 300, Null, 300, 300, 300]   # day-0 = 300 + 3000 present
-# p3 (mission-00677) = late, mission carats only — no login
+mission-00677:                                   # p3 late — no login (mission carats only)
+  ssr_selectors: 1                               # free SSR exchange voucher (引換券), via 第3弾 missions
 
 anniversary-4_0:
   jp:
     start: 2025-02-24T12:00:00+09:00
+  paid_ssr_selectors: 2
+  paid_trainee_selectors: 2
 mission-00808:                                   # p1 countdown 第1弾
   en: {name: "4th Anniversary Celebration Part 1", duration: P10D}
   login: [150, 150, 150, 150, 150, 150, 150, 150, 150, 150]
@@ -137,21 +159,27 @@ mission-00809:                                   # p2 main 第2弾
 mission-00810:                                   # p3 mid 第3弾
   en: {name: "4th Anniversary Celebration Part 3", duration: P15D}
   login: [150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150]
+  ssr_selectors: 1                               # free SSR exchange voucher (引換券)
 
 anniversary-4_5:
   jp:
     start: 2025-08-24T12:00:00+09:00
+  paid_ssr_selectors: 2
+  paid_trainee_selectors: 2
 mission-00864:                                   # p1 countdown 第1弾
   en: {name: "4.5th Anniversary Celebration Part 1", duration: P10D}
   login: [150, 150, 150, 150, 150, 150, 150, 150, 150, 150]
 mission-00865:                                   # p2 main 第2弾
   en: {name: "4.5th Anniversary Celebration Part 2", duration: P12D}
   login: [3300, 300, Null, 300, 300, 300, 300, 300, Null, 300, 300, 300]   # day-0 = 300 + 3000 present
-# p3 (mission-00866) = late, mission carats only — no login
+mission-00866:                                   # p3 late — no login (mission carats only)
+  ssr_selectors: 1                               # free SSR exchange voucher (引換券), via 第3弾 missions
 
 anniversary-5_0:
   jp:
     start: 2026-02-24T12:00:00+09:00
+  paid_ssr_selectors: 2
+  paid_trainee_selectors: 2
 mission-01006:                                   # p1 countdown 第1弾
   en: {name: "5th Anniversary Celebration Part 1", duration: P10D}
   login: [150, 150, 150, 150, 150, 150, 150, 150, 150, 150]
@@ -162,3 +190,4 @@ mission-01007:                                   # p2 main 第2弾
 mission-01008:                                   # p3 mid 第3弾
   en: {name: "5th Anniversary Celebration Part 3", duration: P15D}
   login: [150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150]
+  ssr_selectors: 1                               # free SSR exchange voucher (引換券)

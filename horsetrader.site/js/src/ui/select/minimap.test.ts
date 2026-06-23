@@ -35,7 +35,7 @@ const ACADEMY: Academy = {
   trainees: { "t-spe": { character: "char-spe", variant: "Original", title: null, rarity: 3, release: "2021", thumbnail: null, portrait: null, aliases: [], source: null, aptitudes: null } },
   courses: {},
   races: {},
-  racetracks: {},
+  racetracks: {}, selectors: {},
 };
 
 const bundle = () => createBundle(EVENTS, ACADEMY, TEST_CONFIG);

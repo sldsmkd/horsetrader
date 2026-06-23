@@ -9,6 +9,7 @@ from .race import Race, Races
 
 from .support import Support, Supports
 from .trainee import Trainee, Trainees
+from .selector import Selector, SelectorKind, Selectors
 
 __all__ = [
     # Characters
@@ -32,6 +33,10 @@ __all__ = [
     # Trainees
     "Trainee",
     "Trainees",
+    # Selectors
+    "Selector",
+    "SelectorKind",
+    "Selectors",
     # Base classes
     "Entities",
     "Entity",

@@ -199,6 +199,21 @@ class RaceRecord(msgspec.Struct):
 
 
 @eishin
+class SelectorRecord(msgspec.Struct):
+    """An anniversary card-exchange voucher pool — its ``name`` and what it's valid
+    for. The pool is a recipe the client expands: every ``kind`` card up to and
+    including the ``cutoff`` banner (by release order), minus ``excludes``. ``kind``
+    is ``"ssr_support"`` | ``"trainee"``. How it's acquired (free grant vs paid
+    packs) is a separate reward layer, not carried here."""
+
+    name: str
+    anniversary: str
+    kind: str
+    cutoff: str
+    excludes: list[str]
+
+
+@eishin
 class Academy(msgspec.Struct):
     """Top-level shape of ``academy.json`` — the entity collections, each a
     stable-key → record map (the keys are the collection class names lowercased,
@@ -208,6 +223,7 @@ class Academy(msgspec.Struct):
     courses: dict[str, CourseRecord]
     races: dict[str, RaceRecord]
     racetracks: dict[str, RacetrackRecord]
+    selectors: dict[str, SelectorRecord]
     supports: dict[str, SupportRecord]
     trainees: dict[str, TraineeRecord]
 
@@ -376,6 +392,11 @@ class AnniversaryRecord(EventRecord, tag="anniversary"):
     # A scenario-shaped anniversary launch: the shared envelope plus a derived
     # display `name` ("1st Anniversary", "Half Anniversary").
     name: str | None
+    # Paid selector packs the store offered this anniversary, per type (0/1/2 —
+    # the dolphin/whale escalation). Per-level paid-carat cost = the ladder in
+    # config `reward_maps.anniversary-selectors`.
+    paid_ssr_selectors: int = 0
+    paid_trainee_selectors: int = 0
 
 
 @eishin

@@ -67,3 +67,43 @@
   opacity: 0.7;
   font-variant-numeric: tabular-nums;
 }
+
+/* COMPACT — the per-row miniature: a label-less sparkline + the expected scalar. */
+.forecast-mini {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(0.44 * var(--glass-u));
+}
+
+.forecast-mini__chart {
+  display: flex;
+  align-items: flex-end;
+  gap: calc(0.16 * var(--glass-u));
+  height: calc(1.75 * var(--glass-u));
+}
+
+/* Each bar is its own track; the fill grows from the bottom. */
+.forecast-mini__bar {
+  position: relative;
+  width: calc(0.38 * var(--glass-u));
+  height: 100%;
+  border-radius: 0.1rem;
+  background: color-mix(in srgb, currentColor 10%, transparent);
+}
+
+.forecast-mini__fill {
+  position: absolute;
+  inset: auto 0 0 0;
+  border-radius: 0.1rem;
+  background: color-mix(in srgb, currentColor 35%, transparent);
+}
+.forecast-mini__fill--guaranteed {
+  background: color-mix(in srgb, currentColor 60%, transparent);
+}
+
+.forecast-mini__value {
+  font-size: var(--ht-type-caption-size);
+  font-variant-numeric: tabular-nums;
+  opacity: 0.75;
+  white-space: nowrap;
+}

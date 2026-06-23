@@ -142,7 +142,10 @@
   top: 50%;
   left: 50%;
   width: min(calc(45 * var(--glass-u)), calc(100vw - 1.88 * var(--glass-u)));
-  max-height: calc(100vh - 1.88 * var(--glass-u));
+  /* Centred on the viewport, so it must reserve the LARGER chrome side on BOTH ends to stay
+     clear — the bottom (minimap + film strip) is taller than the top bar, so 2× that keeps a
+     tall modal from bleeding into the strip below (and the menubar above). */
+  max-height: calc(100svh - 2 * var(--glass-chrome-bottom-h));
   transform: translate(-50%, -50%);
 }
 

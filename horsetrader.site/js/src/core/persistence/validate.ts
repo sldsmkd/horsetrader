@@ -31,10 +31,12 @@ function isObject(value: unknown): value is Record<string, unknown> {
 /**
  * A note is a **cleat** — a short, self-contained line, long enough for a real
  * thought, short enough to never wall a glass card, and a *publishable* unit if
- * Canter ever shares it. `str[240]`. Code points, not UTF-16 units, so an emoji or
- * a CJK character each count once and a cap never splits a surrogate pair.
+ * Canter ever shares it. `str[140]` — a fully-expressed real planning note (commitment
+ * + reasoning + a forward-look) lands ~130, so 140 fits one comfortably while staying
+ * scannable in a Desk row. Code points, not UTF-16 units, so an emoji or a CJK character
+ * each count once and a cap never splits a surrogate pair.
  */
-export const NOTE_MAX_LENGTH = 240;
+export const NOTE_MAX_LENGTH = 140;
 
 /** Trainer name — `str[24]`, honouring the limit the player field has always
  *  carried. A handle, not prose: whatever the player wants, within reason. */

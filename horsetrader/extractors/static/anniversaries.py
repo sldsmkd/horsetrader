@@ -43,11 +43,18 @@ def load() -> list[dict]:
             en = {"period": Period(start=en_start), "source": source}
 
         top = store.shared(key)
+        label = f"{source}: anniversary {key!r}"
         records.append({
             "key": str(key),
             "period": Period(start=jp_start),
             "source": source,
-            "visible": store.optional_bool(top, "visible", f"{source}: anniversary {key!r}"),
+            "visible": store.optional_bool(top, "visible", label),
+            # How many PAID selector packs the store offered of each type this
+            # anniversary (the escalation: 0 at 0.5, dolphin from 1.0, +whale from
+            # 2.0). The carat cost of pack level 1..N is the ladder in
+            # `reward-map-anniversary-selectors`; the client expands count → packs.
+            "paid_ssr_selectors": store.optional_int(top, "paid_ssr_selectors", label),
+            "paid_trainee_selectors": store.optional_int(top, "paid_trainee_selectors", label),
             "en": en,
         })
     logger.info("Loaded %d anniversaries", len(records))

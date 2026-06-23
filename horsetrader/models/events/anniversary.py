@@ -1,5 +1,5 @@
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from horsetrader.core import Period, Periods, SingletonMeta, StableKey
 from horsetrader.extractors.static import Static
@@ -68,8 +68,16 @@ class Anniversary(Invisible, Event):
 
     The half/full version lives in the key (`anniversary-1_5`) and is surfaced
     as `version` / `name` rather than the runtime class. Dates are ground truth;
-    the reward haul is a separate layer carried elsewhere.
+    the reward haul is a separate layer carried elsewhere — except the two
+    `paid_*_selectors` counts, an anniversary-level store fact (how many paid
+    selector packs of each type were on sale) that rides on the launch record.
     """
+
+    # Paid selector packs offered in the store this anniversary, per type (0/1/2 —
+    # the dolphin/whale escalation). The per-level paid-carat cost is the ladder in
+    # `reward-map-anniversary-selectors`; the client expands count → purchasable packs.
+    paid_ssr_selectors: int = field(default=0, kw_only=True)
+    paid_trainee_selectors: int = field(default=0, kw_only=True)
 
     def match(self, query: str) -> bool:
         return super().match(query) or query.lower() in self.name.lower()
@@ -96,8 +104,14 @@ class Anniversary(Invisible, Event):
 
     def bake(self, period: Period) -> AnniversaryRecord:
         # A scenario-style record: the shared envelope (dates, predicted flag,
-        # key, any rewards) plus the derived display `name`.
-        return AnniversaryRecord(**self._envelope(period), name=self.name)
+        # key, any rewards) plus the derived display `name` and the paid-selector
+        # store counts.
+        return AnniversaryRecord(
+            **self._envelope(period),
+            name=self.name,
+            paid_ssr_selectors=self.paid_ssr_selectors,
+            paid_trainee_selectors=self.paid_trainee_selectors,
+        )
 
 
 @daitaku
@@ -129,6 +143,8 @@ class Anniversaries(Events[Anniversary], metaclass=SingletonMeta):
                 key=StableKey(str(record["key"])),
                 periods=periods,
                 references=references,
+                paid_ssr_selectors=record["paid_ssr_selectors"],
+                paid_trainee_selectors=record["paid_trainee_selectors"],
             )
             if (visible := record.get("visible")) is not None:
                 anniversary.apply_flags({"visible": visible})

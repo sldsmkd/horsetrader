@@ -104,7 +104,7 @@ const ACADEMY: Academy = {
   },
   courses: {},
   races: {},
-  racetracks: {},
+  racetracks: {}, selectors: {},
 };
 
 test("starter oshi slot 0 is the player-selection default", () => {

@@ -28,7 +28,7 @@ const ACADEMY: Academy = {
   },
   courses: {},
   races: {},
-  racetracks: {},
+  racetracks: {}, selectors: {},
 };
 
 const bundle = () => createBundle(EVENTS, ACADEMY, TEST_CONFIG);

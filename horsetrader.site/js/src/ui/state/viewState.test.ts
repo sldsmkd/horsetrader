@@ -5,9 +5,9 @@ import { createViewStore } from "./viewState.ts";
 
 test("starts idle; set merges a patch and exposes it", () => {
   const store = createViewStore();
-  assert.deepEqual(store.get(), { selection: null, search: "", right: null, resourcesEditing: false, committing: null, cloudConnecting: false, cardDetail: null });
+  assert.deepEqual(store.get(), { selection: null, search: "", right: null, resourcesEditing: false, committing: null, cloudConnecting: false, cardDetail: null, plan: false });
   store.set({ right: "resources" });
-  assert.deepEqual(store.get(), { selection: null, search: "", right: "resources", resourcesEditing: false, committing: null, cloudConnecting: false, cardDetail: null });
+  assert.deepEqual(store.get(), { selection: null, search: "", right: "resources", resourcesEditing: false, committing: null, cloudConnecting: false, cardDetail: null, plan: false });
 });
 
 test("subscribe fires on set; unsubscribe stops delivery", () => {

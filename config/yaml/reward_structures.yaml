@@ -130,6 +130,23 @@ reward-map-training-pass:
       support_tickets: 2
       rainbow_crystal_shards: 1
 
+# Anniversary selector PACKS — the PAID exchange-voucher ladder. A pack grants ONE
+# selector (of whichever type) bundled with paid carats; the only thing that
+# escalates is the carat cost, so this is an ORDINAL ladder by pack LEVEL, shared
+# across both selector types:
+#   level 1 = value ("dolphin") pack — 1500 paid carats
+#   level 2 = escalation ("whale") pack — 7500 paid carats
+# The per-anniversary fact (how many paid packs of each type the store offered, 0/1/2)
+# rides on the Anniversary record (`paid_ssr_selectors` / `paid_trainee_selectors`).
+# The client expands: count N of a type → packs at levels 1..N, each = 1 selector of
+# that type + that level's paid carats. Which pool the selector draws from is the
+# anniversary → Selector entity join. The FREE SSR selector is NOT here — it's the
+# 記念ミッション baseline reward on the mission. Selectors are counted, never valued.
+reward-map-anniversary-selectors:
+  tiers:
+    "1": { paid_carats: 1500 } # value pack
+    "2": { paid_carats: 7500 } # escalation pack
+
 # Story events — graded by COMMITMENT tier, not by rank. Each tier is the
 # player's TOTAL story-event income at an ascending Pt-commitment anchor: the
 # three tracked-economy engines folded into one bundle. Tiers are deliberately

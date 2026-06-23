@@ -158,7 +158,7 @@ const ACADEMY: Academy = {
   },
   courses: {},
   races: {},
-  racetracks: {},
+  racetracks: {}, selectors: {},
 };
 
 const search = () => createSearchIndex(createBundle(EVENTS, ACADEMY, TEST_CONFIG), "2026-06-05");

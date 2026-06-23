@@ -1,8 +1,9 @@
 from dataclasses import dataclass, field
+from datetime import timedelta
 
 from ethicrawl import ResourceList, Url
 
-from horsetrader.core import Config, Japlish, Period, Periods, SingletonMeta, StableKey
+from horsetrader.core import JST, Config, Japlish, Period, Periods, SingletonMeta, StableKey
 from horsetrader.enums import Sources
 from horsetrader.extractors.gametora import Gametora
 from horsetrader.extractors.gametora.story import STORY_INDEX_URL
@@ -18,6 +19,10 @@ from .event import Event, Rushable
 from .events import Events
 
 logger = Logger.get(__name__)
+
+# How close in JP time a story and a banner must run to count as a promotional
+# tie-in (the `Story.promotes` correlation window).
+_STORY_WINDOW = timedelta(days=7)
 
 # Story events carry NO rewards of their own — the graded Pt-reward ladder, the
 # bingo, and the story-chapter carats are folded into the curated play-style
@@ -59,6 +64,11 @@ class Story(Rushable, Event):
     trainees: list[Trainee] = field(default_factory=list, kw_only=True)
     supports: list[Support] = field(default_factory=list, kw_only=True)
     era: str | None = field(default=None, kw_only=True)
+    # Event-Point-Bonus TOP tier — the story-link banner cast (both kinds), the
+    # exact colink the bonus table names. `promotes` prefers these; they're the
+    # precise signal vs the featured `trainees` / welfare `supports` heuristics.
+    link_trainees: list[Trainee] = field(default_factory=list, kw_only=True)
+    link_supports: list[Support] = field(default_factory=list, kw_only=True)
 
     def match(self, query: str) -> bool:
         return (
@@ -67,6 +77,39 @@ class Story(Rushable, Event):
             or any(t.match(query) for t in self.trainees)
             or any(s.match(query) for s in self.supports)
         )
+
+    def promotes(self, banner) -> bool:
+        """Whether this story is ``banner``'s promotional tie-in: the banner's full
+        cast (every trainee AND every support on it) is a subset of the story's
+        story-link cast, and the two run within ``_STORY_WINDOW`` of each other in
+        JP time.
+
+        The story-link cast is the Event-Point-Bonus TOP tier (`link_trainees` /
+        `link_supports`) — the exact cards the bonus table colinks to the event —
+        falling back to the featured `trainees` / welfare `supports` for older
+        events that carry no bonus table. This is the story↔banner correlation
+        force, owned here so both consumers share one definition: the
+        `BannerPredictor` promotes a JP banner to its story's EN date, and
+        `Selectors` resolves a selector's pool cutoff to the banner a seasonal
+        story promotes. An empty banner never matches (an empty cast is a vacuous
+        subset of everything)."""
+        if not banner.contents:
+            return False
+        story_jp = self._jp_start()
+        banner_jp = next((p.start for p in banner.periods if p.tzinfo == JST), None)
+        if story_jp is None or banner_jp is None:
+            return False
+        if abs(story_jp - banner_jp) > _STORY_WINDOW:
+            return False
+        banner_trainees = {c.key for c in banner.contents if isinstance(c, Trainee)}
+        banner_supports = {c.key for c in banner.contents if isinstance(c, Support)}
+        return (
+            banner_trainees <= {t.key for t in (self.link_trainees or self.trainees)}
+            and banner_supports <= {s.key for s in (self.link_supports or self.supports)}
+        )
+
+    def _jp_start(self):
+        return next((p.start for p in self.periods if p.tzinfo == JST), None)
 
     def bake(self, period: Period) -> StoryRecord:
         return StoryRecord(
@@ -182,6 +225,17 @@ class Stories(Events[Story], metaclass=SingletonMeta):
                 seen.add(s.key)
                 supports.append(s)
 
+            # Story-link cast (Event-Point-Bonus top tier) — exact card keys, so a
+            # direct lookup (vs the welfare/featured slug search above).
+            link_trainees = [
+                t for slug in record.get("link_trainee_ids", [])
+                if (t := Trainees().get(StableKey(f"{Trainee.KEY_PREFIX}{slug}"))) is not None
+            ]
+            link_supports = [
+                s for slug in record.get("link_support_ids", [])
+                if (s := supports_col.get(StableKey(f"{Support.KEY_PREFIX}{slug}"))) is not None
+            ]
+
             stories.append(
                 Story(
                     key=stable_key,
@@ -191,6 +245,8 @@ class Stories(Events[Story], metaclass=SingletonMeta):
                     thumb=thumb,
                     trainees=trainees,
                     supports=supports,
+                    link_trainees=link_trainees,
+                    link_supports=link_supports,
                     references=references,
                     correlations={Sources.GAMETORA.value: gametora_n},
                     era=_era_for_ceiling(record.get("pt_ceiling")),

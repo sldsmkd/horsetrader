@@ -112,6 +112,25 @@
   object-fit: contain;
 }
 
+/* The Plan (Desk) door — a square icon button like the home button, left of carats.
+   Hidden until a commitment exists. */
+.menubar__plan {
+  width: calc(2.94 * var(--glass-u));
+  padding: 0;
+}
+
+.menubar__plan--hidden {
+  display: none;
+}
+
+.menubar__plan-icon {
+  display: block;
+  flex: none;
+  width: calc(1.94 * var(--glass-u));
+  height: calc(1.94 * var(--glass-u));
+  object-fit: contain;
+}
+
 .menubar__identity-name {
   overflow: hidden;
   font-weight: var(--ht-type-control-weight);

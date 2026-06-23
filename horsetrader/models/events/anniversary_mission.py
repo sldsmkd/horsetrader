@@ -7,7 +7,7 @@ from horsetrader.extractors.static import store
 from horsetrader.info import Logger
 from horsetrader.models.entities import Support
 from horsetrader.models.media import CurrenChan, Image, ImageRequest
-from horsetrader.models.rewards import FreeCarats, Rewards, SequenceReward
+from horsetrader.models.rewards import FreeCarats, Rewards, SequenceReward, SsrSelector
 from horsetrader.output._records import AnniversaryMissionRecord
 from horsetrader.semantics import daitaku
 from horsetrader.services import News, NewsArticle
@@ -31,6 +31,22 @@ def _celebration_rewards(key: StableKey) -> SequenceReward | None:
     if not login:
         return None
     return SequenceReward(reward_type=FreeCarats, sequence=tuple(login))
+
+
+def _selector_rewards(key: StableKey) -> SsrSelector | None:
+    """The free SSR exchange voucher (引換券) this mission grants — the
+    anniversary's 記念ミッション baseline, curated as `ssr_selectors: N` on the
+    mission peg in `anniversaries.yaml`. Every anniversary grants exactly one,
+    usually on Part 3; this recovers it from the otherwise-unmodelled selector tail
+    of the scraped rewards.
+
+    A counted resource, never valued into carats — which pool it draws from is the
+    anniversary → `Selector` join, not this reward. Trainee selectors are paid-only
+    (the `reward-map-anniversary-selectors` packs), so are never granted here."""
+    n = store.shared(str(key)).get("ssr_selectors")
+    if not n:
+        return None
+    return SsrSelector(n)
 
 
 @daitaku
@@ -101,6 +117,9 @@ class AnniversaryMissions(Events[AnniversaryMission], metaclass=SingletonMeta):
             celebration = _celebration_rewards(r["key"])
             if celebration is not None:
                 rewards.append(celebration)
+            selector = _selector_rewards(r["key"])
+            if selector is not None:
+                rewards.append(selector)
             mission = AnniversaryMission(
                 key=r["key"],
                 periods=r["periods"],

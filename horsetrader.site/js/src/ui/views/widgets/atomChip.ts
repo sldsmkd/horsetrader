@@ -17,10 +17,11 @@ export interface InspectBinding {
 }
 
 /** The support type badge — a full-height pip on the chip's right edge (trainees
- *  carry none). Sized by CSS off the chip height, not a fixed px. */
-function attributeIcon(attribute: string): HTMLElement {
+ *  carry none). In compact mode it floats onto the portrait's top-right corner
+ *  (the Gametora card grammar). Sized by CSS off the chip, not a fixed px. */
+function attributeIcon(attribute: string, compact: boolean): HTMLElement {
   return h("img", {
-    class: "atom-chip__attr",
+    class: compact ? "atom-chip__attr atom-chip__attr--corner" : "atom-chip__attr",
     attr: { src: `/icons/old/${attribute}.png`, alt: attribute, loading: "lazy", decoding: "async" },
   });
 }
@@ -31,15 +32,32 @@ function attributeIcon(attribute: string): HTMLElement {
  *  Clicking opens the atom's card surface, where the favourite is actually toggled. It
  *  opts into pointer handling and swallows `pointerdown` so the timeline doesn't steal
  *  the gesture as a pan (the in-timeline two-opt-in pattern). */
-export function atomChip(atom: BannerAtom, kind: BannerKind, fav: FavouriteBinding, inspect: InspectBinding): HTMLElement {
+export function atomChip(
+  atom: BannerAtom,
+  kind: BannerKind,
+  fav: FavouriteBinding,
+  inspect: InspectBinding,
+  compact = false,
+): HTMLElement {
   const portrait = atom.image
     ? h("img", { class: "atom-chip__portrait", attr: { src: atom.image, alt: "", loading: "lazy", decoding: "async", draggable: false } })
     : null;
 
+  // Compact (the Desk's pure-icon form) drops the name/subtitle column and floats the
+  // type pip onto the portrait corner; full form bookends portrait — text — pip.
+  const text = compact
+    ? null
+    : h(
+        "span",
+        { class: "atom-chip__text" },
+        h("span", { class: "atom-chip__name" }, atom.name),
+        h("span", { class: "atom-chip__subtitle" }, atom.subtitle),
+      );
+
   const chip = h(
     "button",
     {
-      class: `atom-chip atom-chip--${atom.rarityTier}`,
+      class: `atom-chip atom-chip--${atom.rarityTier}${compact ? " atom-chip--compact" : ""}`,
       attr: { type: "button", "aria-pressed": String(fav.isFavourited(atom.id)), "aria-label": `Inspect ${atom.name}` },
       on: {
         pointerdown: (ev) => ev.stopPropagation(),
@@ -51,13 +69,8 @@ export function atomChip(atom: BannerAtom, kind: BannerKind, fav: FavouriteBindi
       },
     },
     portrait,
-    h(
-      "span",
-      { class: "atom-chip__text" },
-      h("span", { class: "atom-chip__name" }, atom.name),
-      h("span", { class: "atom-chip__subtitle" }, atom.subtitle),
-    ),
-    atom.attribute ? attributeIcon(atom.attribute) : null,
+    text,
+    atom.attribute ? attributeIcon(atom.attribute, compact) : null,
   );
 
   return h("li", { class: "atom-chip__slot" }, chip);
