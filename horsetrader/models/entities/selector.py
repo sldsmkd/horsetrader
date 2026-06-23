@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from datetime import timedelta
 from enum import Enum
 from typing import ClassVar
 
@@ -9,8 +10,13 @@ from horsetrader.semantics import digitan
 
 from .entities import Entities
 from .entity import Entity
+from .trainee import Trainee
 
 logger = Logger.get(__name__)
+
+# How close in JP time the paired support banner runs to the seasonal trainee
+# banner (they co-release; a few days' slack absorbs stagger).
+_PAIR_WINDOW = timedelta(days=3)
 
 
 class SelectorKind(Enum):
@@ -115,17 +121,16 @@ class Selectors(Entities[Selector], metaclass=SingletonMeta):
             Anniversaries,
             Banners,
             Stories,
+            SupportBanner,
             TraineeBanner,
         )
 
-        banners = Banners()
-        story_dates = {
-            d for s in Stories().values() if (d := _jst_date(s)) is not None
-        }
-        variant_banners = sorted(
-            (b for b in banners.values() if isinstance(b, TraineeBanner)),
-            key=_banner_num,
+        banners = list(Banners().values())
+        support_banners = [b for b in banners if isinstance(b, SupportBanner)]
+        trainee_banners = sorted(
+            (b for b in banners if isinstance(b, TraineeBanner)), key=_banner_num
         )
+        stories = [s for s in Stories().values() if _jst(s) is not None]
 
         selectors: list[Selector] = []
         for anni in Anniversaries().values():
@@ -134,41 +139,54 @@ class Selectors(Entities[Selector], metaclass=SingletonMeta):
                 logger.warning("Anniversary %s has no JST period; skipping", anni.key)
                 continue
             version = anni.version
-            wanted = _SEASON_VARIANTS[_season_for(version)]
+            season = _season_for(version)
+            wanted = _SEASON_VARIANTS[season]
 
-            cutoff_banner = None
-            for b in variant_banners:  # ascending id == release order
+            # The trainee-pool cutoff is the seasonal trainee banner: the latest one
+            # before the anniversary featuring the season's costume variant AND tied
+            # to a Story (`Story.promotes` — the cast-subset correlation force,
+            # shared with the banner predictor). The story tie cleanly excludes
+            # mixed-variant rerun banners that merely re-include a seasonal card.
+            trainee_cutoff = None
+            for b in trainee_banners:  # ascending id == release order
                 b_start = _jst(b)
                 if b_start is None or b_start >= anni_start:
                     continue
-                if _jst_date(b) in story_dates and any(
-                    t.variant.variant in wanted for t in b.contents
-                ):
-                    cutoff_banner = b  # keep the latest qualifying one before the anni
-            if cutoff_banner is None:
+                if any(
+                    isinstance(t, Trainee) and t.variant.variant in wanted
+                    for t in b.contents
+                ) and any(s.promotes(b) for s in stories):
+                    trainee_cutoff = b  # keep the latest qualifying one before the anni
+            if trainee_cutoff is None:
+                logger.warning("No seasonal (%s) trainee banner before %s", season, anni.key)
+                continue
+
+            # The SSR-support pool cutoff is the support banner running *alongside*
+            # the seasonal trainee banner. `promotes` can't find it (a story's
+            # supports are its welfare grant, not gacha pickups), so the pairing is
+            # temporal: the support banner concurrent with the trainee banner.
+            ssr_cutoff = _concurrent(support_banners, _jst(trainee_cutoff))
+            if ssr_cutoff is None:
                 logger.warning(
-                    "No seasonal cutoff banner found for %s (%s)",
-                    anni.key, _season_for(version),
+                    "No support banner concurrent with %s (anni %s)",
+                    trainee_cutoff.key, anni.key,
                 )
                 continue
 
-            vid = _banner_num(cutoff_banner)
             tag = version.replace(".", "_")
 
-            # SSR support — every anniversary. Pool cuts at the paired support
-            # banner (variant trainee id + 1).
+            # SSR support — every anniversary.
             selectors.append(
                 Selector(
                     key=StableKey(f"selector-{tag}-ssr"),
                     name=f"{anni.name} SSR Voucher",
                     anniversary=anni.key,
                     kind=SelectorKind.SSR_SUPPORT,
-                    cutoff=StableKey(f"banner-{vid + 1}"),
+                    cutoff=ssr_cutoff.key,
                 )
             )
 
-            # Trainee (★3) — only the anniversaries that shipped one. Pool cuts at
-            # the seasonal trainee banner itself.
+            # Trainee (★3) — only the anniversaries that shipped one.
             if version not in _NO_TRAINEE_SELECTOR:
                 selectors.append(
                     Selector(
@@ -176,11 +194,28 @@ class Selectors(Entities[Selector], metaclass=SingletonMeta):
                         name=f"{anni.name} ★3 Voucher",
                         anniversary=anni.key,
                         kind=SelectorKind.TRAINEE,
-                        cutoff=cutoff_banner.key,
+                        cutoff=trainee_cutoff.key,
                     )
                 )
 
         return selectors
+
+
+def _concurrent(banners, when):
+    """The banner whose JST start is closest to `when` and within `_PAIR_WINDOW`
+    — the banner of the other kind co-released alongside it. None if nothing falls
+    in the window."""
+    if when is None:
+        return None
+    best, best_gap = None, None
+    for b in banners:
+        start = _jst(b)
+        if start is None:
+            continue
+        gap = abs(start - when)
+        if gap <= _PAIR_WINDOW and (best_gap is None or gap < best_gap):
+            best, best_gap = b, gap
+    return best
 
 
 def _banner_num(banner) -> int:
@@ -191,8 +226,3 @@ def _jst(event):
     """The event's JST period start — the JP release instant, ground truth and
     present for all banners/stories/anniversaries (JP is the substrate)."""
     return next((p.start for p in event.periods if p.tzinfo == JST), None)
-
-
-def _jst_date(event):
-    start = _jst(event)
-    return start.date() if start is not None else None
