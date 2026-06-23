@@ -25,6 +25,14 @@
   /* Pane look (bg/edge/radius/shadow/blur) now comes from the glass register in
      glass.css — these chrome knobs are layout only. */
   --minimap-h: var(--timeline-chrome-height); /* shared: minimap + readout clearance */
+  /* The whole bottom chrome stack the floating surfaces must clear. Was just the minimap
+     (at --timeline-chrome-bottom); the FILM STRIP now floats above it (filmstrip.css:
+     bottom = chrome-bottom + minimap-h + 0.5u, height = minimap-h), so the real reserve is
+     the minimap PLUS the strip PLUS the gap. The aperture + modal heights read this so they
+     stop assuming the minimap is the lower bound. */
+  --glass-chrome-bottom-h: calc(
+    var(--timeline-chrome-bottom) + 2 * var(--minimap-h) + 0.5 * var(--glass-u-base)
+  );
   /* The usable world aperture (Darley #1): the viewport MINUS the persistent chrome the
      menubar (top) and minimap (bottom) reserve. This is the authoritative "how much of the
      world can be displayed" — NOT the raw viewport. The camera frames world into this
@@ -38,7 +46,7 @@
        needs them (recording an inset is Darley; reflowing to it is Godolphin). */
   --glass-aperture-h: calc(
     100svh - var(--timeline-chrome-top) - var(--timeline-chrome-height)
-      - var(--timeline-chrome-bottom) - var(--minimap-h)
+      - var(--glass-chrome-bottom-h)
   );
   /* Vertical room a dropdown has between the top bar and the bottom minimap chrome — now
      derived from the aperture (one source) less the dropdown's own gap top and bottom.

@@ -42,6 +42,9 @@ export interface PlanRow {
   /** The outcome distribution this commitment buys — the same model the dossier's
    *  Forecast uses (`bannerForecast` + the committed pity), drawn compact per row. */
   forecast: ForecastInput;
+  /** The banner note — the trainer's *why* (The Interview), keyed by the banner's stable
+   *  id. "" when none. This is the Desk's own note layer (atom notes live on the card). */
+  note: string;
 }
 
 /** The Desk shows at most this many chips per row — the rest are dropped (favourites +
@@ -52,6 +55,7 @@ export function planRows(
   bundle: Bundle,
   statuses: ReadonlyMap<string, CommitmentStatus>,
   isFavourited: (id: string) => boolean,
+  noteFor: (key: string) => string,
 ): PlanRow[] {
   const rows: PlanRow[] = [];
   for (const [key, status] of statuses) {
@@ -79,6 +83,7 @@ export function planRows(
       unfundable: status.unfundable,
       wasteAbove: PITY_WASTE_ABOVE[ev.type],
       forecast,
+      note: noteFor(key),
     });
   }
   // Time spine — the discovery doc's leaning hypothesis (band stays a signal, not a sort).

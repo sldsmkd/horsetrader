@@ -656,6 +656,46 @@ export function mountApp(
       );
     }
 
+    // The Plan — the Desk (twinkle-monthly/cover.md): the whole-plan reading surface,
+    // spawned from the menubar's tablet button. Pushed FIRST among the modals so it sits
+    // at the BOTTOM of the stack — the dossier and card surfaces it spawns stack above it
+    // (push order = paint order) and return focus to it on close. The timeline behind
+    // stays live. Reads the cached committed set + shared pity-band rule.
+    if (view.get().plan) {
+      const statuses = coord.commitmentStatuses();
+      const notes = coord.document().notes ?? {};
+      const rows = planRows(bundle, statuses, fav.isFavourited, (key) => notes[key] ?? "");
+      const oshi = identity.currentOshi();
+      const planCard = surface({
+        title: "The Plan",
+        placement: "center",
+        headerless: true,
+        body: planSurface({
+          rows,
+          trainerName: identity.trainerName(),
+          oshiPortrait: oshi.portrait,
+          oshiName: oshi.name,
+          fav,
+          // The Desk intentionally STACKS its children (it stays open beneath them), so it
+          // sets view directly rather than going through the guarded commit/inspect seams
+          // (whose !modalOpen() refusal is for unintended spawns slipping past suspension).
+          inspect: { open: (kind, id) => view.set({ cardDetail: { kind, id } }) },
+          // Editing a pity warps the timeline behind to that banner AND opens the dossier
+          // over the Desk — so closing back out of the stack lands on the right banner.
+          onEditPity: (key) => {
+            tl.warpTo(bundle.event(key).start);
+            view.set({ committing: key });
+          },
+          // The banner note (the *why*) — keyed by the banner's stable id, same setNote
+          // seam the card surface uses for atom notes (normalised + persisted by coord).
+          onSetNote: (key, text) => coord.setNote(key, text),
+          onClose: () => view.set({ plan: false }),
+        }),
+        onClose: () => view.set({ plan: false }),
+      });
+      children.push(planCard);
+    }
+
     // The commit modal: spawned at source from a banner readout, independent of
     // the left/right groups. A modal (so it sits in `anyModal` above, suspending
     // the other surfaces); the timeline behind it stays live (it is transparent to
@@ -712,32 +752,6 @@ export function mountApp(
         onClose: () => view.set({ cardDetail: null }),
       });
       children.push(detailCard);
-    }
-
-    // The Plan — the Desk (twinkle-monthly/cover.md): the whole-plan reading surface,
-    // spawned from the menubar's tablet button. A modal like the commit dossier — it
-    // sits in `anyModal` above (locking the menu + suspending the others), the timeline
-    // behind it stays live. Reads the cached committed set + the shared pity-band rule,
-    // so its rows agree with the strip and the badge by construction.
-    if (view.get().plan) {
-      const statuses = coord.commitmentStatuses();
-      const rows = planRows(bundle, statuses, fav.isFavourited);
-      const planCard = surface({
-        title: "The Plan",
-        placement: "center",
-        headerless: true,
-        body: planSurface({
-          rows,
-          fav,
-          inspect,
-          // Swap the Desk out for the dossier in one transition — set both at once so the
-          // modal-over-modal guard never sees two open (the dossier is the pity writer).
-          onEditPity: (key) => view.set({ plan: false, committing: key }),
-          onClose: () => view.set({ plan: false }),
-        }),
-        onClose: () => view.set({ plan: false }),
-      });
-      children.push(planCard);
     }
 
     // MODALITY — the lock fan-out, declared once (grand-masters/byerley-turk.md). A

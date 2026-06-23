@@ -1,7 +1,18 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { formatBalance, formatDate, formatDelta, formatRewardLines } from "./format.ts";
+import { formatBalance, formatDate, formatDelta, formatRewardLines, possessive } from "./format.ts";
+
+test("possessive adds 's, or just an apostrophe after a trailing s/S — and only appends", () => {
+  assert.equal(possessive("Xelene"), "Xelene's");
+  assert.equal(possessive("Kris"), "Kris'");
+  assert.equal(possessive("CHRIS"), "CHRIS'");
+  assert.equal(possessive("  Maru  "), "Maru's"); // trimmed
+  assert.equal(possessive(""), ""); // empty in, empty out (caller falls back)
+  // Whatever the player typed is carried verbatim — never transformed into something else.
+  assert.equal(possessive("💩"), "💩's");
+  assert.equal(possessive("さくら"), "さくら's");
+});
 
 test("a balance is grouped, with a minus only when negative", () => {
   assert.equal(formatBalance(1250), "1,250");
