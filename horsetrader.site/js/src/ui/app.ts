@@ -721,15 +721,20 @@ export function mountApp(
     // so its rows agree with the strip and the badge by construction.
     if (view.get().plan) {
       const statuses = coord.commitmentStatuses();
-      const rows = planRows(bundle, statuses, (key) => {
-        const s = statuses.get(key);
-        return s ? pityBand(s.pity, s.unfundable, PITY_WASTE_ABOVE[s.kind]) : "empty";
-      });
+      const rows = planRows(bundle, statuses, fav.isFavourited);
       const planCard = surface({
         title: "The Plan",
         placement: "center",
         headerless: true,
-        body: planSurface({ rows, onClose: () => view.set({ plan: false }) }),
+        body: planSurface({
+          rows,
+          fav,
+          inspect,
+          // Swap the Desk out for the dossier in one transition — set both at once so the
+          // modal-over-modal guard never sees two open (the dossier is the pity writer).
+          onEditPity: (key) => view.set({ plan: false, committing: key }),
+          onClose: () => view.set({ plan: false }),
+        }),
         onClose: () => view.set({ plan: false }),
       });
       children.push(planCard);

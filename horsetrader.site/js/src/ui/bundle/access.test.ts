@@ -16,7 +16,7 @@ const ACADEMY: Academy = {
   trainees: {},
   courses: {},
   races: {},
-  racetracks: {},
+  racetracks: {}, selectors: {},
 };
 
 test("a lookup resolves a present key to its typed record", () => {

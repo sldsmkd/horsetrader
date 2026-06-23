@@ -1,9 +1,16 @@
+/* The Desk is a spreadsheet, not a dialog — it runs ~double the standard modal so the note
+   column has real room. The modal CARD width is fixed by .surface--modal (45·glass-u) and
+   .surface__body clips horizontal overflow, so widening must happen on the card itself —
+   scoped to the plan via :has so no other modal changes. Capped to the viewport. */
+.surface--modal:has(.plan) {
+  width: min(calc(96 * var(--glass-u)), calc(100vw - 1.88 * var(--glass-u)));
+}
+
 .plan {
   display: flex;
   flex-direction: column;
   gap: calc(1.38 * var(--glass-u));
-  min-width: calc(30 * var(--glass-u));
-  max-width: calc(40 * var(--glass-u));
+  width: 100%; /* fill the (now wide) card; the row grid distributes the columns */
 }
 
 /* Title hero — centred spine like the other surfaces, replacing the window title bar. */
@@ -42,41 +49,63 @@
 
 .plan__row {
   display: grid;
-  grid-template-columns: auto 1fr auto auto auto;
-  align-items: center;
+  /* commit box · fixed-width chips · note (fills, but text capped ~half) · forecast right. */
+  grid-template-columns: auto auto 1fr auto;
+  /* Everything hangs from the top — the note wraps to several lines, the rest stays put. */
+  align-items: start;
   gap: calc(0.94 * var(--glass-u));
   padding: calc(0.5 * var(--glass-u)) calc(0.75 * var(--glass-u));
   border: 1px solid var(--ht-control-border);
+  /* The kind (trainee/support) reads off the left edge — the chips' own border tells
+     them apart, so this is reinforcement, not the sole signal. Flat for now. */
+  border-left: calc(0.31 * var(--glass-u)) solid var(--plan-kind);
   border-radius: var(--ht-control-radius-soft);
   background: color-mix(in srgb, Canvas 64%, transparent);
 }
 
-/* The kind pill, tinted by the affordability band (.pity-band--<band>, shared). */
-.plan__band {
-  padding: calc(0.13 * var(--glass-u)) calc(0.5 * var(--glass-u));
-  border-radius: var(--ht-control-radius-soft);
-  font-size: var(--ht-type-micro-size);
-  text-transform: uppercase;
-  letter-spacing: var(--ht-type-label-spacing);
-  white-space: nowrap;
+.plan__row--trainee {
+  --plan-kind: var(--ht-colour-trainee);
 }
 
-.plan__label {
-  font-weight: 600;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.plan__row--support {
+  --plan-kind: var(--ht-colour-support);
 }
 
-.plan__window {
+/* The content chips — the banner's featured atoms as pure-icon portrait pills. A fixed
+ *  4-slot row (capped at MAX_CHIPS): every banner reserves the same width so the rest of
+ *  the row aligns, even with one chip. The chip is its own button (favourite + inspect). */
+.plan__chips {
+  display: grid;
+  grid-template-columns: repeat(4, 2.4rem);
+  gap: calc(0.38 * var(--glass-u));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* The badge box — wraps planCommit (pity number + date inside), wearing the *banner's*
+   badge chrome: band fill + ring, squared corners. Sized to its content (two lines) rather
+   than the chip square. Mirrors .banner__commit-badge: the ring lives on the WRAPPER (its
+   currentColor is the grey row text) so the badge's own white label doesn't wash it out. */
+.plan__badge {
+  display: inline-flex;
+  min-width: 2.9rem;
+  border-radius: 0.4rem; /* match the chips' squared corners, not the glass pane radius */
+  /* Ring inset so it doesn't add to the box size; drop shadow stays outside. */
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, currentColor 35%, Canvas),
+    0 1px 4px color-mix(in srgb, var(--ht-colour-shadow) 45%, transparent);
+}
+
+/* The banner note (the "why") — the middle column. Capped to ~half so it wraps to a few
+   lines instead of running the row's full width (the cell stays wide; the text doesn't). */
+.plan__note {
+  margin: 0;
+  min-width: 0;
+  max-width: calc(38 * var(--glass-u));
   font-size: var(--ht-type-caption-size);
-  opacity: 0.6;
-  white-space: nowrap;
-}
-
-.plan__pity {
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
+  line-height: 1.3;
+  opacity: 0.55;
 }
 
 .plan__forecast {

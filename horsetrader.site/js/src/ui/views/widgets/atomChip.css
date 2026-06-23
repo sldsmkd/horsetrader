@@ -137,6 +137,28 @@
   image-rendering: pixelated;
 }
 
+/* Compact (pure-icon) chip — the Desk's row content. Just the square portrait; no text
+ * column, and the type pip floats onto the top-right corner (the Gametora card trick). */
+.atom-chip--compact {
+  position: relative;
+  aspect-ratio: 1;
+  height: 2.4rem;
+}
+
+.atom-chip--compact .atom-chip__portrait {
+  height: 100%;
+  width: 100%;
+}
+
+/* The floated corner pip — overlaid on the portrait, top-right, a fraction of the chip. */
+.atom-chip__attr--corner {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 38%;
+  width: auto;
+}
+
 /* The subject line — the larger of the two rows (golden ratio over the modifier). */
 .atom-chip__name {
   min-width: 0;

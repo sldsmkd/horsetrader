@@ -29,7 +29,7 @@ const AXIS = createAxis({ origin: cal("2026-06-01"), pxPerDay: 10 });
 
 // Story contents are empty in these fixtures, so the bundle is never exercised for
 // atom resolution — an empty academy satisfies the selector signature.
-const ACADEMY: Academy = { characters: {}, supports: {}, trainees: {}, courses: {}, races: {}, racetracks: {} };
+const ACADEMY: Academy = { characters: {}, supports: {}, trainees: {}, courses: {}, races: {}, racetracks: {}, selectors: {} };
 const BUNDLE = createBundle(EVENTS, ACADEMY, TEST_CONFIG);
 
 /** Settle baked records through the real settlement rule — the same faces and

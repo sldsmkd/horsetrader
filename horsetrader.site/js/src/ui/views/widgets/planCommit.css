@@ -1,0 +1,38 @@
+/* The Desk commitment box — layout only; the pity-band--* fill (grey/green/purple/red)
+   is the shared grammar in pityBand.css. Fills its wrapper (.plan__badge carries the ring,
+   whose currentColor is the grey row text, so this button's white label can't wash it out). */
+.plan-commit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: calc(0.13 * var(--glass-u));
+  width: 100%;
+  height: 100%;
+  padding: calc(0.31 * var(--glass-u)) calc(0.5 * var(--glass-u));
+  border: 0;
+  border-radius: 0.4rem;
+  font: inherit;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.plan-commit:hover,
+.plan-commit:focus-visible {
+  filter: brightness(1.12);
+  outline: 0;
+}
+
+/* The big number on top — the commitment, the row's headline. */
+.plan-commit__pity {
+  font-size: var(--ht-type-surface-title-size);
+  font-weight: var(--ht-type-surface-title-weight);
+  line-height: 1;
+}
+
+/* The start date beneath — month + day, no year, eased back under the number. */
+.plan-commit__date {
+  font-size: var(--ht-type-micro-size);
+  line-height: 1.05;
+  white-space: nowrap;
+  opacity: 0.85;
+}

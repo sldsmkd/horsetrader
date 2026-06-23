@@ -30,7 +30,7 @@ const ACADEMY: Academy = {
   },
   courses: {},
   races: {},
-  racetracks: {},
+  racetracks: {}, selectors: {},
 };
 
 const bundle = () => createBundle(EVENTS, ACADEMY, TEST_CONFIG);
@@ -42,30 +42,45 @@ test("planRows is the committed set, one row per banner, sorted along the time s
     ["banner-s", status("support", 3)],
     ["banner-t", status("trainee", 1)],
   ]);
-  const rows = planRows(bundle(), statuses, () => "positive");
+  const rows = planRows(bundle(), statuses, () => false);
 
   // Sorted by start: the trainee banner (Jun 10) leads the support one (Jul 1).
   assert.deepEqual(rows.map((r) => r.key), ["banner-t", "banner-s"]);
   assert.equal(rows[0]!.kind, "trainee");
   assert.equal(rows[0]!.pity, 1);
-  assert.equal(rows[0]!.band, "positive");
 });
 
-test("a banner's label is its lead featured atom + a count of the rest", () => {
+test("a banner's label is its lead chip + a count of the rest", () => {
   const statuses = new Map<string, CommitmentStatus>([["banner-t", status("trainee", 1)]]);
-  const [row] = planRows(bundle(), statuses, () => "positive");
-  assert.equal(row!.label, "Special Week +1"); // two featured trainees → lead + 1
+  const [row] = planRows(bundle(), statuses, () => false);
+  // Both trainees are crystal, so the rarity tie breaks on name: Silence Suzuka leads.
+  assert.equal(row!.label, "Silence Suzuka +1");
 });
 
-test("the band colour is whatever the app hands in (shared pityBand rule)", () => {
-  const statuses = new Map<string, CommitmentStatus>([["banner-s", status("support", 9)]]);
-  const rows = planRows(bundle(), statuses, () => "unfundable");
-  assert.equal(rows[0]!.band, "unfundable");
+test("chips sort by rarity then name when nothing is favourited", () => {
+  const statuses = new Map<string, CommitmentStatus>([["banner-t", status("trainee", 1)]]);
+  const [row] = planRows(bundle(), statuses, () => false);
+  assert.deepEqual(row!.contents.map((a) => a.name), ["Silence Suzuka", "Special Week"]);
+});
+
+test("a favourited chip floats to the front of the row, ahead of the rarity sort", () => {
+  const statuses = new Map<string, CommitmentStatus>([["banner-t", status("trainee", 1)]]);
+  const [row] = planRows(bundle(), statuses, (id) => id === "t-spe");
+  assert.deepEqual(row!.contents.map((a) => a.name), ["Special Week", "Silence Suzuka"]);
+});
+
+test("a row carries the badge's affordability inputs (kind's waste threshold + unfundable)", () => {
+  const statuses = new Map<string, CommitmentStatus>([
+    ["banner-s", { kind: "support", pity: 9, unfundable: true, capacity: CAP }],
+  ]);
+  const [row] = planRows(bundle(), statuses, () => false);
+  assert.equal(row!.unfundable, true);
+  assert.equal(row!.wasteAbove, 3); // PITY_WASTE_ABOVE.support — the badge derives the colour
 });
 
 test("each row carries the banner's forecast input, the committed pity folded in", () => {
   const statuses = new Map<string, CommitmentStatus>([["banner-s", status("support", 2)]]);
-  const [row] = planRows(bundle(), statuses, () => "positive");
+  const [row] = planRows(bundle(), statuses, () => false);
   assert.equal(row!.forecast.pity, 2); // the commitment's pity drives the distribution
   assert.equal(row!.forecast.maxCopies, 5); // MLB / 5★ cap
   assert.ok(row!.forecast.pullsPerPity > 0); // spark threshold from gacha config

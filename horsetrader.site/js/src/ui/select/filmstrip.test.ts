@@ -48,7 +48,7 @@ const STORY_ACADEMY: Academy = {
   trainees: {},
   courses: {},
   races: {},
-  racetracks: {},
+  racetracks: {}, selectors: {},
 };
 const storyBundle = () => createBundle(STORY_EVENTS, STORY_ACADEMY, TEST_CONFIG);
 

@@ -8,7 +8,7 @@ import { createBundle } from "../bundle/access.ts";
 import { TEST_CONFIG } from "../bundle/fixtures.ts";
 import { activeScenario } from "./scenario.ts";
 
-const academy: Academy = { characters: {}, courses: {}, races: {}, racetracks: {}, supports: {}, trainees: {} };
+const academy: Academy = { characters: {}, courses: {}, races: {}, racetracks: {}, selectors: {}, supports: {}, trainees: {} };
 
 function bundle(events: EventsBundle["events"] = []): ReturnType<typeof createBundle> {
   return createBundle({ events }, academy, TEST_CONFIG, "UTC");

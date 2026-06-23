@@ -129,4 +129,21 @@ labelling — the kind branch belongs at the *shaping input*, not the readout.
 
 *(append as we build — what the live surface taught us, what we tried and cut)*
 
-- _(empty — discovery not yet started)_
+- **2026-06-23 — first live build of the row.** Iterated against the running dev server.
+  Settled shape so far, left→right: **commit cell** (the shared `commitmentBadge` wearing
+  the banner's badge chrome — rounded-square box, band fill, ring, title-weight pity —
+  with the **start date stacked beneath it**, `Jul 2` over `2026`, as one unit) · **content
+  chips** (compact pure-icon `atomChip`: square portrait, support type pip floated to the
+  top-right corner Gametora-style, no text; **sorted `favourited DESC, rarity, name` and
+  capped to `MAX_CHIPS = 4`** in a fixed 4-slot column so rows align) · **banner note**
+  (the "why", flexible middle column) · **compact forecast** (right edge).
+  - Kind (trainee/support) moved off a text pill onto the **row's left border colour** —
+    the chips already read distinct, the pill was redundant.
+  - The commit badge is the **dossier edit entry point**: clicking it swaps the Desk out
+    for the commit dossier in one `view.set` (the dossier stays the pity writer).
+  - **Width:** the Desk runs ~double the standard modal (note column wants real room).
+- **OPEN QUESTION — note length.** Placeholder is currently a full **cleat (240 graphemes)**
+  but at a glance that reads **too long** for a scannable spreadsheet row. Don't decide the
+  display cap from the armchair — **good candidate to discover with ~4 real users** (does a
+  240-char note help or wall the row? truncate-with-expand vs hard shorter cap?). The
+  *storage* cap stays a cleat; this is about how much the Desk row *shows*.

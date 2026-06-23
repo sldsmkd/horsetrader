@@ -78,6 +78,15 @@ export function formatCharacterName(name: string): string {
 /** A closed date range → a compact label, collapsing shared parts: same month
  *  `Aug 23 – 31, 2026`, same year `Aug 23 – Sep 5, 2026`, otherwise full both ends
  *  `Dec 28, 2026 – Jan 5, 2027`. A zero-length range falls back to the single date. */
+/** The month + day, no year (`Jul 2`) — for stacking the year on its own line. */
+export function formatMonthDay(iso: string): string {
+  return dateNoYear.format(new Date(`${iso}T00:00:00Z`));
+}
+/** Just the four-digit year (`2026`). */
+export function formatYear(iso: string): string {
+  return String(new Date(`${iso}T00:00:00Z`).getUTCFullYear());
+}
+
 export function formatDateRange(startIso: string, endIso: string): string {
   if (startIso === endIso) return formatDate(startIso);
   const start = new Date(`${startIso}T00:00:00Z`);

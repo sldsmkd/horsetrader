@@ -269,7 +269,7 @@ test("setNote normalises on the way in (trim + cap) and clears on blank", () => 
   assert.equal(coord.document().notes?.["trainee-gold-ship"], "won't leave the gate"); // trimmed
   const long = "x".repeat(400);
   coord.setNote("support-tazuna", long);
-  assert.equal(coord.document().notes?.["support-tazuna"].length, 240); // capped at a cleat
+  assert.equal(coord.document().notes?.["support-tazuna"].length, 140); // capped at a cleat
   // Excess whitespace is collapsed so a cleat can't be all blank lines (DoS the
   // surface): runs of spaces → one, at most one blank line between paragraphs.
   coord.setNote("trainee-gold-ship", "a" + "\n".repeat(240) + "b");

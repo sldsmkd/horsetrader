@@ -184,7 +184,7 @@ export function atomImage(bundle: Bundle, kind: BannerKind, id: string): string 
   return support.thumbnail ?? support.art ?? character?.icon ?? character?.portrait ?? null;
 }
 
-function compareAtoms(a: BannerAtom, b: BannerAtom): number {
+export function compareAtoms(a: BannerAtom, b: BannerAtom): number {
   return RARITY_ORDER[a.rarityTier] - RARITY_ORDER[b.rarityTier] || NAME_ORDER.compare(a.name, b.name);
 }
 
