@@ -1,5 +1,4 @@
 from dataclasses import dataclass, field
-from datetime import timedelta
 from enum import Enum
 from typing import ClassVar
 
@@ -13,10 +12,6 @@ from .entity import Entity
 from .trainee import Trainee
 
 logger = Logger.get(__name__)
-
-# How close in JP time the paired support banner runs to the seasonal trainee
-# banner (they co-release; a few days' slack absorbs stagger).
-_PAIR_WINDOW = timedelta(days=3)
 
 
 class SelectorKind(Enum):
@@ -144,32 +139,35 @@ class Selectors(Entities[Selector], metaclass=SingletonMeta):
 
             # The trainee-pool cutoff is the seasonal trainee banner: the latest one
             # before the anniversary featuring the season's costume variant AND tied
-            # to a Story (`Story.promotes` — the cast-subset correlation force,
-            # shared with the banner predictor). The story tie cleanly excludes
-            # mixed-variant rerun banners that merely re-include a seasonal card.
+            # to a Story (`Story.promotes` — the bonus-table colink correlation). The
+            # story tie cleanly excludes mixed-variant rerun banners that merely
+            # re-include a seasonal card; we keep the story that promotes it.
             trainee_cutoff = None
+            cutoff_story = None
             for b in trainee_banners:  # ascending id == release order
                 b_start = _jst(b)
                 if b_start is None or b_start >= anni_start:
                     continue
-                if any(
+                if not any(
                     isinstance(t, Trainee) and t.variant.variant in wanted
                     for t in b.contents
-                ) and any(s.promotes(b) for s in stories):
-                    trainee_cutoff = b  # keep the latest qualifying one before the anni
-            if trainee_cutoff is None:
+                ):
+                    continue
+                story = next((s for s in stories if s.promotes(b)), None)
+                if story is not None:
+                    trainee_cutoff, cutoff_story = b, story  # keep the latest before anni
+            if trainee_cutoff is None or cutoff_story is None:
                 logger.warning("No seasonal (%s) trainee banner before %s", season, anni.key)
                 continue
 
-            # The SSR-support pool cutoff is the support banner running *alongside*
-            # the seasonal trainee banner. `promotes` can't find it (a story's
-            # supports are its welfare grant, not gacha pickups), so the pairing is
-            # temporal: the support banner concurrent with the trainee banner.
-            ssr_cutoff = _concurrent(support_banners, _jst(trainee_cutoff))
+            # The SSR-support pool cutoff is the support banner the SAME story
+            # promotes — its Event-Point-Bonus top-tier support cast (`promotes`
+            # against `link_supports`). No id arithmetic, no temporal pairing.
+            ssr_cutoff = _latest(sb for sb in support_banners if cutoff_story.promotes(sb))
             if ssr_cutoff is None:
                 logger.warning(
-                    "No support banner concurrent with %s (anni %s)",
-                    trainee_cutoff.key, anni.key,
+                    "Story %s promotes no support banner (anni %s)",
+                    cutoff_story.key, anni.key,
                 )
                 continue
 
@@ -201,21 +199,12 @@ class Selectors(Entities[Selector], metaclass=SingletonMeta):
         return selectors
 
 
-def _concurrent(banners, when):
-    """The banner whose JST start is closest to `when` and within `_PAIR_WINDOW`
-    — the banner of the other kind co-released alongside it. None if nothing falls
-    in the window."""
-    if when is None:
-        return None
-    best, best_gap = None, None
-    for b in banners:
-        start = _jst(b)
-        if start is None:
-            continue
-        gap = abs(start - when)
-        if gap <= _PAIR_WINDOW and (best_gap is None or gap < best_gap):
-            best, best_gap = b, gap
-    return best
+def _latest(banners):
+    """The highest-id (latest-released) banner in an iterable, or None if empty.
+    A story promotes exactly its paired banner of each kind, so this is just a
+    safe disambiguator should `promotes` ever match more than one."""
+    candidates = list(banners)
+    return max(candidates, key=_banner_num) if candidates else None
 
 
 def _banner_num(banner) -> int:

@@ -106,6 +106,54 @@ class GametoraStory(metaclass=SingletonMeta):
         return max(thresholds) if thresholds else None
 
     @staticmethod
+    def _extract_link_cards(main, section: str, stop: str | None, link_substr: str) -> list[str]:
+        """The story-link card slugs from an Event-Point-Bonuses sub-table.
+
+        The bonus tables ("Playable Characters" / "Supports") are flat CSS grids:
+        each card link is followed by its per-tier (★ / LB) `N%` cells. The TOP
+        tier — rows whose final (highest ★/LB) bonus equals the table's maximum —
+        is the story-link banner's cast; lower tiers are roster versions and (for
+        supports) the welfare card. Returns the top-tier slugs, document order,
+        deduped. `[]` if the section/page is absent (older events lack the table)."""
+        if main is None:
+            return []
+        rows: list[tuple[str, list[int]]] = []
+        in_section = False
+        slug: str | None = None
+        pcts: list[int] = []
+        for el in main.iter():
+            txt = (el.text or "").strip()
+            if txt == section:
+                in_section = True
+                continue
+            if in_section and stop is not None and txt == stop:
+                break
+            if not in_section:
+                continue
+            href = (el.get("href") or "") if el.tag == "a" else ""
+            if link_substr in href:
+                if slug is not None and pcts:
+                    rows.append((slug, pcts))
+                slug = href.rsplit("/", 1)[-1]
+                pcts = []
+                continue
+            m = re.fullmatch(r"(\d+)%", txt)
+            if m is not None and slug is not None:
+                pcts.append(int(m.group(1)))
+        if slug is not None and pcts:
+            rows.append((slug, pcts))
+        if not rows:
+            return []
+        top = max(p[-1] for _, p in rows)
+        out: list[str] = []
+        seen: set[str] = set()
+        for s, p in rows:
+            if p[-1] == top and s not in seen:
+                seen.add(s)
+                out.append(s)
+        return out
+
+    @staticmethod
     def _parse_period(block_text: str) -> Period:
         collapsed = " ".join(block_text.replace("\xa0", " ").split())
         matches = _JP_DATETIME_PATTERN.findall(collapsed)
@@ -156,6 +204,15 @@ class GametoraStory(metaclass=SingletonMeta):
 
         pt_ceiling = self._extract_pt_ceiling(main_ja)
 
+        # Event-Point-Bonus top tier = the story-link banner cast (both kinds),
+        # parsed off the EN page (stable English section headers).
+        link_trainee_ids = self._extract_link_cards(
+            main_en, "Playable Characters", "Supports", "/characters/"
+        )
+        link_support_ids = self._extract_link_cards(
+            main_en, "Supports", None, "/supports/"
+        )
+
         logger.info("Fetched story details for %s from Gametora", key)
         return {
             "period": period,
@@ -163,6 +220,8 @@ class GametoraStory(metaclass=SingletonMeta):
             "icon_url": icon_url,
             "trainee_ids": trainee_ids,
             "support_ids": support_ids,
+            "link_trainee_ids": link_trainee_ids,
+            "link_support_ids": link_support_ids,
             "pt_ceiling": pt_ceiling,
             "source_url_ja": source_url_ja,
             "source_url_en": source_url_en,
@@ -254,6 +313,8 @@ class GametoraStories(metaclass=SingletonMeta):
                 "icon_url": detail["icon_url"],
                 "trainee_ids": detail["trainee_ids"],
                 "support_ids": detail["support_ids"],
+                "link_trainee_ids": detail["link_trainee_ids"],
+                "link_support_ids": detail["link_support_ids"],
                 "pt_ceiling": detail["pt_ceiling"],
                 "references": [STORY_INDEX_URL, source_url_ja, source_url_en],
             })
