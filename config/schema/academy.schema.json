@@ -30,6 +30,12 @@
             "$ref": "#/$defs/RacetrackRecord"
           }
         },
+        "selectors": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/SelectorRecord"
+          }
+        },
         "supports": {
           "type": "object",
           "additionalProperties": {
@@ -48,6 +54,7 @@
         "courses",
         "races",
         "racetracks",
+        "selectors",
         "supports",
         "trainees"
       ]
@@ -330,6 +337,38 @@
       "required": [
         "name",
         "icon"
+      ]
+    },
+    "SelectorRecord": {
+      "title": "SelectorRecord",
+      "description": "An anniversary card-exchange voucher pool — its ``name`` and what it's valid\nfor. The pool is a recipe the client expands: every ``kind`` card up to and\nincluding the ``cutoff`` banner (by release order), minus ``excludes``. ``kind``\nis ``\"ssr_support\"`` | ``\"trainee\"``. How it's acquired (free grant vs paid\npacks) is a separate reward layer, not carried here.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "anniversary": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "cutoff": {
+          "type": "string"
+        },
+        "excludes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "name",
+        "anniversary",
+        "kind",
+        "cutoff",
+        "excludes"
       ]
     },
     "SupportRecord": {

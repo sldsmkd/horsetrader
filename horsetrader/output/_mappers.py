@@ -4,6 +4,7 @@ from horsetrader.models.entities import (
     Course,
     Race,
     Racetrack,
+    Selector,
     Support,
     Trainee,
 )
@@ -19,6 +20,7 @@ from ._records import (
     DistanceAptitudesRecord,
     RaceRecord,
     RacetrackRecord,
+    SelectorRecord,
     StrategyAptitudesRecord,
     SurfaceAptitudesRecord,
     SupportRecord,
@@ -150,11 +152,22 @@ def _map_trainee(t: Trainee) -> TraineeRecord:
 # Entities serialise through an exact-type lookup in `Bake._serialize` — no MRO
 # walk, no base-class entry — so unlike events there's no contravariance to
 # violate and the table stays. (Events own their wire shape via `Event.bake`.)
+def _map_selector(s: Selector) -> SelectorRecord:
+    return SelectorRecord(
+        name=s.name,
+        anniversary=s.anniversary,
+        kind=s.kind.value,
+        cutoff=s.cutoff,
+        excludes=list(s.excludes),
+    )
+
+
 MAPPERS = {
     Character: _map_character,
     Course: _map_course,
     Race: _map_race,
     Racetrack: _map_racetrack,
+    Selector: _map_selector,
     Support: _map_support,
     Trainee: _map_trainee,
 }

@@ -199,6 +199,21 @@ class RaceRecord(msgspec.Struct):
 
 
 @eishin
+class SelectorRecord(msgspec.Struct):
+    """An anniversary card-exchange voucher pool — its ``name`` and what it's valid
+    for. The pool is a recipe the client expands: every ``kind`` card up to and
+    including the ``cutoff`` banner (by release order), minus ``excludes``. ``kind``
+    is ``"ssr_support"`` | ``"trainee"``. How it's acquired (free grant vs paid
+    packs) is a separate reward layer, not carried here."""
+
+    name: str
+    anniversary: str
+    kind: str
+    cutoff: str
+    excludes: list[str]
+
+
+@eishin
 class Academy(msgspec.Struct):
     """Top-level shape of ``academy.json`` — the entity collections, each a
     stable-key → record map (the keys are the collection class names lowercased,
@@ -208,6 +223,7 @@ class Academy(msgspec.Struct):
     courses: dict[str, CourseRecord]
     races: dict[str, RaceRecord]
     racetracks: dict[str, RacetrackRecord]
+    selectors: dict[str, SelectorRecord]
     supports: dict[str, SupportRecord]
     trainees: dict[str, TraineeRecord]
 
