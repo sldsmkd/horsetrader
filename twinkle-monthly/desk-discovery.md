@@ -142,6 +142,23 @@ labelling — the kind branch belongs at the *shaping input*, not the readout.
   - The commit badge is the **dossier edit entry point**: clicking it swaps the Desk out
     for the commit dossier in one `view.set` (the dossier stays the pity writer).
   - **Width:** the Desk runs ~double the standard modal (note column wants real room).
+- **2026-06-23 — real margin-note corpus (user's actual HH spreadsheet, the prior art).**
+  Saw the source workflow. Confirms the design:
+  - Notes are **two-clause: directive + contingency** — "start building maru out / use
+    selector on her at anni"; "2LB LH goal — stop at 200 if can / 400 if afford or crystals";
+    "pull 400 if maru 2LB+ / 200 otherwise and wait for rerun". The Desk textarea (Shift+Enter
+    newline) holds these; the placeholder we used was literally one of them.
+  - Notes **constantly cite pity + affordability** ("stop at 200", "50 pulls are free", "400
+    if can afford") — the exact facts now sitting beside the note (commit box + ≈copies). The
+    spreadsheet forced a cross-column read; the Desk co-locates note and numbers.
+  - **Two note kinds, exactly our split:** "I DONT WANNA! / menace, comedy, oshi, magical" on
+    Inari One (0 pulls) = a *character* note (flavour, outlives acquisition) → card surface
+    atom note; "#1 Oshi / NONE NEGOTIABLE" + per-banner directives → the Desk banner note.
+  - All notes **well under 140** — validates the cleat cut.
+  - **Candidate future signal:** the HH rows are colour-coded (red/green/yellow backgrounds),
+    apparently a *priority/conviction* axis distinct from affordability. The Desk's left border
+    already carries kind and the commit box carries affordability band — a third colour axis
+    (conviction) would need to not collide. Parked, not pursued.
 - **OPEN QUESTION — note length.** Placeholder is currently a full **cleat (240 graphemes)**
   but at a glance that reads **too long** for a scannable spreadsheet row. Don't decide the
   display cap from the armchair — **good candidate to discover with ~4 real users** (does a
