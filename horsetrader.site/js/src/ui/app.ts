@@ -890,7 +890,13 @@ export function mountApp(
   function startOnboarding(): void {
     tour?.dismiss(); // never stack two overlays (the dev knob can re-run mid-tour)
     try {
-      tour = runOnboarding({ firstrun: coord.firstrun(), onAdvance: (stage) => coord.setFirstrun(stage) });
+      tour = runOnboarding({
+        firstrun: coord.firstrun(),
+        onAdvance: (stage) => coord.setFirstrun(stage),
+        // Step aside when the player opens the surface Tazuna points at — menu surfaces
+        // land in the dropdown rail, centred modals in the surface layer.
+        dimWhenOpen: [chromeDropdowns, surfaceLayer],
+      });
     } catch (err) {
       console.warn("onboarding skipped:", err);
     }

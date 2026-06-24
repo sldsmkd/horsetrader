@@ -11,9 +11,12 @@
  *
  * Visually it's a coachmark: a dimmed page with a bright cutout over the live menubar
  * button Tazuna is describing (the cutout is the spotlight element's huge box-shadow),
- * her portrait + a one-line blurb beside it. It is modal — the page underneath is
- * inert during the tour; the player follows Next, then clicks around freely once it
- * hands off.
+ * her portrait + a one-line blurb beside it.
+ *
+ * It is NOT modal — the spotlight is click-through, so the player can click the very
+ * button Tazuna points at: doing so advances the tour AND opens the real surface. The
+ * coachmark then **steps aside** while any surface/editor is open (we watch the surface
+ * containers) so it never buries the thing they just opened, and resumes on close.
  */
 
 import "./onboarding.css";
@@ -73,6 +76,10 @@ export interface OnboardingOpts {
   firstrun: number;
   /** Persist the new watermark — called as each stage is passed, and on skip/finish. */
   onAdvance: (stage: number) => void;
+  /** Surface containers (the menu-dropdown rail + the centred-modal layer). While any
+   *  holds a child — i.e. the player has opened the surface Tazuna pointed at — the
+   *  coachmark hides so it never sits over the editor, and reappears when they close it. */
+  dimWhenOpen?: readonly HTMLElement[];
 }
 
 export interface OnboardingHandle {
@@ -124,10 +131,14 @@ export function runOnboarding(opts: OnboardingOpts): OnboardingHandle | null {
 
   let i = 0;
   let done = false;
+  let detachTarget: (() => void) | null = null;
 
-  /** Position the spotlight + panel against the current step's live target. A missing
-   *  target degrades to the centred (scrim) layout — never blocks the tour. */
+  /** Position the spotlight + panel against the current step's live target, and wire a
+   *  click on that real target to advance the tour (the player can act on what Tazuna
+   *  points at). A missing target degrades to the centred (scrim) layout — never blocks. */
   function place(step: Step): void {
+    detachTarget?.();
+    detachTarget = null;
     const target = step.selector ? document.querySelector<HTMLElement>(step.selector) : null;
     if (target) {
       const r = target.getBoundingClientRect();
@@ -140,6 +151,11 @@ export function runOnboarding(opts: OnboardingOpts): OnboardingHandle | null {
       spot.style.height = `${r.height + pad * 2}px`;
       panel.style.top = `${r.bottom + 14}px`;
       panel.style.left = `${clamp(r.left + r.width / 2 - PANEL_WIDTH / 2, 12, window.innerWidth - PANEL_WIDTH - 12)}px`;
+      // Clicking the spotlit control opens its real surface (the overlay is click-through);
+      // count that as taking the step, so the tour advances with the action.
+      const onTargetClick = (): void => advance();
+      target.addEventListener("click", onTargetClick);
+      detachTarget = () => target.removeEventListener("click", onTargetClick);
     } else {
       overlay.classList.add("onboarding--centred"); // CSS draws the scrim + centres the panel
       spot.style.display = "none";
@@ -147,6 +163,20 @@ export function runOnboarding(opts: OnboardingOpts): OnboardingHandle | null {
       panel.style.left = "";
     }
   }
+
+  // Step aside while the player has a surface open (the one Tazuna pointed at, or any
+  // other): a low-z editor would otherwise sit under our dim. Reappear — re-placed
+  // against fresh layout — once every container is empty again.
+  const containers = opts.dimWhenOpen ?? [];
+  const surfaceOpen = (): boolean => containers.some((c) => c.childElementCount > 0);
+  function syncVisibility(): void {
+    if (done) return;
+    const hidden = surfaceOpen();
+    overlay.classList.toggle("onboarding--hidden", hidden);
+    if (!hidden) place(steps[i]);
+  }
+  const observer = new MutationObserver(syncVisibility);
+  for (const c of containers) observer.observe(c, { childList: true });
 
   function render(): void {
     const step = steps[i];
@@ -171,6 +201,8 @@ export function runOnboarding(opts: OnboardingOpts): OnboardingHandle | null {
     if (done) return;
     done = true;
     opts.onAdvance(MAX_STAGE); // skip or natural end — the whole tour is now behind us
+    detachTarget?.();
+    observer.disconnect();
     window.removeEventListener("resize", onResize);
     document.removeEventListener("keydown", onKey);
     overlay.remove();

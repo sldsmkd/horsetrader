@@ -5,9 +5,15 @@
 .onboarding {
   position: fixed;
   inset: 0;
-  z-index: 1200; /* above --glass-z-alert (1100) — the tour sits over everything */
-  pointer-events: auto; /* modal: swallow clicks on the dimmed page during the tour */
+  z-index: 1200; /* above --glass-z-alert (1100) — the tour sits over the timeline + chrome */
+  pointer-events: none; /* click-through: the player can click the spotlit control beneath */
   animation: onboarding-fade 0.2s ease-out;
+}
+
+/* Stepped aside while a surface/editor is open (see onboarding.ts) — a low-z editor
+   must not sit under our dim. */
+.onboarding--hidden {
+  display: none;
 }
 
 @keyframes onboarding-fade {
@@ -54,6 +60,7 @@
   border: 1px solid var(--glass-edge);
   box-shadow: var(--glass-shadow);
   color: var(--ht-colour-text-primary);
+  pointer-events: auto; /* the panel itself is interactive (Skip / Next) */
   transition:
     top 0.25s ease,
     left 0.25s ease;

@@ -88,6 +88,19 @@ End-to-end on the branch; tsc clean, 271 tests pass (added a firstrun round-trip
 
 Not committed; not deployed.
 
+### 2026-06-24 — interactive spotlight (Kris: "I can't choose my trainer card")
+
+The hard-modal tour blocked the very control it pointed at. Two changes:
+- **Click-through spotlight** — overlay `pointer-events: none` (panel stays `auto`), and a
+  click listener on the *real* spotlit target advances the tour. So clicking the Trainer
+  card opens the identity surface AND steps the tour forward, with the action.
+- **Step aside while a surface is open** — regular surfaces sit at z-index 1–3 (the menu
+  dropdown rail), far below the coachmark, so an opened editor would hide under the dim. The
+  overlay now watches the surface containers (`chromeDropdowns` + `surfaceLayer`) via a
+  MutationObserver and hides (`--hidden`) whenever either holds a child, reappearing —
+  re-placed against fresh layout — on close. Flow: spotlight Trainer → click it → edit →
+  close → spotlight Resources → click → edit → close → outro. tsc + 271 green.
+
 ### Open / possible follow-ups
 - Eyeball the live spotlight placement + portrait crop on :3000 (esbuild watch picks it up).
 - Bake screenshot fragments (`shot?`) if a live spotlight ever reads ambiguously — unused in v1.
