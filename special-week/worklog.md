@@ -103,6 +103,22 @@ The hard-modal tour blocked the very control it pointed at. Two changes:
   Flow: spotlight Trainer → click it (advances + opens) → she waits at Resources, dim off →
   edit → close → dim returns on Resources → click → waits at outro → done. tsc + 271 green.
 
+### 2026-06-24 — simplified: centred panel + green ring, no dim, no observer (Kris)
+
+Kris: "keep her centred and use the green highlighting so she's not obscuring stuff" → "that
+simplifies all the observer stuff right?" Yes — collapsed it:
+- **No dim.** The green ring (`--ht-colour-interactive` outline + glow) IS the highlight;
+  the page stays bright. Nothing to un-dim, so no need to react to surfaces opening.
+- **Fixed centred panel.** Tazuna's portrait + blurb live in one fixed spot (centred,
+  anchored low `bottom: 6vh`) and never move; only the ring glides to each target. A fixed
+  panel can't obscure the control or content, so no reposition/clamp logic.
+- **Deleted:** the MutationObserver, `--relaxed`/`--hidden`/`--centred` classes,
+  `relaxWhenOpen`/`hideWhenOpen` opts, the rail/modal container wiring in app.ts, and the
+  panel-positioning/clamp math. Click-through + click-target-to-advance stay.
+
+Net: onboarding.ts ~40 lines lighter; the whole "step aside" problem dissolved because there's
+nothing to step aside from. tsc + 271 green.
+
 ### Open / possible follow-ups
 - Eyeball the live spotlight placement + portrait crop on :3000 (esbuild watch picks it up).
 - Bake screenshot fragments (`shot?`) if a live spotlight ever reads ambiguously — unused in v1.

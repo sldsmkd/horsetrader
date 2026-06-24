@@ -1,19 +1,14 @@
-/* Special Week — first-run onboarding coachmark. A modal overlay above all chrome:
-   a dimmed page with a bright cutout over the live menubar button Tazuna names, her
-   portrait + one-line blurb beside it. See onboarding.ts. */
+/* Special Week — first-run onboarding coachmark. A bright, click-through overlay (no dim):
+   Tazuna's portrait + one-line blurb in a fixed, centred panel, and a green ring that
+   highlights the live menubar button she's describing. The panel never moves, so it never
+   obscures the control or the content; the ring does the pointing. See onboarding.ts. */
 
 .onboarding {
   position: fixed;
   inset: 0;
-  z-index: 1200; /* above --glass-z-alert (1100) — the tour sits over the timeline + chrome */
-  pointer-events: none; /* click-through: the player can click the spotlit control beneath */
+  z-index: 1200; /* above --glass-z-alert (1100) — the ring + panel float over the chrome */
+  pointer-events: none; /* click-through: the player can click the highlighted control beneath */
   animation: onboarding-fade 0.2s ease-out;
-}
-
-/* Stepped aside while a surface/editor is open (see onboarding.ts) — a low-z editor
-   must not sit under our dim. */
-.onboarding--hidden {
-  display: none;
 }
 
 @keyframes onboarding-fade {
@@ -22,43 +17,32 @@
   }
 }
 
-/* Targeted stage: the spotlight IS the scrim — a transparent cutout whose huge
-   box-shadow dims everything else, so the live button underneath stays lit. */
+/* The green highlight — a bright ring + soft glow over the live target, no page dimming.
+   It glides between targets as the tour advances. */
 .onboarding__spot {
   position: fixed;
   border-radius: 0.55rem;
-  box-shadow:
-    0 0 0 100vmax rgba(8, 12, 10, 0.62),
-    0 0 0 2px color-mix(in srgb, var(--ht-colour-interactive) 70%, transparent);
   outline: 2px solid var(--ht-colour-interactive);
   outline-offset: 2px;
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--ht-colour-interactive) 70%, transparent),
+    0 0 18px 4px color-mix(in srgb, var(--ht-colour-interactive) 45%, transparent);
   transition:
     top 0.25s ease,
     left 0.25s ease,
     width 0.25s ease,
-    height 0.25s ease,
-    box-shadow 0.25s ease;
+    height 0.25s ease;
   pointer-events: none;
 }
 
-/* Relaxed: the player opened the spotlit surface. Drop the dark dim (so the editor is
-   bright and usable) but keep the bright ring — Tazuna waits at the next step beside it. */
-.onboarding--relaxed .onboarding__spot {
-  box-shadow:
-    0 0 0 100vmax rgba(8, 12, 10, 0),
-    0 0 16px 3px color-mix(in srgb, var(--ht-colour-interactive) 45%, transparent),
-    0 0 0 2px color-mix(in srgb, var(--ht-colour-interactive) 70%, transparent);
-}
-
-/* Centred stage (welcome + outro): no cutout, a flat scrim over the whole page. */
-.onboarding--centred {
-  background: rgba(8, 12, 10, 0.62);
-}
-
+/* Fixed home: horizontally centred, anchored low so she clears the menubar (where the
+   ring lives) and any surface that opens above. */
 .onboarding__panel {
-  --panel-w: 320px; /* keep in step with PANEL_WIDTH in onboarding.ts */
   position: fixed;
-  width: var(--panel-w);
+  left: 50%;
+  bottom: 6vh;
+  transform: translateX(-50%);
+  width: 320px;
   max-width: calc(100vw - 24px);
   display: flex;
   gap: 0.75rem;
@@ -71,16 +55,6 @@
   box-shadow: var(--glass-shadow);
   color: var(--ht-colour-text-primary);
   pointer-events: auto; /* the panel itself is interactive (Skip / Next) */
-  transition:
-    top 0.25s ease,
-    left 0.25s ease;
-}
-
-/* When there's no target, the panel floats dead-centre. */
-.onboarding--centred .onboarding__panel {
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
 }
 
 .onboarding__portrait {

@@ -893,11 +893,6 @@ export function mountApp(
       tour = runOnboarding({
         firstrun: coord.firstrun(),
         onAdvance: (stage) => coord.setFirstrun(stage),
-        // When the player opens the surface Tazuna points at (a menu dropdown, in the
-        // rail), she's already advanced to the next step — just release the dim so the
-        // editor is bright. A centred modal covers everything, so hide her until it closes.
-        relaxWhenOpen: [chromeDropdowns],
-        hideWhenOpen: [surfaceLayer],
       });
     } catch (err) {
       console.warn("onboarding skipped:", err);

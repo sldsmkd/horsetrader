@@ -9,15 +9,14 @@
  * resumes. The registry is **append-only** — indices ARE the order, so a stage added
  * later as `N` reaches existing users whose mark is `< N` without replaying the rest.
  *
- * Visually it's a coachmark: a dimmed page with a bright cutout over the live menubar
- * button Tazuna is describing (the cutout is the spotlight element's huge box-shadow),
- * her portrait + a one-line blurb beside it.
+ * Visually it's a coachmark: Tazuna's portrait + a one-line blurb in a fixed, centred
+ * panel that never moves — and a green ring that highlights the live menubar button she's
+ * describing. Keeping the panel put (rather than chasing each target) means it never
+ * obscures the control or the content behind it; the ring does all the pointing.
  *
- * It is NOT modal — the spotlight is click-through, so the player can click the very
- * button Tazuna points at: doing so advances the tour AND opens the real surface. She
- * then **moves to the next step and waits**: opening a menu surface RELEASES the dim (the
- * editor is bright, she sits beside it at the next spotlight), and re-dims on close. Only
- * a full-screen centred modal hides her entirely until it's dismissed.
+ * It is NOT modal and not dimmed — the page stays bright and click-through, so the player
+ * can click the very button she's ringing. Doing so advances the tour AND opens the real
+ * surface: she moves the ring to the next step and waits, ready, beside whatever they open.
  */
 
 import "./onboarding.css";
@@ -25,7 +24,6 @@ import "./onboarding.css";
 import { h } from "../../h.ts";
 
 const PORTRAIT = "/img/characters/tazuna-hayakawa_portrait.webp";
-const PANEL_WIDTH = 320; // keep in step with onboarding.css --panel-w
 
 /** One step of the tour. `selector` resolves a live menubar button to spotlight at
  *  show-time; absent ⇒ a centred card (the welcome and the outro). */
@@ -77,13 +75,6 @@ export interface OnboardingOpts {
   firstrun: number;
   /** Persist the new watermark — called as each stage is passed, and on skip/finish. */
   onAdvance: (stage: number) => void;
-  /** The menu-dropdown rail. When the player opens the surface Tazuna pointed at (it
-   *  lands here), we *release the dim* — Tazuna and the next-step spotlight stay visible,
-   *  but the page brightens so the editor is fully usable — and re-dim once it closes. */
-  relaxWhenOpen?: readonly HTMLElement[];
-  /** The centred-modal layer. A modal covers the whole screen, so the coachmark fully
-   *  hides while one is up (e.g. a banner's commit shield), and returns on close. */
-  hideWhenOpen?: readonly HTMLElement[];
 }
 
 export interface OnboardingHandle {
@@ -94,8 +85,6 @@ export interface OnboardingHandle {
 interface Step extends Stage {
   outro: boolean;
 }
-
-const clamp = (n: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, n));
 
 /**
  * Run the pending tour. Returns null (mounts nothing) when the watermark already
@@ -128,7 +117,7 @@ export function runOnboarding(opts: OnboardingOpts): OnboardingHandle | null {
   );
   const overlay = h(
     "div",
-    { class: "onboarding", attr: { role: "dialog", "aria-modal": "true", "aria-label": "Getting started" } },
+    { class: "onboarding", attr: { role: "dialog", "aria-label": "Getting started" } },
     spot,
     panel,
   );
@@ -137,9 +126,10 @@ export function runOnboarding(opts: OnboardingOpts): OnboardingHandle | null {
   let done = false;
   let detachTarget: (() => void) | null = null;
 
-  /** Position the spotlight + panel against the current step's live target, and wire a
-   *  click on that real target to advance the tour (the player can act on what Tazuna
-   *  points at). A missing target degrades to the centred (scrim) layout — never blocks. */
+  /** Move the green ring onto the current step's live target and wire a click on that
+   *  real target to advance (the player acts on what Tazuna points at). The panel itself
+   *  never moves — it's fixed (centred) in CSS, so it never obscures the target or content.
+   *  A targetless step (welcome / outro) simply shows no ring. */
   function place(step: Step): void {
     detachTarget?.();
     detachTarget = null;
@@ -147,43 +137,20 @@ export function runOnboarding(opts: OnboardingOpts): OnboardingHandle | null {
     if (target) {
       const r = target.getBoundingClientRect();
       const pad = 6;
-      overlay.classList.remove("onboarding--centred");
       spot.style.display = "";
       spot.style.top = `${r.top - pad}px`;
       spot.style.left = `${r.left - pad}px`;
       spot.style.width = `${r.width + pad * 2}px`;
       spot.style.height = `${r.height + pad * 2}px`;
-      panel.style.top = `${r.bottom + 14}px`;
-      panel.style.left = `${clamp(r.left + r.width / 2 - PANEL_WIDTH / 2, 12, window.innerWidth - PANEL_WIDTH - 12)}px`;
-      // Clicking the spotlit control opens its real surface (the overlay is click-through);
+      // Clicking the highlighted control opens its real surface (the overlay is click-through);
       // count that as taking the step, so the tour advances with the action.
       const onTargetClick = (): void => advance();
       target.addEventListener("click", onTargetClick);
       detachTarget = () => target.removeEventListener("click", onTargetClick);
     } else {
-      overlay.classList.add("onboarding--centred"); // CSS draws the scrim + centres the panel
       spot.style.display = "none";
-      panel.style.top = "";
-      panel.style.left = "";
     }
   }
-
-  // React to the player opening a surface. A menu surface (the one Tazuna pointed at)
-  // lands in the rail: keep her at the next step but RELEASE the dim, so the editor is
-  // bright and she just waits beside it. A centred modal covers everything, so fully
-  // hide until it closes. Either way she re-places against fresh layout when restored.
-  const relaxOn = opts.relaxWhenOpen ?? [];
-  const hideOn = opts.hideWhenOpen ?? [];
-  const anyOpen = (cs: readonly HTMLElement[]): boolean => cs.some((c) => c.childElementCount > 0);
-  function syncVisibility(): void {
-    if (done) return;
-    const hidden = anyOpen(hideOn);
-    overlay.classList.toggle("onboarding--hidden", hidden);
-    overlay.classList.toggle("onboarding--relaxed", !hidden && anyOpen(relaxOn));
-    if (!hidden) place(steps[i]);
-  }
-  const observer = new MutationObserver(syncVisibility);
-  for (const c of [...relaxOn, ...hideOn]) observer.observe(c, { childList: true });
 
   function render(): void {
     const step = steps[i];
@@ -209,7 +176,6 @@ export function runOnboarding(opts: OnboardingOpts): OnboardingHandle | null {
     done = true;
     opts.onAdvance(MAX_STAGE); // skip or natural end — the whole tour is now behind us
     detachTarget?.();
-    observer.disconnect();
     window.removeEventListener("resize", onResize);
     document.removeEventListener("keydown", onKey);
     overlay.remove();
