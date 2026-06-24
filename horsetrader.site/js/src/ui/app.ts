@@ -101,13 +101,21 @@ function packBelowLane(cards: readonly BelowCard[], els: readonly HTMLElement[])
   if (els.length === 0) return 0;
   const stems = els.map((el) => el.querySelector(".card__stem") as HTMLElement);
   const bodies = els.map((el) => el.querySelector(".card__body") as HTMLElement);
-  const baseStem = stems[0].getBoundingClientRect().height;
-  const heights = bodies.map((b) => b.getBoundingClientRect().height);
+  // Measure with offsetWidth/offsetHeight, NOT getBoundingClientRect: the packer's
+  // boxes live in the unscaled content-axis space (card.x), but getBoundingClientRect
+  // returns the camera-transformed (`scale(z)`) rect. The timeline forces scale to 1
+  // for the measurement window, but iOS Safari doesn't reliably reflect that
+  // synchronous transform write in the immediately-following rect read, so on a
+  // zoomed-out portrait viewport the packer read z-scaled widths and under-spaced the
+  // cards (Godolphin F10). offset* are layout dimensions, independent of transforms —
+  // correct regardless of whether the unscale flushed, and identical at z=1.
+  const baseStem = stems[0].offsetHeight;
+  const heights = bodies.map((b) => b.offsetHeight);
   // Snap each measured width to the nearest unit (1u = 140px, half the full card)
   // so the collision grid stays on clean 1u/2u/3u multiples, never a sub-pixel
   // rem-rounding sliver. The grid emerged from the real card styling.
   const unit = timelinePxVar("--timeline-card-w", 280) / 2;
-  const widths = els.map((el) => Math.round(el.getBoundingClientRect().width / unit) * unit);
+  const widths = els.map((el) => Math.round(el.offsetWidth / unit) * unit);
   const boxes = cards.map((card, i) => ({ x: card.x, width: widths[i], height: heights[i] }));
   const gapX = timelinePxVar("--timeline-below-gap-x", 10);
   const gapY = timelinePxVar("--timeline-stack-gap", 14);
@@ -132,8 +140,11 @@ function packBelowLane(cards: readonly BelowCard[], els: readonly HTMLElement[])
 function packAboveLane(groups: readonly BannerGroup[], els: readonly HTMLElement[]): number {
   if (els.length === 0) return 0;
   const bodies = els.map((el) => el.querySelector(".banner-group") as HTMLElement);
-  const stem = (els[0].querySelector(".card__stem") as HTMLElement).getBoundingClientRect().height;
-  const boxes = groups.map((group, i) => ({ x: group.x, width: bodies[i].getBoundingClientRect().width }));
+  // offsetWidth/offsetHeight, not getBoundingClientRect — transform-independent layout
+  // geometry, so a zoomed-out portrait camera can't make the packer mis-measure on iOS
+  // Safari (see packBelowLane for the full rationale; Godolphin F10).
+  const stem = (els[0].querySelector(".card__stem") as HTMLElement).offsetHeight;
+  const boxes = groups.map((group, i) => ({ x: group.x, width: bodies[i].offsetWidth }));
   const gap = timelinePxVar("--timeline-above-gap-x", 8);
 
   const nudges = packAbove(boxes, gap);
@@ -142,7 +153,7 @@ function packAboveLane(groups: readonly BannerGroup[], els: readonly HTMLElement
     bodies[i].style.transform = nudge ? `translateX(${nudge}px)` : "";
     // The lane reaches stem + body above the line — same stem+body measure the
     // below bookend uses for its floor, so the two peek bounds stay symmetric.
-    roof = Math.max(roof, stem + bodies[i].getBoundingClientRect().height);
+    roof = Math.max(roof, stem + bodies[i].offsetHeight);
   });
   return roof;
 }
