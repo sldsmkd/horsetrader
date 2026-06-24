@@ -281,6 +281,50 @@ export function mountApp(
     setRushed: (key, on) => coord.setRushed(key, on),
   };
 
+  // The expensive tail of the render path: materialise every card across the extent, mount,
+  // pack (which measures heights → reflow), and arm the cull. This is the lone ~0.5s long task
+  // (12-billion-yen-incident). Split out from `refresh` so the cheap chrome (minimap/strip/axis)
+  // can paint first and this can be deferred a frame on the very first mount — see `refresh`.
+  function buildCards(
+    world: readonly SettledEvent[],
+    axis: NonNullable<ReturnType<typeof tl.axis>>,
+    statuses: ReturnType<typeof coord.commitmentStatuses>,
+  ): void {
+    // Presence gating happens in the engine: a stream the player has toggled off
+    // (e.g. missions) contributes no settled events, so its cards leave the
+    // timeline with the income — no kind-hiding re-derivation here.
+    const below = belowLaneCards(world, bundle, axis, now);
+    const above = aboveLaneGroups(world, bundle, axis, now, {
+      balanceAt: (date) => coord.balanceAt(date),
+      availableFor: (key) => coord.availableFor(key),
+      commitmentStatuses: statuses,
+    });
+    const belowEls = below.map((card) => belowCard(card, rush, fav, inspect));
+    const aboveEls = above.map((group) => bannerGroup(group, fav, commit, inspect));
+    cardStats = { cards: belowEls.length + aboveEls.length, aboveCards: aboveEls.length, belowCards: belowEls.length };
+    tl.setCards([...belowEls, ...aboveEls]);
+    // Mounted now → heights are measurable. Pack each lane (below returns its
+    // floor depth, above its roof height); the timeline turns these into its
+    // dynamic vertical roof/floor.
+    const belowDepth = packBelowLane(below, belowEls);
+    const aboveDepth = packAboveLane(above, aboveEls);
+    tl.setContentDepth(aboveDepth, belowDepth);
+    // Arm spatial culling: hand the substrate every card's id + element so it can
+    // measure world bounds (now, with the packer settled) and thereafter mount only
+    // the visible neighbourhood. Ids are lane-prefixed so a below event key and an
+    // above group key (a bare date) can never collide in the live-set membership.
+    tl.setScene([
+      ...below.map((card, i) => ({ id: `below:${card.key}`, el: belowEls[i] })),
+      ...above.map((group, i) => ({ id: `above:${group.key}`, el: aboveEls[i] })),
+    ]);
+    // Raise the stage lighting — the cards (the lead) are built, packed and culled, so spotlight
+    // them. First call fades the layer up over 150ms; later rebuilds mount into the lit layer.
+    tl.reveal();
+  }
+
+  // First mount defers the card build one frame; every later refresh builds inline so a toggle
+  // or commit stays immediate.
+  let cardsDeferred = false;
   function refresh(): void {
     // The settled world — the render source. One value feeds the fold AND the
     // lane; faces arrive resolved, so the cards never join back to the bundle.
@@ -315,33 +359,21 @@ export function mountApp(
     tl.layout(extent, now);
     const axis = tl.axis();
     if (!axis) return tl.setCards([]);
-    // Presence gating happens in the engine: a stream the player has toggled off
-    // (e.g. missions) contributes no settled events, so its cards leave the
-    // timeline with the income — no kind-hiding re-derivation here.
-    const below = belowLaneCards(world, bundle, axis, now);
-    const above = aboveLaneGroups(world, bundle, axis, now, {
-      balanceAt: (date) => coord.balanceAt(date),
-      availableFor: (key) => coord.availableFor(key),
-      commitmentStatuses: statuses,
-    });
-    const belowEls = below.map((card) => belowCard(card, rush, fav, inspect));
-    const aboveEls = above.map((group) => bannerGroup(group, fav, commit, inspect));
-    cardStats = { cards: belowEls.length + aboveEls.length, aboveCards: aboveEls.length, belowCards: belowEls.length };
-    tl.setCards([...belowEls, ...aboveEls]);
-    // Mounted now → heights are measurable. Pack each lane (below returns its
-    // floor depth, above its roof height); the timeline turns these into its
-    // dynamic vertical roof/floor.
-    const belowDepth = packBelowLane(below, belowEls);
-    const aboveDepth = packAboveLane(above, aboveEls);
-    tl.setContentDepth(aboveDepth, belowDepth);
-    // Arm spatial culling: hand the substrate every card's id + element so it can
-    // measure world bounds (now, with the packer settled) and thereafter mount only
-    // the visible neighbourhood. Ids are lane-prefixed so a below event key and an
-    // above group key (a bare date) can never collide in the live-set membership.
-    tl.setScene([
-      ...below.map((card, i) => ({ id: `below:${card.key}`, el: belowEls[i] })),
-      ...above.map((group, i) => ({ id: `above:${group.key}`, el: aboveEls[i] })),
-    ]);
+    // The chrome above (minimap/strip/timeline axis) is cheap and now painted. Only the card
+    // build is heavy, so on the first mount defer it one frame — the real timeline + minimap
+    // frame lands before the ~0.5s card materialisation (the gate). Re-read at fire time so a
+    // resize during the gap doesn't build against a stale axis.
+    if (!cardsDeferred) {
+      cardsDeferred = true;
+      requestAnimationFrame(() =>
+        setTimeout(() => {
+          const liveAxis = tl.axis();
+          if (liveAxis) buildCards(coord.settledEvents(), liveAxis, coord.commitmentStatuses());
+        }),
+      );
+    } else {
+      buildCards(world, axis, statuses);
+    }
   }
   coord.subscribe(refresh);
 
@@ -829,8 +861,12 @@ export function mountApp(
   // layer, with the menubar/minimap/film-strip lifted above all of it (their own
   // z-index) so the always-reachable chrome is never occluded.
   root.replaceChildren(menu.el, scen.el, tl.el, mini.el, strip.el, chromeDropdowns, surfaceLayer, hud.el);
-  refresh();
   renderSurfaces();
+  // The gate: paint the chrome (menubar with folded numbers, minimap, film-strip, timeline axis)
+  // synchronously, then `refresh` itself defers only the heavy card build a frame on first mount.
+  // So the real frame — including the real minimap balance line — is up before the ~0.5s card
+  // materialisation, with no blank handoff from the pre-fetch scaffold.
+  refresh();
 
   // Resolve the cloud session once, in the background, then re-render so the trainer
   // card's Cloud button reflects connected/disconnected. Signed-out on any error.

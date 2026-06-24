@@ -4,6 +4,31 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Horsetrader</title>
+    <!-- Warm the menubar's images at parse time, before app.js fetches/folds, so they're ready
+         the instant they're needed instead of popping in after. The Plan tablet (commitment-gated)
+         and Beta hammer (supporter-gated) are tiny, so just fetch them unconditionally — cached and
+         decoded if/when they're revealed. -->
+    <link rel="preload" as="image" href="/icons/tablet.png" />
+    <link rel="preload" as="image" href="/icons/gold_hammer.png" />
+    <!-- The oshi portrait is dynamic, so derive it from localStorage (needs nothing from the
+         bundle): the saved oshi lives at remote.config.identity.oshiId ("char-<slug>"), the icon is
+         just the slug (oshi.ts), default haru. Any miss just 404s a harmless preload. -->
+    <script>
+      (function () {
+        try {
+          var raw = localStorage.getItem("horsetrader.plan");
+          var id = raw && JSON.parse(raw).remote.config.identity.oshiId;
+          var slug = typeof id === "string" && id.indexOf("char-") === 0 ? id.slice(5) : "haru-urara";
+          var link = document.createElement("link");
+          link.rel = "preload";
+          link.as = "image";
+          link.href = "/img/characters/" + slug + "_icon.webp";
+          document.head.appendChild(link);
+        } catch (e) {
+          /* corrupt/absent blob — the menubar still fetches the real avatar normally */
+        }
+      })();
+    </script>
     <link rel="stylesheet" href="/js/app.css" />
   </head>
   <body>

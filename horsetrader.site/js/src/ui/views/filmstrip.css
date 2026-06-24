@@ -166,10 +166,19 @@
   object-fit: cover;
   display: block;
   border-radius: 5px; /* nest the inset picture inside the capsule's rounder corners */
+  /* Faces fade in as they decode (filmstrip.ts adds --loaded on `load`) so the icons emerge
+     instead of snapping. Cached faces get --loaded before first paint → no transition, instant. */
+  opacity: 0;
+  transition: opacity 280ms ease-out;
+}
+.filmstrip__portrait--loaded {
+  opacity: 1;
 }
 /* Past portraits desaturate and fade rather than tint — keep the face, dim it. */
 .filmstrip__frame--past .filmstrip__portrait {
   filter: grayscale(0.85);
+}
+.filmstrip__frame--past .filmstrip__portrait--loaded {
   opacity: 0.5;
 }
 

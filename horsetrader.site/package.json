@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "gen:types": "node scripts/gen-types.mjs",
+    "gen:landing": "node scripts/gen-landing.mjs",
     "analyze:anniversaries": "node --no-warnings scripts/anniversary-economy.ts",
     "analyze:anniversaries:matrix": "node --no-warnings scripts/anniversary-economy.ts --matrix",
     "check": "tsc --noEmit",

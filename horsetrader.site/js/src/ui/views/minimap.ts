@@ -52,6 +52,10 @@ export interface Minimap {
   refresh(p: MinimapRefresh): void;
   /** Move the window to centre on `date` and vertical offset — the cheap path. */
   setView(date: CalendarDate, verticalOffset?: number): void;
+  /** Paint the pre-fetch landing strip — pity frets + a flat 0-balance line (whole
+   *  above-origin lane blue) over the prebaked proxy extent. No bundle/series/dots, so it
+   *  draws before the fold; the first real `refresh` replaces it. */
+  scaffold(extent: readonly [CalendarDate, CalendarDate], now: CalendarDate): void;
 }
 
 export interface MinimapHandlers {
@@ -191,7 +195,7 @@ export function minimap({ onSeek }: MinimapHandlers): Minimap {
           const a = segments[j]!;
           const b = segments[j + 1]!;
           const midpoint = (a.carats + b.carats) / 2;
-          if (midpoint > 0) {
+          if (midpoint >= 0) {
             bandShapes.push(svg("rect", {
               class: "minimap__band minimap__band--positive",
               x: a.x, y: 0, width: Math.max(0, b.x - a.x), height: originY,
@@ -225,6 +229,33 @@ export function minimap({ onSeek }: MinimapHandlers): Minimap {
     setView(date, verticalOffset = 0) {
       if (!axis) return;
       placeWindow(axis.xForDate(date), verticalOffset);
+    },
+    scaffold(scaffoldExtent, scaffoldNow) {
+      // The pre-fetch landing strip: same axis + frets + today marker as `refresh`, but the
+      // balance is a flat zero (no fold yet), so the whole above-origin lane reads blue (>= 0)
+      // and the line rests on the origin fret across the extent. No bundle → no dots. Replaced
+      // by the first real `refresh` the moment the bundle lands.
+      extent = scaffoldExtent;
+      dots.replaceChildren();
+      const width = el.clientWidth;
+      const height = el.clientHeight;
+      canvas.setAttribute("viewBox", `0 0 ${width} ${height}`);
+      const days = Math.max(1, daysBetween(extent[0], extent[1]));
+      axis = createAxis({ origin: extent[0], pxPerDay: width / days });
+      frets.replaceChildren(
+        ...fretLevels().map((carats) => {
+          const y = caratToY(carats, height);
+          return svg("line", {
+            class: carats === 0 ? "minimap__fret minimap__fret--origin" : "minimap__fret",
+            x1: 0, x2: width, y1: y, y2: y,
+          });
+        }),
+      );
+      const originY = caratToY(0, height);
+      bands.replaceChildren(svg("rect", { class: "minimap__band minimap__band--positive", x: 0, y: 0, width, height: originY }));
+      line.setAttribute("d", `M 0 ${originY} L ${width} ${originY}`);
+      today.style.display = "";
+      today.style.left = `${axis.xForDate(scaffoldNow)}px`;
     },
   };
 }

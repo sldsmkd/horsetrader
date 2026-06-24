@@ -91,6 +91,7 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
   let zoomFitted = false; // first content load opens the camera fitted to the viewport
 
   const culling = createCulling(); // owns the card host, the known scene, and the churn meter
+  culling.host.classList.add("timeline__cards--dark"); // lights up on the first `reveal` (the lead's spotlight)
   const line = h("div", { class: "timeline__line" });
   const today = h("div", { class: "timeline__today" });
   const content = h("div", { class: "timeline__content" }, line, today, culling.host);
@@ -490,6 +491,12 @@ export function timeline({ onView }: TimelineHandlers): Timeline {
       culling.arm(sceneCards, content.getBoundingClientRect().left);
       measuring = false;
       applyPan();
+    },
+    reveal() {
+      // Raise the lighting: the card layer starts dark (timeline.css) so the build/measure/cull
+      // happen unseen; removing it fades the cards in over 150ms. One-way — later rebuilds mount
+      // into the already-lit layer.
+      culling.host.classList.remove("timeline__cards--dark");
     },
     visibility(overscanPx) {
       // Work in content space (where the scene bounds live): convert the screen-px

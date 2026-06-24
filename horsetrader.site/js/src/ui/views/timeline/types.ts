@@ -67,6 +67,14 @@ export interface Timeline {
    */
   setScene(cards: SceneCard[]): void;
   /**
+   * Raise the stage lighting on the card layer — fade the cards in (150ms) the first time they're
+   * built and culled. The substrate (line, today marker, rail) is the always-lit stage; the cards
+   * are the lead, spotlit only once ready. Idempotent: the layer starts dark and this lights it,
+   * so later rebuilds (a toggle, a commit) mount into the already-lit layer and appear instantly.
+   * Opacity doesn't affect geometry, so building/measuring/packing under a dark layer is exact.
+   */
+  reveal(): void;
+  /**
    * Report how far the packed cards reach above and below the centre line (px),
    * measured after a pack. Sets the dynamic vertical roof/floor — only the depth
    * past the viewport half becomes a peekable region.

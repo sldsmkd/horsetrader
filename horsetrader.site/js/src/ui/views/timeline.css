@@ -99,4 +99,10 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
+  /* The lead's spotlight: the layer is built/measured/culled while dark, then `reveal` lights it
+     over 150ms. The substrate (line, today, rail) is the always-lit stage, so only the cards rise. */
+  transition: opacity 150ms ease-out;
+}
+.timeline__cards--dark {
+  opacity: 0;
 }

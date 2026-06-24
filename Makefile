@@ -52,9 +52,12 @@ seed:
 bake:
 	$(PYTHON) main.py
 
-# Between 1 and 2 — derive the site's bundle types from the published schema.
+# Between 1 and 2 — derive the site's generated code from baked artifacts: the bundle types
+# from the published schema, and the prebaked landing-screen data (timeline span + scenario
+# schedule) from the baked events.
 types:
 	npm --prefix $(SITE) run gen:types
+	npm --prefix $(SITE) run gen:landing
 
 # Stage 2 — site build: index.html + bundled js/css into static/.
 build:
