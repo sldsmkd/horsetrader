@@ -14,9 +14,10 @@
  * her portrait + a one-line blurb beside it.
  *
  * It is NOT modal — the spotlight is click-through, so the player can click the very
- * button Tazuna points at: doing so advances the tour AND opens the real surface. The
- * coachmark then **steps aside** while any surface/editor is open (we watch the surface
- * containers) so it never buries the thing they just opened, and resumes on close.
+ * button Tazuna points at: doing so advances the tour AND opens the real surface. She
+ * then **moves to the next step and waits**: opening a menu surface RELEASES the dim (the
+ * editor is bright, she sits beside it at the next spotlight), and re-dims on close. Only
+ * a full-screen centred modal hides her entirely until it's dismissed.
  */
 
 import "./onboarding.css";
@@ -76,10 +77,13 @@ export interface OnboardingOpts {
   firstrun: number;
   /** Persist the new watermark — called as each stage is passed, and on skip/finish. */
   onAdvance: (stage: number) => void;
-  /** Surface containers (the menu-dropdown rail + the centred-modal layer). While any
-   *  holds a child — i.e. the player has opened the surface Tazuna pointed at — the
-   *  coachmark hides so it never sits over the editor, and reappears when they close it. */
-  dimWhenOpen?: readonly HTMLElement[];
+  /** The menu-dropdown rail. When the player opens the surface Tazuna pointed at (it
+   *  lands here), we *release the dim* — Tazuna and the next-step spotlight stay visible,
+   *  but the page brightens so the editor is fully usable — and re-dim once it closes. */
+  relaxWhenOpen?: readonly HTMLElement[];
+  /** The centred-modal layer. A modal covers the whole screen, so the coachmark fully
+   *  hides while one is up (e.g. a banner's commit shield), and returns on close. */
+  hideWhenOpen?: readonly HTMLElement[];
 }
 
 export interface OnboardingHandle {
@@ -164,19 +168,22 @@ export function runOnboarding(opts: OnboardingOpts): OnboardingHandle | null {
     }
   }
 
-  // Step aside while the player has a surface open (the one Tazuna pointed at, or any
-  // other): a low-z editor would otherwise sit under our dim. Reappear — re-placed
-  // against fresh layout — once every container is empty again.
-  const containers = opts.dimWhenOpen ?? [];
-  const surfaceOpen = (): boolean => containers.some((c) => c.childElementCount > 0);
+  // React to the player opening a surface. A menu surface (the one Tazuna pointed at)
+  // lands in the rail: keep her at the next step but RELEASE the dim, so the editor is
+  // bright and she just waits beside it. A centred modal covers everything, so fully
+  // hide until it closes. Either way she re-places against fresh layout when restored.
+  const relaxOn = opts.relaxWhenOpen ?? [];
+  const hideOn = opts.hideWhenOpen ?? [];
+  const anyOpen = (cs: readonly HTMLElement[]): boolean => cs.some((c) => c.childElementCount > 0);
   function syncVisibility(): void {
     if (done) return;
-    const hidden = surfaceOpen();
+    const hidden = anyOpen(hideOn);
     overlay.classList.toggle("onboarding--hidden", hidden);
+    overlay.classList.toggle("onboarding--relaxed", !hidden && anyOpen(relaxOn));
     if (!hidden) place(steps[i]);
   }
   const observer = new MutationObserver(syncVisibility);
-  for (const c of containers) observer.observe(c, { childList: true });
+  for (const c of [...relaxOn, ...hideOn]) observer.observe(c, { childList: true });
 
   function render(): void {
     const step = steps[i];

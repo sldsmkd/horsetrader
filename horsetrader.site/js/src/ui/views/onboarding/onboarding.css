@@ -36,8 +36,18 @@
     top 0.25s ease,
     left 0.25s ease,
     width 0.25s ease,
-    height 0.25s ease;
+    height 0.25s ease,
+    box-shadow 0.25s ease;
   pointer-events: none;
+}
+
+/* Relaxed: the player opened the spotlit surface. Drop the dark dim (so the editor is
+   bright and usable) but keep the bright ring — Tazuna waits at the next step beside it. */
+.onboarding--relaxed .onboarding__spot {
+  box-shadow:
+    0 0 0 100vmax rgba(8, 12, 10, 0),
+    0 0 16px 3px color-mix(in srgb, var(--ht-colour-interactive) 45%, transparent),
+    0 0 0 2px color-mix(in srgb, var(--ht-colour-interactive) 70%, transparent);
 }
 
 /* Centred stage (welcome + outro): no cutout, a flat scrim over the whole page. */
