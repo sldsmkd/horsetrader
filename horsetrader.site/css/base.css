@@ -59,6 +59,11 @@
 html {
   background: var(--ht-colour-surface-page);
   color: var(--ht-colour-text-primary);
+  /* Backstop the document against horizontal overflow: on iOS Safari `body`'s
+     overflow:hidden does NOT stop a too-wide descendant from making the whole page
+     pannable, which drags the fixed chrome off-screen with no way home (Godolphin
+     F7/F9). Clip at the document root so overflow can never become a pan region. */
+  overflow: clip;
 }
 
 body {
@@ -79,6 +84,13 @@ body {
   position: fixed;
   inset: 0;
   isolation: isolate;
+  /* Hard-clip the canvas world to the viewport box. The timeline pans via its own
+     internal transform + culling (nothing beyond the box is meant to be seen), so
+     clipping costs nothing here but denies any overflowing chrome/modal a pannable
+     region — the structural cause of the "stranded, chrome gone" trap (Godolphin
+     F7–F9). NB clip does not establish a containing block for fixed descendants, so
+     the fixed `.surface-layer` escapes this and is clipped at its own box too. */
+  overflow: clip;
 }
 
 /* The pre-hydration splash in index.html. */

@@ -12,6 +12,12 @@
   position: fixed;
   inset: 0;
   pointer-events: none;
+  /* The modal layer is fixed, so #app's overflow clamp doesn't reach it (clip is not
+     a containing block for fixed). Clip here too, so a centred modal wider than the
+     viewport can never spill into a pannable region and strand the user (Godolphin
+     F7/F8). Modals sized to the viewport (`.surface--modal` width clamp) fit within;
+     this only bites a genuinely oversized one — better clipped than a one-way trap. */
+  overflow: clip;
 }
 
 /* The menubar's dropdown rail: a layer sized + centred exactly like the floating
