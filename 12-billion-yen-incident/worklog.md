@@ -166,6 +166,14 @@ NOTE: Kris mentioned "the cards and uptick" as the lead — the minimap balance 
 currently appears synchronously with the chrome (no fade), already gap-free. Left un-faded; revisit
 if the line should rise *with* the cards.
 
+### 2026-06-24 — build wiring: gen:landing is a hard prerequisite
+
+`landing.gen.ts` is imported by the shipped bundle, so a stale one ships stale extent/scenarios.
+Made Makefile `build: types` (prereq), so every clientside build/deploy path regenerates it before
+bundling — `make build` standalone was the leak (deploy/deploy-nobake already ran `types`). Dropped
+the now-redundant explicit `types` from `all` and `deploy-nobake` (build pulls it; no double-run).
+Verified with `make -n`.
+
 ## Verdict — DONE 2026-06-24
 
 Kris: *"there's no next step, no piece 3, it's perfect — you see the app straight away and there's

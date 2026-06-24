@@ -1,5 +1,10 @@
 # The 12 Billion Yen Incident — get the horse out of the gate clean
 
+> **RESOLVED 2026-06-24 (see worklog.md "Verdict").** Solved by diversion, not optimisation: a
+> prebaked landing scaffold + staged fade-ins mask the build; the 518ms long task was never touched.
+> Pieces 2 (cull-before-mount) and 3 (bake heights) below were **abandoned, not done** — unneeded.
+> The diagnosis below stands as the record of what the long task was.
+
 > Sponsored by Gold Ship. Codename thesis: **the start.**
 > Gold Ship reared in the gate, started ~5s late, lost an insurmountable lead.
 > The site does the same: it builds the entire race before it leaves the gate.

@@ -37,7 +37,6 @@ ANNIVERSARY_FLAGS ?=
 all:
 	$(MAKE) seed
 	$(MAKE) bake
-	$(MAKE) types
 	$(MAKE) build
 
 # Stage 0 — seed the deploy root from the hand-authored shell. README.md is the
@@ -59,8 +58,12 @@ types:
 	npm --prefix $(SITE) run gen:types
 	npm --prefix $(SITE) run gen:landing
 
-# Stage 2 — site build: index.html + bundled js/css into static/.
-build:
+# Stage 2 — site build: index.html + bundled js/css into static/. Depends on `types` so the
+# generated code (bundle types + prebaked landing data) is ALWAYS regenerated before bundling —
+# landing.gen.ts is imported by the shipped bundle, so a stale one would ship stale extent/scenarios.
+# This makes `types` a hard prerequisite of every clientside build/deploy path (all, deploy,
+# deploy-nobake all reach the bundle through here), not just the full pipeline.
+build: types
 	npm --prefix $(SITE) run build
 
 # Local dev server — esbuild live-rebuilds js/css while serving the assembled
@@ -121,7 +124,7 @@ deploy: all
 # static/img/ and ship. For when the bake's data sources are down (e.g. umapyoi)
 # and you only want to push site (js/css/html) changes. Requires a prior full
 # `make` to have populated the baked data — don't `make clean` before this.
-deploy-nobake: seed types build
+deploy-nobake: seed build
 	$(MAKE) security
 	npm --prefix $(SITE) run deploy
 
