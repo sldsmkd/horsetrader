@@ -119,6 +119,14 @@ simplifies all the observer stuff right?" Yes — collapsed it:
 Net: onboarding.ts ~40 lines lighter; the whole "step aside" problem dissolved because there's
 nothing to step aside from. tsc + 271 green.
 
+### 2026-06-24 — rolled out live (Kris)
+
+Flipped the auto-run back on: `requestAnimationFrame(() => startOnboarding())` a frame after
+`refresh()`, so the tour now greets every first-run visitor (everyone sits at firstrun=0, so
+each existing user also gets the 3-step tour once). The beta-chamber dev knob (Replay all +
+per-stage chips, supporter-gated) is **kept** as a re-arm seam — Kris can replay it to repro
+if a first-run complaint lands in the first few days. tsc + 271 green. Ready to commit/deploy.
+
 ### Open / possible follow-ups
 - Eyeball the live spotlight placement + portrait crop on :3000 (esbuild watch picks it up).
 - Bake screenshot fragments (`shot?`) if a live spotlight ever reads ambiguously — unused in v1.

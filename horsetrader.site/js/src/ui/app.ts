@@ -882,10 +882,9 @@ export function mountApp(
   // Special Week — first-run onboarding. Tazuna walks a brand-new trainer through the
   // two inputs that make the forecast theirs, then is gone for good. Runs only when the
   // synced `firstrun` watermark hasn't covered every stage; persists per-stage as it goes;
-  // fail-soft (an onboarding hiccup must never wedge the app). OPT-IN ONLY for now: it is
-  // NOT auto-run on mount — the only trigger is the beta-chamber dev knob (supporter-gated),
-  // so we can dogfood it before letting it greet real first-run visitors. To go live, defer
-  // a `startOnboarding()` a frame after `refresh()` here.
+  // fail-soft (an onboarding hiccup must never wedge the app). LIVE for everyone — it
+  // auto-runs a frame after `refresh()` below. The beta-chamber dev knob (supporter-gated)
+  // stays as a re-arm seam so we can replay it if a first-run complaint comes in.
   let tour: OnboardingHandle | null = null;
   function startOnboarding(): void {
     tour?.dismiss(); // never stack two overlays (the dev knob can re-run mid-tour)
@@ -898,6 +897,8 @@ export function mountApp(
       console.warn("onboarding skipped:", err);
     }
   }
+  // Deferred a frame so the live stage paints first and Tazuna reads as an entrance.
+  requestAnimationFrame(() => startOnboarding());
 
   // Resolve the cloud session once, in the background, then re-render so the trainer
   // card's Cloud button reflects connected/disconnected. Signed-out on any error.
