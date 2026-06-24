@@ -104,6 +104,17 @@
   object-fit: cover;
 }
 
+/* The Beta (🔨) door — a square icon button like Plan, between Plan and carats.
+   Hidden unless the supporter entitlement is on. */
+.menubar__beta {
+  width: calc(2.94 * var(--glass-u));
+  padding: 0;
+}
+
+.menubar__beta--hidden {
+  display: none;
+}
+
 .menubar__beta-icon {
   display: block;
   flex: none;

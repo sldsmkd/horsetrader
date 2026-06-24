@@ -10,6 +10,8 @@
  * Nothing here touches the persistence coordinator.
  */
 
+import { setSupporter } from "./supporter.ts";
+
 export interface CloudIdentity {
   provider: string;
   sub: string;
@@ -79,12 +81,21 @@ export type PullResult =
   | { exists: false };
 
 /** Pull the account's save blob + its rev. The Worker carries the etag in the BODY
- *  (not the `ETag` header — a CDN may weaken that, breaking the next push's CAS). */
+ *  (not the `ETag` header — a CDN may weaken that, breaking the next push's CAS).
+ *  This is the single `GET /api/sync` chokepoint, so it also watches the Worker's
+ *  server-authoritative `supporter` stamp and toggles the entitlement flag: ON when
+ *  the save carries `supporter:true`, OFF when it's absent — including the empty-cloud
+ *  404 (no save = no stamp). A transport failure leaves the last-known flag untouched. */
 export async function pullSave(): Promise<PullResult> {
   const res = await fetch("/api/sync", { credentials: "include" });
-  if (res.status === 404) return { exists: false };
+  if (res.status === 404) {
+    setSupporter(false);
+    return { exists: false };
+  }
   if (!res.ok) throw new Error(`pull failed: ${res.status}`);
   const body = (await res.json()) as { etag: string | null; plan: unknown };
+  const plan = body.plan;
+  setSupporter(typeof plan === "object" && plan !== null && (plan as Record<string, unknown>)["supporter"] === true);
   return { exists: true, etag: body.etag, doc: body.plan };
 }
 

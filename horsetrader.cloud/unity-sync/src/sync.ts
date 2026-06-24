@@ -85,6 +85,54 @@ async function isSupporter(env: SyncEnv, key: string): Promise<boolean> {
   }
 }
 
+/**
+ * Serialise the curated entitlements blob byte-for-byte the way `supporters.py`
+ * does (sorted groups, sorted-unique members, 2-space indent, trailing newline) so
+ * the admin tool and this Worker never ping-pong the file's formatting.
+ */
+function entitlementsText(entitlements: Record<string, string[]>): string {
+  const clean: Record<string, string[]> = {};
+  for (const group of Object.keys(entitlements).sort()) {
+    clean[group] = [...new Set(entitlements[group])].sort();
+  }
+  return JSON.stringify(clean, null, 2) + "\n";
+}
+
+/**
+ * Forget an account across every entitlement group — the curated list is the one
+ * place an account_id outlives its save, and disconnect is a right-to-be-forgotten
+ * action (entitlements are manually curated here, not reconciled from a payment
+ * provider, so there is no source of truth that would re-grant it). Read-modify-write
+ * under the object's own ETag so a concurrent admin `grant` (supporters.py) can't be
+ * silently clobbered; one retry covers the rare race, then we log and give up rather
+ * than block the disconnect.
+ */
+async function forgetEntitlements(env: SyncEnv, key: string): Promise<void> {
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const obj = await env.BUCKET.get(ENTITLEMENTS_KEY);
+    if (!obj) return; // nothing curated yet → nothing to forget
+    const data = (await obj.json()) as unknown;
+    if (!isRecord(data)) return;
+
+    let changed = false;
+    const next: Record<string, string[]> = {};
+    for (const [group, members] of Object.entries(data)) {
+      if (!Array.isArray(members)) continue;
+      if (members.includes(key)) changed = true;
+      next[group] = members.filter((m): m is string => typeof m === "string" && m !== key);
+    }
+    if (!changed) return;
+
+    const result = await env.BUCKET.put(ENTITLEMENTS_KEY, entitlementsText(next), {
+      onlyIf: new Headers({ "If-Match": `"${obj.etag}"` }),
+      httpMetadata: { contentType: "application/json" },
+    });
+    if (result) return; // CAS held → done
+    // Someone wrote entitlements.json between our get and put; re-read and retry.
+  }
+  console.warn("forget entitlements: lost CAS race twice for", key);
+}
+
 function json(body: unknown, init: ResponseInit = {}): Response {
   return new Response(JSON.stringify(body), {
     ...init,
@@ -167,8 +215,13 @@ export async function handleSync(request: Request, env: SyncEnv, session: Sessio
   // Unconditional + idempotent: deleting a missing key is a no-op, so a double
   // disconnect or a delete-after-conflict both settle to "gone". Session-clearing
   // stays the auth layer's job (index.ts) — this only owns the bytes.
+  //
+  // Disconnect is also right-to-be-forgotten: scrub the account from the curated
+  // entitlements after the save is gone (best-effort — a failed scrub is logged,
+  // not fatal, so the disconnect still succeeds).
   if (request.method === "DELETE") {
     await env.BUCKET.delete(key);
+    await forgetEntitlements(env, key);
     return json({ ok: true });
   }
 

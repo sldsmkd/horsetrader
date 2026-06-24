@@ -47,7 +47,7 @@ import type { CommitBinding } from "./views/bannerGroup.ts";
 import { betaSurface } from "./views/surfaces/betaSurface.ts";
 import { presentConfirm } from "./views/surfaces/confirm.ts";
 import { createUmaMark } from "./umamark/umamark.ts";
-import { reconcileOnLoad, fetchAuth, syncNow } from "../core/cloud/index.ts";
+import { reconcileOnLoad, fetchAuth, syncNow, isSupporter, onSupporterChange } from "../core/cloud/index.ts";
 import type { AuthState, SyncResult } from "../core/cloud/index.ts";
 import { presentCloudConflict } from "./views/surfaces/cloudConflict.ts";
 import { cloudProvider } from "./views/surfaces/cloudProvider.ts";
@@ -173,12 +173,9 @@ export function mountApp(
   root: HTMLElement = qs("#app"),
 ): void {
   const view = createViewStore();
-  // UmaMark's launcher lives in the Beta chamber but is currently UN-SURFACED. The `?umamark`
-  // URL path was retired once the blur verdict was settled (UmaMark measured frost as free —
-  // vsync-bound with headroom — on both a 7900XT and a mid iPhone). The benchmark harness +
-  // its surfaces are kept intact for the next perf question; revive by flipping this to true
-  // (or restoring a URL/flag read). See grand-masters/umamark.md.
-  const umamarkEnabled = false;
+  // The Beta chamber (it hosts UmaMark's launcher — grand-masters/umamark.md) is now gated
+  // on the supporter entitlement, watched off every cloud pull. Its menubar entry is driven
+  // by `menu.setBetaAvailable` below; no construction-time flag.
   const search = createSearchIndex(bundle, now);
   const identity = createIdentityController(coord, bundle);
   const identityMachine = createMachine<PlayStyleMachineState, PlayStyleMachineEvent>(
@@ -262,7 +259,6 @@ export function mountApp(
       if (!modalOpen()) view.set({ plan: true });
     },
     onBeta: () => toggleRight("beta"),
-    showBeta: umamarkEnabled,
     search,
     onSearch: (result) => {
       view.set({ search: result.label, selection: result.id });
@@ -538,6 +534,8 @@ export function mountApp(
     menu.setRightActive(right);
     // The Plan door appears only once the plan is non-empty (cached committed set).
     menu.setPlanAvailable(coord.commitmentStatuses().size > 0);
+    // The Beta door is gated on the supporter entitlement (watched off cloud pulls).
+    menu.setBetaAvailable(isSupporter());
     menu.setLocked(anyModal);
 
     const trainerCardOn = {
@@ -820,6 +818,12 @@ export function mountApp(
   view.subscribe(renderSurfaces);
   coord.subscribe(renderSurfaces);
   identityMachine.subscribe(renderSurfaces); // left group re-renders on its own events
+  // Supporter entitlement flips asynchronously on cloud pulls — re-render so the Beta
+  // door appears/disappears, and shut the chamber if it's open when entitlement drops.
+  onSupporterChange((on) => {
+    if (!on && view.get().right === "beta") view.set({ right: null });
+    renderSurfaces();
+  });
 
   // Mount order is the z-band: scenario wallpaper (back), timeline, then the surface
   // layer, with the menubar/minimap/film-strip lifted above all of it (their own

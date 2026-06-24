@@ -30,6 +30,9 @@ export interface Menubar {
   /** Reveal the Plan (tablet) button. The Desk has nothing to show with no
    *  commitments, so the door only appears once the plan is non-empty. */
   setPlanAvailable(available: boolean): void;
+  /** Reveal the Beta (🔨) button — gated on the supporter entitlement, which the
+   *  app watches off every cloud pull (so this flips at runtime, not construction). */
+  setBetaAvailable(available: boolean): void;
   /** Lock the surface-spawning buttons while a modal (modal child window) is up.
    *  Navigation (home, search) stays live; so do the independent higher layers
    *  (bookmarks, minimap, timeline). A modal is modal only against its peers —
@@ -53,11 +56,10 @@ export interface MenubarOpts {
    *  like the commit dossier (twinkle-monthly/cover.md). Shown only once `setPlanAvailable`
    *  reveals it (a commitment exists). */
   onPlan: () => void;
-  /** The beta chamber's spawn seam. Rendered only when `showBeta` is set (the `?umamark`
-   *  flag), revealing the chamber that hosts UmaMark — see grand-masters/umamark.md. */
+  /** The beta chamber's spawn seam — the gold-hammer button between Plan and the carat
+   *  balance, revealing the chamber that hosts UmaMark (grand-masters/umamark.md). Gated
+   *  on the supporter entitlement via `setBetaAvailable`, so it's hidden by default. */
   onBeta: () => void;
-  /** Reveal the 🔨 Beta chamber entry. Off by default; the `?umamark` flag turns it on. */
-  showBeta?: boolean;
   search: SearchIndex;
   onSearch: (result: SearchResult) => void;
 }
@@ -111,26 +113,21 @@ export function menubar(opts: MenubarOpts): Menubar {
     identityIcon,
     identityName,
   );
-  // Beta (🔨): the WIP isolation chamber. Normally rendered no entry (parked), but the
-  // `?umamark` flag (showBeta) revives it to host UmaMark — the benchmark needs a touch-
-  // reachable launcher since F2 is desktop-only (grand-masters/umamark.md). The surface
-  // plumbing (RightSurface "beta", onBeta, the renderSurfaces branch) has always been here;
-  // the flag just re-adds the icon button to the right cluster.
-  const beta = opts.showBeta
-    ? h(
-        "button",
-        {
-          class: "menubar__item menubar__button menubar__beta",
-          attr: { type: "button", "aria-label": "Beta chamber", title: "Beta chamber" },
-          on: { click: opts.onBeta },
-        },
-        "🔨",
-      )
-    : null;
+  // Beta (🔨): the WIP isolation chamber that hosts UmaMark (grand-masters/umamark.md).
+  // The gold-hammer button sits between Plan and the carat balance, hidden until
+  // `setBetaAvailable` reveals it — gated on the supporter entitlement, which the app
+  // watches off every cloud pull, so the button comes and goes at runtime (like Plan).
+  const beta = h(
+    "button",
+    {
+      class: "menubar__item menubar__button menubar__beta menubar__beta--hidden",
+      attr: { type: "button", "aria-label": "Beta", title: "Beta" },
+      on: { click: opts.onBeta },
+    },
+    h("img", { class: "menubar__beta-icon", attr: { src: "/icons/gold_hammer.png", alt: "", width: 28, height: 28 } }),
+  );
 
-  const rightCluster = beta
-    ? h("div", { class: "menubar__cluster menubar__cluster--right" }, beta, plan, balance)
-    : h("div", { class: "menubar__cluster menubar__cluster--right" }, plan, balance);
+  const rightCluster = h("div", { class: "menubar__cluster menubar__cluster--right" }, plan, beta, balance);
 
   const el = h(
     "nav",
@@ -157,8 +154,7 @@ export function menubar(opts: MenubarOpts): Menubar {
   // Two independent highlight groups: the left group is the single identity
   // button (a plain on/off), the right group is a pressed-group over its members
   // (at most one lit). Both can be lit at once — left and right are independent.
-  const rightMembers = new Map<RightSurface, HTMLElement>([["resources", balance]]);
-  if (beta) rightMembers.set("beta", beta); // revived only under the `?umamark` flag
+  const rightMembers = new Map<RightSurface, HTMLElement>([["resources", balance], ["beta", beta]]);
   const setRightPressed = pressedGroup(rightMembers, "menubar__button--active");
 
   function setLeftActive(active: boolean): void {
@@ -170,7 +166,7 @@ export function menubar(opts: MenubarOpts): Menubar {
 
   // The surface spawners a modal locks — every *live* menu item that opens a
   // same-layer surface (not home/search, which are navigation).
-  const lockable: HTMLButtonElement[] = [identity, plan, balance, ...(beta ? [beta] : [])];
+  const lockable: HTMLButtonElement[] = [identity, plan, beta, balance];
   function setLocked(locked: boolean): void {
     for (const button of lockable) {
       button.disabled = locked;
@@ -194,6 +190,7 @@ export function menubar(opts: MenubarOpts): Menubar {
     setLeftActive,
     setRightActive: (member) => setRightPressed(member),
     setPlanAvailable: (available) => plan.classList.toggle("menubar__plan--hidden", !available),
+    setBetaAvailable: (available) => beta.classList.toggle("menubar__beta--hidden", !available),
     setLocked,
   };
 }

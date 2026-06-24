@@ -78,6 +78,9 @@ export async function reconcileOnLoad(coord: Coordinator): Promise<SyncResult> {
 export { fetchAuth, CLOUD_PROVIDERS } from "./client.ts";
 export type { AuthState, CloudProvider } from "./client.ts";
 
+/** Server-authoritative supporter entitlement, watched off every cloud pull. */
+export { isSupporter, onSupporterChange } from "./supporter.ts";
+
 /** The manual reconcile (the Sync button) + pick-a-side conflict resolution. */
 export { syncNow, keepCloud, keepLocal } from "./sync.ts";
 export type { CloudConflict, PlanFacts, SyncResult } from "./sync.ts";
