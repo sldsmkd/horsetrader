@@ -35,13 +35,13 @@
   pointer-events: none;
 }
 
-/* Fixed home: horizontally centred, anchored low so she clears the menubar (where the
-   ring lives) and any surface that opens above. */
+/* Fixed home: horizontally centred, sitting ~60% down the screen — clear of the menubar
+   (where the ring lives) but lifted off the bottom edge. */
 .onboarding__panel {
   position: fixed;
   left: 50%;
-  bottom: 6vh;
-  transform: translateX(-50%);
+  top: 60%;
+  transform: translate(-50%, -50%);
   width: 320px;
   max-width: calc(100vw - 24px);
   display: flex;
