@@ -17,6 +17,7 @@
 import "./cardSurface.css";
 
 import { h } from "../../h.ts";
+import { img } from "../../image.ts";
 import { formatDate, formatCharacterName } from "../../format.ts";
 import { NOTE_MAX_LENGTH, normaliseNote } from "../../../core/persistence/validate.ts";
 import type { Bundle } from "../../bundle/access.ts";
@@ -177,7 +178,7 @@ export function cardSurface(opts: CardSurfaceOpts): HTMLElement {
         "div",
         { class: "card-surface__art" },
         card.art
-          ? h("img", { class: "card-surface__art-img", attr: { src: card.art, alt: "", loading: "lazy" } })
+          ? img(card.art, { class: "card-surface__art-img", loading: "lazy" })
           : h("div", { class: "card-surface__art-img card-surface__art-img--empty", attr: { "aria-hidden": "true" } }),
       ),
 

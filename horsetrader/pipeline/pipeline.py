@@ -83,6 +83,9 @@ class Pipeline(metaclass=SingletonMeta):
             Bake.academy(stages)
             and Bake.events(self._timeline)
             and Bake.config(structures, maps, gacha)
+            # images.json rides after the entity/event bakes: by now every image has
+            # been published (Curren Chan filled the ImageRegistry during model build).
+            and Bake.images()
         )
         # stats.json rides last: it reports the run's total wall-clock and the
         # no-EN tally the encode hook accumulated across the three writes above.

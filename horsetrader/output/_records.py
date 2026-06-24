@@ -228,6 +228,24 @@ class Academy(msgspec.Struct):
     trainees: dict[str, TraineeRecord]
 
 
+# ── images.json ───────────────────────────────────────────────────────────────
+
+@eishin
+class ImagesBundle(msgspec.Struct):
+    """Top-level shape of ``images.json`` — every published image's intrinsic
+    dimensions, keyed by its published url (the same string each image field in
+    the other bundles serialises). Each value is a ``[width, height]`` pair. The
+    front-end's image broker resolves dims by url, so every ``<img>`` can carry
+    explicit ``width``/``height`` (no max-content intrinsic surprises, no layout
+    shift). Populated by Curren Chan as she publishes; see ``ImageRegistry``.
+
+    Each value is a ``[width, height]`` list (not a 2-tuple: the tuple schema
+    generates as ``never[]`` in json-schema-to-typescript; a list emits clean
+    ``number[]``, and the one consumer — the FE broker — destructures it)."""
+
+    dims: dict[str, list[int]]
+
+
 # ── events.json ───────────────────────────────────────────────────────────────
 
 @eishin

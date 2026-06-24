@@ -9,6 +9,7 @@ from horsetrader.info import Logger
 from horsetrader.semantics import currenchan
 
 from .image import Image
+from .registry import ImageRegistry
 
 logger = Logger.get(__name__)
 
@@ -73,5 +74,11 @@ class CurrenChan:
             # side will serve (e.g. `/img/characters/foo.webp`), so
             # downstream serialisers don't have to strip a filesystem prefix.
             image.url = Path("/") / outfile.relative_to(site_root)
+            # Record the published image's intrinsic dimensions for Eishin to bake
+            # (images.json) so the front-end can stamp width/height on every <img>.
+            # Keyed by the published url — the same string the bundle serialises.
+            width, height = image.width(), image.height()
+            if width is not None and height is not None:
+                ImageRegistry().record(str(image.url), width, height)
             return image
         return None

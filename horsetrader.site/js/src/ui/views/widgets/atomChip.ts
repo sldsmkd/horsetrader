@@ -1,6 +1,7 @@
 import "./atomChip.css";
 
 import { h } from "../../h.ts";
+import { img } from "../../image.ts";
 import type { BannerAtom, BannerKind } from "../../select/aboveLane.ts";
 
 /** The persisted-favourite seam handed to atom chips: read whether an entity is
@@ -40,7 +41,7 @@ export function atomChip(
   compact = false,
 ): HTMLElement {
   const portrait = atom.image
-    ? h("img", { class: "atom-chip__portrait", attr: { src: atom.image, alt: "", loading: "lazy", decoding: "async", draggable: false } })
+    ? img(atom.image, { class: "atom-chip__portrait", loading: "lazy", decoding: "async", draggable: false })
     : null;
 
   // Compact (the Desk's pure-icon form) drops the name/subtitle column and floats the

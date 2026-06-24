@@ -1,0 +1,24 @@
+{
+  "$ref": "#/$defs/ImagesBundle",
+  "$defs": {
+    "ImagesBundle": {
+      "title": "ImagesBundle",
+      "description": "Top-level shape of ``images.json`` — every published image's intrinsic\ndimensions, keyed by its published url (the same string each image field in\nthe other bundles serialises). Each value is a ``[width, height]`` pair. The\nfront-end's image broker resolves dims by url, so every ``<img>`` can carry\nexplicit ``width``/``height`` (no max-content intrinsic surprises, no layout\nshift). Populated by Curren Chan as she publishes; see ``ImageRegistry``.\n\nEach value is a ``[width, height]`` list (not a 2-tuple: the tuple schema\ngenerates as ``never[]`` in json-schema-to-typescript; a list emits clean\n``number[]``, and the one consumer — the FE broker — destructures it).",
+      "type": "object",
+      "properties": {
+        "dims": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          }
+        }
+      },
+      "required": [
+        "dims"
+      ]
+    }
+  }
+}

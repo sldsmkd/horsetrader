@@ -10,12 +10,13 @@ from horsetrader.models.config import GachaConfig
 from horsetrader.models.core import TracenModel, TracenModels
 from horsetrader.models.entities.entities import Entities
 from horsetrader.models.events.events import Events
+from horsetrader.models.media import ImageRegistry
 from horsetrader.models.rewards import RewardMap, RewardStructure
 from horsetrader.semantics import eishin
 from horsetrader.timeline import Timeline
 
 from ._mappers import MAPPERS
-from ._records import Academy, BakeStats, ConfigBundle, EventsBundle
+from ._records import Academy, BakeStats, ConfigBundle, EventsBundle, ImagesBundle
 
 logger = Logger.get(__name__)
 
@@ -79,6 +80,18 @@ class Bake:
             period = next(p for p in event.periods if p.tzinfo == timeline.tz)
             records.append(event.bake(period))
         return Bake._write(EventsBundle(events=records), EventsBundle, "events.json")
+
+    @staticmethod
+    def images() -> bool:
+        """Write images.json (+ schema) — every published image's intrinsic size.
+
+        Pure read of Curren Chan's ``ImageRegistry``, which she filled as she
+        published each image during model build (upstream of this serialise). The
+        front-end's image broker resolves dims by published url to stamp explicit
+        ``width``/``height`` on every ``<img>``. Sorted by url for stable output.
+        """
+        dims = {url: [w, h] for url, (w, h) in sorted(ImageRegistry().entries().items())}
+        return Bake._write(ImagesBundle(dims=dims), ImagesBundle, "images.json")
 
     @staticmethod
     def config(

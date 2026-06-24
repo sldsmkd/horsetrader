@@ -14,6 +14,7 @@ import "./card.css";
 import "./bannerGroup.css";
 
 import { h } from "../h.ts";
+import { img } from "../image.ts";
 import { formatDateRange, formatBalance } from "../format.ts";
 import { PITY_WASTE_ABOVE, bannerHeatBand } from "../select/aboveLane.ts";
 import type { Banner, BannerGroup, BannerKind } from "../select/aboveLane.ts";
@@ -67,7 +68,7 @@ function bannerCard(banner: Banner, fav: FavouriteBinding, commit: CommitBinding
     h(
       "div",
       { class: "banner__image-frame" },
-      h("img", { class: "banner__image", attr: { src: banner.image, alt: "", loading: "lazy" } }),
+      img(banner.image, { class: "banner__image", loading: "lazy" }),
     ),
     atoms,
     banner.open ? pullChin(banner) : null,

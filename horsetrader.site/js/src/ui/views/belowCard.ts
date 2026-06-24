@@ -13,6 +13,7 @@ import "./card.css";
 import "./belowCard.css";
 
 import { h } from "../h.ts";
+import { img } from "../image.ts";
 import { formatDateRange } from "../format.ts";
 import type { BelowCard } from "../select/belowLane.ts";
 import { rewardStrip } from "./widgets/rewardStrip.ts";
@@ -41,7 +42,7 @@ function missionBody(card: BelowCard, rush: RushBinding): HTMLElement {
     h(
       "div",
       { class: "card__mission-media" },
-      h("img", { class: "card__mission-image", attr: { src: card.image!, alt: "", loading: "lazy", decoding: "async" } }),
+      img(card.image!, { class: "card__mission-image", loading: "lazy", decoding: "async" }),
     ),
     card.compact
       ? null
@@ -91,7 +92,7 @@ function rectangularMedia(card: BelowCard): HTMLElement | null {
     ? h(
         "div",
         { class: "card__media" },
-        h("img", { class: "card__image", attr: { src: card.banner, alt: "", loading: "lazy", decoding: "async" } }),
+        img(card.banner, { class: "card__image", loading: "lazy", decoding: "async" }),
         h("span", { class: "card__media-date" }, mediaDateLabel(card)),
       )
     : null;

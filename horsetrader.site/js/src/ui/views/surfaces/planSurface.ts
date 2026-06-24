@@ -15,6 +15,7 @@ import "./planSurface.css";
 import "../widgets/pityBand.css"; // the .pity-band--<band> fills, shared with the badge/dossier
 
 import { h } from "../../h.ts";
+import { img } from "../../image.ts";
 import { formatMonthDay, formatYear, possessive } from "../../format.ts";
 import { surfaceActions } from "./surfaceActions.ts";
 import { surfaceCancel } from "./surface.ts";
@@ -170,10 +171,7 @@ export function planSurface(opts: PlanSurfaceOpts): HTMLElement {
     h(
       "header",
       { class: "plan__mast" },
-      h("img", {
-        class: "plan__oshi",
-        attr: { src: opts.oshiPortrait, alt: opts.oshiName, loading: "lazy", decoding: "async", draggable: false },
-      }),
+      img(opts.oshiPortrait, { class: "plan__oshi", alt: opts.oshiName, loading: "lazy", decoding: "async", draggable: false }),
       h(
         "div",
         { class: "plan__masthead" },

@@ -21,6 +21,7 @@
 import "./commitDossier.css";
 
 import { h } from "../../h.ts";
+import { img } from "../../image.ts";
 import { formatBalance, formatDate } from "../../format.ts";
 import { reserve, type CommitContext, type CommitAtom } from "../../select/commit.ts";
 import { PITY_WASTE_ABOVE } from "../../select/aboveLane.ts";
@@ -63,7 +64,7 @@ function featuredCard(atom: CommitAtom, onInspect?: (atom: CommitAtom) => void):
     "div",
     { class: "commit-dossier__card-art" },
     atom.image
-      ? h("img", { class: "commit-dossier__card-img", attr: { src: atom.image, alt: "", loading: "lazy" } })
+      ? img(atom.image, { class: "commit-dossier__card-img", loading: "lazy" })
       : h("div", { class: "commit-dossier__card-img commit-dossier__card-img--empty", attr: { "aria-hidden": "true" } }),
     h("span", { class: `commit-dossier__rarity commit-dossier__rarity--${atom.rarityTier}` }, atom.rarity),
     atom.attribute

@@ -19,6 +19,7 @@
 import "./filmstrip.css";
 
 import { h } from "../h.ts";
+import { img } from "../image.ts";
 import { resolveLengthPx } from "../glassUnit.ts";
 import type { CalendarDate } from "../../core/projection/dates.ts";
 import { focusIndex } from "../select/filmstrip.ts";
@@ -61,19 +62,16 @@ function frameEl(f: FilmFrame, onWarp: (date: CalendarDate) => void): HTMLElemen
   // a prompt to go star whoever you're pulling for. A favourite always has an atom.
   let fill: HTMLElement | null;
   if (portrait) {
-    const img = h("img", {
-      class: "filmstrip__portrait",
-      attr: { src: portrait, alt: f.atom?.name ?? "", loading: "lazy", draggable: false },
-    }) as HTMLImageElement;
+    const face = img(portrait, { class: "filmstrip__portrait", alt: f.atom?.name ?? "", loading: "lazy", draggable: false });
     // Fuji-Kiseki stage magic: fade each face in as it *decodes* rather than letting it snap.
     // The capsule blocks + the 160ms glide stay crisp (the nice feedback); only the icon pop —
     // whose timing is unbounded (cache/network) so no fixed curtain can catch it — gets masked.
     // A cached image is already `complete`, so it reveals synchronously before first paint → no
     // transition, instant. A first-load image starts at opacity 0 (CSS) and fades on `load`.
-    const reveal = () => img.classList.add("filmstrip__portrait--loaded");
-    if (img.complete) reveal();
-    else img.addEventListener("load", reveal, { once: true });
-    fill = img;
+    const reveal = () => face.classList.add("filmstrip__portrait--loaded");
+    if (face.complete) reveal();
+    else face.addEventListener("load", reveal, { once: true });
+    fill = face;
   } else {
     fill = f.atom ? null : h("div", { class: "filmstrip__star", attr: { "aria-hidden": "true" } }, "☆");
   }

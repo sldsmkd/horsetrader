@@ -27,6 +27,8 @@ import type { EventsBundle } from "./core/bundle/events.gen.ts";
 import type { Academy } from "./core/bundle/academy.gen.ts";
 import type { ConfigBundle } from "./core/bundle/config.gen.ts";
 import type { BakeStats } from "./core/bundle/stats.gen.ts";
+import type { ImagesBundle } from "./core/bundle/images.gen.ts";
+import { initImages } from "./ui/image.ts";
 
 async function fetchJson<T>(path: string): Promise<T> {
   const response = await fetch(path, { cache: "no-store" });
@@ -52,12 +54,16 @@ async function bootstrap(): Promise<void> {
   // The baked bundles — upstream-validated, so a plain cast (trust the bake).
   // stats.json is a side-channel: build-time vanity counters for the MANGOHORSE
   // HUD only, not planner data, so it never enters the coordinator or bundle.
-  const [events, academy, config, bakeStats] = (await Promise.all([
+  const [events, academy, config, bakeStats, images] = (await Promise.all([
     fetchJson<EventsBundle>("/json/events.json"),
     fetchJson<Academy>("/json/academy.json"),
     fetchJson<ConfigBundle>("/json/config.json"),
     fetchJson<BakeStats>("/json/stats.json"),
-  ])) as [EventsBundle, Academy, ConfigBundle, BakeStats];
+    fetchJson<ImagesBundle>("/json/images.json"),
+  ])) as [EventsBundle, Academy, ConfigBundle, BakeStats, ImagesBundle];
+
+  // Prime the image broker so every <img> it builds carries baked width/height.
+  initImages(images.dims);
 
   const coordinator = createCoordinator({ bundle: events, config, now, timeZone });
   mountApp(coordinator, createBundle(events, academy, config, timeZone), now, UI_STRINGS, bakeStats);

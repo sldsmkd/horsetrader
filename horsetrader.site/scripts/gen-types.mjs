@@ -24,6 +24,7 @@ const schemas = [
   { in: "events.schema.json", out: "events.gen.ts" },
   { in: "config.schema.json", out: "config.gen.ts" },
   { in: "stats.schema.json", out: "stats.gen.ts" },
+  { in: "images.schema.json", out: "images.gen.ts" },
 ];
 
 async function generate({ in: inFile, out: outFile }) {
