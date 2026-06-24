@@ -35,6 +35,29 @@
   outline: 0;
 }
 
+.beta-surface__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(0.5 * var(--glass-u));
+}
+
+.beta-surface__chip {
+  padding: calc(0.45 * var(--glass-u)) calc(0.85 * var(--glass-u));
+  border: 1px solid var(--ht-control-border);
+  border-radius: var(--ht-control-radius);
+  background: var(--ht-control-bg);
+  color: inherit;
+  font: inherit;
+  font-size: var(--ht-type-caption-size);
+  cursor: pointer;
+}
+
+.beta-surface__chip:hover,
+.beta-surface__chip:focus-visible {
+  background: var(--ht-control-bg-hover-subtle);
+  outline: 0;
+}
+
 .beta-surface__cancel {
   padding: calc(0.69 * var(--glass-u)) calc(1.13 * var(--glass-u));
   border: 1px solid var(--ht-control-border);

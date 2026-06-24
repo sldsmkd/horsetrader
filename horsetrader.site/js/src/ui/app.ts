@@ -28,6 +28,8 @@ import { filmstrip } from "./views/filmstrip.ts";
 import { filmFrames } from "./select/filmstrip.ts";
 import { scenarioArt } from "./views/scenarioArt.ts";
 import { perfHud } from "./views/perfHud.ts";
+import { runOnboarding } from "./views/onboarding/onboarding.ts";
+import type { OnboardingHandle } from "./views/onboarding/onboarding.ts";
 import { perfInstrument } from "./perf.ts";
 import type { BakeStats } from "../core/bundle/stats.gen.ts";
 import { belowCard } from "./views/belowCard.ts";
@@ -684,7 +686,16 @@ export function mountApp(
         title: "Beta",
         placement: "right",
         headerless: true,
-        body: betaSurface({ onClose: () => view.set({ right: null }), onRunUmaMark: launchUmaMark }),
+        body: betaSurface({
+          onClose: () => view.set({ right: null }),
+          onRunUmaMark: launchUmaMark,
+          firstrun: coord.firstrun(),
+          onSetFirstrun: (stage) => {
+            coord.setFirstrun(stage);
+            renderSurfaces(); // reflect the new watermark in the chip label
+            startOnboarding(); // re-arm the tour from there, over the open chamber
+          },
+        }),
         onClose: () => view.set({ right: null }),
       });
       children.push(betaCard);
@@ -867,6 +878,23 @@ export function mountApp(
   // So the real frame — including the real minimap balance line — is up before the ~0.5s card
   // materialisation, with no blank handoff from the pre-fetch scaffold.
   refresh();
+
+  // Special Week — first-run onboarding. Tazuna walks a brand-new trainer through the
+  // two inputs that make the forecast theirs, then is gone for good. Runs only when the
+  // synced `firstrun` watermark hasn't covered every stage; persists per-stage as it goes;
+  // fail-soft (an onboarding hiccup must never wedge the app). OPT-IN ONLY for now: it is
+  // NOT auto-run on mount — the only trigger is the beta-chamber dev knob (supporter-gated),
+  // so we can dogfood it before letting it greet real first-run visitors. To go live, defer
+  // a `startOnboarding()` a frame after `refresh()` here.
+  let tour: OnboardingHandle | null = null;
+  function startOnboarding(): void {
+    tour?.dismiss(); // never stack two overlays (the dev knob can re-run mid-tour)
+    try {
+      tour = runOnboarding({ firstrun: coord.firstrun(), onAdvance: (stage) => coord.setFirstrun(stage) });
+    } catch (err) {
+      console.warn("onboarding skipped:", err);
+    }
+  }
 
   // Resolve the cloud session once, in the background, then re-render so the trainer
   // card's Cloud button reflects connected/disconnected. Signed-out on any error.

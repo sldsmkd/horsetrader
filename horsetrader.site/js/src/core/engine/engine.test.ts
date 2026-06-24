@@ -348,6 +348,17 @@ test("sync meta: mutations set dirty, markSynced clears + records the rev", () =
   assert.deepEqual(createCoordinator({ bundle: bundle(), config: config(), now: NOW, store }).syncMeta(), { etag: '"abc123"', dirty: true });
 });
 
+test("firstrun watermark: defaults to 0, persists, dirties the sync, and round-trips across reload", () => {
+  const store = memoryStore();
+  const coord = createCoordinator({ bundle: bundle(), config: config(), now: NOW, store });
+  assert.equal(coord.firstrun(), 0); // brand-new visitor — no config.firstrun
+  coord.setFirstrun(2);
+  assert.equal(coord.firstrun(), 2);
+  assert.equal(coord.syncMeta().dirty, true); // a synced-plan write diverges from the cloud
+  // The watermark lives in the synced plan, so it survives a reload (and would sync).
+  assert.equal(createCoordinator({ bundle: bundle(), config: config(), now: NOW, store }).firstrun(), 2);
+});
+
 test("never-synced plan loads DIRTY iff it holds content — so first connect can push it up", () => {
   // A pre-Unity / never-synced save has no `local.sync`; a populated one must read dirty
   // so Sync is enabled and a populated browser can seed an empty cloud (the reported bug:

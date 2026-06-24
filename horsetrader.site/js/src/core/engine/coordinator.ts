@@ -69,6 +69,11 @@ export interface Coordinator {
   document(): PlanDocument;
   /** The trainer's display name (lives in the synced plan now), "" when unset. */
   username(): string;
+  /** The first-run onboarding watermark (Special Week): the highest tutorial stage
+   *  the trainer has been shown. Lives in the synced `config`, so onboarding doesn't
+   *  repeat on a second device; a later-appended stage `N` still reaches an existing
+   *  user whose mark is `< N`. Absent ⇒ 0 (a brand-new visitor). */
+  firstrun(): number;
   /** Cloud-sync bookkeeping: last-synced rev + whether local has diverged since. */
   syncMeta(): SyncMeta;
   /** Every stream and its ephemeral toggle state. */
@@ -101,6 +106,10 @@ export interface Coordinator {
   patchIdentity(patch: Record<string, unknown>): void;
   /** Set the trainer's display name (synced plan state; "" clears it). */
   setUsername(name: string): void;
+  /** Advance the onboarding watermark to `stage`. Silent like a note: it dirties the
+   *  synced plan, but is a non-economic write (nothing to re-derive) that renders
+   *  nowhere on the timeline (no notify — a whole-timeline rebuild would be wasted). */
+  setFirstrun(stage: number): void;
   /** Record a successful sync: adopt the new cloud rev, clear `dirty`. Local-only. */
   markSynced(etag: string | null): void;
   /** Forget the cloud baseline (etag→null) after a disconnect deleted the cloud save —
@@ -348,6 +357,10 @@ export function createCoordinator(options: CoordinatorOptions): Coordinator {
     commitmentStatuses: () => current.commitStatus,
     document: () => doc,
     username: () => trainerNameOf(doc),
+    firstrun: () => {
+      const v = doc.config?.["firstrun"];
+      return typeof v === "number" && Number.isFinite(v) ? v : 0;
+    },
     syncMeta: () => local.sync ?? { etag: null, dirty: false },
     streams: () => registry.streams.map((s) => ({ id: s.id, enabled: toggles.get(s.id) !== false })),
     recovered: () => loaded.recovered,
@@ -412,6 +425,15 @@ export function createCoordinator(options: CoordinatorOptions): Coordinator {
       // a change diverges the cloud rev like any plan edit — route it through the
       // identity patch (update → dirty → re-derive → notify). Empty clears it.
       patchIdentitySection({ trainerName: normaliseName(name, TRAINER_NAME_MAX).trim() }); // allow-list + cap; "" clears
+    },
+    setFirstrun(stage) {
+      // Silent persist (no notify/re-derive — see persistNote): the watermark is
+      // synced plan state but economically inert, so a full timeline rebuild on each
+      // bump would be wasted. The onboarding overlay reads `firstrun()` directly.
+      const cfg = { ...(doc.config ?? {}), firstrun: stage };
+      doc = { ...doc, config: cfg };
+      local = { ...local, sync: { etag: local.sync?.etag ?? null, dirty: true } };
+      persist();
     },
     markSynced(etag) {
       // A clean push/pull: the local plan now matches this cloud rev. Local-only,

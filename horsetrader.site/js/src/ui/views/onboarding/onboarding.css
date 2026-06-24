@@ -1,0 +1,128 @@
+/* Special Week — first-run onboarding coachmark. A modal overlay above all chrome:
+   a dimmed page with a bright cutout over the live menubar button Tazuna names, her
+   portrait + one-line blurb beside it. See onboarding.ts. */
+
+.onboarding {
+  position: fixed;
+  inset: 0;
+  z-index: 1200; /* above --glass-z-alert (1100) — the tour sits over everything */
+  pointer-events: auto; /* modal: swallow clicks on the dimmed page during the tour */
+  animation: onboarding-fade 0.2s ease-out;
+}
+
+@keyframes onboarding-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Targeted stage: the spotlight IS the scrim — a transparent cutout whose huge
+   box-shadow dims everything else, so the live button underneath stays lit. */
+.onboarding__spot {
+  position: fixed;
+  border-radius: 0.55rem;
+  box-shadow:
+    0 0 0 100vmax rgba(8, 12, 10, 0.62),
+    0 0 0 2px color-mix(in srgb, var(--ht-colour-interactive) 70%, transparent);
+  outline: 2px solid var(--ht-colour-interactive);
+  outline-offset: 2px;
+  transition:
+    top 0.25s ease,
+    left 0.25s ease,
+    width 0.25s ease,
+    height 0.25s ease;
+  pointer-events: none;
+}
+
+/* Centred stage (welcome + outro): no cutout, a flat scrim over the whole page. */
+.onboarding--centred {
+  background: rgba(8, 12, 10, 0.62);
+}
+
+.onboarding__panel {
+  --panel-w: 320px; /* keep in step with PANEL_WIDTH in onboarding.ts */
+  position: fixed;
+  width: var(--panel-w);
+  max-width: calc(100vw - 24px);
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-end;
+  padding: 0.85rem 0.95rem;
+  border-radius: var(--glass-radius);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-edge);
+  box-shadow: var(--glass-shadow);
+  color: var(--ht-colour-text-primary);
+  transition:
+    top 0.25s ease,
+    left 0.25s ease;
+}
+
+/* When there's no target, the panel floats dead-centre. */
+.onboarding--centred .onboarding__panel {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.onboarding__portrait {
+  flex: 0 0 auto;
+  width: 84px;
+  height: 118px;
+  object-fit: cover;
+  object-position: top center;
+  border-radius: 0.5rem;
+  /* lift Tazuna off the glass so she reads as a figure, not a sticker */
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.35));
+}
+
+.onboarding__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  min-width: 0;
+}
+
+.onboarding__blurb {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.onboarding__actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.onboarding__skip {
+  border: none;
+  background: none;
+  padding: 0.2rem 0.3rem;
+  font: inherit;
+  font-size: 0.82rem;
+  color: color-mix(in srgb, var(--ht-colour-text-primary) 55%, transparent);
+  cursor: pointer;
+}
+
+.onboarding__skip:hover {
+  color: var(--ht-colour-text-primary);
+}
+
+.onboarding__next {
+  border: none;
+  border-radius: 0.45rem;
+  padding: 0.4rem 0.9rem;
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--ht-colour-text-on-accent);
+  background: var(--ht-colour-interactive);
+  cursor: pointer;
+}
+
+.onboarding__next:hover {
+  filter: brightness(1.08);
+}
