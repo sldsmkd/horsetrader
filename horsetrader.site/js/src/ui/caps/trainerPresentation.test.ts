@@ -10,6 +10,10 @@ const phone: Capabilities = {
   hover: false,
   noHover: true,
   touchPoints: 5,
+  reducedMotion: false,
+  contrast: "no-preference",
+  forcedColors: false,
+  reducedTransparency: false,
 };
 
 test("touch phone is fullscreen in either physical orientation", () => {
@@ -21,7 +25,17 @@ test("touch tablet and fine-pointer desktop use the menubar rail", () => {
   assert.equal(trainerPresentation(phone, 768, 1024), "rail");
   assert.equal(
     trainerPresentation(
-      { pointer: "fine", anyCoarse: false, hover: true, noHover: false, touchPoints: 0 },
+      {
+        pointer: "fine",
+        anyCoarse: false,
+        hover: true,
+        noHover: false,
+        touchPoints: 0,
+        reducedMotion: false,
+        contrast: "no-preference",
+        forcedColors: false,
+        reducedTransparency: false,
+      },
       390,
       699,
     ),

@@ -26,18 +26,40 @@ test("iPhone profile — coarse, no hover, multi-touch (F11)", () => {
   assert.equal(caps.hover, false);
   assert.equal(caps.noHover, true, "a phone answers no hover-capable input");
   assert.equal(caps.touchPoints, 5);
+  assert.equal(caps.reducedMotion, false);
+  assert.equal(caps.contrast, "no-preference");
+  assert.equal(caps.forcedColors, false);
+  assert.equal(caps.reducedTransparency, false);
   assert.equal(glassPointer(caps), "coarse");
 });
 
 test("desktop profile — fine, hover, no touch (F11, the identity config)", () => {
-  const match = matcher(new Set([CAP_QUERIES.hover, CAP_QUERIES.anyHover]));
+  const match = matcher(
+    new Set([
+      CAP_QUERIES.hover,
+      CAP_QUERIES.anyHover,
+      CAP_QUERIES.reducedMotion,
+      CAP_QUERIES.contrastMore,
+      CAP_QUERIES.forcedColors,
+      CAP_QUERIES.reducedTransparency,
+    ]),
+  );
   const caps = readCapabilities(match, 0);
   assert.equal(caps.pointer, "fine");
   assert.equal(caps.anyCoarse, false);
   assert.equal(caps.hover, true);
   assert.equal(caps.noHover, false);
   assert.equal(caps.touchPoints, 0);
+  assert.equal(caps.reducedMotion, true);
+  assert.equal(caps.contrast, "more");
+  assert.equal(caps.forcedColors, true);
+  assert.equal(caps.reducedTransparency, true);
   assert.equal(glassPointer(caps), "fine");
+});
+
+test("contrast preserves less and custom as distinct preferences", () => {
+  assert.equal(readCapabilities(matcher(new Set([CAP_QUERIES.contrastLess])), 0).contrast, "less");
+  assert.equal(readCapabilities(matcher(new Set([CAP_QUERIES.contrastCustom])), 0).contrast, "custom");
 });
 
 test("hybrid — touch laptop reports both, caught by anyCoarse not primary pointer", () => {

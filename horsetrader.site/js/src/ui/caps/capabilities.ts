@@ -37,15 +37,33 @@ export interface Capabilities {
   noHover: boolean;
   /** Concurrent touch points; 0 on a pure-mouse device. Complements `coarse` for touch sizing. */
   touchPoints: number;
+  /** The user has asked the system to minimise non-essential motion. This is a preference,
+   *  not a blanket animation ban: downstream policy decides which travel, transitions and
+   *  ambient effects become instant or quieter while preserving necessary state changes. */
+  reducedMotion: boolean;
+  /** The user's requested contrast treatment. `custom` accompanies a user-selected
+   *  forced-colour palette whose contrast is neither simply more nor less. */
+  contrast: "more" | "less" | "custom" | "no-preference";
+  /** The user agent is replacing authored colours with a restricted system palette. */
+  forcedColors: boolean;
+  /** The user has asked for translucent or blurred layers to become more opaque. Browser
+   *  support is still uneven; an unsupported query safely reads `false`. */
+  reducedTransparency: boolean;
 }
 
-/** The four media queries the capabilities derive from. Named so the wiring and the pure
+/** The media queries the capabilities derive from. Named so the wiring and the pure
  *  mapping agree on exactly one source of truth. */
 export const CAP_QUERIES = {
   pointerCoarse: "(pointer: coarse)",
   anyCoarse: "(any-pointer: coarse)",
   hover: "(hover: hover)",
   anyHover: "(any-hover: hover)",
+  reducedMotion: "(prefers-reduced-motion: reduce)",
+  contrastMore: "(prefers-contrast: more)",
+  contrastLess: "(prefers-contrast: less)",
+  contrastCustom: "(prefers-contrast: custom)",
+  forcedColors: "(forced-colors: active)",
+  reducedTransparency: "(prefers-reduced-transparency: reduce)",
 } as const;
 
 export type GlassPointer = "fine" | "coarse";
@@ -61,12 +79,24 @@ export function glassPointer(caps: Capabilities): GlassPointer {
  * matcher an iPhone / desktop profile and assert the mapping against F11's measured truth.
  */
 export function readCapabilities(match: (query: string) => boolean, touchPoints: number): Capabilities {
+  const contrast = match(CAP_QUERIES.contrastMore)
+    ? "more"
+    : match(CAP_QUERIES.contrastLess)
+      ? "less"
+      : match(CAP_QUERIES.contrastCustom)
+        ? "custom"
+        : "no-preference";
+
   return {
     pointer: match(CAP_QUERIES.pointerCoarse) ? "coarse" : "fine",
     anyCoarse: match(CAP_QUERIES.anyCoarse),
     hover: match(CAP_QUERIES.hover),
     noHover: !match(CAP_QUERIES.anyHover),
     touchPoints,
+    reducedMotion: match(CAP_QUERIES.reducedMotion),
+    contrast,
+    forcedColors: match(CAP_QUERIES.forcedColors),
+    reducedTransparency: match(CAP_QUERIES.reducedTransparency),
   };
 }
 
@@ -77,7 +107,11 @@ function same(a: Capabilities, b: Capabilities): boolean {
     a.anyCoarse === b.anyCoarse &&
     a.hover === b.hover &&
     a.noHover === b.noHover &&
-    a.touchPoints === b.touchPoints
+    a.touchPoints === b.touchPoints &&
+    a.reducedMotion === b.reducedMotion &&
+    a.contrast === b.contrast &&
+    a.forcedColors === b.forcedColors &&
+    a.reducedTransparency === b.reducedTransparency
   );
 }
 
