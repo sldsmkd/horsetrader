@@ -16,7 +16,10 @@ ordinal. Current event banners:
 - `masters-challenge.png` → `masterschallenge` records.
 - `racing-carnival.png` → `racingcarnival` records.
 - `showtime.png` → `showtime` records.
-- `strongest-team.png` → `strongestteam` records.
+- `strongest-team.png` → offline last resort for `strongestteam` records. The
+  preferred card art comes from each JP post-launch news article because it
+  shows the active characters. The official EN “Coming Soon” Akamai asset,
+  published as `static/img/misc/dream-team.webp`, is the generic fallback.
 - `trainers-skill-test.png` → `skilltest` records.
 
 The bake publishes each as `static/img/misc/<name>.webp` and attaches that URL

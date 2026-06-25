@@ -207,6 +207,43 @@ class News(metaclass=SingletonMeta):
         ranked.sort(key=lambda item: item[0])
         return ranked[0][1]
 
+    def strongest_team(self, jp_start: datetime) -> NewsArticle | None:
+        """Best custom-art article for one Dream Team occurrence.
+
+        Older translated articles called it "Strongest Team"; the official EN
+        release calls it "Dream Team". The Japanese custom art remains useful
+        source material, even though timeline cards always use the shared
+        official EN banner.
+        """
+        articles = {
+            article.announce_id: article
+            for query in ("Dream Team", "Strongest Team")
+            for article in self.search(
+                query,
+                label="Game",
+                english=True,
+                japanese=False,
+            )
+        }
+        ranked: list[tuple[float, NewsArticle]] = []
+        for article in articles.values():
+            title = article.title_english or ""
+            if article.post_at_datetime is None or article.banner_image_url is None:
+                continue
+            if not self._strongest_team_is_underway(title):
+                continue
+
+            hours = (
+                self._as_utc(jp_start) - article.post_at_datetime
+            ).total_seconds() / 3600
+            if -12 <= hours <= 36:
+                ranked.append((abs(hours), article))
+
+        if not ranked:
+            return None
+        ranked.sort(key=lambda item: item[0])
+        return ranked[0][1]
+
     def anniversary_campaign(
         self,
         anniversary_key: str,
@@ -271,43 +308,6 @@ class News(metaclass=SingletonMeta):
             else:
                 continue
             ranked.append((score, article))
-
-        if not ranked:
-            return None
-        ranked.sort(key=lambda item: item[0])
-        return ranked[0][1]
-
-    def strongest_team(self, jp_start: datetime) -> NewsArticle | None:
-        """Best custom-art article for one Dream Team occurrence.
-
-        Older translated articles called it "Strongest Team"; the official EN
-        release calls it "Dream Team". Preview/end articles exist under both
-        names, but the event-specific oshi art lives on the underway/has-begun
-        article at the event start.
-        """
-        articles = {
-            article.announce_id: article
-            for query in ("Dream Team", "Strongest Team")
-            for article in self.search(
-                query,
-                label="Game",
-                english=True,
-                japanese=False,
-            )
-        }
-        ranked: list[tuple[float, NewsArticle]] = []
-        for article in articles.values():
-            title = article.title_english or ""
-            if article.post_at_datetime is None or article.banner_image_url is None:
-                continue
-            if not self._strongest_team_is_underway(title):
-                continue
-
-            hours = (
-                self._as_utc(jp_start) - article.post_at_datetime
-            ).total_seconds() / 3600
-            if -12 <= hours <= 36:
-                ranked.append((abs(hours), article))
 
         if not ranked:
             return None
