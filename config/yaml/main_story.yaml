@@ -195,10 +195,13 @@ main-story-07:
   song: "笑顔の宝物 -Beyond The Future!-"
   rewards: [support-30105-special-week, trainee-100103-special-week]   # finale: + ★3 trainee
   clear_carats: {episodes: 12, each: 30, bonus: 150}   # = 510, wikiru, manually verified
-  banner: https://prd-info-umamusume.akamaized.net/announce/857/Thumbnail/banner_30400010.png   # umamusume.com announce 857 (via umapyoi news)
+  banner: https://assets-webview-umamusume-en.akamaized.net/contents/assets/images/uploads/Thumbnail/banner_30400009_L1782338400.png   # umamusume.com announce 857 (via umapyoi news)
   jp:
     name: "煌めきはどこまでも"
     start: 2022-07-20T12:00:00+09:00
+  en:
+    name: "Hope Shines On"
+    start: 2026-06-25T22:00:00+00:00
 
 main-story-08:
   part: "第2部"

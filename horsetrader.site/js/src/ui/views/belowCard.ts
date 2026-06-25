@@ -75,7 +75,7 @@ function communityLabel(card: BelowCard): string | null {
     case "skilltest":
       return "Skill Test";
     case "strongestteam":
-      return "Strongest Team";
+      return "Dream Team";
     default:
       return null;
   }

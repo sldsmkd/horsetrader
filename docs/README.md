@@ -16,6 +16,7 @@ docs are consolidated here so the shared contract has one home.
 | [`etl/`](etl/) | the Python pipeline: scrape → normalise → predict → bake |
 | [`frontend/`](frontend/) | the raw-DOM TypeScript planner that consumes the bake |
 | [`design/`](design/) | agreed crosscutting design notes that are not specific to only ETL or frontend |
+| [`trainernet/`](trainernet/) | numbered QA runbooks that thread operational discoveries through the full product |
 | [`ideas/`](ideas/) | exploration backlog — uncommitted design ideas, not yet code or agreed design |
 | [`references/`](references/) | catch-all junk drawer — scraps, announcements, old research/predictions. Not pipeline input, not authoritative. |
 | (this level) | crosscutting docs both sides depend on |

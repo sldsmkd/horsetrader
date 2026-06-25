@@ -11,11 +11,16 @@ from horsetrader.services import News, NewsArticle
 from ._misc_banner import process_misc_banner
 from .wikiru_event import WikiruEvent, WikiruEvents
 
+_GENERIC_BANNER_URL = (
+    "https://assets-webview-umamusume-en.akamaized.net/contents/assets/images/"
+    "uploads/Header/banner_30900001_L1782338400.png"
+)
+
 
 @daitaku
 @dataclass
 class StrongestTeam(WikiruEvent):
-    """An Aim! Strongest Team occurrence — recurring competition (~1-week window), rushable.
+    """A Dream Team occurrence — recurring competition (~1-week window), rushable.
 
     Distinct from League of Heroes (#9) — confirmed not the same event.
 
@@ -39,8 +44,7 @@ class StrongestTeam(WikiruEvent):
 class StrongestTeams(WikiruEvents[StrongestTeam]):
     _HEADING = "目指せ！最強チーム"
     _KEY_PREFIX = "strongestteam"
-    # Provisional EN label until an EN occurrence ships.
-    _EN_NAME = "Aim! Strongest Team"
+    _EN_NAME = "Dream Team"
     _MODEL = StrongestTeam
 
     def search(self, query) -> list[StrongestTeam]:
@@ -56,7 +60,10 @@ class StrongestTeams(WikiruEvents[StrongestTeam]):
 
     @staticmethod
     def _assign_banner(teams: list[StrongestTeam]) -> None:
-        generic = process_misc_banner("strongest-team.png")
+        generic = StrongestTeams._process_generic_banner()
+        if generic is None:
+            # Offline last resort for a cold cache or unavailable Akamai asset.
+            generic = process_misc_banner("strongest-team.png")
         articles_by_key: dict[str, NewsArticle] = {}
         news = News()
         for team in teams:
@@ -80,6 +87,19 @@ class StrongestTeams(WikiruEvents[StrongestTeam]):
             elif generic is not None:
                 team.banner = generic
                 team.references.add(generic.references)
+
+    @staticmethod
+    def _process_generic_banner() -> Image | None:
+        url = Url(_GENERIC_BANNER_URL)
+        requests: ResourceList[ImageRequest] = ResourceList(
+            [
+                ImageRequest(
+                    url=url,
+                    outfile=Config().static / "img" / "misc" / "dream-team.webp",
+                )
+            ]
+        )
+        return CurrenChan().process(requests).get(str(url))
 
     @staticmethod
     def _process_news_banners(

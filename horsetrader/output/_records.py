@@ -334,7 +334,7 @@ class ShowtimeRecord(EventRecord, tag="showtime"):
 class NamedEventRecord(EventRecord):
     """An event record carrying a display `name` — the shared wire shape
     for the recurring wikiru event types (Trainer Skills Test, Racing Carnival,
-    Aim! Strongest Team, Masters Challenge, …). Untagged intermediate; concrete
+    Dream Team, Masters Challenge, …). Untagged intermediate; concrete
     subclasses supply the discriminator tag. Rushability is the shared optional
     flag from ``EventRecord``, not a distinct record subtype."""
 

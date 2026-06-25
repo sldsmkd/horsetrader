@@ -234,9 +234,9 @@ export const UI_STRINGS: UiStrings = {
         },
       },
       strongestTeam: {
-        title: "Strongest Team",
+        title: "Dream Team",
         steps: {
-          off: { value: "Off", description: "I do not count Strongest Team rewards." },
+          off: { value: "Off", description: "I do not count Dream Team rewards." },
           E: { value: "E", description: "I collect the entry rank rewards." },
           D: { value: "D", description: "I reach rank D." },
           C: { value: "C", description: "I reach rank C." },

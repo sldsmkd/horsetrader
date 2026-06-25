@@ -278,18 +278,25 @@ class News(metaclass=SingletonMeta):
         return ranked[0][1]
 
     def strongest_team(self, jp_start: datetime) -> NewsArticle | None:
-        """Best custom-art article for one Aim! Strongest Team occurrence.
+        """Best custom-art article for one Dream Team occurrence.
 
-        Strongest Team has preview/end articles too, but the event-specific
-        oshi art lives on the underway/has-begun article at the event start.
+        Older translated articles called it "Strongest Team"; the official EN
+        release calls it "Dream Team". Preview/end articles exist under both
+        names, but the event-specific oshi art lives on the underway/has-begun
+        article at the event start.
         """
+        articles = {
+            article.announce_id: article
+            for query in ("Dream Team", "Strongest Team")
+            for article in self.search(
+                query,
+                label="Game",
+                english=True,
+                japanese=False,
+            )
+        }
         ranked: list[tuple[float, NewsArticle]] = []
-        for article in self.search(
-            "Strongest Team",
-            label="Game",
-            english=True,
-            japanese=False,
-        ):
+        for article in articles.values():
             title = article.title_english or ""
             if article.post_at_datetime is None or article.banner_image_url is None:
                 continue
@@ -430,7 +437,7 @@ class News(metaclass=SingletonMeta):
     def _strongest_team_is_underway(title: str) -> bool:
         lowered = title.lower()
         return (
-            "strongest team" in lowered
+            ("dream team" in lowered or "strongest team" in lowered)
             and ("underway" in lowered or "has begun" in lowered)
             and "ends" not in lowered
             and "over" not in lowered

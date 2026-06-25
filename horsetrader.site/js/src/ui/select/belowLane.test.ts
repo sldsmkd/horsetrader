@@ -249,13 +249,13 @@ test("racing carnival cards carry baked misc banner art", () => {
   assert.equal(cards[0]!.banner, "/img/misc/racing-carnival.webp");
 });
 
-test("strongest team cards carry baked misc banner art", () => {
+test("dream team cards carry baked misc banner art", () => {
   const events: EventsBundle = {
     events: [
       {
         type: "strongestteam",
-        name: "Aim! Strongest Team",
-        banner: "/img/misc/strongest-team.webp",
+        name: "Dream Team",
+        banner: "/img/misc/dream-team.webp",
         start: "2026-08-01",
         end: "2026-08-10",
         predicted: false,
@@ -265,7 +265,7 @@ test("strongest team cards carry baked misc banner art", () => {
   };
 
   const cards = belowLaneCards(settled(events), BUNDLE, AXIS, NOW);
-  assert.equal(cards[0]!.banner, "/img/misc/strongest-team.webp");
+  assert.equal(cards[0]!.banner, "/img/misc/dream-team.webp");
 });
 
 test("past cards are marked after their end date", () => {

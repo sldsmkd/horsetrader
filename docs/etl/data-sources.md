@@ -97,7 +97,7 @@ records back to the appropriate `_enrich_…` method on each `TracenModels`.
 A **fallback** JP source ([`horsetrader/extractors/wikiru/`](../../horsetrader/extractors/wikiru/)),
 used live for the event types Gametora has no structured surface for — Showtime
 today, and the recurring competitive events to come (League of Heroes, Racing
-Carnival, Trainer Skills Test, Aim! Strongest Team, Masters Challenge). One
+Carnival, Trainer Skills Test, Dream Team, Masters Challenge). One
 static HTML page, the イベント一覧 event-history index, fetched via plain
 `UmaClient.get` (no chrome) and parsed with lxml.
 

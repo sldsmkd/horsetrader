@@ -19,7 +19,7 @@ logger = Logger.get(__name__)
 @dataclass
 class WikiruEvent(Rushable, Event):
     """Base for a *recurring* wikiru-scraped event (Trainer Skills Test, Racing
-    Carnival, Aim! Strongest Team, Masters Challenge, …).
+    Carnival, Dream Team, Masters Challenge, …).
 
     The shared shape: JP runs scraped from the wikiru event index, EN windows
     left to the `FallthroughPredictor` (no dedicated predictor), a uniform

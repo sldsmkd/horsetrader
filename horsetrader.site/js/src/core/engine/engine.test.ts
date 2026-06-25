@@ -52,7 +52,7 @@ function bundle(): EventsBundle {
       { type: "story", title: "Tale", era: "1m", start: "2026-06-09", end: "2026-06-19", predicted: false, key: "story-tale", rewards: {} },
       { type: "trainingpass", start: "2026-06-01", end: "2026-06-30", predicted: false, key: "training-pass-1", rewards: { free_carats: 120 } },
       { type: "leagueofheroes", name: "LoH", start: "2026-06-20", end: "2026-06-30", predicted: false, key: "loh-1", rewards: {} },
-      { type: "strongestteam", name: "Strongest", start: "2026-06-21", end: "2026-06-30", predicted: false, key: "strongest-1", rewards: {} },
+      { type: "strongestteam", name: "Dream Team", start: "2026-06-21", end: "2026-06-30", predicted: false, key: "strongest-1", rewards: {} },
       { type: "masterschallenge", name: "Masters", banner: null, start: "2026-06-22", end: "2026-06-30", predicted: false, key: "masters-1", rewards: {} },
       // a banner — pulls on the face must never bank; commitments claim it.
       { type: "support", contents: [], image: "", start: "2026-06-12", end: "2026-06-22", predicted: false, key: "banner-kita", rewards: { pulls: 10 } },
