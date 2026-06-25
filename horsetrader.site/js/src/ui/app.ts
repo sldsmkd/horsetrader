@@ -60,7 +60,7 @@ import { scenarioLookup } from "./select/scenario.ts";
 import { buildOshiSelector, buildClubSelector } from "./views/surfaces/identityCards.ts";
 import { trainerPage } from "./views/trainer/index.ts";
 import { menubar } from "./views/menubar.ts";
-import { BELOW_LANE_STACK_TOP } from "./views/timeline/constants.ts";
+import { BELOW_LANE_STACK_TOP, timelineLengthGolshis } from "./views/timeline/constants.ts";
 import type { RightSurface } from "./views/menubar.ts";
 import { createIdentityController } from "./identity/controller.ts";
 import { createCapabilities, glassPointer } from "./caps/capabilities.ts";
@@ -75,7 +75,7 @@ import type { BelowCard } from "./select/belowLane.ts";
 import type { BannerGroup } from "./select/aboveLane.ts";
 import { createViewStore } from "./state/viewState.ts";
 import type { Coordinator, SettledEvent } from "../core/engine/index.ts";
-import type { CalendarDate } from "../core/projection/dates.ts";
+import { daysBetween, type CalendarDate } from "../core/projection/dates.ts";
 import type { Bundle } from "./bundle/access.ts";
 
 function timelinePxVar(name: string, fallback: number): number {
@@ -201,7 +201,7 @@ export function mountApp(
     const current = view.get().right;
     view.set({ right: current === member ? null : member, resourcesEditing: false });
   };
-  let cardStats = { cards: 0, aboveCards: 0, belowCards: 0 };
+  let cardStats = { cards: 0, aboveCards: 0, belowCards: 0, timelineGolshis: 0 };
   // Darley's perf instrument owns the measurement loop + churn collection + frame budget;
   // the HUD is a dumb view over its snapshots.
   const perf = perfInstrument({ drainChurn: () => tl.drainChurn() });
@@ -318,7 +318,12 @@ export function mountApp(
     });
     const belowEls = below.map((card) => belowCard(card, rush, fav, inspect));
     const aboveEls = above.map((group) => bannerGroup(group, fav, commit, inspect));
-    cardStats = { cards: belowEls.length + aboveEls.length, aboveCards: aboveEls.length, belowCards: belowEls.length };
+    cardStats = {
+      cards: belowEls.length + aboveEls.length,
+      aboveCards: aboveEls.length,
+      belowCards: belowEls.length,
+      timelineGolshis: cardStats.timelineGolshis,
+    };
     tl.setCards([...belowEls, ...aboveEls]);
     // Mounted now → heights are measurable. Pack each lane (below returns its
     // floor depth, above its roof height); the timeline turns these into its
@@ -348,6 +353,7 @@ export function mountApp(
     const world = coord.settledEvents();
     const projection = coord.projection();
     const extent = displayExtent(world);
+    cardStats.timelineGolshis = extent ? timelineLengthGolshis(daysBetween(extent[0], extent[1])) : 0;
     // The minimap is another view over the same projection. Repaint it *before*
     // the timeline lays out: `tl.layout` emits the initial view-centre date
     // through `onView → mini.setView`, which needs the minimap's axis already

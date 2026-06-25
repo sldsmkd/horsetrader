@@ -21,6 +21,15 @@ export const PX_PER_DAY = 120;
 /** Breathing room (days) padded either side of the data extent — the prototype's
  *  fixed buffer before the first card and after the last. */
 export const PAD_DAYS = 3;
+/** One Golshi: the viewport-invariant world interaction unit mirrored by
+ *  `--world-golshi` in timelineSizing.css. */
+export const WORLD_GOLSHI_PX = 35;
+
+/** Length of the real panning canvas in Golshis for an event-to-event day span.
+ *  Includes the fixed breathing room painted at both ends. */
+export function timelineLengthGolshis(spanDays: number): number {
+  return ((spanDays + PAD_DAYS * 2) * PX_PER_DAY) / WORLD_GOLSHI_PX;
+}
 
 /** Pan momentum, tuned for feel: per-ms velocity decay, the flick floor to start
  *  a glide at release, the floor at which the glide ends, and the pause-before-

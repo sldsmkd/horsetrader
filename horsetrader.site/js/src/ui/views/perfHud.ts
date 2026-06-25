@@ -28,6 +28,7 @@ export interface PerfHudStats {
   cards: number;
   aboveCards: number;
   belowCards: number;
+  timelineGolshis: number;
   domNodes: number;
   // Trackblazer gating measurement: mounted cards split by viewport relation.
   visible: number;
@@ -66,6 +67,7 @@ export function perfHud({ perf, stats, bake }: PerfHudOptions): PerfHud {
   const offscreenValue = h("span", { class: "perf-hud__value" }, "0%");
   const churnValue = h("span", { class: "perf-hud__value" }, "0 / 0 / 0");
   const domValue = h("span", { class: "perf-hud__value" }, "0");
+  const lengthValue = h("span", { class: "perf-hud__value" }, "0g");
   const viewportValue = h("span", { class: "perf-hud__value" }, viewportResolution());
   const graph = h("canvas", { class: "perf-hud__graph", attr: { width: GRAPH_W, height: GRAPH_H } });
   const ctx = graph.getContext("2d");
@@ -90,6 +92,7 @@ export function perfHud({ perf, stats, bake }: PerfHudOptions): PerfHud {
     // Per-frame DOM churn: p99 / p99.9 / high-watermark over the live ring.
     row("CHURN", churnValue),
     row("DOM", domValue),
+    row("LENGTH", lengthValue),
     row("VIEW", viewportValue),
     // Eishin's production report: build-time facts, set once (not on the tick).
     // The header is in-character — the precise German baker signing off her run,
@@ -142,6 +145,7 @@ export function perfHud({ perf, stats, bake }: PerfHudOptions): PerfHud {
     offscreenValue.textContent = `${offscreenPct}%`;
     churnValue.textContent = `${snap.churnP99} / ${snap.churnP999} / ${snap.churnMax}`;
     domValue.textContent = String(s.domNodes);
+    lengthValue.textContent = `${Math.round(s.timelineGolshis).toLocaleString()}g`;
     viewportValue.textContent = viewportResolution();
     draw(snap.fpsSamples);
   };
