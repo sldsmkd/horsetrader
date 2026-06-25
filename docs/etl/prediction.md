@@ -213,6 +213,13 @@ front-padding (EN includes pre-registration days the JP scrape omits). Needs ≥
 confirmed CMs to interpolate; with fewer it stamps nothing and leaves them to
 the fallthrough.
 
+### `LegendRacePredictor`
+
+Legend Races have a dedicated type-only `DateMapper` built from their confirmed
+JP→EN start pairs. Each missing race maps its JP start through that cadence, then
+uses the race's own JP leg count to rebuild the EN span. Before stamping, it
+shares the recurring-limited-event off-by-one correction described below.
+
 ### `FallthroughPredictor`
 
 Dead last in the chain — after every dedicated pass, including the holiday and
@@ -221,16 +228,32 @@ from every event already carrying both a JP and a UTC period (confirmed or
 predicted upstream), then maps the JP day of anything *still* missing a UTC
 period through it and stamps `Period(predicted=True)` at 22:00 UTC.
 
+For recurring limited events (`FactorStudies`, `LegendRace`,
+`MastersChallenge`, `RacingCarnival`, `SkillTest`, `Showtime`, and
+`StrongestTeam`), the mapped day gets one conservative off-by-one correction
+(inside the dedicated predictor for Legend Races, here for the rest). A **strong
+launch** is a JP→EN day pair corroborated by at least two already-scheduled
+events — usually a banner pair, or a banner plus its story/scenario. If both the
+event's JP day and its initially mapped EN day are within ±1 day of that cluster,
+Mati snaps it onto the cluster's EN day. Requiring agreement on both sides keeps
+nearby singleton events from becoming accidental anchors.
+
+The motivating Strongest Team miss mapped to Friday, June 26, 2026 at 22:00 UTC
+(Saturday morning in Japan), while the actual release joined the preceding
+content drop. This may be a Global scheduling edge case that avoids weekend-JST
+launches. It is deliberately only an investigation note for the next similar
+miss, not a general weekday rule yet.
+
 It's the catch-all bucket — cross-type by design (the JST→UTC server warp is
 shared, so a stray story can ride banner/scenario anchors and vice versa),
-no weekday snap, no per-type signal. `DateMapper` does a bisect to the
-bracketing pairs, linear-interpolates, and rounds to the nearest whole day;
-outside the known range it extrapolates off the nearest end segment's local
-slope (deliberately janky past the last anchor — fine for a last resort). The
-more the passes above schedule, the more local slopes it has to work against,
-so its accuracy rises as the timeline fills in. Today it's inert
-(`fallthrough: 0` — nothing reaches it), but it's there to keep new event
-types or edge cases from silently landing in `unpredicted`.
+with no weekday snap beyond the limited-event correction above. `DateMapper`
+does a bisect to the bracketing pairs, linear-interpolates, and rounds to the
+nearest whole day; outside the known range it extrapolates off the nearest end
+segment's local slope (deliberately janky past the last anchor — fine for a
+last resort). The more the passes above schedule, the more local slopes it has
+to work against, so its accuracy rises as the timeline fills in. Accepted
+recurring event types are reported as `uncategorised`; unexpected types remain
+an actionable `fallthrough` warning.
 
 ## Stats
 

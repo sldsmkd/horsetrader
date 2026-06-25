@@ -8,7 +8,7 @@ from horsetrader.semantics import matikanefukukitaru
 
 from ..datemapper import DateMapper
 from ..timeline import Timeline
-from .base import Predictor
+from .base import Predictor, snap_to_strong_launch, strong_launches
 
 logger = Logger.get(__name__)
 
@@ -51,6 +51,7 @@ class LegendRacePredictor(Predictor):
         mapper = DateMapper(JST, UTC)
         for jp, en in confirmed:
             mapper.add(jp.start, en.start)
+        launches = strong_launches(self._timeline)
 
         count = 0
         for event in self._timeline:
@@ -62,6 +63,7 @@ class LegendRacePredictor(Predictor):
             if jp is None:
                 continue
             day = mapper.predict(jp.start, UTC)
+            day = snap_to_strong_launch(jp.start.date(), day, launches)
             # EN events drop at 22:00 UTC, the canonical Global content instant.
             start = datetime(day.year, day.month, day.day, 22, tzinfo=UTC)
             # Length follows this race's own leg count: its JP window snapped up
