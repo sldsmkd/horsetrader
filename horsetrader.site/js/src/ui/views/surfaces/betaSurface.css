@@ -19,6 +19,7 @@
 }
 
 .beta-surface__run {
+  min-height: var(--glass-target);
   padding: calc(0.69 * var(--glass-u)) calc(1.13 * var(--glass-u));
   border: 1px solid var(--ht-control-border);
   border-radius: var(--ht-control-radius);
@@ -42,6 +43,7 @@
 }
 
 .beta-surface__chip {
+  min-height: var(--glass-target);
   padding: calc(0.45 * var(--glass-u)) calc(0.85 * var(--glass-u));
   border: 1px solid var(--ht-control-border);
   border-radius: var(--ht-control-radius);
@@ -59,6 +61,7 @@
 }
 
 .beta-surface__cancel {
+  min-height: var(--glass-target);
   padding: calc(0.69 * var(--glass-u)) calc(1.13 * var(--glass-u));
   border: 1px solid var(--ht-control-border);
   border-radius: var(--ht-control-radius);

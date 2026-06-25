@@ -15,9 +15,8 @@
  * scraping presentation. It forces a synchronous layout, so call it on view changes
  * (resize / recompute), never per frame.
  *
- * `root` selects the cascade context: a subtree may locally override `--glass-u`
- * (the dropdown rail in surface.css), so resolving the glass unit *as a surface sees
- * it* means probing inside that surface's element, not always `:root`.
+ * `root` selects the cascade context for the element being measured. `--glass-u`
+ * itself is root-canonical; local component expressions can still depend on context.
  */
 export function resolveLengthPx(root: HTMLElement, expr: string): number {
   const probe = document.createElement("div");

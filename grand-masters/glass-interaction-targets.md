@@ -3,6 +3,10 @@
 > Validation draft, 2026-06-25. This is the handoff for a fresh implementation
 > context, not yet a hardened entry in [contracts.md](contracts.md). Validate the
 > assumptions marked **DECIDE** before treating the checklist as mechanical work.
+>
+> Implementation pass completed 2026-06-25 for the substrate and listed non-Plan
+> controls. Automated tests, type-check, and production build pass; browser/device
+> field validation and contract promotion remain open.
 
 ## Proposed rule
 
@@ -38,28 +42,23 @@ remain Golshi geometry and are projected by the camera.
 There should be one glass ruler: `--glass-u`. Interaction targets and surface
 geometry both derive from it.
 
-### Second pass: remove the local glass-u override
+### Canonical glass ruler
 
-The current rail can locally override `--glass-u`, while `--glass-u-base`
-preserves the root device-calibrated value. That is hidden per-surface scaling:
-two elements described as `7u` can resolve to different physical sizes depending
-on their ancestor. It weakens the glass contract and lets a constrained surface
-appear to fit by silently changing its ruler.
+The former menubar rail override of `--glass-u` has been removed. It was hidden
+per-surface scaling: two elements described as `7u` could resolve to different
+physical sizes depending on their ancestor. Constrained surfaces now keep the
+canonical ruler and must fit through layout rather than silently changing scale.
 
-Treat this as technical debt, not a capability the target system should
-legitimise:
+`--glass-u-base` remains as the root device-calibration/measurement bridge used
+by fixed chrome calculations; `--glass-u` is the single public surface unit.
 
-- [ ] Inventory every assignment to `--glass-u` outside the root declaration.
-- [ ] Remove local `--glass-u` overrides, beginning with the menubar rail.
-- [ ] Make constrained surfaces fit through layout, reflow, or an alternate
+- [x] Inventory every assignment to `--glass-u` outside the root declaration.
+- [x] Remove local `--glass-u` overrides, beginning with the menubar rail.
+- [x] Make constrained surfaces fit through layout, reflow, or an alternate
   representation rather than a private unit scale.
 - [ ] Collapse `--glass-u-base` and `--glass-u` into one canonical public unit if
   no remaining measurement bridge requires both names.
-- [ ] Add a guard that rejects non-root declarations of `--glass-u`.
-
-Until that pass lands, a local override can still shrink a nominal target. Do
-not solve that by permanently basing interaction targets on a second ruler; fix
-the override.
+- [x] Add a guard that rejects non-root declarations of `--glass-u`.
 
 ### Capability policy
 
@@ -122,15 +121,15 @@ square icon controls.
 
 ### 1. Substrate
 
-- [ ] Add `--glass-target-fine`, `--glass-target-coarse`, and
+- [x] Add `--glass-target-fine`, `--glass-target-coarse`, and
   `--glass-target` to `horsetrader.site/css/glass.css`.
-- [ ] Add a pure `glassPointer(caps)` policy beside the capabilities module, with
+- [x] Add a pure `glassPointer(caps)` policy beside the capabilities module, with
   tests for desktop, phone, iPad, and hybrid touch-laptop profiles.
-- [ ] Correct the stale `Capabilities.anyCoarse` comment so it no longer claims
+- [x] Correct the stale `Capabilities.anyCoarse` comment so it no longer claims
   that any available touchscreen selects coarse target sizing.
-- [ ] In `app.ts`, stamp and reactively maintain
+- [x] In `app.ts`, stamp and reactively maintain
   `data-glass-pointer="fine|coarse"` on `document.documentElement`.
-- [ ] Add a guard proving the tokens are derived from `--glass-u` and that
+- [x] Add a guard proving the tokens are derived from `--glass-u` and that
   both target modes remain present.
 - [ ] After field validation, promote this draft into a numbered contract in
   `contracts.md`.
@@ -148,7 +147,7 @@ square icon controls.
 | `.search-box__result` | Search result | minimum block size | Complete result row is clickable. |
 | `.filmstrip__frame` | Timeline warp face | exact square | Current fine size is `3.75u-base`; normalising to `3.5u` is a small reduction. Six-plus `7u` frames may require coarse scrolling/packing review. |
 
-- [ ] Migrate shared `.menubar__button` geometry where possible, with pill
+- [x] Migrate shared `.menubar__button` geometry where possible, with pill
   exceptions remaining width-driven.
 - [ ] Audit the search result popup at both target modes.
 - [ ] Audit filmstrip packing and scrolling at coarse `7u`.
@@ -167,13 +166,13 @@ square icon controls.
 | `.mobile-trainer__action` | Apply/Discard | minimum block size | Includes quiet/apply modifiers. |
 | `.cloud-controls__btn` | Cloud/Sync | minimum block size | |
 
-- [ ] Replace the Trainer's local hard-coded `7u` preset target with the global
+- [x] Replace the Trainer's local hard-coded `7u` preset target with the global
   target token.
-- [ ] Verify six coarse presets still fit the `50u` iPad rail.
+- [x] Verify six coarse presets still fit the `50u` iPad rail.
 - [ ] Verify fine presets at `3.5u` do not make their glyphs visually cramped;
   glyph size remains independently tuned.
 - [ ] Verify checkbox `2 × 3` phone and `3 × 2` broad layouts after target sizing.
-- [ ] Verify range dragging has a full target-sized lane without a `7u` thumb.
+- [x] Verify range dragging has a full target-sized lane without a `7u` thumb.
 
 ### 4. Standard surface controls
 
@@ -188,9 +187,9 @@ square icon controls.
 | `.beta-surface__chip` | First-run selector | minimum block size | |
 | `.beta-surface__cancel` | Close action | minimum block size | |
 
-- [ ] Normalise the shared `surfaceCancel` products through their concrete
+- [x] Normalise the shared `surfaceCancel` products through their concrete
   classes or a common action class.
-- [ ] Check collapse-pill direction variants rather than assuming one geometry.
+- [x] Check collapse-pill direction variants rather than assuming one geometry.
 
 ### 5. Plan surface
 
@@ -231,9 +230,9 @@ and design that layout if the existing row cannot preserve target separation.
 | `.club-selector__cancel` | Cancel | minimum block size | |
 | `.club-selector__ok` | Apply | minimum block size | |
 
-- [ ] Measure existing large option tiles and mark them compliant without
+- [x] Measure existing large option tiles and mark them compliant without
   resizing if already above the minimum.
-- [ ] Verify Club rank-grid column count at coarse size.
+- [x] Verify Club rank-grid column count at coarse size.
 
 ### 7. Cloud flows
 
@@ -257,9 +256,9 @@ and design that layout if the existing row cannot preserve target separation.
 | `.resources-editor__cancel` | Cancel | minimum block size | |
 | `.resources-editor__save` | Save | minimum block size | |
 
-- [ ] Add a stable class or labelled wrapper for the two native checkbox
+- [x] Add a stable class or labelled wrapper for the two native checkbox
   controls; do not rely permanently on a structural selector.
-- [ ] Ensure clicking the label row toggles the native checkbox.
+- [x] Ensure clicking the label row toggles the native checkbox.
 
 ### 9. Commitment dossier and card surface
 
@@ -275,8 +274,8 @@ and design that layout if the existing row cannot preserve target separation.
 | `.card-surface__cancel` | Cancel | minimum block size | |
 | `.card-surface__update` | Update | minimum block size | |
 
-- [ ] Verify large dossier tiles rather than shrinking them.
-- [ ] Check whether the card link should remain inline text or become a
+- [x] Verify large dossier tiles rather than shrinking them.
+- [x] Check whether the card link should remain inline text or become a
   target-sized action row.
 
 ## Explicitly outside this pass
@@ -300,12 +299,12 @@ so only that scoped instance joins this migration.
 
 - [ ] Fine profile resolves every discrete glass target to at least `3.5u`.
 - [ ] Coarse profile resolves every discrete glass target to at least `7u`.
-- [ ] Changing capability state updates existing and newly mounted surfaces.
-- [ ] Glyphs and decorative children are not needlessly enlarged to target size.
+- [x] Changing capability state updates existing and newly mounted surfaces.
+- [x] Glyphs and decorative children are not needlessly enlarged to target size.
 - [ ] No coarse layout overlaps, clips, or silently shrinks a target.
 - [ ] Keyboard focus remains visible on every migrated control.
-- [ ] Disabled controls retain their target geometry.
-- [ ] World controls retain Golshi/world sizing and camera membership.
+- [x] Disabled controls retain their target geometry.
+- [x] World controls retain Golshi/world sizing and camera membership.
 - [ ] iPhone Safari, iPad Air landscape, and desktop Chrome are field checked.
 
 ## Assumptions awaiting validation

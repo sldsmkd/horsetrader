@@ -25,11 +25,11 @@ import type { CalendarDate } from "../../core/projection/dates.ts";
 import { focusIndex } from "../select/filmstrip.ts";
 import type { FilmFrame } from "../select/filmstrip.ts";
 
-/** The strip's geometry rides the glass plane (Grand Masters): the frame edge and
- *  gap are `--glass-u-base` multiples declared in the CSS (`--fs-frame`/`--fs-gap`),
- *  so the strip scales with the chrome tier instead of pinning device px. The view
- *  resolves them to px (the calibration bridge) on every refresh — i.e. on resize —
- *  and the equidistant-step math reads the resolved values, never a literal. */
+/** The strip's geometry rides the glass plane (Grand Masters): the frame follows the
+ *  glass target and the gap is a `--glass-u-base` multiple declared in the CSS
+ *  (`--fs-frame`/`--fs-gap`). The view resolves them to px (the calibration bridge)
+ *  on every refresh — i.e. on resize — and the equidistant-step math reads the
+ *  resolved values, never a literal. */
 interface Metrics {
   frame: number;
   step: number;

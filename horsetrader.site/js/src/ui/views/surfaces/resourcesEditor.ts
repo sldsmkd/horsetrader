@@ -89,6 +89,7 @@ export function resourcesEditor(opts: ResourcesEditorOpts): HTMLElement {
   // 500 paid/cycle) is synthesised by the daily-pack channel; here we only transcribe
   // the subscription's existence + when the next cycle opens.
   const packToggle = h("input", {
+    class: "resources-editor__toggle-input",
     attr: opts.dailyPack ? { type: "checkbox", checked: "" } : { type: "checkbox" },
     on: { change: () => syncPack() },
   });
@@ -113,6 +114,7 @@ export function resourcesEditor(opts: ResourcesEditorOpts): HTMLElement {
   // on each Training Pass event (baked dates) via the training-pass channel. Free-track
   // rewards already count for everyone, so this transcribes only the premium ownership.
   const passToggle = h("input", {
+    class: "resources-editor__toggle-input",
     attr: opts.trainingPass ? { type: "checkbox", checked: "" } : { type: "checkbox" },
   });
 
@@ -164,14 +166,14 @@ export function resourcesEditor(opts: ResourcesEditorOpts): HTMLElement {
     resourceGrid(editCell),
     h(
       "label",
-      { class: "resources-editor__daily-pack" },
+      { class: "resources-editor__toggle" },
       packToggle,
       "I spend money for the Daily Carats pack",
     ),
     packDateField,
     h(
       "label",
-      { class: "resources-editor__daily-pack" },
+      { class: "resources-editor__toggle" },
       passToggle,
       "I buy the Training Pass premium track",
     ),

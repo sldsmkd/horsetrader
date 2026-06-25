@@ -58,6 +58,7 @@
   display: flex;
   align-items: center;
   gap: var(--glass-u);
+  min-height: var(--glass-target);
   padding: var(--glass-u) calc(1.13 * var(--glass-u));
   border-radius: var(--ht-control-radius-soft);
   border: 1px solid var(--ht-control-border-quiet);
@@ -131,6 +132,7 @@
 
 .cloud-conflict__btn {
   font: inherit;
+  min-height: var(--glass-target);
   padding: calc(0.63 * var(--glass-u)) calc(1.5 * var(--glass-u));
   border-radius: var(--ht-control-radius);
   border: 1px solid var(--ht-control-border);

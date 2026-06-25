@@ -35,7 +35,8 @@
 
 .menubar__item {
   pointer-events: auto;
-  min-height: calc(2.94 * var(--glass-u));
+  box-sizing: border-box;
+  min-height: var(--glass-target);
   border: 1px solid var(--ht-control-border);
   border-radius: var(--ht-control-radius-soft);
   background: color-mix(in srgb, Canvas 64%, transparent);
@@ -69,7 +70,8 @@
 }
 
 .menubar__home {
-  width: calc(2.94 * var(--glass-u));
+  width: var(--glass-target);
+  height: var(--glass-target);
   padding: 0;
   font-size: var(--ht-type-panel-title-size);
 }
@@ -107,7 +109,8 @@
 /* The Beta (🔨) door — a square icon button like Plan, between Plan and carats.
    Hidden unless the supporter entitlement is on. */
 .menubar__beta {
-  width: calc(2.94 * var(--glass-u));
+  width: var(--glass-target);
+  height: var(--glass-target);
   padding: 0;
 }
 
@@ -126,7 +129,8 @@
 /* The Plan (Desk) door — a square icon button like the home button, left of carats.
    Hidden until a commitment exists. */
 .menubar__plan {
-  width: calc(2.94 * var(--glass-u));
+  width: var(--glass-target);
+  height: var(--glass-target);
   padding: 0;
 }
 

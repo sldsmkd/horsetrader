@@ -4,6 +4,7 @@
   align-items: center;
   gap: calc(0.5 * var(--glass-u));
   min-width: 0;
+  min-height: var(--glass-target);
   padding: calc(0.63 * var(--glass-u)) calc(0.75 * var(--glass-u));
   border: 0;
   background: var(--ht-control-bg);

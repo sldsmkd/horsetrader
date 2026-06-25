@@ -37,14 +37,16 @@
      at the dev aperture and bend sanely on a phone. */
   --glass-u-base: clamp(7px, min(1svh, 2svw), 20px);
 
-  /* The unit every glass surface measures in. Defaults to the authoritative base,
-     but a subtree may override it to a fraction of the base (see the dropdown rail
-     in surface.css) to shrink DIMENSIONALLY — the card is genuinely smaller, not
-     zoomed. The override scales `--glass-u-base` rather than `--glass-u` itself,
-     because `--glass-u: calc(... * var(--glass-u))` would be a cyclic self-reference.
-     Chrome-frame + clearance tokens read --glass-u-base instead (base.css), so a
-     descendant's local shrink can never perturb the fixed floating chrome. */
+  /* The canonical public glass ruler. It is declared once at the root; constrained
+     surfaces must fit through layout or reflow rather than private unit scaling. */
   --glass-u: var(--glass-u-base);
+
+  /* Discrete interaction targets on the glass plane. The border box grows with
+     the primary pointer's precision; glyphs and other optical children keep
+     their own dimensions. */
+  --glass-target-fine: calc(3.5 * var(--glass-u));
+  --glass-target-coarse: calc(7 * var(--glass-u));
+  --glass-target: var(--glass-target-fine);
 
   /* The depth ladder — one declared back→front paint order, replacing scattered
      per-component z-index. Modality (whether a surface is locked) is a SEPARATE axis,
@@ -86,4 +88,8 @@
   --glass-radius: 0.65rem; /* unified pane corner */
   /* Drop shadow lifting the pane + an inset top edge-light (the holographic glow). */
   --glass-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.28), inset 0 1px 0 var(--glass-edge-light);
+}
+
+:root[data-glass-pointer="coarse"] {
+  --glass-target: var(--glass-target-coarse);
 }

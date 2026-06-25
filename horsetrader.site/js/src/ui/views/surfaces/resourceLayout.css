@@ -39,6 +39,7 @@
   font-size: var(--ht-type-number-size);
   font-variant-numeric: tabular-nums;
   width: 100%;
+  min-height: var(--glass-target);
   background: transparent;
   border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
   border-radius: 0.25rem;

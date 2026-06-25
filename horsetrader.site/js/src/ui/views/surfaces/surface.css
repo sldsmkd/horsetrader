@@ -81,16 +81,6 @@
   max-height: var(--chrome-dropdown-max-height);
 }
 
-/* Shrink each rail card off the edge it's pinned to — by measuring in a smaller unit,
-   not by zooming. The whole card and its internals are in `N × --glass-u`, so a local
-   --glass-u override (0.8× the base unit) makes the card genuinely, dimensionally
-   smaller (Byerley: size = dimension). No `zoom`/`transform: scale` — those resize the
-   render off the layout box (the camera's idiom) and have no business on the glass plane. */
-.chrome-dropdowns > .surface--left,
-.chrome-dropdowns > .surface--right {
-  --glass-u: calc(var(--chrome-dropdown-u-scale) * var(--glass-u-base));
-}
-
 .chrome-dropdowns > .surface--left {
   left: 0;
 }

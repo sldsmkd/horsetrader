@@ -63,7 +63,7 @@ import { menubar } from "./views/menubar.ts";
 import { BELOW_LANE_STACK_TOP } from "./views/timeline/constants.ts";
 import type { RightSurface } from "./views/menubar.ts";
 import { createIdentityController } from "./identity/controller.ts";
-import { createCapabilities } from "./caps/capabilities.ts";
+import { createCapabilities, glassPointer } from "./caps/capabilities.ts";
 import { trainerPresentation } from "./caps/trainerPresentation.ts";
 
 import type { UiStrings } from "./strings.ts";
@@ -189,6 +189,11 @@ export function mountApp(
   const search = createSearchIndex(bundle, now);
   const identity = createIdentityController(coord, bundle);
   const capabilities = createCapabilities();
+  const applyGlassPointer = (): void => {
+    document.documentElement.dataset.glassPointer = glassPointer(capabilities.get());
+  };
+  applyGlassPointer();
+  capabilities.subscribe(applyGlassPointer);
   // The right surface group: opening a member replaces whatever right surface was
   // open (so only one per group), and clears the resources editor child. It does
   // NOT touch the left group — left and right are independent.

@@ -27,14 +27,20 @@
   gap: calc(0.13 * var(--glass-u));
 }
 
-.resources-editor__daily-pack {
+.resources-editor__toggle {
   display: flex;
   align-items: center;
   gap: calc(0.5 * var(--glass-u));
+  min-height: var(--glass-target);
+  padding-inline: calc(0.5 * var(--glass-u));
   font-size: var(--ht-type-caption-size);
   line-height: var(--ht-type-caption-line);
   opacity: 0.8;
   cursor: pointer;
+}
+
+.resources-editor__toggle-input {
+  flex: none;
 }
 
 .resources-editor__pack-date-field {
@@ -54,6 +60,7 @@
 
 .resources-editor__pack-days {
   width: calc(4.38 * var(--glass-u));
+  min-height: var(--glass-target);
   font: inherit;
   font-size: var(--ht-type-caption-size);
   text-align: center;
@@ -68,6 +75,7 @@
 .resources-editor__save {
   font: inherit;
   font-size: var(--ht-type-control-size);
+  min-height: var(--glass-target);
   padding: calc(0.44 * var(--glass-u)) calc(1.13 * var(--glass-u));
   border-radius: var(--ht-control-radius);
   border: 1px solid currentColor;

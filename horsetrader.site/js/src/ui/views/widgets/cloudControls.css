@@ -16,7 +16,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: calc(2.94 * var(--glass-u));
+  min-height: var(--glass-target);
   font: inherit;
   font-weight: 700;
   padding: 0 calc(1.25 * var(--glass-u));

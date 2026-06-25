@@ -1,6 +1,7 @@
 .collapse-pill {
   flex: none;
   display: inline-flex;
+  box-sizing: border-box;
   align-items: center;
   justify-content: center;
   border: 1px solid var(--ht-control-border);
@@ -26,14 +27,15 @@
 
 /* Horizontal pill — « already points left. */
 .collapse-pill--left {
-  min-height: calc(2 * var(--glass-u));
+  min-height: var(--glass-target);
   padding: 0 calc(0.88 * var(--glass-u));
 }
 
 /* Vertical pill — rotate the glyph so the double chevron points up. */
 .collapse-pill--up {
-  min-height: calc(3.25 * var(--glass-u));
-  padding: calc(0.63 * var(--glass-u)) calc(0.5 * var(--glass-u));
+  width: var(--glass-target);
+  height: var(--glass-target);
+  padding: 0;
 }
 
 .collapse-pill--up .collapse-pill__chevrons {

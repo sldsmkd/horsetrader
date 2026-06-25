@@ -75,6 +75,8 @@
 
 .discrete-slider__control {
   display: grid;
+  min-height: var(--glass-target);
+  align-items: center;
 }
 
 .discrete-slider__range {

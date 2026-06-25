@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { readCapabilities, CAP_QUERIES } from "./capabilities.ts";
+import { readCapabilities, glassPointer, CAP_QUERIES } from "./capabilities.ts";
 
 /**
  * Capability mapping (Godolphin substrate — grand-masters/contracts.md, the Godolphin seam).
@@ -26,6 +26,7 @@ test("iPhone profile — coarse, no hover, multi-touch (F11)", () => {
   assert.equal(caps.hover, false);
   assert.equal(caps.noHover, true, "a phone answers no hover-capable input");
   assert.equal(caps.touchPoints, 5);
+  assert.equal(glassPointer(caps), "coarse");
 });
 
 test("desktop profile — fine, hover, no touch (F11, the identity config)", () => {
@@ -36,6 +37,7 @@ test("desktop profile — fine, hover, no touch (F11, the identity config)", () 
   assert.equal(caps.hover, true);
   assert.equal(caps.noHover, false);
   assert.equal(caps.touchPoints, 0);
+  assert.equal(glassPointer(caps), "fine");
 });
 
 test("hybrid — touch laptop reports both, caught by anyCoarse not primary pointer", () => {
@@ -43,6 +45,15 @@ test("hybrid — touch laptop reports both, caught by anyCoarse not primary poin
   const match = matcher(new Set([CAP_QUERIES.anyCoarse, CAP_QUERIES.hover, CAP_QUERIES.anyHover]));
   const caps = readCapabilities(match, 10);
   assert.equal(caps.pointer, "fine", "primary pointer is the mouse");
-  assert.equal(caps.anyCoarse, true, "but touch is available — touch sizing still applies");
+  assert.equal(caps.anyCoarse, true, "touch remains available as a separate capability");
   assert.equal(caps.noHover, false);
+  assert.equal(glassPointer(caps), "fine", "a mouse-primary hybrid keeps fine glass targets");
+});
+
+test("iPad profile — coarse primary pointer selects coarse glass targets", () => {
+  const match = matcher(new Set([CAP_QUERIES.pointerCoarse, CAP_QUERIES.anyCoarse]));
+  const caps = readCapabilities(match, 5);
+  assert.equal(caps.pointer, "coarse");
+  assert.equal(caps.noHover, true);
+  assert.equal(glassPointer(caps), "coarse");
 });

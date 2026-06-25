@@ -168,7 +168,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: calc(2.94 * var(--glass-u));
+  min-height: var(--glass-target);
   font: inherit;
   font-size: var(--ht-type-control-size);
   font-weight: var(--ht-type-control-weight);

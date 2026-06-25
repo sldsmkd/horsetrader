@@ -103,8 +103,11 @@
    off, filled (★) when on, both in the gold rarity colour. */
 .card-surface__fav {
   position: absolute;
+  box-sizing: border-box;
   top: 0;
   right: 0;
+  width: var(--glass-target);
+  height: var(--glass-target);
   padding: 0;
   border: none;
   background: none;
@@ -247,6 +250,7 @@
 .card-surface__note-input {
   width: 100%;
   min-width: 0;
+  min-height: var(--glass-target);
   resize: none;
   padding: calc(0.5 * var(--glass-u)) calc(0.63 * var(--glass-u));
   border: 1px solid var(--ht-control-border-quiet);
@@ -266,6 +270,9 @@
 
 /* OUTBOUND LINK — a quiet deep-link to the borrowed stat table. */
 .card-surface__link {
+  display: inline-flex;
+  min-height: var(--glass-target);
+  align-items: center;
   font-size: var(--ht-type-label-size);
   color: var(--ht-colour-interactive);
   text-decoration: none;
@@ -282,6 +289,7 @@
 .card-surface__cancel,
 .card-surface__update {
   min-width: calc(6.88 * var(--glass-u));
+  min-height: var(--glass-target);
   padding: calc(0.69 * var(--glass-u)) calc(1.13 * var(--glass-u));
   border-radius: var(--ht-control-radius);
   color: inherit;

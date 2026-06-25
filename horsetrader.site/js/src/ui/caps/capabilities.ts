@@ -28,7 +28,8 @@ export interface Capabilities {
    */
   pointer: "coarse" | "fine";
   /** *Any* available pointer is coarse — catches hybrids (touch laptop) that a mouse-primary
-   *  `pointer` would hide. Touch-target sizing applies whenever this is true. */
+   *  `pointer` would hide. Useful evidence that touch is available, but target sizing follows
+   *  the primary `pointer` so a mouse-first hybrid keeps fine controls. */
   anyCoarse: boolean;
   /** The primary input can hover. `false` ⇒ swap hover-only affordances for tap. */
   hover: boolean;
@@ -46,6 +47,13 @@ export const CAP_QUERIES = {
   hover: "(hover: hover)",
   anyHover: "(any-hover: hover)",
 } as const;
+
+export type GlassPointer = "fine" | "coarse";
+
+/** Discrete glass-target policy: size for the primary pointer, not any attached pointer. */
+export function glassPointer(caps: Capabilities): GlassPointer {
+  return caps.pointer;
+}
 
 /**
  * Pure mapping: media-query answers + touch-point count → a capability snapshot. Split out

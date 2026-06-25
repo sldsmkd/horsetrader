@@ -4,17 +4,16 @@
    the canvas rather than a second docked instrument. Same trainee/support colours
    and empty/filled semantics as the minimap, but compressed to sequence. */
 .filmstrip {
-  /* Geometry rides the glass plane (Grand Masters / Byerley + Darley): the frame and
-     gap are --glass-u-base multiples — plane-fixed chrome, like the minimap — so the
-     strip scales with the chrome tier instead of pinning device px. The view resolves
-     these two tokens to px for its equidistant-step math (the calibration bridge). */
-  --fs-frame: calc(3.75 * var(--glass-u-base)); /* ≈48px at the dev calibration */
+  /* Geometry rides the glass plane (Grand Masters / Byerley + Darley): the frame follows
+     the primary-pointer target while the gap remains plane-fixed. The view resolves these
+     two tokens to px for its equidistant-step math (the calibration bridge). */
+  --fs-frame: var(--glass-target);
   --fs-gap: calc(0.94 * var(--glass-u-base)); /* ≈12px */
   position: absolute;
   left: 50%;
   bottom: calc(var(--timeline-chrome-bottom) + var(--minimap-h) + 0.5 * var(--glass-u-base));
-  /* Same height tier as the minimap; the frame (3.75u) clears it with room either side. */
-  height: var(--minimap-h);
+  /* Same height tier as the minimap; the target-sized frame clears it with room either side. */
+  height: max(var(--minimap-h), var(--glass-target));
   width: min(var(--timeline-chrome-width), var(--timeline-chrome-max-width), calc(100vw - 1.88 * var(--glass-u)));
   box-sizing: border-box;
   z-index: var(--glass-z-chrome);

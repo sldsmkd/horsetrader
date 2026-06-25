@@ -8,6 +8,7 @@
 .search-box__input {
   width: 100%;
   min-width: 0;
+  min-height: var(--glass-target);
   border: 0;
   background: transparent;
   color: inherit;
@@ -31,6 +32,7 @@
 .search-box__result {
   display: block;
   width: 100%;
+  min-height: var(--glass-target);
   border: 0;
   background: transparent;
   color: inherit;

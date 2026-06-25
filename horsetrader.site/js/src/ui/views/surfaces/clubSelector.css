@@ -27,6 +27,7 @@
 
 .club-selector__name {
   min-width: 0;
+  min-height: var(--glass-target);
   padding: calc(0.75 * var(--glass-u)) calc(0.94 * var(--glass-u));
   border: 1px solid var(--ht-control-border);
   border-radius: var(--ht-control-radius);
@@ -53,6 +54,7 @@
   justify-items: center;
   gap: calc(0.31 * var(--glass-u));
   min-width: 0;
+  min-height: var(--glass-target);
   padding: calc(0.69 * var(--glass-u)) calc(0.44 * var(--glass-u));
   border: 1px solid var(--ht-control-border-quiet);
   border-radius: var(--ht-control-radius-soft);
@@ -86,6 +88,7 @@
 .club-selector__cancel,
 .club-selector__leave {
   min-width: calc(6.88 * var(--glass-u));
+  min-height: var(--glass-target);
   padding: calc(0.69 * var(--glass-u)) calc(1.13 * var(--glass-u));
   border-radius: var(--ht-control-radius);
   color: inherit;
@@ -119,6 +122,7 @@
 
 .club-selector__ok {
   min-width: calc(6.88 * var(--glass-u));
+  min-height: var(--glass-target);
   padding: calc(0.69 * var(--glass-u)) calc(1.13 * var(--glass-u));
   border: 1px solid var(--ht-control-primary-border);
   border-radius: var(--ht-control-radius);

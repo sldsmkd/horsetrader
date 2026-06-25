@@ -26,7 +26,7 @@
 .trainer-page-layer--rail .mobile-trainer {
   pointer-events: auto;
   /* Slightly wider than the retired identity-only card: the unified page keeps
-     all six honest 7u preset targets on one row at the iPad Air's 8.2px unit. */
+     all six coarse 7u preset targets on one row at the iPad Air's 8.2px unit. */
   width: min(calc(50 * var(--glass-u)), 100%);
   height: 100%;
   margin: 0;
@@ -98,14 +98,15 @@
 
 .mobile-trainer__back {
   grid-column: 1;
-  min-width: 2.75rem;
-  min-height: 2.75rem;
+  box-sizing: border-box;
+  width: var(--glass-target);
+  height: var(--glass-target);
   border: 1px solid var(--ht-control-border);
   border-radius: var(--ht-control-radius-soft);
   background: var(--ht-control-bg);
   color: inherit;
   font: inherit;
-  font-size: 2rem;
+  font-size: min(2rem, calc(2.5 * var(--glass-u)));
 }
 
 .mobile-trainer__body {
@@ -199,6 +200,7 @@
 .mobile-trainer__name {
   width: 100%;
   min-width: 0;
+  min-height: var(--glass-target);
   padding: 0.35rem 0;
   border: 0;
   border-bottom: 1px solid var(--ht-control-border);
@@ -209,6 +211,7 @@
 }
 
 .mobile-trainer__club {
+  min-height: var(--glass-target);
   color: inherit;
   font: inherit;
   text-align: left;
@@ -247,17 +250,18 @@
 }
 
 .mobile-trainer .playstyle-presets {
-  grid-template-columns: repeat(6, calc(7 * var(--glass-u)));
+  grid-template-columns: repeat(6, var(--glass-target));
   justify-content: space-between;
   gap: 0;
 }
 
 .mobile-trainer .playstyle-preset {
   display: grid;
+  box-sizing: border-box;
   grid-template-columns: 1fr;
   place-items: center;
-  width: calc(7 * var(--glass-u));
-  height: calc(7 * var(--glass-u));
+  width: var(--glass-target);
+  height: var(--glass-target);
   min-width: 0;
   min-height: 0;
   padding: 0.4rem;
@@ -377,7 +381,7 @@
 }
 
 .mobile-trainer__action {
-  min-height: 3rem;
+  min-height: var(--glass-target);
   border-radius: var(--ht-control-radius-soft);
   color: inherit;
   font: inherit;

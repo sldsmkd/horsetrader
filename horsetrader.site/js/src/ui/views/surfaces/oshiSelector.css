@@ -15,6 +15,7 @@
 .oshi-selector__search {
   width: 100%;
   min-width: 0;
+  min-height: var(--glass-target);
   padding: calc(0.75 * var(--glass-u)) calc(0.94 * var(--glass-u));
   border: 1px solid var(--ht-control-border);
   border-radius: var(--ht-control-radius);
@@ -96,7 +97,7 @@
   align-items: center;
   gap: calc(0.56 * var(--glass-u));
   min-width: 0;
-  min-height: calc(5.75 * var(--glass-u));
+  min-height: max(calc(5.75 * var(--glass-u)), var(--glass-target));
   padding: calc(0.5 * var(--glass-u));
   border: 1px solid var(--ht-control-border-quiet);
   border-radius: var(--ht-control-radius-soft);
@@ -134,6 +135,7 @@
 .oshi-selector__cancel,
 .oshi-selector__ok {
   min-width: calc(6.88 * var(--glass-u));
+  min-height: var(--glass-target);
   padding: calc(0.69 * var(--glass-u)) calc(1.13 * var(--glass-u));
   border-radius: var(--ht-control-radius);
   color: inherit;

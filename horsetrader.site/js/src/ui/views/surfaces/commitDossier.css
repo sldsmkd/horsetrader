@@ -175,11 +175,13 @@
   gap: calc(0.63 * var(--glass-u));
 }
 .commit-dossier__step {
+  box-sizing: border-box;
   font: inherit;
   font-size: var(--ht-type-surface-title-size);
   font-weight: var(--ht-type-control-weight);
   line-height: 1;
-  width: calc(3.25 * var(--glass-u));
+  width: var(--glass-target);
+  height: var(--glass-target);
   border-radius: 0.4rem;
   border: 1px solid color-mix(in srgb, currentColor 40%, transparent);
   background: transparent;
@@ -319,6 +321,7 @@
 .commit-dossier__save {
   font: inherit;
   font-size: var(--ht-type-control-size);
+  min-height: var(--glass-target);
   padding: calc(0.63 * var(--glass-u)) calc(1.75 * var(--glass-u));
   border-radius: var(--ht-control-radius);
   border: 1px solid currentColor;
