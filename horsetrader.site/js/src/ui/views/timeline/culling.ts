@@ -71,6 +71,13 @@ export function createCulling(): Culling {
       host.replaceChildren(...elements);
     },
     arm(cards, contentLeft) {
+      // CONTAINED EXCEPTION to camera-measurement invariant C-B6 (grand-masters/contracts.md):
+      // this still reads getBoundingClientRect because it measures content-space *position*
+      // (left/right), not size — the offset-based equivalent depends on the offsetParent frame,
+      // and the failure (mis-windowed cull → wrong pop-in/out) is unobserved to date. Named here
+      // as a reasoned exception, not a silent latent violation. Don't "fix" this with an offset
+      // swap — the intended resolution is the frustum reframe (bounds from the packer's known
+      // world coords, tested against the camera frustum; no DOM rect to measure). See C-B6.
       // Subtracting the content layer's own rect cancels the pan offset; the caller
       // guarantees scale 1, so the rect is true content space. One viewport of
       // overscan dwarfs any sub-card centring error, so this is plenty exact.

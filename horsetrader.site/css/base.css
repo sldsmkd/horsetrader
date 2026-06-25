@@ -59,10 +59,11 @@
 html {
   background: var(--ht-colour-surface-page);
   color: var(--ht-colour-text-primary);
-  /* Backstop the document against horizontal overflow: on iOS Safari `body`'s
-     overflow:hidden does NOT stop a too-wide descendant from making the whole page
-     pannable, which drags the fixed chrome off-screen with no way home (Godolphin
-     F7/F9). Clip at the document root so overflow can never become a pan region. */
+  /* Containment invariant C-B5 (grand-masters/contracts.md): the planes clip to the
+     viewport box so overflow can never become a pan region. At the document root because
+     on iOS Safari `body`'s overflow:hidden does NOT stop a too-wide descendant making the
+     whole page pannable, which drags the viewport-pinned chrome off-screen (provenance:
+     Godolphin F7/F9). Guarded by containment.test.ts. */
   overflow: clip;
 }
 
@@ -84,12 +85,13 @@ body {
   position: fixed;
   inset: 0;
   isolation: isolate;
-  /* Hard-clip the canvas world to the viewport box. The timeline pans via its own
-     internal transform + culling (nothing beyond the box is meant to be seen), so
-     clipping costs nothing here but denies any overflowing chrome/modal a pannable
-     region — the structural cause of the "stranded, chrome gone" trap (Godolphin
-     F7–F9). NB clip does not establish a containing block for fixed descendants, so
-     the fixed `.surface-layer` escapes this and is clipped at its own box too. */
+  /* Containment invariant C-B5 (grand-masters/contracts.md): hard-clip the world plane to
+     the viewport box. The timeline pans via its own internal transform + culling (nothing
+     beyond the box is meant to be seen), so clipping costs nothing here but denies any
+     overflowing chrome/modal a pannable region — the structural cause of the "stranded,
+     chrome gone" trap (provenance: Godolphin F7–F9). NB clip does not establish a containing
+     block for fixed descendants, so the fixed `.surface-layer` escapes this and clips at its
+     own box too. Guarded by containment.test.ts. */
   overflow: clip;
 }
 

@@ -12,11 +12,12 @@
   position: fixed;
   inset: 0;
   pointer-events: none;
-  /* The modal layer is fixed, so #app's overflow clamp doesn't reach it (clip is not
-     a containing block for fixed). Clip here too, so a centred modal wider than the
-     viewport can never spill into a pannable region and strand the user (Godolphin
-     F7/F8). Modals sized to the viewport (`.surface--modal` width clamp) fit within;
-     this only bites a genuinely oversized one — better clipped than a one-way trap. */
+  /* Containment invariant C-B5 (grand-masters/contracts.md): the glass surface layer clips
+     separately because it is `position: fixed`, so #app's clip doesn't reach it (clip is not
+     a containing block for fixed). A centred modal wider than the viewport can never spill
+     into a pannable region and strand the user (provenance: Godolphin F7/F8). Modals sized to
+     the viewport (`.surface--modal` width clamp) fit within; this only bites a genuinely
+     oversized one — better clipped than a one-way trap. Guarded by containment.test.ts. */
   overflow: clip;
 }
 

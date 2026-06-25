@@ -358,8 +358,185 @@ which stays. See the empirical correction under F10.):
 - Kept: `.banner { width; min-width:0 }` (max-content cure), app.ts packer `offsetWidth`
   (z<1 spacing). Not committed.
 
-### Status: field study complete
+### Steer (user, 2026-06-24, post-deploy) — hold conclusions loosely
+
+We're just fixing the obvious interaction flaws for now; the overall shape will fall out as
+we work. So nothing below is settled:
+- The "T-C = restyle not replace" call is NOT a decision — the portrait timeline form is
+  open; the timeline as-is may or may not survive. Don't pre-commit either way.
+- T-D (touch gesture arbitration) validity is unconfirmed — re-derive whether it actually
+  bites before treating it as a must-fix.
+
+### Build log — contracts lock-down (before Godolphin proper, 2026-06-24)
+
+User call: the sire metaphors were a reasoning scaffold that landed the right SHAPE; now the
+shape/boundaries/contracts are known, harden the scaffold into explicit, contained contracts
+before Godolphin builds on them. Done:
+- **`grand-masters/contracts.md`** — the concrete registry: membership spine + Byerley
+  C-B1..C-B6, Darley C-D1..C-D5, the feel axis (owned by none), and the Godolphin seam. Each
+  contract = statement + owner + enforcement site (real tokens/files) + guard status. The
+  discovery occasion (an F-finding) is now PROVENANCE, not the rule.
+- **Two new executable guards** (mirroring Darley's railSeam.test.ts precedent): `containment.
+  test.ts` (C-B5: overflow:clip on html/#app/.surface-layer) and `cameraMeasure.test.ts`
+  (C-B6: packer measures offset*, never getBoundingClientRect). 271→274 tests, all green.
+- **Re-anchored the wooly comments** (base.css, surface.css, app.ts packer) from "Godolphin
+  F7/F9/F10" citations to "invariant C-B5/C-B6, contracts.md, guarded by …".
+- **`culling.arm` contained as a NAMED exception** to C-B6 (it measures position not size;
+  failure unobserved; fix gated on a device repro) — turned a silent latent violation into a
+  reasoned, documented exception rather than a blind risky swap.
+tsc clean, 274/274. Not committed.
+
+### F11 — device-capability probe (`?caps`), measured on real hardware 2026-06-24
+
+Standalone probe route (`?caps` → `ui/caps/probe.ts`, not app-wired). Measured iPhone
+(390×844 pt, this device) + dev desktop (Chromium/Linux) over LAN http:
+
+- **`orientation.lock()`: iPhone NO, desktop YES.** The thesis is forced, not chosen — the one
+  device you'd lock is the one that forbids it. iOS Safari has no web orientation lock at all.
+- **`DeviceOrientationEvent`: iPhone NO over http** (desktop YES — Chrome always exposes it).
+  Confirms the secure-context gate empirically: the gravity "up" vector is unreachable on the
+  LAN; needs https (tunnel or the deployed site). BUT `orientation.type/.angle` IS available on
+  iOS over http (portrait-primary / 0°) → OS-orientation *state* is readable; only the *sensor*
+  half is gated. The capability/reliable half is intact; the flaky/sensor half is what's blocked.
+  **RESOLVED (user, 2026-06-24): we don't need the motion sensor — `screen.orientation` is the
+  read.** Owning the CSS rotation works through OS lock for all *our* surfaces; the one exception
+  is the OS-rendered keyboard, which appears in `screen.orientation` and we can't rotate. So on
+  text-input we reconcile our presented orientation to `screen.orientation` (forced-landscape +
+  portrait-locked device → force UX to portrait; device already reporting landscape → no action).
+  The keyboard can appear in any mode (timeline search included). So `screen.orientation` IS
+  consumed, but only for the keyboard reconcile; motion sensors stay dropped (https/tunnel/
+  request-motion thread gone). Full model: contracts.md Godolphin seam.
+- **safe-area 0/0/0/0 — because index.html lacks `viewport-fit=cover`** (`width=device-width,
+  initial-scale=1` only). Without cover the page lays out INSIDE the safe area → `env()` = 0,
+  notch/home-indicator margins unused. Godolphin full-bleed + rotation will need cover + inset
+  handling (insets rotate when we rotate). App-wide change → deliberate, not a casual toggle.
+- **iPhone aperture: long axis 699 vs screen 844** — Safari chrome eats ~145px (17%) and it's
+  dynamic (collapses on scroll). C-D1 with a number, and exactly why Darley chose `svh` not
+  `dvh` (C-D2): the usable aperture is smaller than the screen AND breathes.
+- **Capability detection rock-solid (no flakiness):** iPhone coarse / hover none / 5 touch;
+  desktop fine / hover / 0 touch. The reliable half the policy keys off. Desktop inner
+  2527×1293 @ DPR 1.5 matches Byerley's recorded dev calibration to the pixel — anchor confirmed.
+- Density: iPhone DPR 3 / CSS DPI 288 / device px 1170×2532; desktop DPR 1.5 / 144 / 3840×2160.
+  Physical PPI not exposed by any browser (privacy) — DPR + CSS DPI are the ceiling.
+
+### Status: field study done; conclusions held loosely (see steer)
 
 11 screenshots, F1–F9, 5 threads. Plan is lockable. Two P0 safety fixes (containment +
 gesture arbitration) are unblocked and independent of any remaining choice; the band is
 a restyle; only the swap-trigger and band-scroll mechanism remain as small UX picks.
+
+### Design direction (user, 2026-06-24) — orientation as mode selector
+
+The portrait conflict (timeline-wants-wide vs plan-wants-tall, same scarce space)
+dissolves by **owning orientation instead of reacting to it**. OS orientation is flaky
+(permission/fullscreen-gated, sensor-noisy, OS-lockable), so don't consume it: the app
+picks the orientation a mode wants, renders it via **CSS rotation** — and rotates the
+**input layer** too, since pan/pinch deltas read raw `clientX/clientY`, which the browser
+does NOT transform (a physical horizontal swipe becomes a `clientY` delta in the rotated
+frame). Keep the rotation behind a single input-frame seam so the timeline state machine
+never learns it's rotated. Immune to OS orientation-lock because we never ask the OS —
+the user turns the hardware to match, and the content visibly rotating IS the cue. Pinch
+distances are rotation-invariant; only deltas/midpoints need transforming. Confirmation-
+only signal: `visualViewport` keyboard-edge geometry tells us how the phone is actually
+held — use when available, NOT load-bearing.
+
+**Orientation = mode selector** — this answers the synthesis's open *swap trigger*: it's
+not a width breakpoint, it's the device's long edge. Time is intrinsically the long axis;
+tools are a reading column; the phone supplies both aspect ratios, not at once. The modes
+are disjoint enough — only the text/forms side needs a keyboard, and that's the un-rotated
+native portrait frame — that nobody drives it like a steering wheel.
+
+**This is Godolphin's actual trait, and it's device-agnostic, not a phone mode.** Thesis
+axis: `modality = lock trait` — orientation-as-mode IS modality-as-lock, so Godolphin
+*owns the wiring of the rotations and the inputs*. It's a capability substrate every device
+flows through, NOT an `if (isPhone)` fork:
+- **Capabilities are a first-class Godolphin component.** Capability ≠ state — and that's
+  the whole discipline: current orientation is the flaky half (sensor/lock/permission), so
+  we refuse it; *capability* ("does this device have an orientation concept? coarse pointer?
+  can it portrait?") is the reliable, feature-detectable half, so we lean on it. We lead on
+  orientation precisely by consuming the reliable half and reading state (keyboard-edge) only
+  as opportunistic confirmation.
+  - Capabilities = the device's *qualitative* answers — `matchMedia` (`any-pointer: coarse`,
+    `hover: none`, `orientation`) + `visualViewport` / safe-area presence; detected at
+    startup, re-queried on change, NOT polled.
+  - Orthogonal to **Darley's facts** (same clean cut as her feel-vs-screen-space split):
+    Darley reads *quantitative* facts (glass-u px, aperture, fit-zoom — "how big");
+    capabilities are *qualitative* ("can it"). Godolphin's **policy** is the function
+    `capabilities → mode↔orientation binding`.
+- Godolphin reads those facts and **wires** the rotation transform + the input-frame; the
+  mode↔orientation binding (timeline=landscape, tools=portrait) is her **policy**,
+  parameterized by capability.
+- **Desktop is the identity configuration, not a branch:** it reports "portrait declined" →
+  policy collapses to landscape-only → rotation = identity, input-frame = identity. Same
+  machine, same path, transforms resolve to no-ops. No fork to drift; desktop keeps working
+  *because* it runs the same controller in its degenerate setting.
+- Consequence for the build: the input-frame seam is **always present** (identity on
+  desktop, active on phone), so the rotation spike is the first cut of the controller, not
+  throwaway — feel-validated first, but structured to grow in.
+
+**Mapping (current direction, held loosely):**
+- **Timeline = landscape** (CSS-rotated root; input-layer rotated).
+- **Major surfaces = portrait, fullscreen, one at a time** — a full single-page redesign
+  each, NOT resized desktop windows. Left/right/center groups dissolve (this IS T-A,
+  made concrete by the bundlings below):
+  - **Trainer** — absorbs the play-style sliders (the identity *unfold* stays, now inside
+    the page; the one deliberate shield-vs-unfold exception, see [[feedback_shield_vs_unfold]]).
+  - **Resources** — absorbs the balance/actuals editor (collapses the F5 shield→inline;
+    settles the surface↔shield split for portrait, [[project_resources_surface_refactor]]).
+  - **Plan** — stands alone.
+- **Smaller surfaces (clubSelector, cardSurface, …) — decide later**, probably **dual-mode**
+  keyed on keyboard need: text / sustained-read → portrait; quick in-context glance → stay
+  landscape. cardSurface's NOTE field is exactly the dual-mode case.
+
+Navigation: the three are **one portrait "tools" page with ~3 tabs** (Trainer / Resources
+/ Plan), not three independently-summoned surfaces. Switching tabs is within-portrait
+(no rotation, keyboard-safe); the **only** orientation-flip event is crossing the
+timeline↔tools boundary. Keeps rotations rare and meaningful, never per-tap.
+
+Load-bearing unknown before any of this: **does the rotated-input pan feel native when the
+phone is physically held landscape?** Everything else is plumbing. First move = a
+timeline-only rotation spike (root CSS rotate + input-delta rotate, no mode-switch) to
+feel the pan.
+
+### Build log — capability substrate (the reliable half, 2026-06-25)
+
+User call: promote the `?caps` probe into a real capabilities module — the reliable substrate
+policy keys off. Built:
+- **`caps/capabilities.ts`** — the qualitative, feature-detectable reads (`pointer` coarse/fine,
+  `anyCoarse`, `hover`, `noHover`, `touchPoints`). Detected at startup, re-queried on `matchMedia`
+  `change` (mouse docked / touchscreen attached), **never polled**. Split into a pure
+  `readCapabilities(match, touchPoints)` mapping + a thin `createCapabilities()` store
+  (`get` + `subscribe`). Orthogonal to Darley's quantitative facts (`glassUnit.ts`); does NOT
+  derive policy — `capabilities → mode↔orientation` is the next layer, kept downstream.
+- **Deliberately excluded** (recorded, not forgotten): safe-area *presence* (needs a layout
+  `env()` probe + reads 0/0/0/0 until `viewport-fit=cover`, an app-wide change), and device
+  *class* (a policy derivation over caps + Darley's extent). Substrate stays cheap/synchronous.
+- **Guard `caps/capabilities.test.ts`** — asserts the mapping against F11's measured hardware:
+  iPhone coarse/hover-none/5-touch; desktop fine/hover/0 (the identity config); + a hybrid
+  (touch laptop = mouse-primary but `anyCoarse`). Uses the pure-mapping seam (no DOM under
+  `node --test`). Recorded in contracts.md guard table.
+- NOT app-wired (no consumer yet — policy is the next step). tsc clean, 274→277 tests pass.
+  Not committed.
+- FOLLOW-UP (2026-06-25): removed the `?caps` route + the exploratory `probe.ts`/`probe.css`
+  (its F11 reads are banked here). The route mounted the probe *inside* the app entry — future
+  one-off explorations get their own base HTML file (e.g. `caps.html` + its own esbuild entry)
+  so they reach into what they need without disturbing the main app. `capabilities.ts` (the
+  substrate) + its guard remain.
+
+### viewport-fit=cover — TRIED, REVERTED (2026-06-25, on-device verdict)
+
+Put `viewport-fit=cover` + a safe-area chrome reflow in; verified on device (incl. landscape)
+and it makes **zero visible difference** in portrait. Why: without cover, Safari lays out
+*inside* the safe area for you and `env(safe-area-inset-*)` reads 0 — the notch/footer are
+already cleared for free. Cover only tells Safari to go full-bleed behind them so WE pad the
+chrome back; net portrait position is identical, by construction. No current consumer wants the
+full-bleed, so cover bought nothing → reverted (index.html + the `--safe-*` tokens/reflow).
+- **The deeper reason it's a no-op: we're a web page in a Safari TAB, not a standalone app.**
+  The status bar (clock/battery) and home indicator are OS-owned chrome *outside* our viewport;
+  Safari reserves them regardless of what we declare. `viewport-fit=cover` only ever governed
+  Safari's own safe-area gutters, never the OS indicators — we don't get to reclaim those, and
+  shouldn't. So the "paint full-bleed behind the notch" premise was overstated.
+- DON'T reintroduce cover on the "owned rotation needs it" premise without re-checking — that
+  assumed we'd be blind to notch geometry, but a tab already keeps content clear of the notch
+  for free (env=0, auto-contain) in landscape too. Cover is at most "revisit *if* the rotation
+  work actually proves it needs raw inset geometry," not a known prerequisite.

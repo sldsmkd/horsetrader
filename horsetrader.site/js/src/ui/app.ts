@@ -101,13 +101,14 @@ function packBelowLane(cards: readonly BelowCard[], els: readonly HTMLElement[])
   if (els.length === 0) return 0;
   const stems = els.map((el) => el.querySelector(".card__stem") as HTMLElement);
   const bodies = els.map((el) => el.querySelector(".card__body") as HTMLElement);
-  // Measure with offsetWidth/offsetHeight, NOT getBoundingClientRect: the packer's
-  // boxes live in the unscaled content-axis space (card.x), but getBoundingClientRect
-  // returns the camera-transformed (`scale(z)`) rect. The timeline forces scale to 1
-  // for the measurement window, but iOS Safari doesn't reliably reflect that
-  // synchronous transform write in the immediately-following rect read, so on a
-  // zoomed-out portrait viewport the packer read z-scaled widths and under-spaced the
-  // cards (Godolphin F10). offset* are layout dimensions, independent of transforms —
+  // Camera-measurement invariant C-B6 (grand-masters/contracts.md, guarded by
+  // cameraMeasure.test.ts): measure with offsetWidth/offsetHeight, NOT getBoundingClientRect.
+  // The packer's boxes live in the unscaled content-axis space (card.x), but
+  // getBoundingClientRect returns the camera-transformed (`scale(z)`) rect. The timeline
+  // forces scale to 1 for the measurement window, but iOS Safari doesn't reliably reflect
+  // that synchronous transform write in the immediately-following rect read, so on a
+  // zoomed-out portrait viewport the packer read z-scaled widths and under-spaced the cards
+  // (provenance: Godolphin F10). offset* are layout dimensions, independent of transforms —
   // correct regardless of whether the unscale flushed, and identical at z=1.
   const baseStem = stems[0].offsetHeight;
   const heights = bodies.map((b) => b.offsetHeight);
