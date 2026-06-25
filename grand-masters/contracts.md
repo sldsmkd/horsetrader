@@ -25,6 +25,38 @@ Every visual element is exactly one of two kinds. This is the cut everything els
 There is no third kind. Most contracts below are a consequence of which side of this line a
 thing sits on.
 
+### The world interaction unit — one Golshi
+
+The world plane has its own viewport-invariant interaction unit:
+
+```css
+--world-golshi: 35px;
+```
+
+The name is playful; the derivation is not. During the Godolphin interaction
+survey, the timeline atom chip was identified as the correct measurement point:
+the complete button is the interaction surface, not its portrait sub-image. Its
+legacy `2.4rem` content-box rendered at roughly 40px including borders. A live
+35px border-box comparison read better, and that accepted target exposed an
+existing exact card rhythm:
+
+```text
+1 Golshi = atom-chip interaction target = 35px
+compact below card = 140px = 4 Golshi
+full below card = 280px = 8 Golshi
+individual above banner = 280px = 8 Golshi
+```
+
+So Golshi is the canonical **world-plane interaction measure**, complementary to
+but distinct from `--glass-u`:
+
+- `glass-u` is device-mapped orthographic glass geometry;
+- Golshi is stable model-railway geometry, projected by camera `scale(z)`.
+
+The future frustum model may define a canonical camera pose where world and glass
+units project at a settled ratio. That projection connects the systems; it does
+not merge their membership or make Golshi viewport-relative.
+
 ### The optical model (why several contracts are one thing)
 
 The world is a **parallel plane behind the glass**, viewed head-on through a pinhole whose
@@ -112,6 +144,12 @@ Safari, so the rect can still be z-scaled. *Enforced:* `app.ts` packer (`packBel
     under Godolphin's landscape rotation (the long axis becomes vertical in screen terms).
     Owner seam: the frustum is Darley's aperture projected into world space, consumed by the
     world-plane culler. Not scheduled; recorded so the exception reads as a placeholder.
+
+**C-B7 · World interaction geometry derives from Golshi.** One Golshi is `35px`
+in world space (`--world-golshi`, `timelineSizing.css`). The atom chip's complete
+border-box target is `1g`; the shared full card width is `8g`; compact below cards
+remain exactly half-width (`4g`). Golshi never substitutes for `--glass-u` and is
+never viewport-derived. *Guard:* `ui/worldUnit.test.ts`.
 
 ---
 
@@ -237,5 +275,6 @@ them, which is why they are locked down first. Full direction:
 | C-B6 camera-measure | app.ts packer | `cameraMeasure.test.ts` |
 | C-D4 rail seam | timeline.css/.ts, glassUnit.ts | `railSeam.test.ts` |
 | Godolphin capability substrate | caps/capabilities.ts | `caps/capabilities.test.ts` |
+| C-B7 Golshi world unit | timelineSizing.css, atomChip.css, belowCard.css | `worldUnit.test.ts` |
 | C-B4 dimensional | glass CSS | *candidate* (no-scale-on-glass) |
 | C-B2/B3/D1/D2/D3 | as cited | covered by prose + tsc; no guard yet |

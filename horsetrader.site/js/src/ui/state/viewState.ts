@@ -48,6 +48,11 @@ export interface ViewState {
    *  dossier: modal to every spawnable window, the timeline behind it stays live. The
    *  button only appears once a commitment exists, so this is never opened over 0 rows. */
   plan: boolean;
+  /** Whether the unified Trainer page is open. It anchors to the left menubar
+   *  rail on desktop/tablet and becomes a full-viewport page on phone. */
+  trainer: boolean;
+  /** Small modal spawned over the unified Trainer page. */
+  trainerChild: "oshi" | "club" | null;
 }
 
 export interface ViewStore {
@@ -68,6 +73,8 @@ const INITIAL: ViewState = {
   cloudConnecting: false,
   cardDetail: null,
   plan: false,
+  trainer: false,
+  trainerChild: null,
 };
 
 export function createViewStore(initial: Partial<ViewState> = {}): ViewStore {

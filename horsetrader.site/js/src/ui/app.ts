@@ -57,17 +57,14 @@ import { cloudControls } from "./views/widgets/cloudControls.ts";
 import { pityBand } from "./views/widgets/pityBand.ts";
 import type { PityBand } from "./views/widgets/pityBand.ts";
 import { scenarioLookup } from "./select/scenario.ts";
-import { buildTrainerCard, buildOshiSelector, buildClubSelector, buildPlayStyle, matchPlayStyleHeight } from "./views/surfaces/identityCards.ts";
+import { buildOshiSelector, buildClubSelector } from "./views/surfaces/identityCards.ts";
+import { trainerPage } from "./views/trainer/index.ts";
 import { menubar } from "./views/menubar.ts";
 import { BELOW_LANE_STACK_TOP } from "./views/timeline/constants.ts";
 import type { RightSurface } from "./views/menubar.ts";
 import { createIdentityController } from "./identity/controller.ts";
-import {
-  PLAY_STYLE_MACHINE_INITIAL,
-  reducePlayStyleMachine,
-} from "./identity/playStyleMachine.ts";
-import type { PlayStyleMachineEvent, PlayStyleMachineState } from "./identity/playStyleMachine.ts";
-import type { PlayStyleKey, PlayStyleSettings } from "../core/playstyle/index.ts";
+import { createCapabilities } from "./caps/capabilities.ts";
+import { trainerPresentation } from "./caps/trainerPresentation.ts";
 
 import type { UiStrings } from "./strings.ts";
 import { belowLaneCards } from "./select/belowLane.ts";
@@ -77,7 +74,6 @@ import { packBelow, packAbove } from "./pack/pack.ts";
 import type { BelowCard } from "./select/belowLane.ts";
 import type { BannerGroup } from "./select/aboveLane.ts";
 import { createViewStore } from "./state/viewState.ts";
-import { createMachine } from "./state/machine.ts";
 import type { Coordinator, SettledEvent } from "../core/engine/index.ts";
 import type { CalendarDate } from "../core/projection/dates.ts";
 import type { Bundle } from "./bundle/access.ts";
@@ -192,13 +188,7 @@ export function mountApp(
   // by `menu.setBetaAvailable` below; no construction-time flag.
   const search = createSearchIndex(bundle, now);
   const identity = createIdentityController(coord, bundle);
-  const identityMachine = createMachine<PlayStyleMachineState, PlayStyleMachineEvent>(
-    (state, event) => reducePlayStyleMachine(state, event, identity.savedPlayStyleKey()),
-    PLAY_STYLE_MACHINE_INITIAL,
-  );
-  // The machine IS the left group's state; its `send` notifies subscribers, so
-  // renderSurfaces (subscribed below) re-runs. No mirror into view-state.
-  const sendIdentityEvent = (event: PlayStyleMachineEvent): void => identityMachine.send(event);
+  const capabilities = createCapabilities();
   // The right surface group: opening a member replaces whatever right surface was
   // open (so only one per group), and clears the resources editor child. It does
   // NOT touch the left group — left and right are independent.
@@ -267,7 +257,15 @@ export function mountApp(
     initialResources: coord.balanceAt(now),
     identity: identity.menuIdentity(),
     onHome: () => tl.warpTo(now),
-    onIdentity: () => sendIdentityEvent({ type: "toggle-identity" }),
+    onIdentity: () => {
+      if (modalOpen()) return;
+      view.set({
+        trainer: !view.get().trainer,
+        trainerChild: null,
+        right: null,
+        resourcesEditing: false,
+      });
+    },
     onResources: () => toggleRight("resources"),
     onPlan: () => {
       if (!modalOpen()) view.set({ plan: true });
@@ -395,11 +393,13 @@ export function mountApp(
   // bounds and the centred markers are all measured off clientWidth/Height, so a
   // resize must re-lay everything. rAF-coalesced so a drag-resize runs at most
   // once per frame rather than per resize tick.
+  let applyTrainerPresentation = (): void => {};
   let resizePending = 0;
   window.addEventListener("resize", () => {
     if (resizePending) return;
     resizePending = requestAnimationFrame(() => {
       resizePending = 0;
+      applyTrainerPresentation();
       refresh();
     });
   });
@@ -407,6 +407,14 @@ export function mountApp(
   // The view-state-driven layer: which surface is open is a discrete change, so
   // it flows through `subscribe` and re-renders here (the render path).
   const surfaceLayer = h("div", { class: "surface-layer" });
+  const trainerLayer = h("div", { class: "trainer-page-layer" });
+  applyTrainerPresentation = (): void => {
+    const mode = trainerPresentation(capabilities.get(), window.innerWidth, window.innerHeight);
+    trainerLayer.classList.toggle("trainer-page-layer--fullscreen", mode === "fullscreen");
+    trainerLayer.classList.toggle("trainer-page-layer--rail", mode === "rail");
+  };
+  applyTrainerPresentation();
+  capabilities.subscribe(applyTrainerPresentation);
   // The menubar's dropdown rail: a layer that mirrors the floating bar's geometry so
   // its surfaces drop in under the bar's own edges (left book off the left edge, right
   // resources off the right). Sibling to the bar today; the coherent-scale wrapper folds
@@ -420,6 +428,11 @@ export function mountApp(
   // own teardown (view-state set + side effects) — no separate dismiss path to keep in sync.
   document.addEventListener("keydown", (e) => {
     if (e.key !== "Escape" || e.defaultPrevented) return;
+    if (view.get().trainer && surfaceLayer.childElementCount === 0) {
+      e.preventDefault();
+      view.set({ trainer: false, trainerChild: null });
+      return;
+    }
     const target = escDismissTarget(surfaceLayer, chromeDropdowns);
     if (!target) return;
     e.preventDefault();
@@ -434,7 +447,7 @@ export function mountApp(
     timeline: tl,
     perf,
     mount: root,
-    chrome: [menu.el, chromeDropdowns, surfaceLayer, strip.el, mini.el, hud.el],
+    chrome: [menu.el, chromeDropdowns, surfaceLayer, trainerLayer, strip.el, mini.el, hud.el],
   });
   const launchUmaMark = (): void => {
     presentConfirm({
@@ -448,19 +461,8 @@ export function mountApp(
       },
     });
   };
-  const closeOshiSelector = () => sendIdentityEvent({ type: "close-oshi" });
-  const closeClubSelector = () => sendIdentityEvent({ type: "close-club" });
-  const previewPlayStyle = (key: PlayStyleKey): void => sendIdentityEvent({ type: "preview-playstyle", key });
-  const discardPlayStylePreview = (): void => {
-    sendIdentityEvent({ type: "discard-playstyle" });
-  };
-  const commitPlayStylePreview = (key: PlayStyleKey, settings: PlayStyleSettings): void => {
-    identity.commitPlayStyle(key, settings);
-    // Custom keeps the page open (tweaker affordance); presets collapse to the
-    // trainer card — they're a one-and-done streamlined pick.
-    sendIdentityEvent({ type: key === "custom" ? "commit-playstyle-stay" : "commit-playstyle" });
-  };
-
+  const closeOshiSelector = () => view.set({ trainerChild: null });
+  const closeClubSelector = () => view.set({ trainerChild: null });
   // Unity cloud — the trainer card's Cloud Save controls. Auth + last-sync state live
   // here (closure state, fetched ONCE at startup) rather than in the card, so the card's
   // frequent rebuilds (every coord notify, via renderSurfaces) never re-hit /api/me. Each
@@ -515,12 +517,8 @@ export function mountApp(
   // belt-and-braces refuses the spawn even if one slips through. A modal is modal
   // to ALL spawnable windows (feedback_shield_vs_unfold).
   const modalOpen = (): boolean => {
-    const left = identityMachine.get().surface;
     return (
-      left === "oshi" ||
-      left === "playstyle-oshi" ||
-      left === "club" ||
-      left === "playstyle-club" ||
+      view.get().trainerChild !== null ||
       view.get().resourcesEditing ||
       view.get().committing !== null ||
       view.get().cloudConnecting ||
@@ -567,8 +565,6 @@ export function mountApp(
   const planNoteDrafts = new Map<string, string>();
 
   function renderSurfaces(): void {
-    const identityUi = identityMachine.get();
-    const left = identityUi.surface; // left group — the machine is its sole owner
     const right = view.get().right as RightSurface | null; // right group
     // A modal (oshi or balance editor) is modal to ALL spawnable windows: it
     // locks the menu's surface spawners AND suspends every other open surface so
@@ -576,7 +572,7 @@ export function mountApp(
     const anyModal = modalOpen();
 
     menu.setIdentity(identity.menuIdentity());
-    menu.setLeftActive(left !== "closed");
+    menu.setLeftActive(view.get().trainer);
     menu.setRightActive(right);
     // The Plan door appears only once the plan is non-empty (cached committed set).
     menu.setPlanAvailable(coord.commitmentStatuses().size > 0);
@@ -584,67 +580,52 @@ export function mountApp(
     menu.setBetaAvailable(isSupporter());
     menu.setLocked(anyModal);
 
-    const trainerCardOn = {
-      onOshiSelect: () => {
-        if (!modalOpen()) sendIdentityEvent({ type: "open-oshi" });
-      },
-      onClubSelect: () => {
-        if (!modalOpen()) sendIdentityEvent({ type: "open-club" });
-      },
-      onPlayStylePreview: previewPlayStyle,
-      onClose: () => sendIdentityEvent({ type: "close-all" }),
-    };
-    const playStyleOn = {
-      ...trainerCardOn,
-      onTrainerClose: () => sendIdentityEvent({ type: "close-all" }),
-      onDiscard: discardPlayStylePreview,
-      // Silent: the surface updates the touched control + Apply button in place,
-      // so re-rendering would only thrash (collapsing drawers, resetting scroll).
-      // Staging still persists for the next real render (e.g. opening a modal).
-      onSettingsChange: (settings: PlayStyleSettings) => identityMachine.send({ type: "stage-settings", settings }, { silent: true }),
-      onApply: commitPlayStylePreview,
-    };
-
     const children: Node[] = [];
     // Rebuilt below if the Resources card is in this frame; the pan path checks it.
     liveResources = null;
-    // The play-style book (trainer card + side window), when this frame has one — its two
-    // cards are height-matched synchronously after insertion (below) to avoid a flicker.
-    let playStyleBook: HTMLElement | null = null;
-
     // The Cloud Save controls on the trainer card — built fresh each frame off the live
     // cloud state. Only one left-group branch runs per frame, so this single node mounts
     // at most once. `dirty` drives the Sync button's lit state.
-    const cloud = cloudControls({
-      auth: cloudAuth,
-      dirty: coord.syncMeta().dirty,
-      syncing: cloudSyncing,
-      outcome: cloudOutcome,
-      onCloud,
-      onSync,
-    });
+    if (view.get().trainer) {
+      const oshi = identity.currentOshi();
+      trainerLayer.replaceChildren(
+        trainerPage({
+          trainerName: identity.trainerName(),
+          oshiName: oshi.name,
+          oshiPortrait: oshi.portrait,
+          club: identity.club(),
+          savedPlayStyleKey: identity.savedPlayStyleKey(),
+          savedPlayStyleSettings: identity.savedPlayStyleSettings(),
+          playStyleStrings: strings.playStyle,
+          cloud: cloudControls({
+            auth: cloudAuth,
+            dirty: coord.syncMeta().dirty,
+            syncing: cloudSyncing,
+            outcome: cloudOutcome,
+            onCloud,
+            onSync,
+          }),
+          onTrainerNameChange: (name) => identity.setTrainerName(name),
+          onOshiSelect: () => {
+            if (!modalOpen()) view.set({ trainerChild: "oshi" });
+          },
+          onClubSelect: () => {
+            if (!modalOpen()) view.set({ trainerChild: "club" });
+          },
+          onApply: (key, settings) => identity.commitPlayStyle(key, settings),
+          onClose: () => {
+            view.set({ trainer: false, trainerChild: null });
+          },
+        }),
+      );
+    } else {
+      trainerLayer.replaceChildren();
+    }
 
-    if (left === "identity") {
-      children.push(buildTrainerCard(identity, strings, { cloud }, trainerCardOn));
-    } else if (left === "oshi") {
-      children.push(
-        buildTrainerCard(identity, strings, { cloud }, trainerCardOn),
-        buildOshiSelector(identity, { onClose: closeOshiSelector }),
-      );
-    } else if (left === "club") {
-      children.push(
-        buildTrainerCard(identity, strings, { cloud }, trainerCardOn),
-        buildClubSelector(identity, { onClose: closeClubSelector }),
-      );
-    } else if (left === "playstyle") {
-      playStyleBook = buildPlayStyle(identity, strings, identityUi, { cloud }, playStyleOn);
-      children.push(playStyleBook);
-    } else if (left === "playstyle-oshi") {
-      playStyleBook = buildPlayStyle(identity, strings, identityUi, { cloud }, playStyleOn);
-      children.push(playStyleBook, buildOshiSelector(identity, { onClose: closeOshiSelector }));
-    } else if (left === "playstyle-club") {
-      playStyleBook = buildPlayStyle(identity, strings, identityUi, { cloud }, playStyleOn);
-      children.push(playStyleBook, buildClubSelector(identity, { onClose: closeClubSelector }));
+    if (view.get().trainer && view.get().trainerChild === "oshi") {
+      children.push(buildOshiSelector(identity, { onClose: closeOshiSelector }));
+    } else if (view.get().trainer && view.get().trainerChild === "club") {
+      children.push(buildClubSelector(identity, { onClose: closeClubSelector }));
     }
 
     // The right group: one surface (+ its children) at a time, independent of the
@@ -864,15 +845,13 @@ export function mountApp(
     modals.slice(0, -1).forEach((node) => node instanceof HTMLElement && lockSurface(node));
     chromeDropdowns.replaceChildren(...rail);
     surfaceLayer.replaceChildren(...modals);
-    // Now the cards are live + laid out: height-match the play-style window to the trainer
-    // card synchronously, before the browser paints, so the unmatched frame never shows.
-    if (playStyleBook) matchPlayStyleHeight(playStyleBook);
+    surfaceLayer.classList.toggle("surface-layer--over-trainer", view.get().trainer);
+    trainerLayer.classList.toggle("trainer-page-layer--locked", view.get().trainer && anyModal);
     // Same timing for the resources hero number: fit it to the card now it's measurable.
     liveResources?.fit();
   }
   view.subscribe(renderSurfaces);
   coord.subscribe(renderSurfaces);
-  identityMachine.subscribe(renderSurfaces); // left group re-renders on its own events
   // Supporter entitlement flips asynchronously on cloud pulls — re-render so the Beta
   // door appears/disappears, and shut the chamber if it's open when entitlement drops.
   onSupporterChange((on) => {
@@ -883,7 +862,7 @@ export function mountApp(
   // Mount order is the z-band: scenario wallpaper (back), timeline, then the surface
   // layer, with the menubar/minimap/film-strip lifted above all of it (their own
   // z-index) so the always-reachable chrome is never occluded.
-  root.replaceChildren(menu.el, scen.el, tl.el, mini.el, strip.el, chromeDropdowns, surfaceLayer, hud.el);
+  root.replaceChildren(menu.el, scen.el, tl.el, mini.el, strip.el, chromeDropdowns, trainerLayer, surfaceLayer, hud.el);
   renderSurfaces();
   // The gate: paint the chrome (menubar with folded numbers, minimap, film-strip, timeline axis)
   // synchronously, then `refresh` itself defers only the heavy card build a frame on first mount.

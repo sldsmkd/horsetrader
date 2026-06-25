@@ -1,7 +1,12 @@
 /* Shared timeline layout rhythm. Component-specific image offsets and artwork
    geometry stay with their card styles; these tokens are the cross-lane contract. */
 :root {
-  --timeline-card-w: 17.5rem; /* 280px at the default font size; shared by timeline cards */
+  /* The world interaction unit: one Golshi is the accepted outer atom-chip target.
+     It is viewport-invariant world geometry, NOT glass-u; the camera alone projects
+     it onto screen space. The existing packing rhythm derives cleanly from it:
+     compact card = 4g, full card = 8g. */
+  --world-golshi: 35px;
+  --timeline-card-w: calc(8 * var(--world-golshi)); /* 280px */
   --timeline-lane-first-gap: 1.65rem;
   --timeline-stack-gap: 14px;
   --timeline-below-gap-x: 10px;

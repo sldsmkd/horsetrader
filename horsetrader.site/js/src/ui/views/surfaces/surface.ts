@@ -90,8 +90,7 @@ export function suspendSurface(card: HTMLElement): HTMLElement {
 }
 
 /** Suspend a surface for the modality lock (grand-masters/byerley-turk.md). A composite
- *  surface — the playstyle `.surface-book` — is a `pointer-events: none` wrapper, so the
- *  scrim only blocks if it lands on each inner card; a plain surface suspends directly. */
+ *  surface wrapper may contain multiple direct cards; otherwise suspend the node itself. */
 export function lockSurface(node: HTMLElement): void {
   const inner = node.querySelectorAll<HTMLElement>(":scope > .surface");
   if (inner.length) inner.forEach((card) => suspendSurface(card));

@@ -34,7 +34,16 @@
 
 .playstyle-preset--active {
   background: var(--ht-control-selected-bg);
-  border-color: var(--ht-control-selected-border);
+  border-color: var(--ht-control-border);
+}
+
+/* Active (the applied preset) is communicated by its green fill; Selected (the
+   staged/inspected preset) is communicated by the green outline. When both states
+   name the same preset, don't double-signal it with fill + outline — the fill is
+   sufficient and the ordinary quiet edge keeps the two meanings distinct. */
+.playstyle-preset--active.playstyle-preset--selected {
+  border-color: var(--ht-control-border);
+  box-shadow: none;
 }
 
 .playstyle-preset--locked {

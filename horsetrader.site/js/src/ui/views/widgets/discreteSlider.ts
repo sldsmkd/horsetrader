@@ -16,7 +16,7 @@ export interface DiscreteSliderOpts {
 }
 
 // A safe placeholder so a missing/undefined step can never crash the component.
-// Callers should pass complete steps (see playStyleSurface's keys↔strings guard);
+// Callers should pass complete steps (see playStyleSettings' keys↔strings guard);
 // this is the last line of defence — a bad index degrades to a blank step, not a
 // `Cannot read properties of undefined (reading 'value')` that takes the surface down.
 const FALLBACK_STEP: DiscreteSliderStep = { value: "—", description: "" };

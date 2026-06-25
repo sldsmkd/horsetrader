@@ -1,0 +1,416 @@
+.trainer-page-layer {
+  position: fixed;
+  inset: 0;
+  z-index: var(--glass-z-surface);
+  display: grid;
+  pointer-events: none;
+}
+
+.trainer-page-layer:empty {
+  display: none;
+}
+
+.surface-layer--over-trainer {
+  z-index: 901;
+}
+
+.trainer-page-layer--rail {
+  inset: auto;
+  top: calc(var(--timeline-chrome-top) + var(--timeline-chrome-height) + var(--timeline-chrome-gap));
+  left: 50%;
+  width: min(var(--timeline-chrome-width), var(--timeline-chrome-max-width), calc(100vw - 1.88 * var(--glass-u)));
+  height: var(--chrome-dropdown-max-height);
+  transform: translateX(-50%);
+}
+
+.trainer-page-layer--rail .mobile-trainer {
+  pointer-events: auto;
+  /* Slightly wider than the retired identity-only card: the unified page keeps
+     all six honest 7u preset targets on one row at the iPad Air's 8.2px unit. */
+  width: min(calc(50 * var(--glass-u)), 100%);
+  height: 100%;
+  margin: 0;
+  border: 1px solid var(--glass-edge);
+  border-radius: var(--glass-radius);
+  background: var(--glass-bg);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: var(--glass-blur);
+}
+
+.trainer-page-layer--fullscreen {
+  z-index: 900;
+  background: var(--ht-colour-surface-page);
+  pointer-events: auto;
+}
+
+.trainer-page-layer--fullscreen .mobile-trainer {
+  width: 100%;
+  max-width: none;
+}
+
+.trainer-page-layer--locked .mobile-trainer {
+  pointer-events: none;
+  opacity: 0.55;
+  filter: grayscale(0.4);
+}
+
+.mobile-trainer {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  width: min(100%, 72rem);
+  height: 100%;
+  min-height: 0;
+  margin-inline: auto;
+  overflow: hidden;
+  background: var(--ht-colour-surface-page);
+  color: var(--ht-colour-text-primary);
+}
+
+.trainer-page-layer--rail .mobile-trainer__header,
+.trainer-page-layer--rail .mobile-trainer__actions {
+  background: color-mix(in srgb, var(--glass-bg) 92%, Canvas);
+}
+
+.mobile-trainer__header,
+.mobile-trainer__actions {
+  position: relative;
+  z-index: 2;
+  background: color-mix(in srgb, Canvas 92%, currentColor 3%);
+  box-shadow: 0 0.2rem 1rem rgba(0, 0, 0, 0.24);
+}
+
+.mobile-trainer__header {
+  display: grid;
+  grid-template-columns: minmax(2.75rem, auto) 1fr minmax(2.75rem, auto);
+  align-items: center;
+  min-height: 3.5rem;
+  padding: 0.5rem max(1rem, env(safe-area-inset-right)) 0.5rem max(1rem, env(safe-area-inset-left));
+  border-bottom: 1px solid var(--ht-control-border-quiet);
+}
+
+.mobile-trainer__header-title {
+  grid-column: 2;
+  text-align: center;
+  font-size: var(--ht-type-panel-title-size);
+  font-weight: var(--ht-type-surface-title-weight);
+}
+
+.mobile-trainer__back {
+  grid-column: 1;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  border: 1px solid var(--ht-control-border);
+  border-radius: var(--ht-control-radius-soft);
+  background: var(--ht-control-bg);
+  color: inherit;
+  font: inherit;
+  font-size: 2rem;
+}
+
+.mobile-trainer__body {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 1rem max(1rem, env(safe-area-inset-right)) 2rem max(1rem, env(safe-area-inset-left));
+}
+
+.mobile-trainer__identity,
+.mobile-trainer__playstyle,
+.mobile-trainer__playstyle-detail {
+  display: grid;
+  gap: 1rem;
+}
+
+.mobile-trainer__identity {
+  grid-template-columns: minmax(8rem, 38%) minmax(0, 1fr);
+  align-items: stretch;
+}
+
+.mobile-trainer__portrait {
+  position: relative;
+  min-height: 15rem;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--ht-control-selected-border);
+  border-radius: 0.65rem;
+  background: #161022;
+  color: #fff;
+}
+
+.mobile-trainer__portrait img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 14%;
+}
+
+.mobile-trainer__oshi-name {
+  position: absolute;
+  inset: auto 0 0;
+  padding: 3rem 0.75rem 0.75rem;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.82), transparent);
+  font-size: var(--ht-type-panel-title-size);
+  font-weight: var(--ht-type-surface-title-weight);
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+
+.mobile-trainer__portrait-edit {
+  position: absolute;
+  top: 0.65rem;
+  right: 0.65rem;
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: rgba(10, 10, 10, 0.72);
+}
+
+.mobile-trainer__identity-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.mobile-trainer__field,
+.mobile-trainer__club,
+.mobile-trainer__cloud {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.8rem;
+  border: 1px solid var(--ht-control-border);
+  border-radius: var(--ht-control-radius-soft);
+  background: var(--ht-control-bg);
+}
+
+.mobile-trainer__field-label,
+.mobile-trainer__section-title,
+.mobile-trainer__settings-title {
+  font-size: var(--ht-type-label-size);
+  font-weight: var(--ht-type-label-weight);
+  letter-spacing: var(--ht-type-label-spacing);
+  text-transform: uppercase;
+}
+
+.mobile-trainer__name {
+  width: 100%;
+  min-width: 0;
+  padding: 0.35rem 0;
+  border: 0;
+  border-bottom: 1px solid var(--ht-control-border);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: var(--ht-type-panel-title-weight);
+}
+
+.mobile-trainer__club {
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+.mobile-trainer__club-value {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-width: 0;
+  font-weight: var(--ht-type-control-weight);
+}
+
+.mobile-trainer__club-value img {
+  width: 1.75rem;
+  height: auto;
+}
+
+.mobile-trainer__cloud {
+  margin-top: auto;
+}
+
+.mobile-trainer__playstyle {
+  margin-top: 1.5rem;
+}
+
+.mobile-trainer__section-title,
+.mobile-trainer__style-title,
+.mobile-trainer__settings-title,
+.mobile-trainer__style-caption,
+.mobile-trainer__style-shape,
+.mobile-trainer__style-note,
+.mobile-trainer__settings-description {
+  margin: 0;
+}
+
+.mobile-trainer .playstyle-presets {
+  grid-template-columns: repeat(6, calc(7 * var(--glass-u)));
+  justify-content: space-between;
+  gap: 0;
+}
+
+.mobile-trainer .playstyle-preset {
+  display: grid;
+  grid-template-columns: 1fr;
+  place-items: center;
+  width: calc(7 * var(--glass-u));
+  height: calc(7 * var(--glass-u));
+  min-width: 0;
+  min-height: 0;
+  padding: 0.4rem;
+}
+
+.mobile-trainer .playstyle-preset__icon img {
+  width: min(2.75rem, 100%);
+}
+
+/* The expanded detail immediately below supplies the selected style's name,
+   motto and description. In this portrait composition the preset grid is only a
+   mode selector, so repeating that copy inside every touch target is noise. */
+.mobile-trainer .playstyle-preset__copy {
+  display: none;
+}
+
+.mobile-trainer__size-debug {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px dashed color-mix(in srgb, #ffcc4d 58%, transparent);
+  border-radius: var(--ht-control-radius-soft);
+  background: color-mix(in srgb, #ffcc4d 8%, Canvas);
+  color: color-mix(in srgb, #ffdf80 86%, currentColor);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.68rem;
+  line-height: 1.45;
+}
+
+.mobile-trainer__size-debug-title {
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.mobile-trainer__size-debug-values {
+  color: inherit;
+}
+
+.mobile-trainer__playstyle-detail {
+  padding-top: 0.5rem;
+}
+
+.mobile-trainer__style-mast {
+  display: grid;
+  grid-template-columns: 4rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.mobile-trainer__style-mast img {
+  width: 4rem;
+  height: 4rem;
+  object-fit: contain;
+  border: 1px solid var(--ht-control-selected-border);
+  border-radius: 0.55rem;
+  background: var(--ht-control-selected-bg);
+}
+
+.mobile-trainer__style-title {
+  font-size: var(--ht-type-surface-title-size);
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.mobile-trainer__style-caption {
+  margin-top: 0.25rem;
+  color: color-mix(in srgb, currentColor 76%, transparent);
+  font-size: var(--ht-type-panel-title-size);
+  font-weight: var(--ht-type-panel-title-weight);
+}
+
+.mobile-trainer__style-shape,
+.mobile-trainer__style-note,
+.mobile-trainer__settings-description {
+  color: color-mix(in srgb, currentColor 64%, transparent);
+}
+
+.mobile-trainer__settings-section {
+  display: grid;
+  gap: 0.55rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--ht-control-border-quiet);
+}
+
+.mobile-trainer__settings-controls {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid var(--ht-control-border);
+  border-radius: var(--ht-control-radius-soft);
+  background: color-mix(in srgb, currentColor 12%, transparent);
+}
+
+/* CheckboxRow is a useful grouping in the height-constrained desktop drawer,
+   but the portrait page wants all adjacent gates to participate in one wrapping
+   grid. `display: contents` promotes the individual checkbox buttons into the
+   section grid, allowing 3×2 on a broad aperture and 2×3 on a phone without
+   squeezing their labels into six tiny columns. */
+.mobile-trainer .playstyle-settings__checkbox-row {
+  display: contents;
+}
+
+/* Sliders and other graded controls always consume the complete row beneath the
+   compact checkbox grid. */
+.mobile-trainer__settings-controls > :not(.playstyle-settings__checkbox-row) {
+  grid-column: 1 / -1;
+}
+
+.mobile-trainer__actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
+  gap: 0.75rem;
+  padding: 0.75rem max(1rem, env(safe-area-inset-right))
+    max(0.75rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+  border-top: 1px solid var(--ht-control-border-quiet);
+}
+
+.mobile-trainer__action {
+  min-height: 3rem;
+  border-radius: var(--ht-control-radius-soft);
+  color: inherit;
+  font: inherit;
+  font-weight: var(--ht-type-surface-title-weight);
+}
+
+.mobile-trainer__action--quiet {
+  border: 1px solid var(--ht-control-border);
+  background: var(--ht-control-bg);
+}
+
+.mobile-trainer__action--apply {
+  border: 1px solid var(--ht-control-primary-border);
+  background: var(--ht-control-primary-bg);
+}
+
+.mobile-trainer__action:disabled {
+  opacity: 0.45;
+}
+
+@media (max-width: 600px) {
+  .mobile-trainer__settings-controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 430px) {
+  .mobile-trainer__identity {
+    grid-template-columns: minmax(7.5rem, 36%) minmax(0, 1fr);
+  }
+
+  .mobile-trainer__portrait {
+    min-height: 13rem;
+  }
+
+}

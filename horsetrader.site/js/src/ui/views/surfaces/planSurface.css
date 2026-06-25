@@ -87,8 +87,10 @@
 .plan__row {
   display: grid;
   /* Shared cell size for the commit box + the chips, so the pity box and the portraits line
-     up at the same height (the pity box's two lines set the floor; the chips grow to match). */
-  --plan-cell: 2.9rem;
+     up at the same height (the pity box's two lines set the floor; the chips grow to match).
+     This is glass-plane geometry, so express the old 2.9rem calibration honestly in
+     Byerley's unit: 2.9rem × 1.25 = 3.625u. */
+  --plan-cell: calc(3.625 * var(--glass-u));
   /* commit box · fixed-width chips · note (fills, but text capped ~half) · forecast right. */
   grid-template-columns: auto auto 1fr auto;
   /* Everything hangs from the top — the note wraps to several lines, the rest stays put. */

@@ -11,6 +11,7 @@
 .atom-chip {
   display: inline-flex;
   align-items: center;
+  box-sizing: border-box;
   /* No padding — the portrait and pip sit flush to the chip's edges (bookends); the
    * text carries its own breathing via margins below. */
   padding: 0;
@@ -18,7 +19,9 @@
    * up against the border; the portrait and type pip fill 100% of it, bookending. rem,
    * not --glass-u: chips ride a WORLD card (scaled by the camera), so they measure like
    * their parent (bannerGroup.css), not on the glass plane (Grand Masters). */
-  height: 2.4rem;
+  /* One Golshi: the canonical world-plane interaction target. border-box makes
+   * the outline part of the 1g hit box rather than adding outside it. */
+  height: var(--world-golshi);
   max-width: 100%;
   /* Squared edges — a card, not a pill. */
   border-radius: 0.4rem;
@@ -142,7 +145,7 @@
 .atom-chip--compact {
   position: relative;
   aspect-ratio: 1;
-  height: 2.4rem;
+  height: var(--world-golshi);
 }
 
 .atom-chip--compact .atom-chip__portrait {

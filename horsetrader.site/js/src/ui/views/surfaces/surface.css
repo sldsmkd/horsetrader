@@ -45,49 +45,8 @@
   backdrop-filter: var(--glass-blur);
 }
 
-.surface-book {
-  pointer-events: none;
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  display: grid;
-  /* The book is always [trainer card, play-style window]. The trainer card holds the same
-     fixed width it has standalone (so toggling the window doesn't shift it by a px); the
-     window takes what's left, shrinking first when the viewport can't fit both at full
-     width. (Below 860px the media query drops to a single column.) */
-  grid-template-columns: min(calc(43.75 * var(--glass-u)), 100%) minmax(0, calc(43.75 * var(--glass-u)));
-  align-items: start;
-  gap: calc(0.63 * var(--glass-u));
-  max-height: var(--chrome-dropdown-max-height);
-}
-
-.surface-book > .surface {
-  position: static;
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  width: auto;
-  max-height: inherit;
-}
-
-.surface-book > .surface--playstyle {
-  min-height: 0;
-}
-
-.surface-book > .surface--playstyle > .surface__body {
-  display: flex;
-  /* Column so the surface's flex:1 drives its HEIGHT (fills the card), not its
-     width. Without this the surface only stretched on the cross axis and left
-     its actions stranded mid-card when the card is height-matched to the
-     trainer card. */
-  flex-direction: column;
-  min-height: 0;
-  overflow: hidden;
-}
-
 /* Surfaces render no generic window header; surfaces own their title/dismissal.
    In grid-based placements, collapse the card to one fill row for the body. */
-.surface-book > .surface--headerless,
 .surface--modal.surface--headerless {
   grid-template-rows: minmax(0, 1fr);
 }
@@ -127,13 +86,11 @@
    --glass-u override (0.8× the base unit) makes the card genuinely, dimensionally
    smaller (Byerley: size = dimension). No `zoom`/`transform: scale` — those resize the
    render off the layout box (the camera's idiom) and have no business on the glass plane. */
-.chrome-dropdowns > .surface-book,
 .chrome-dropdowns > .surface--left,
 .chrome-dropdowns > .surface--right {
   --glass-u: calc(var(--chrome-dropdown-u-scale) * var(--glass-u-base));
 }
 
-.chrome-dropdowns > .surface-book,
 .chrome-dropdowns > .surface--left {
   left: 0;
 }
@@ -168,19 +125,6 @@
   /* Vertical only — surfaces are fixed-width, so horizontal content (e.g. an oversized
      number) must never produce a sideways scrollbar; it's contained/shrunk instead. */
   overflow: hidden auto;
-}
-
-@media (max-width: 860px) {
-  .surface-book {
-    right: calc(0.94 * var(--glass-u));
-    grid-template-columns: minmax(0, 1fr);
-    max-height: calc(100vh - 6.56 * var(--glass-u));
-    overflow: auto;
-  }
-
-  .surface-book > .surface {
-    max-height: none;
-  }
 }
 
 @media (max-width: 620px) {

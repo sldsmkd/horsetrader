@@ -70,6 +70,38 @@ whose real play pattern does not fit the curated archetypes, and it is a clean
 future hook for Patreon support or similar. Most players should be well served by
 the presets.
 
+### Unified Trainer form
+
+The mobile proof point proved better than the desktop surface book and replaced
+it. The standard Identity menubar item now opens
+`ui/views/trainer/trainerPage.ts` on every device.
+
+The composition is shared while its presentation is capability-driven:
+
+- touch phone (`pointer: coarse`, no hover, short viewport edge ≤600px) →
+  fullscreen Trainer page;
+- touch tablet or fine-pointer desktop → Trainer anchored to the left menubar
+  dropdown rail, independent of Resources on the right.
+
+The policy composes Godolphin's qualitative capability store
+(`ui/caps/capabilities.ts`) with Darley's quantitative viewport extent in
+`ui/caps/trainerPresentation.ts`. CSS renders the selected presentation; it does
+not infer device class independently.
+
+- Trainer identity and Play Style form one native-scrolling page.
+- The selected preset's Participate, Engage, Challenge, and Compete sections are
+  permanently expanded in document flow.
+- Curated preset controls remain visible and read-only; Custom uses the same
+  expanded form with editable controls.
+- Apply and Discard remain pinned at the bottom of the page.
+- Oshi, Club, and Cloud keep their existing small overlay/modal flows. The
+  portrait proof point does not redesign them.
+
+The old two-window `playStyleMachine.ts`, Trainer Card, drawer surface, and
+height-matching surface book were removed. The unified page keeps its own local
+staged preset/settings and consumes the shared section inventory and controls
+from `ui/views/surfaces/playStyleSettings.ts`.
+
 The product analogy is graphics presets:
 
 | Graphics settings | Horsetrader |
