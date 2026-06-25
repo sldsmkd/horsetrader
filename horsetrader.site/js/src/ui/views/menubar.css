@@ -1,6 +1,8 @@
 /* Persistent menubar shell floating over the timeline canvas. The shell owns the
    strip and item sequence; individual surfaces mount through the surface layer. */
 .menubar {
+  --menubar-identity-icon: calc(2.38 * var(--glass-u));
+  --menubar-identity-inset: calc((var(--glass-target) - var(--menubar-identity-icon)) / 2);
   position: absolute;
   top: var(--timeline-chrome-top);
   left: 50%;
@@ -20,6 +22,16 @@
   pointer-events: none;
   transform: translateX(-50%);
   backdrop-filter: var(--glass-blur);
+}
+
+:root[data-glass-pointer="coarse"] .menubar {
+  /* The source portraits are 128×128, so touch presentation can spend more of
+     the 7u chip on identity without enlarging the mouse-tuned version. */
+  --menubar-identity-icon: calc(5 * var(--glass-u));
+}
+
+:root[data-glass-pointer="coarse"] .menubar__identity::after {
+  display: none;
 }
 
 .menubar__cluster {
@@ -81,8 +93,8 @@
   align-items: center;
   gap: calc(0.56 * var(--glass-u));
   max-width: calc(15 * var(--glass-u));
-  padding: calc(0.25 * var(--glass-u)) calc(0.69 * var(--glass-u)) calc(0.25 * var(--glass-u)) calc(0.25 * var(--glass-u));
-  border-radius: 1.3rem;
+  padding: var(--menubar-identity-inset) calc(0.69 * var(--glass-u)) var(--menubar-identity-inset) var(--menubar-identity-inset);
+  border-radius: 999px;
 }
 
 .menubar__identity::after {
@@ -100,8 +112,9 @@
 .menubar__identity-icon {
   display: block;
   flex: none;
-  width: calc(2.38 * var(--glass-u));
-  height: calc(2.38 * var(--glass-u));
+  transform: translate(-1px, -2.5px) scale(1.3);
+  width: var(--menubar-identity-icon);
+  height: var(--menubar-identity-icon);
   border-radius: 50%;
   object-fit: cover;
 }

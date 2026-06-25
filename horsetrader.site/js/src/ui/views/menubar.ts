@@ -95,7 +95,7 @@ export function menubar(opts: MenubarOpts): Menubar {
   const search = searchBox({ search: opts.search, onSearch: opts.onSearch });
   const identityIcon = h("img", {
     class: "menubar__identity-icon",
-    attr: { src: opts.identity.icon, alt: "", width: 32, height: 32 },
+    attr: { src: opts.identity.icon, alt: "", width: 128, height: 128 },
   });
   const identityName = h("span", { class: "menubar__identity-name" }, opts.identity.label);
 
