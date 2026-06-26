@@ -37,12 +37,12 @@ class Holiday(Event):
     Unlike the old anchor it has a real span — these run for a window, not a
     single instant.
 
-    The flavour (`golden-week` / `new-year`) lives in the key
-    (`holiday-golden-week-2026`) and is surfaced as `kind` for the cadence
-    predictor, rather than the runtime class. New Year's pre-roll countdown is a
-    sibling `Holiday` keyed `…-countdown` (the curated replacement for the old
-    `before-new-year` anchored event); `is_countdown` marks it so the predictor
-    derives its EN from the parent rather than placing it on the holiday cadence.
+    The flavour (`golden-week`, `new-year`, `marketing-starhorse-4`, …) lives in
+    the key and is surfaced as `kind` for cadence/presentation logic, rather
+    than the runtime class. New Year's pre-roll countdown is a sibling `Holiday`
+    keyed `…-countdown` (the curated replacement for the old `before-new-year`
+    anchored event); `is_countdown` marks it so the predictor derives its EN
+    from the parent rather than placing it on the holiday cadence.
     """
 
     name: str = field(kw_only=True)
@@ -59,10 +59,14 @@ class Holiday(Event):
 
         `holiday-golden-week-2026` → "golden-week"; the countdown sibling
         `holiday-new-year-2026-countdown` → "new-year" (same flavour as its
-        parent). The `-countdown` suffix and the trailing year are both dropped.
+        parent); `holiday-marketing-starhorse-4` → "marketing-starhorse-4".
+        The `-countdown` suffix and a trailing four-digit year are dropped.
         """
         body = self.key.removeprefix("holiday-").removesuffix(_COUNTDOWN_SUFFIX)
-        return body.rsplit("-", 1)[0]
+        head, _, tail = body.rpartition("-")
+        if head and tail.isdigit() and len(tail) == 4:
+            return head
+        return body
 
     def match(self, query: str) -> bool:
         return super().match(query) or query.lower() in self.name.lower()
@@ -79,14 +83,15 @@ class Holiday(Event):
 
 @daitaku
 class Holidays(Events[Holiday], metaclass=SingletonMeta):
-    """Every seasonal holiday launch, keyed `holiday-<kind>-<year>` (+ New Year
-    `…-countdown` lead-ins).
+    """Every seasonal holiday launch, keyed `holiday-<kind>-<year>` or
+    `holiday-marketing-<slug>` (+ New Year `…-countdown` lead-ins).
 
     A point-launch collection alongside `Scenarios` / `Anniversaries`. The
     curated source carries verified JP starts (all) and EN starts (only those
-    that have reached Global). Golden Week rewards are a flat login `generator`;
-    New Year rewards are per-day `login` sequences (a `SequenceReward`, the gift
-    folded into day-0), the same shape as the anniversary logins."""
+    that have reached Global). Golden Week and marketing tie-in rewards are
+    baked-shape blocks, often a flat login `generator`; New Year rewards are
+    per-day `login` sequences (a `SequenceReward`, the gift folded into day-0),
+    the same shape as the anniversary logins."""
 
     def search(self, query) -> list[Holiday]:
         return super().search(query)
@@ -97,9 +102,9 @@ class Holidays(Events[Holiday], metaclass=SingletonMeta):
 
     def _fetch_primary(self) -> list[Holiday]:
         holidays: list[Holiday] = []
-        golden_weeks = Static().golden_weeks()
-        banner_images = self._process_banners(golden_weeks)
-        for record in golden_weeks:
+        baked_reward_records = Static().golden_weeks() + Static().marketing_holidays()
+        banner_images = self._process_banners(baked_reward_records)
+        for record in baked_reward_records:
             raw = record.get("rewards")
             holidays.append(
                 self._build(

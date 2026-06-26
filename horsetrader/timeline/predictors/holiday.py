@@ -20,7 +20,11 @@ def _is_new_year_main(event) -> bool:
 
 def _is_main(event) -> bool:
     """A main holiday launch we place on the seasonal weekday cadence (Golden
-    Week or New Year — the countdown lead-ins derive off their parent instead)."""
+    Week or New Year — the countdown lead-ins derive off their parent instead).
+
+    Marketing tie-ins are intentionally excluded for now. They have confirmed EN
+    overlays once observed, but no proven repeat cadence to extrapolate.
+    """
     return _is_golden_week(event) or _is_new_year_main(event)
 
 
@@ -31,8 +35,7 @@ class HolidayPredictor(Predictor):
     The main launches snap to the seasonal weekday cadence (each kind votes its
     own confirmed-EN weekdays). New Year's countdown lead-ins don't predict
     independently — they end exactly at their main's start, so their EN window is
-    *derived* from the main's EN once it's placed (the curated replacement for the
-    old `before-new-year` AnchorPredictor pass)."""
+    *derived* from the main's EN once it's placed."""
 
     def predict(self, timeline: Timeline) -> int:
         valid_weekdays = {

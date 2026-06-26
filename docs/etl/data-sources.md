@@ -36,12 +36,11 @@ Notes that are load-bearing, not cosmetic:
   matching — see [`banner.py`](../../horsetrader/models/events/banner.py)).
 - **Calendar beats are first-class event types, not synthetic anchors.**
   Holidays and anniversaries now bake as `holiday` / `anniversary` records with
-  their own stable keys. Older `anchor-*` and `before-` / `after-` anchored-event
-  rows were removed with the static-anchor backend.
-- **Curated YAML keys are these stable keys byte-for-byte** (the one exception
-  being the `during-`→`after-` sugar above). An `extractors/static/*.py`
-  `_KEY_PATTERN` selects each corpus's rows by this shape — change a key format
-  and its pattern moves with it.
+  their own stable keys. Golden Week, New Year, and proven marketing tie-ins all
+  share the `holiday` record shape.
+- **Curated YAML keys are these stable keys byte-for-byte.** An
+  `extractors/static/*.py` `_KEY_PATTERN` selects each corpus's rows by this
+  shape — change a key format and its pattern moves with it.
 - **Reward keys are not stable keys.** They're a fixed serialisation vocab
   bundled under an event's `rewards` object (`{"free_carats": 2160,
   "support_tickets": 2, …}`) — bare + pluralised, since the `rewards` wrapper
@@ -126,7 +125,9 @@ outside the loaded set.
 
 | File | Status | Purpose |
 | --- | --- | --- |
-| [`config/yaml/holidays.yaml`](../../config/yaml/holidays.yaml) | **Consolidated.** | Holiday records keyed `holiday-new-year-YYYY`, `holiday-new-year-YYYY-countdown`, and `holiday-golden-week-YYYY`, with optional region-agnostic `rewards:` plus `jp:` / `en:` blocks holding FQ ISO windows. Read by `extractors/static/holidays.py` into `Holiday` events. New Year countdowns are sibling holiday records whose EN windows are derived from the main New Year launch when needed. |
+| [`config/yaml/golden_week.yaml`](../../config/yaml/golden_week.yaml) | **Consolidated.** | Golden Week holiday records keyed `holiday-golden-week-YYYY`, with optional region-agnostic `rewards:` / `banner:` plus `jp:` / `en:` blocks holding FQ ISO windows. Read by `extractors/static/golden_week.py` into `Holiday` events. |
+| [`config/yaml/new_year.yaml`](../../config/yaml/new_year.yaml) | **Consolidated.** | New Year holiday records keyed `holiday-new-year-YYYY`, with nested `countdown:` lead-ins. Main events and countdowns bake as `Holiday` records; countdown EN windows are derived from the main New Year launch when needed. |
+| [`config/yaml/marketing.yaml`](../../config/yaml/marketing.yaml) | **Consolidated.** | Marketing tie-in holiday records keyed `holiday-marketing-<slug>`, with the same JP + optional EN overlay, shared `rewards:`, and optional `banner:` shape as Golden Week. Used once Global proves a JP marketing campaign transfers with the same login/reward behaviour. Read by `extractors/static/marketing.py` into `Holiday` events. |
 | [`config/yaml/stories.yaml`](../../config/yaml/stories.yaml) | **Consolidated.** | EN overlay for the Gametora-scraped JP story corpus. Each entry has an `en:` block with FQ ISO `start:` / `end:` (22:00 UTC) and an optional `name:` overriding Gametora's scraped EN title (fansub default; replaced with the Cygames-official title when shipped). YAML keys are zero-padded stable keys (`story-NNN`). Joined by `Static.story_period()` + `Static.story_name_override()`. |
 | [`config/yaml/banners.yaml`](../../config/yaml/banners.yaml) | **Consolidated.** | EN confirmed banner periods, keyed by `<id>-banner`, each under an `en:` block with FQ ISO `start` / `end` (22:00 UTC). Read by `extractors/static/banners.py` (via the merged store); stamps a UTC `Period` onto the matching `Banner` at extraction time. A banner absent here stays predicted. |
 | [`config/yaml/scenarios.yaml`](../../config/yaml/scenarios.yaml) | **Consolidated.** | Full JP scenarios corpus + EN overlay, keyed by zero-padded stable key (`scenario-NN`, release order). Each entry has a `jp:` block (`name`, JP `start` 12:00 JST), an `en:` block (`name` = EN title; `start` 22:00 UTC, present only once it's on Global), and a region-agnostic `art:` URL. Read by `extractors/static/scenarios.py`. Used directly because Gametora's scenarios page is JS-rendered, brittle, and not worth scraping. |
@@ -136,9 +137,9 @@ outside the loaded set.
 
 ### Consolidated yaml shape
 
-`holidays.yaml`, `stories.yaml`, `scenarios.yaml`, `anniversaries.yaml`, and
-`banners.yaml` all follow it (the split `jp.*` / `en.*` forms are fully
-retired). The pattern:
+`golden_week.yaml`, `new_year.yaml`, `marketing.yaml`, `stories.yaml`,
+`scenarios.yaml`, `anniversaries.yaml`, and `banners.yaml` all follow it (the
+split `jp.*` / `en.*` forms are fully retired). The pattern:
 
 ```yaml
 <stable-key>:
@@ -205,11 +206,10 @@ so entries can move between files freely. The API:
 - `require_zone(value, expected, label)` — fail-loud tz validator.
 
 A stable key defined in two files fails loud at merge time (keys are
-globally unique by design). Each entity loader (`holidays.py`,
-`anniversaries.py`, `scenarios.py`, `stories.py`, `banners.py`, and
-`anchored.py` for the `before-`/`during-`/`after-` events) drives these with
-its own `_KEY_PATTERN`, required regions, and output container shape. The
-philosophy is **work from the back**: the merge lifted itself into
+globally unique by design). Each entity loader (`anniversaries.py`,
+`scenarios.py`, `stories.py`, `banners.py`, and the holiday loaders) drives
+these with its own `_KEY_PATTERN`, required regions, and output container shape.
+The philosophy is **work from the back**: the merge lifted itself into
 `store.py` only once the region loaders rhymed on the per-region shape.
 
 #### Per-file extras
@@ -237,6 +237,10 @@ Two homes for YAML the ETL doesn't read:
 
 When wiring one in, move it into `config/yaml/` (where the store auto-picks it
 up), give it the region-namespace shape, and add a row above describing it.
+Marketing campaigns that prove to transfer to Global as login/reward windows
+belong in `marketing.yaml` as `holiday-marketing-*` records, not in a new event
+type, unless the client needs behaviour that the `holiday` contract cannot
+represent.
 
 ## `references/announcements/`
 
@@ -297,7 +301,8 @@ only). `Stories._assign_banners()` date-sorts all story events and pairs them
 with these files in ordinal order, then publishes each via `CurrenChan` as
 `story-NNN-banner.webp`. When a new story event is added to the game, drop its
 banner PNG here — the ordinal drives the stable-key match, so filename order
-must match release order.
+must match release order. For the sourcing procedure, use
+[`TN-0004 — Story banner sourcing`](../trainernet/TN-0004-story-banner-sourcing.md).
 
 ## The transport boundary
 

@@ -10,8 +10,7 @@ from ._durations import parse_duration
 logger = Logger.get(__name__)
 
 # New Year launches, keyed `holiday-new-year-<year>` — the scenario-shaped
-# `Holiday` type that replaced the synthetic New Year anchors + their
-# `before-/during-/after-` lead-ins (#62).
+# `Holiday` type that replaced the synthetic New Year anchors and lead-ins (#62).
 _KEY_PATTERN = re.compile(r"^holiday-new-year-\d{4}$")
 
 

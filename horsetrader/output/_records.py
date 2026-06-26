@@ -455,9 +455,9 @@ class TrainingPassRecord(EventRecord, tag="trainingpass"):
 
 @eishin
 class HolidayRecord(EventRecord, tag="holiday"):
-    # A seasonal holiday launch (Golden Week; New Year later): the shared
-    # envelope (a real start/end window, not the old span-0 point) plus the
-    # themed display `name`. Replaces the synthetic Golden Week anchors.
+    # A seasonal holiday / campaign launch (Golden Week, New Year, marketing
+    # tie-ins): the shared envelope (a real start/end window, not the old span-0
+    # point) plus the themed display `name`.
     name: str
     banner: str | None | UnsetType = UNSET
 

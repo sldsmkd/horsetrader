@@ -1,4 +1,8 @@
-# Monthly Data Runbook
+# TN-0003 — Monthly data refresh
+
+## Status
+
+**Standing runbook — use for each EN monthly release schedule.**
 
 Use this when the EN monthly release schedule drops. The job is to archive the
 source image, turn confirmed EN dates into curated YAML, bake the bundle, and do
@@ -85,7 +89,9 @@ affects the current model.
 
 Also capture any new story banner art needed by the pipeline:
 
-- Follow `config/img/README.md` for the full story-art sourcing workflow.
+- Follow
+  [`TN-0004 — Story banner sourcing`](TN-0004-story-banner-sourcing.md) for the
+  full story-art sourcing workflow.
 - Short version: open `https://umapyoi.net/news?search=story`, save the PNG from
   the story's "Held!" post, not the "starting soon!" teaser, then name it
   `config/img/stories/story_NN_banner.png`.

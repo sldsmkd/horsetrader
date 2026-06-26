@@ -23,6 +23,11 @@
   --ht-type-surface-title-line: 1.05;
   --ht-type-surface-title-weight: 800;
 
+  /* Prominent editable identity text. On coarse pointers the target-relative
+     third keeps it above iOS's focus-zoom threshold at the 7px glass-u floor,
+     without introducing a component-local px exception. */
+  --ht-type-editable-title-size: var(--ht-type-surface-title-size);
+
   --ht-type-label-size: calc(0.9 * var(--glass-u)); /* 0.72rem */
   --ht-type-label-line: 1.15;
   --ht-type-label-weight: 700;
@@ -58,4 +63,8 @@
 
   --ht-type-control-size: calc(1.125 * var(--glass-u)); /* 0.9rem */
   --ht-type-control-weight: 600;
+}
+
+:root[data-glass-pointer="coarse"] {
+  --ht-type-editable-title-size: calc(var(--glass-target) / 3);
 }

@@ -10,7 +10,6 @@ import type { PlayStyleKey, PlayStyleSettings } from "../../../core/playstyle/in
 import type { ClubIdentity } from "../../../core/identity/clubrank.ts";
 import type { PlayStyleStrings } from "../../strings.ts";
 import { formatCharacterName } from "../../format.ts";
-import { glassUnitPx, resolveLengthPx } from "../../glassUnit.ts";
 import { clubRankIcon } from "../surfaces/clubSelector.ts";
 import { PLAY_STYLES, playStylePresetGrid } from "../surfaces/playStylePreset.ts";
 import {
@@ -98,59 +97,6 @@ function clubButton(opts: TrainerPageOpts): HTMLButtonElement {
   );
 }
 
-function mobileSizeDebug(page: HTMLElement): HTMLElement {
-  const values = h("output", { class: "mobile-trainer__size-debug-values" }, "Measuring…");
-  const debug = h(
-    "aside",
-    { class: "mobile-trainer__size-debug", attr: { "aria-label": "Mobile size diagnostics" } },
-    h("span", { class: "mobile-trainer__size-debug-title" }, "SIZE DEBUG"),
-    values,
-  );
-
-  let pending = 0;
-  let retries = 0;
-  const measure = (): void => {
-    pending = 0;
-    const button = page.querySelector<HTMLElement>(".playstyle-preset");
-    const icon = button?.querySelector<HTMLImageElement>(".playstyle-preset__icon img");
-    if (!button || !icon) return;
-
-    const u = glassUnitPx(page);
-    const baseU = resolveLengthPx(page, "var(--glass-u-base)");
-    const buttonRect = button.getBoundingClientRect();
-    const iconRect = icon.getBoundingClientRect();
-    // On iOS Safari the first rAF can precede image decode/layout even though the
-    // image is visibly about to paint. Retry briefly rather than recording that
-    // transient 0×0 as the icon standard.
-    if ((iconRect.width === 0 || iconRect.height === 0) && retries < 8) {
-      retries += 1;
-      icon.addEventListener("load", schedule, { once: true });
-      pending = requestAnimationFrame(measure);
-      return;
-    }
-    retries = 0;
-    const ratio = (px: number): string => (u > 0 ? `${(px / u).toFixed(2)}u` : "—");
-    const px = (n: number): string => `${n.toFixed(1)}px`;
-
-    values.textContent = [
-      `icon ${px(iconRect.width)} × ${px(iconRect.height)} (${ratio(iconRect.width)})`,
-      `target ${px(buttonRect.width)} × ${px(buttonRect.height)} (${ratio(buttonRect.width)} × ${ratio(buttonRect.height)})`,
-      `glass-u ${px(u)} · base ${px(baseU)}`,
-      `viewport ${window.innerWidth} × ${window.innerHeight} CSS px · DPR ${window.devicePixelRatio.toFixed(2)}`,
-    ].join("  /  ");
-  };
-  const schedule = (): void => {
-    if (pending) cancelAnimationFrame(pending);
-    pending = requestAnimationFrame(measure);
-  };
-
-  // The diagnostic is intentionally view-time evidence: read the actual painted
-  // geometry after layout, then refresh when the page's aperture changes.
-  schedule();
-  if ("ResizeObserver" in window) new ResizeObserver(schedule).observe(page);
-  return debug;
-}
-
 /**
  * Unified Trainer page. Its composition is invariant; Godolphin presentation policy makes
  * the containing layer a floating glass window on desktop/tablet or a full-viewport page on
@@ -233,11 +179,11 @@ export function trainerPage(opts: TrainerPageOpts): HTMLElement {
   };
 
   const selectStyle = (key: PlayStyleKey): void => {
-    selectedKey = key;
+    selectedKey = key === selectedKey ? opts.savedPlayStyleKey : key;
     liveSettings =
-      key === "custom" || key === opts.savedPlayStyleKey
+      selectedKey === "custom" || selectedKey === opts.savedPlayStyleKey
         ? { ...opts.savedPlayStyleSettings }
-        : { ...playStyleSettingsForPreset(key) };
+        : { ...playStyleSettingsForPreset(selectedKey) };
     const nextGrid = playStylePresetGrid({
       selectedKey,
       activeKey: opts.savedPlayStyleKey,
@@ -293,7 +239,11 @@ export function trainerPage(opts: TrainerPageOpts): HTMLElement {
             "‹",
           )
         : null,
-      h("span", { class: "mobile-trainer__header-title" }, "Trainer"),
+      h(
+        "label",
+        { class: "mobile-trainer__header-name" },
+        trainerNameInput(opts),
+      ),
     ),
     h(
       "div",
@@ -315,12 +265,6 @@ export function trainerPage(opts: TrainerPageOpts): HTMLElement {
         h(
           "div",
           { class: "mobile-trainer__identity-fields" },
-          h(
-            "label",
-            { class: "mobile-trainer__field" },
-            h("span", { class: "mobile-trainer__field-label" }, "Trainer name"),
-            trainerNameInput(opts),
-          ),
           clubButton(opts),
           opts.cloud
             ? h(
@@ -337,7 +281,6 @@ export function trainerPage(opts: TrainerPageOpts): HTMLElement {
         { class: "mobile-trainer__playstyle" },
         h("h2", { class: "mobile-trainer__section-title" }, opts.playStyleStrings.title),
         presetHost,
-        mobileSizeDebug(page),
         detail,
       ),
     ),

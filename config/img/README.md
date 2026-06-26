@@ -1,9 +1,9 @@
-# `static/img/`
+# `config/img/`
 
 Image assets that are **pipeline input** — read by the ETL during a run, not
 just kept for a human to eyeball. That's the line between this directory and
 [`references/`](../../references/): anything a loader opens lives here under
-`static/`; anything that only exists so a maintainer can check a date stays in
+`config/`; anything that only exists so a maintainer can check a date stays in
 `references/`.
 
 ## `misc/`
@@ -36,20 +36,8 @@ When a new story event lands in-game, drop its banner PNG here. **Filename
 order must match release order** — the ordinal is what drives the stable-key
 match, so a gap or a misnumbered file will misalign every later banner.
 
-### Sourcing a new banner
+For the sourcing workflow, use
+[`TN-0004 — Story banner sourcing`](../../docs/trainernet/TN-0004-story-banner-sourcing.md).
 
-1. Open <https://umapyoi.net/news?search=story>. Each story event produces two
-   posts: a *"…starting soon!"* teaser (closet/announcement art) and a
-   *"…Held!"* post once it goes live. **Save the PNG from the "Held!" post** —
-   that one consistently carries the final in-game art; the teaser doesn't.
-2. Find the ordinal by correlating the event against gametora's
-   [Story Event List](https://gametora.com/umamusume/events/story-events).
-   Count from the bottom (oldest) up; the new event is the next integer after
-   the current highest `story_NN_banner.png` on disk.
-3. Save as `story_NN_banner.png` (no zero-pad).
-
-Caveat: gametora often lags the live JP server by an event or two, so the very
-newest event may not appear in its list yet. When that happens it *is* the
-newest — assign it the next ordinal after the highest file already here.
-
-See [`docs/data-sources.md`](../../docs/data-sources.md) for the full picture.
+See [`docs/etl/data-sources.md`](../../docs/etl/data-sources.md) for the full
+data-source picture.

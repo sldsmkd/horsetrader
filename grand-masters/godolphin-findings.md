@@ -410,6 +410,12 @@ Standalone probe route (`?caps` → `ui/caps/probe.ts`, not app-wired). Measured
   initial-scale=1` only). Without cover the page lays out INSIDE the safe area → `env()` = 0,
   notch/home-indicator margins unused. Godolphin full-bleed + rotation will need cover + inset
   handling (insets rotate when we rotate). App-wide change → deliberate, not a casual toggle.
+- **iOS focus/double-tap zoom — Trainer proof point fixed 2026-06-25.** At the phone floor,
+  dimensional type could resolve an editable input below 16 CSS px, causing Safari to focus-zoom
+  and leave the visual viewport magnified after keyboard dismissal. Trainer now uses the
+  semantic `--ht-type-editable-title-size`, derived as one-third of the coarse glass target,
+  and gives its controls `touch-action: manipulation`; pinch zoom remains available. Survey
+  the remaining text-entry surfaces before promoting this to every editable-text role.
 - **iPhone aperture: long axis 699 vs screen 844** — Safari chrome eats ~145px (17%) and it's
   dynamic (collapses on scroll). C-D1 with a number, and exactly why Darley chose `svh` not
   `dvh` (C-D2): the usable aperture is smaller than the screen AND breathes.

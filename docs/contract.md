@@ -89,8 +89,8 @@ invented slug/sequence. Both sides join bundle data on these keys.
 | scenario | `scenario-<nn>` | `scenario-01` |
 | story | `story-<nnn>` | `story-001` |
 | cm | `cm-<nnn>` | `cm-001` |
-| anchor | `anchor-<kind>-<ver>` | `anchor-new-year-2022`, `anchor-anni-3_0` |
-| anchored event | `before-` / `after-<body>` | `after-new-year-2022` |
+| holiday | `holiday-<kind>-<year>` / `holiday-marketing-<slug>` | `holiday-golden-week-2026`, `holiday-marketing-starhorse-4` |
+| anniversary | `anniversary-<version>` | `anniversary-3_0` |
 | item | `item-<id>` | `item-00043` |
 
 **Reward keys are not stable keys.** Rewards are a fixed serialisation vocab
@@ -99,9 +99,8 @@ bundled under an event's `rewards` object (`{"free_carats": 2160, "support_ticke
 top-level keys. A repeating bonus appears under `generator` (`{"free_carats": 564,
 "repeat": 10}`).
 
-ETL-side rules for *assigning* these keys (the `KEY_PREFIX` ClassVar, anchor
-`<kind>` parsing, the `before-`/`during-`/`after-` authoring sugar, byte-for-byte
-curated YAML keys) live in
+ETL-side rules for *assigning* these keys (the `KEY_PREFIX` ClassVar, holiday
+`<kind>` parsing, and byte-for-byte curated YAML keys) live in
 [etl/data-sources.md](etl/data-sources.md#stable-key-scheme).
 
 ## Optional flags (presence-encoded, absence-defaulted)

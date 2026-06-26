@@ -11,9 +11,10 @@ same wherever it's authored; loaders ask for *their* entries by **key pattern**
 freely. The entry shape is a ``dict[stable-key, entry]`` where each entry holds
 optional region-agnostic fields plus per-locale (``jp:`` / ``en:``)
 sub-mappings; stable-key shapes are globally unique (``holiday-new-year-*``,
-``holiday-golden-week-*``, ``anniversary-*``, ``scenario-NN``, ``story-NNN``,
-``<id>-banner``, etc.), so each loader's pattern claims a disjoint slice and a
-key appearing in two files fails loud at merge time.
+``holiday-golden-week-*``, ``holiday-marketing-*``, ``anniversary-*``,
+``scenario-NN``, ``story-NNN``, ``<id>-banner``, etc.), so each loader's pattern
+claims a disjoint slice and a key appearing in two files fails loud at merge
+time.
 
 The API entity loaders see:
 

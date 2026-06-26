@@ -12,8 +12,8 @@ Every `Event` carries a `Periods` collection — at most one `Period` per
 - a **JP `Period`** for the event's JP run, and
 - a **UTC `Period`** for events whose EN release has already happened or
   been announced (sourced from the `en:` blocks in `config/yaml/banners.yaml`,
-  `anniversaries.yaml`, `scenarios.yaml`, `stories.yaml`, and
-  `holidays.yaml`).
+  `anniversaries.yaml`, `scenarios.yaml`, `stories.yaml`, `golden_week.yaml`,
+  `new_year.yaml`, and `marketing.yaml`).
 
 `Predict.predict(timeline)` runs an ordered chain of predictors. Each
 predictor walks the timeline, looks for events that need a UTC `Period`
@@ -67,9 +67,10 @@ Predicts EN dates for `anniversary-*` records with no confirmed UTC period.
 
 ### `HolidayPredictor`
 
-Covers the holiday flavours `golden-week` and `new-year`. Anniversaries predict
-on their own cadence via `AnniversaryPredictor`; this predictor filters on
-`Holiday.kind`.
+Covers the holiday flavours `golden-week` and `new-year`. Marketing tie-ins
+remain confirmed-overlay only until they have enough repeat evidence for a
+cadence. Anniversaries predict on their own cadence via `AnniversaryPredictor`;
+this predictor filters on `Holiday.kind`.
 
 Weekday signal is merged across both flavours (any weekday with a confirmed
 EN drop counts as valid). For each unscheduled holiday, project its JP

@@ -402,14 +402,15 @@ as `null`. Keys are bare + pluralised
   carats). New policy is a new function there, not edits to event
   aggregators.
 
-- **Curated data** in `config/*.yaml`. Anchor login bonuses (New Year /
-  Golden Week / anniversary) are *known*, not inferred — so they're authored
-  directly on the anchor, as a top-level `rewards:` block written in the
+- **Curated data** in `config/*.yaml`. Holiday / anniversary login bonuses
+  (New Year, Golden Week, marketing tie-ins, anniversaries) are *known*, not
+  inferred — so they're authored directly on the event, as a top-level
+  `rewards:` block written in the
   **same shape the client reads** (the bake output above). The bonus is
   identical across regions, so it's a shared field, not per-locale:
 
   ```yaml
-  anchor-golden-week-2021:
+  holiday-golden-week-2021:
     rewards:
       generator:
         free_carats: 564
@@ -422,70 +423,23 @@ as `null`. Keys are bare + pluralised
   of `_mappers._rewards`, so the two must stay in sync. It fails loud on an
   unknown key or malformed shape (curated YAML is the editor's feedback loop).
 
-## Anchored events
+## Relative Campaigns
 
-Some campaigns don't have a date of their own — they're defined *relative* to a
-tentpole. A **New Year Countdown** runs the week up to New Year; an
-**Anniversary Celebration** and its **Encore** tile the days after the
-anniversary. They're curated as `AnchoredEvent`s **inline in the consolidated
-static files**, beside the anchor they hang off (the New Year ones sit in
-[`config/yaml/holidays.yaml`](../config/yaml/holidays.yaml) next to `anchor-new-year-*`),
-and gathered from the merged store by their `before-`/`during-`/`after-` key
-prefix — file location doesn't matter. They never carry an explicit date.
-(Authoring crib: [`config/yaml/anchors.txt`](../config/yaml/anchors.txt).)
+The old synthetic `anchor-*` / `before-*` / `after-*` backend is gone. Campaigns
+that used to hang off anchors now model the behaviour directly on the concrete
+event type that players see:
 
-Each entry pins to **one edge** of an `anchor` (the stable key of another
-event) and runs for a `duration`:
+- New Year countdowns are sibling `holiday-new-year-YYYY-countdown` records
+  emitted by the New Year holiday loader. The predictor derives their EN window
+  from the main New Year holiday.
+- Anniversary celebration work is carried by `anniversarymission` rows attached
+  to their `anniversary-N_M` beat.
+- Golden Week, New Year, and proven marketing tie-ins are all `holiday` records
+  with real spans, not span-0 anchor points.
 
-- **`before-*`** ends *at* the anchor's start, running `duration` before it
-  (a lead-in / countdown).
-- **`after-*`** begins *at* the anchor's end, running `duration` after it
-  (an extension). **`during-*`** is a readability synonym for `after-` (a part
-  that runs *during* a multi-part celebration) and resolves to the same
-  placement. The key prefix is load-bearing — it sets the direction.
-
-The prefix is deliberately load-bearing rather than a separate field: these get
-edited only a few times a year, so a self-evident key you can copy from a
-neighbour beats one that sends you to the docs or loader to learn a convention.
-It's also the selector: every loader picks its rows from the merged store by
-key pattern (`store.select(...)`), so the anchored loader claims
-`^(before|during|after)-` while the region loaders claim disjoint shapes — no
-filename involved, the prefix alone routes each entry to its loader.
-
-`duration` is ISO-8601 restricted to fixed-length components
-(weeks/days/hours/minutes/seconds); years and months are rejected because they
-aren't a constant span.
-
-**Anchors are points, anchored events are spans.** Base anchors (New Year /
-Golden Week / anniversary / scenario launches) are span-0 instants, so their
-start and end edges coincide. An anchored event has a real span, and resolving
-it *exposes a new edge* — which is why these **chain**: an `after-*` can anchor
-to another anchored event, and the chain tiles contiguously (each link begins
-exactly where its parent ended). You only ever anchor to a well-defined edge
-*point*, never to a span.
-
-**Two-tz resolution** (the recursion lives in
-[`models/events/anchored.py::resolve_anchored`](../horsetrader/models/events/anchored.py),
-shared by both passes):
-
-- **JST, at load.** Every anchor has a JST launch (JST is source of truth), so
-  placement is deterministic and total. The collection resolves the whole graph
-  to a fixpoint against the curated launch collections (the unified `Anchors` —
-  New Year / Golden Week / anniversaries — and scenarios) plus its own chains,
-  and **fails loud** if anything is left
-  unmoored — a missing anchor, no JST period, or a cycle. That throw is the
-  editor's feedback loop, the same as the rest of the curated YAML.
-- **UTC, in prediction.** The EN date is derived, not regressed:
-  [`AnchorPredictor`](../horsetrader/timeline/predictors/anchored.py) (Mati,
-  runs *last*) re-runs the same resolver over the UTC edges the other predictors
-  have just stamped, so `campaign.utc = anchor.utc ± duration`, chains included.
-  A campaign inherits its anchor's `predicted` flag. Here an unreachable anchor
-  is **not** fatal — the base anchor simply wasn't predictable, so the campaign
-  stays unpredicted like any other.
-
-In `events.json` an anchored event bakes like an anchor (calendar `type`, `name`,
-optional `rewards`) but with a real `start`/`end` range plus `relation`
-(`before`/`after`) and the `anchor` key for grouping.
+If a future relative campaign needs behaviour these concrete models cannot
+express, design that as a new current contract rather than reviving the deleted
+anchor layer.
 
 ## See also
 

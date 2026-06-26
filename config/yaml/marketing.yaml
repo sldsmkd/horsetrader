@@ -1,0 +1,19 @@
+## Marketing tie-ins:
+# https://umamusume.wikiru.jp/index.php?%E3%82%A4%E3%83%99%E3%83%B3%E3%83%88%E4%B8%80%E8%A6%A7
+#
+# These bake as `holiday` records, same as Golden Week / New Year. Use
+# `holiday-marketing-<slug>` keys, region-agnostic `name` / `rewards` / `banner`,
+# a required JP block, and an EN block only once Global has shipped it.
+
+holiday-marketing-starhorse-4:
+  name: Star Horse 4
+  rewards:
+    generator:
+      free_carats: 150
+      repeat: 10
+  jp:
+    start: 2022-07-20T12:00:00+09:00
+    duration: P10D
+  en:
+    start: 2026-06-25T22:00:00+00:00
+  banner: https://prd-info-umamusume.akamaized.net/announce/860/Thumbnail/banner_25300001.png

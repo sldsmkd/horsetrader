@@ -50,11 +50,22 @@
 
 .trainer-page-layer--locked .mobile-trainer {
   pointer-events: none;
+}
+
+/* Suspend the content, not the glass card. Opacity/filter on `.mobile-trainer`
+   itself creates a composited layer that fades its backdrop-filter and pane fill,
+   making the rail appear fully transparent behind a child modal. */
+.trainer-page-layer--locked .mobile-trainer__header,
+.trainer-page-layer--locked .mobile-trainer__body,
+.trainer-page-layer--locked .mobile-trainer__actions {
   opacity: 0.55;
   filter: grayscale(0.4);
 }
 
 .mobile-trainer {
+  /* Fine-pointer presets are wide keys; coarse presets are square jab targets.
+     Either way six controls occupy 42u, keeping the row's spacing rhythm stable. */
+  --trainer-preset-inline: calc(2 * var(--glass-target));
   position: relative;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
@@ -65,6 +76,20 @@
   overflow: hidden;
   background: var(--ht-colour-surface-page);
   color: var(--ht-colour-text-primary);
+}
+
+.mobile-trainer button,
+.mobile-trainer input,
+.mobile-trainer textarea,
+.mobile-trainer select {
+  /* A tap is activation/editing, not a request for browser double-tap zoom.
+     Pinch zoom remains available because `manipulation` only removes gestures
+     such as double-tap-to-zoom. */
+  touch-action: manipulation;
+}
+
+:root[data-glass-pointer="coarse"] .mobile-trainer {
+  --trainer-preset-inline: var(--glass-target);
 }
 
 .trainer-page-layer--rail .mobile-trainer__header,
@@ -82,18 +107,17 @@
 
 .mobile-trainer__header {
   display: grid;
-  grid-template-columns: minmax(2.75rem, auto) 1fr minmax(2.75rem, auto);
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
+  gap: 0.75rem;
   min-height: 3.5rem;
   padding: 0.5rem max(1rem, env(safe-area-inset-right)) 0.5rem max(1rem, env(safe-area-inset-left));
   border-bottom: 1px solid var(--ht-control-border-quiet);
 }
 
-.mobile-trainer__header-title {
-  grid-column: 2;
-  text-align: center;
-  font-size: var(--ht-type-panel-title-size);
-  font-weight: var(--ht-type-surface-title-weight);
+.mobile-trainer__header-name {
+  display: grid;
+  min-width: 0;
 }
 
 .mobile-trainer__back {
@@ -107,6 +131,14 @@
   color: inherit;
   font: inherit;
   font-size: min(2rem, calc(2.5 * var(--glass-u)));
+}
+
+.trainer-page-layer--rail .mobile-trainer__header {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.trainer-page-layer--rail .mobile-trainer__back {
+  display: none;
 }
 
 .mobile-trainer__body {
@@ -177,7 +209,6 @@
   min-width: 0;
 }
 
-.mobile-trainer__field,
 .mobile-trainer__club,
 .mobile-trainer__cloud {
   display: grid;
@@ -207,6 +238,7 @@
   background: transparent;
   color: inherit;
   font: inherit;
+  font-size: var(--ht-type-editable-title-size);
   font-weight: var(--ht-type-panel-title-weight);
 }
 
@@ -250,7 +282,7 @@
 }
 
 .mobile-trainer .playstyle-presets {
-  grid-template-columns: repeat(6, var(--glass-target));
+  grid-template-columns: repeat(6, var(--trainer-preset-inline));
   justify-content: space-between;
   gap: 0;
 }
@@ -258,17 +290,64 @@
 .mobile-trainer .playstyle-preset {
   display: grid;
   box-sizing: border-box;
-  grid-template-columns: 1fr;
+  grid-template-columns: var(--glass-target) var(--glass-target);
   place-items: center;
-  width: var(--glass-target);
+  width: var(--trainer-preset-inline);
   height: var(--glass-target);
   min-width: 0;
   min-height: 0;
   padding: 0.4rem;
 }
 
+:root[data-glass-pointer="coarse"] .mobile-trainer .playstyle-preset {
+  grid-template-columns: 1fr;
+}
+
 .mobile-trainer .playstyle-preset__icon img {
+  width: calc(2.5 * var(--glass-u));
+}
+
+.mobile-trainer .playstyle-preset--active {
+  position: relative;
+  background: var(--ht-control-bg);
+}
+
+.mobile-trainer .playstyle-preset--active.playstyle-preset--selected {
+  border-color: var(--ht-control-selected-border);
+  box-shadow: inset 0 0 0 1px
+    color-mix(in srgb, var(--ht-colour-interactive) 70%, transparent);
+}
+
+.mobile-trainer .playstyle-preset--active::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: calc((var(--glass-target) - 0.56 * var(--glass-u)) / 2);
+  width: calc(0.56 * var(--glass-u));
+  height: calc(0.56 * var(--glass-u));
+  border: 1px solid color-mix(in srgb, var(--ht-colour-interactive) 72%, white);
+  border-radius: 50%;
+  background: var(--ht-colour-interactive);
+  box-shadow:
+    0 0 calc(0.25 * var(--glass-u)) var(--ht-colour-interactive),
+    0 0 calc(0.6 * var(--glass-u)) color-mix(in srgb, var(--ht-colour-interactive) 48%, transparent);
+  transform: translateY(-50%);
+}
+
+:root[data-glass-pointer="coarse"] .mobile-trainer .playstyle-preset__icon img {
   width: min(2.75rem, 100%);
+}
+
+:root[data-glass-pointer="coarse"] .mobile-trainer .playstyle-preset--active {
+  border-color: var(--ht-control-selected-border);
+  background: var(--ht-control-bg);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--ht-colour-interactive) 70%, transparent),
+    0 0 calc(0.5 * var(--glass-u)) color-mix(in srgb, var(--ht-colour-interactive) 34%, transparent);
+}
+
+:root[data-glass-pointer="coarse"] .mobile-trainer .playstyle-preset--active::before {
+  display: none;
 }
 
 /* The expanded detail immediately below supplies the selected style's name,
@@ -276,28 +355,6 @@
    mode selector, so repeating that copy inside every touch target is noise. */
 .mobile-trainer .playstyle-preset__copy {
   display: none;
-}
-
-.mobile-trainer__size-debug {
-  display: grid;
-  gap: 0.25rem;
-  padding: 0.55rem 0.7rem;
-  border: 1px dashed color-mix(in srgb, #ffcc4d 58%, transparent);
-  border-radius: var(--ht-control-radius-soft);
-  background: color-mix(in srgb, #ffcc4d 8%, Canvas);
-  color: color-mix(in srgb, #ffdf80 86%, currentColor);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 0.68rem;
-  line-height: 1.45;
-}
-
-.mobile-trainer__size-debug-title {
-  font-weight: 800;
-  letter-spacing: 0.08em;
-}
-
-.mobile-trainer__size-debug-values {
-  color: inherit;
 }
 
 .mobile-trainer__playstyle-detail {
@@ -315,9 +372,14 @@
   width: 4rem;
   height: 4rem;
   object-fit: contain;
-  border: 1px solid var(--ht-control-selected-border);
+  border: 1px solid color-mix(in srgb, var(--ht-colour-interactive) 82%, white 18%);
   border-radius: 0.55rem;
-  background: var(--ht-control-selected-bg);
+  background: transparent;
+  box-shadow:
+    inset 0 0 calc(0.3 * var(--glass-u))
+      color-mix(in srgb, var(--ht-colour-interactive) 18%, transparent),
+    0 0 calc(0.55 * var(--glass-u))
+      color-mix(in srgb, var(--ht-colour-interactive) 42%, transparent);
 }
 
 .mobile-trainer__style-title {
@@ -373,19 +435,29 @@
 
 .mobile-trainer__actions {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.75rem;
   padding: 0.75rem max(1rem, env(safe-area-inset-right))
     max(0.75rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
   border-top: 1px solid var(--ht-control-border-quiet);
 }
 
+.trainer-page-layer--rail .mobile-trainer__actions {
+  display: flex;
+  justify-content: center;
+}
+
 .mobile-trainer__action {
   min-height: var(--glass-target);
+  padding-inline: calc(1.75 * var(--glass-u));
   border-radius: var(--ht-control-radius-soft);
   color: inherit;
   font: inherit;
   font-weight: var(--ht-type-surface-title-weight);
+}
+
+.trainer-page-layer--rail .mobile-trainer__action {
+  min-width: calc(8.63 * var(--glass-u));
 }
 
 .mobile-trainer__action--quiet {
@@ -400,6 +472,7 @@
 
 .mobile-trainer__action:disabled {
   opacity: 0.45;
+  cursor: not-allowed;
 }
 
 @media (max-width: 600px) {

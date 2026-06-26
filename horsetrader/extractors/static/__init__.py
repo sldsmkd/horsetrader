@@ -9,6 +9,7 @@ from . import banners as _banners
 from . import champions_meetings as _champions_meetings
 from . import golden_week as _golden_week
 from . import main_story as _main_story
+from . import marketing as _marketing
 from . import new_year as _new_year
 from . import legend_races as _legend_races
 from . import misc as _misc
@@ -79,6 +80,14 @@ class Static(metaclass=SingletonMeta):
         and an 'en' key (dict | None) with the EN period + source when shipped.
         """
         return _golden_week.load()
+
+    def marketing_holidays(self) -> list[dict]:
+        """Marketing tie-in launches (`holiday-marketing-*`), consolidated JP + EN.
+
+        Same record shape as Golden Week: key, name, JP period, source, optional
+        baked-shape rewards, optional banner URL, and optional EN period + source.
+        """
+        return _marketing.load()
 
     def new_years(self) -> list[dict]:
         """New Year launches (`holiday-new-year-*`), consolidated JP + EN.
