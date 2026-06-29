@@ -107,10 +107,7 @@
 .playstyle-preset__caption {
   min-width: 0;
   color: color-mix(in srgb, currentColor 64%, transparent);
-  /* Sub-token: the compact preview's copy column only fits ~two short words a line, so the
-     flavour caption sits just below the micro token (the full description is in the side
-     window). Clamped to two lines so a long caption can't grow the button to three. */
-  font-size: calc(0.72 * var(--glass-u));
+  font-size: var(--ht-type-micro-size);
   line-height: var(--ht-type-micro-line);
   text-transform: uppercase;
   display: -webkit-box;

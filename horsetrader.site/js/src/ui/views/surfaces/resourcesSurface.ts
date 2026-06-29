@@ -47,15 +47,13 @@ export interface ResourcesSurfaceHandle {
   fit(): void;
 }
 
-/** Shrink the carat hero number to fit the fixed-width card. The display font is sized
- *  for normal balances (5–6 digits); a large one would overflow, so we measure and scale
- *  the font down by the overflow ratio — one pass, big for normal values, smaller only
- *  when needed. Pure CSS can't size text to its own length, hence the measure. No-op until
- *  the element is laid out (in the DOM). */
+/** Shrink the carat headline only when an unusually long balance exceeds its row.
+ *  Pure CSS can't size text to its own length, hence the measure. No-op until the
+ *  element is laid out (in the DOM). */
 function fitCaratTotal(readout: HTMLElement): void {
   const total = readout.querySelector<HTMLElement>(".resources-surface__carat-total");
   if (!total) return;
-  total.style.fontSize = ""; // reset to the CSS display size before measuring
+  total.style.fontSize = ""; // reset to the CSS headline size before measuring
   const text = total.scrollWidth; // full number width (nowrap)
   const box = total.clientWidth; // the space the flex row leaves it
   if (box > 0 && text > box) {

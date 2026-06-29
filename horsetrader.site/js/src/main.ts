@@ -8,6 +8,7 @@
 
 // Global shell + tokens; each view co-locates its own styles (ui/**/*.css).
 import "../../css/palette.css";
+import "../../css/tosen.css";
 import "../../css/typography.css";
 import "../../css/controls.css";
 import "../../css/base.css";
@@ -29,6 +30,9 @@ import type { ConfigBundle } from "./core/bundle/config.gen.ts";
 import type { BakeStats } from "./core/bundle/stats.gen.ts";
 import type { ImagesBundle } from "./core/bundle/images.gen.ts";
 import { initImages } from "./ui/image.ts";
+import { installEditControlBehavior } from "./ui/editControl.ts";
+
+installEditControlBehavior();
 
 async function fetchJson<T>(path: string): Promise<T> {
   const response = await fetch(path, { cache: "no-store" });

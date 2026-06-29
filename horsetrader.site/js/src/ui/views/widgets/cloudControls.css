@@ -18,7 +18,9 @@
   justify-content: center;
   min-height: var(--glass-target);
   font: inherit;
-  font-weight: 700;
+  font-size: var(--ht-type-focus-text-size);
+  font-weight: var(--ht-type-focus-text-weight);
+  line-height: var(--ht-type-focus-text-line);
   padding: 0 calc(1.25 * var(--glass-u));
   border-radius: var(--ht-control-radius);
   border: 1px solid var(--ht-control-border);
@@ -47,6 +49,5 @@
 
 .cloud-controls__status {
   margin: 0;
-  font-size: var(--ht-type-caption-size);
   opacity: 0.65;
 }

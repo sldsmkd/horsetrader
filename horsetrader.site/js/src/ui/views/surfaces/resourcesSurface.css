@@ -55,9 +55,9 @@
 }
 
 .resources-surface__carat-total {
-  font-size: var(--ht-type-number-display-size);
-  font-weight: var(--ht-type-number-display-weight);
-  line-height: var(--ht-type-number-line);
+  font-size: var(--ht-type-headline-text-size);
+  font-weight: var(--ht-type-headline-text-weight);
+  line-height: var(--ht-type-headline-text-line);
   font-variant-numeric: tabular-nums;
   /* The hero number stays on one line and may shrink to fit the fixed-width card
      (fitCaratTotal measures and reduces the font for large balances); min-width:0 lets

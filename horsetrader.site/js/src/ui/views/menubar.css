@@ -19,6 +19,9 @@
   border-radius: var(--glass-radius);
   background: var(--glass-bg);
   box-shadow: var(--glass-shadow);
+  font-size: var(--ht-type-focus-text-size);
+  font-weight: var(--ht-type-focus-text-weight);
+  line-height: var(--ht-type-focus-text-line);
   pointer-events: none;
   transform: translateX(-50%);
   backdrop-filter: var(--glass-blur);
@@ -161,7 +164,6 @@
 
 .menubar__identity-name {
   overflow: hidden;
-  font-weight: var(--ht-type-control-weight);
   text-overflow: ellipsis;
   white-space: nowrap;
 }

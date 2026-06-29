@@ -26,7 +26,7 @@ import { focusIndex } from "../select/filmstrip.ts";
 import type { FilmFrame } from "../select/filmstrip.ts";
 
 /** The strip's geometry rides the glass plane (Grand Masters): the frame follows the
- *  glass target and the gap is a `--glass-u-base` multiple declared in the CSS
+ *  glass target and the gap is a `--glass-u-device-calibration` multiple declared in the CSS
  *  (`--fs-frame`/`--fs-gap`). The view resolves them to px (the calibration bridge)
  *  on every refresh — i.e. on resize — and the equidistant-step math reads the
  *  resolved values, never a literal. */

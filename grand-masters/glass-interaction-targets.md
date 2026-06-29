@@ -32,6 +32,7 @@ remain Golshi geometry and are projected by the camera.
   --glass-target-fine: calc(3.5 * var(--glass-u));
   --glass-target-coarse: calc(7 * var(--glass-u));
   --glass-target: var(--glass-target-fine);
+  --glass-control-type-size: calc(var(--glass-target) / 3);
 }
 
 :root[data-glass-pointer="coarse"] {
@@ -42,6 +43,11 @@ remain Golshi geometry and are projected by the camera.
 There should be one glass ruler: `--glass-u`. Interaction targets and surface
 geometry both derive from it.
 
+Readable text that must scale with the active interaction target, such as an
+input inside chrome, consumes `--glass-control-type-size`. That ratio belongs to
+the same capability contract as `--glass-target`: fine pointer resolves from the
+`3.5u` target, coarse pointer resolves from the `7u` target.
+
 ### Canonical glass ruler
 
 The former menubar rail override of `--glass-u` has been removed. It was hidden
@@ -49,14 +55,15 @@ per-surface scaling: two elements described as `7u` could resolve to different
 physical sizes depending on their ancestor. Constrained surfaces now keep the
 canonical ruler and must fit through layout rather than silently changing scale.
 
-`--glass-u-base` remains as the root device-calibration/measurement bridge used
+`--glass-u-device-calibration` remains as the root device-calibration/measurement bridge used
 by fixed chrome calculations; `--glass-u` is the single public surface unit.
 
 - [x] Inventory every assignment to `--glass-u` outside the root declaration.
 - [x] Remove local `--glass-u` overrides, beginning with the menubar rail.
 - [x] Make constrained surfaces fit through layout, reflow, or an alternate
   representation rather than a private unit scale.
-- [ ] Collapse `--glass-u-base` and `--glass-u` into one canonical public unit if
+- [x] Rename `--glass-u-base` to `--glass-u-device-calibration` so the bridge's job is explicit.
+- [ ] Collapse `--glass-u-device-calibration` and `--glass-u` into one canonical public unit if
   no remaining measurement bridge requires both names.
 - [x] Add a guard that rejects non-root declarations of `--glass-u`.
 
@@ -145,7 +152,7 @@ square icon controls.
 | `.menubar__balance` | Resource readout | minimum block size | Width remains content-driven. |
 | `.search-box__input` | Search field | minimum block size | Confirm coarse expansion still fits the menubar representation. |
 | `.search-box__result` | Search result | minimum block size | Complete result row is clickable. |
-| `.filmstrip__frame` | Timeline warp face | exact square | Current fine size is `3.75u-base`; normalising to `3.5u` is a small reduction. Six-plus `7u` frames may require coarse scrolling/packing review. |
+| `.filmstrip__frame` | Timeline warp face | exact square | Current fine size is `3.75` device-calibrated units; normalising to `3.5u` is a small reduction. Six-plus `7u` frames may require coarse scrolling/packing review. |
 
 - [x] Migrate shared `.menubar__button` geometry where possible, with pill
   exceptions remaining width-driven.

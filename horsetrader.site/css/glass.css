@@ -35,11 +35,11 @@
      CSS px already fold in DPR, so the unit stays DPR-agnostic.
      EYE-TUNE: Kh/Kw/floor/ceiling are the calibration knobs — verify sizes read right
      at the dev aperture and bend sanely on a phone. */
-  --glass-u-base: clamp(7px, min(1svh, 2svw), 20px);
+  --glass-u-device-calibration: clamp(7px, min(1svh, 2svw), 20px);
 
   /* The canonical public glass ruler. It is declared once at the root; constrained
      surfaces must fit through layout or reflow rather than private unit scaling. */
-  --glass-u: var(--glass-u-base);
+  --glass-u: var(--glass-u-device-calibration);
 
   /* Discrete interaction targets on the glass plane. The border box grows with
      the primary pointer's precision; glyphs and other optical children keep
@@ -47,6 +47,12 @@
   --glass-target-fine: calc(3.5 * var(--glass-u));
   --glass-target-coarse: calc(7 * var(--glass-u));
   --glass-target: var(--glass-target-fine);
+  --glass-control-type-size: calc(var(--glass-target) / 3);
+
+  /* Optical type presentation is distinct from interaction geometry. Fine
+     presentation reads directly from glass-u; coarse presentation gets its
+     own calibrated ruler so focus/headline hierarchy survives at phone scale. */
+  --glass-type-presentation-u: var(--glass-u);
 
   /* The depth ladder — one declared back→front paint order, replacing scattered
      per-component z-index. Modality (whether a surface is locked) is a SEPARATE axis,
@@ -92,4 +98,5 @@
 
 :root[data-glass-pointer="coarse"] {
   --glass-target: var(--glass-target-coarse);
+  --glass-type-presentation-u: calc(1.697 * var(--glass-u));
 }

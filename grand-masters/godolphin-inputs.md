@@ -69,8 +69,8 @@ Important calls:
 - A landscape phone is still coarse; a large iPad rail is still coarse.
 - Root placement matters because some glass surfaces mount outside `#app`.
 
-This produced shared `--glass-target-fine`, `--glass-target-coarse`, and
-`--glass-target` tokens.
+This produced shared `--glass-target-fine`, `--glass-target-coarse`,
+`--glass-target`, and target-derived `--glass-control-type-size` tokens.
 
 ### One ruler means one ruler
 
@@ -231,6 +231,12 @@ The proof-point fix is:
 This corrected an initially too-local solution (`max(16px, …)` in Trainer CSS).
 The browser constraint is real, but the answer belongs in the typography
 vocabulary rather than scattered component exceptions.
+
+The same rule now covers the menubar. Search inherits the menubar's
+`--menubar-control-type-size`, which aliases Godolphin's
+`--glass-control-type-size`: one third of the current `--glass-target`. The
+desktop bar therefore uses the fine target ratio, and the phone bar uses the
+coarse target ratio so the search field stays above the iOS focus-zoom floor.
 
 Open work:
 

@@ -24,14 +24,14 @@ too far out — that is Godolphin.
 Byerley's abstract-first work paid out larger than scoped, and it **shrinks Darley to
 something surgical**, not a grounding sweep. The as-built that reshaped this brief:
 
-- **The shim is already a viewport unit.** `--glass-u-base: 1vh`
+- **The shim is already a viewport unit.** `--glass-u-device-calibration: 1vh`
   ([css/glass.css](../horsetrader.site/css/glass.css)) means the whole glass plane is
   *already* responsive through the comfortable middle of the display range — which is
   why the site became near-fully usable on a phone before Godolphin (Part 3) started.
   Darley does not *make it responsive*; she makes the naive single-axis map **honest at
   the extremes** (where pure `1vh` lies) and derives the limits.
 - **The "one knob" is real.** [css/base.css](../horsetrader.site/css/base.css) routes
-  the entire chrome tier through `--glass-u-base`. So "resolve `--glass-u` to px" is now
+  the entire chrome tier through `--glass-u-device-calibration`. So "resolve `--glass-u` to px" is now
   literally **one `:root` expression swap**, not a sweep.
 - **The camera already reads the viewport live.** `panBounds` / `panBoundsY` read
   `clientWidth` / `clientHeight` each call

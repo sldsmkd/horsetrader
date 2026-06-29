@@ -77,8 +77,8 @@
 
 .onboarding__blurb {
   margin: 0;
-  font-size: 0.9rem;
-  line-height: 1.4;
+  font-size: var(--ht-type-control-size);
+  line-height: var(--ht-type-body-line);
 }
 
 .onboarding__actions {
@@ -94,7 +94,7 @@
   background: none;
   padding: 0.2rem 0.3rem;
   font: inherit;
-  font-size: 0.82rem;
+  font-size: var(--ht-type-caption-size);
   color: color-mix(in srgb, var(--ht-colour-text-primary) 55%, transparent);
   cursor: pointer;
 }
@@ -109,8 +109,8 @@
   border-radius: 0.45rem;
   padding: 0.4rem 0.9rem;
   font: inherit;
-  font-weight: 600;
-  font-size: 0.85rem;
+  font-weight: var(--ht-type-control-weight);
+  font-size: var(--ht-type-control-size);
   color: var(--ht-colour-text-on-accent);
   background: var(--ht-colour-interactive);
   cursor: pointer;

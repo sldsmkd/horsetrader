@@ -111,6 +111,8 @@ work, not a coin-flip "trim vs scale" decision.
 
 ## Reference
 
+- Typography architecture:
+  [typography.md](typography.md)
 - Timeline camera / conversion spine:
   [../horsetrader.site/js/src/ui/views/timeline.ts](../horsetrader.site/js/src/ui/views/timeline.ts)
 - Z-band mount order (the current implicit depth ladder):

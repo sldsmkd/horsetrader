@@ -45,8 +45,12 @@ function styleFor(key: PlayStyleKey): (typeof PLAY_STYLES)[number] {
 
 function trainerNameInput(opts: TrainerPageOpts): HTMLInputElement {
   const input = h("input", {
-    class: "mobile-trainer__name",
-    attr: { type: "text", value: opts.trainerName, "aria-label": "Trainer name" },
+    class: "mobile-trainer__name ht-type-headline-text ht-type-edit-control",
+    attr: {
+      type: "text",
+      value: opts.trainerName,
+      "aria-label": "Trainer name",
+    },
   });
   input.addEventListener("input", () => {
     const clean = normaliseName(input.value, TRAINER_NAME_MAX);
@@ -61,7 +65,9 @@ function trainerNameInput(opts: TrainerPageOpts): HTMLInputElement {
     if (name !== opts.trainerName) opts.onTrainerNameChange(name);
   };
   input.addEventListener("change", commit);
-  input.addEventListener("blur", commit);
+  input.addEventListener("blur", () => {
+    commit();
+  });
   input.addEventListener("keydown", (event) => {
     if (event.key === "Enter") {
       event.preventDefault();

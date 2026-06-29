@@ -66,6 +66,7 @@
   /* Fine-pointer presets are wide keys; coarse presets are square jab targets.
      Either way six controls occupy 42u, keeping the row's spacing rhythm stable. */
   --trainer-preset-inline: calc(2 * var(--glass-target));
+  --trainer-playstyle-glyph: calc(2.5 * var(--glass-u));
   position: relative;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
@@ -184,9 +185,9 @@
   inset: auto 0 0;
   padding: 3rem 0.75rem 0.75rem;
   background: linear-gradient(to top, rgba(0, 0, 0, 0.82), transparent);
-  font-size: var(--ht-type-panel-title-size);
-  font-weight: var(--ht-type-surface-title-weight);
-  line-height: 1.1;
+  font-size: var(--ht-type-focus-text-size);
+  font-weight: var(--ht-type-focus-text-weight);
+  line-height: var(--ht-type-focus-text-line);
   overflow-wrap: anywhere;
 }
 
@@ -222,9 +223,9 @@
 .mobile-trainer__field-label,
 .mobile-trainer__section-title,
 .mobile-trainer__settings-title {
-  font-size: var(--ht-type-label-size);
   font-weight: var(--ht-type-label-weight);
   letter-spacing: var(--ht-type-label-spacing);
+  line-height: var(--ht-type-label-line);
   text-transform: uppercase;
 }
 
@@ -237,9 +238,6 @@
   border-bottom: 1px solid var(--ht-control-border);
   background: transparent;
   color: inherit;
-  font: inherit;
-  font-size: var(--ht-type-editable-title-size);
-  font-weight: var(--ht-type-panel-title-weight);
 }
 
 .mobile-trainer__club {
@@ -255,7 +253,9 @@
   justify-content: space-between;
   gap: 0.5rem;
   min-width: 0;
-  font-weight: var(--ht-type-control-weight);
+  font-size: var(--ht-type-focus-text-size);
+  font-weight: var(--ht-type-focus-text-weight);
+  line-height: var(--ht-type-focus-text-line);
 }
 
 .mobile-trainer__club-value img {
@@ -304,7 +304,7 @@
 }
 
 .mobile-trainer .playstyle-preset__icon img {
-  width: calc(2.5 * var(--glass-u));
+  width: var(--trainer-playstyle-glyph);
 }
 
 .mobile-trainer .playstyle-preset--active {
@@ -335,7 +335,7 @@
 }
 
 :root[data-glass-pointer="coarse"] .mobile-trainer .playstyle-preset__icon img {
-  width: min(2.75rem, 100%);
+  width: var(--trainer-playstyle-glyph);
 }
 
 :root[data-glass-pointer="coarse"] .mobile-trainer .playstyle-preset--active {
@@ -363,15 +363,16 @@
 
 .mobile-trainer__style-mast {
   display: grid;
-  grid-template-columns: 4rem minmax(0, 1fr);
+  grid-template-columns: var(--glass-target) minmax(0, 1fr);
   align-items: center;
   gap: 0.85rem;
 }
 
 .mobile-trainer__style-mast img {
-  width: 4rem;
-  height: 4rem;
+  width: var(--glass-target);
+  height: var(--glass-target);
   object-fit: contain;
+  padding: calc((var(--glass-target) - var(--trainer-playstyle-glyph)) / 2);
   border: 1px solid color-mix(in srgb, var(--ht-colour-interactive) 82%, white 18%);
   border-radius: 0.55rem;
   background: transparent;
@@ -383,16 +384,18 @@
 }
 
 .mobile-trainer__style-title {
-  font-size: var(--ht-type-surface-title-size);
-  line-height: 1;
+  font-size: var(--ht-type-headline-text-size);
+  font-weight: var(--ht-type-headline-text-weight);
+  line-height: var(--ht-type-headline-text-line);
   text-transform: uppercase;
 }
 
 .mobile-trainer__style-caption {
   margin-top: 0.25rem;
   color: color-mix(in srgb, currentColor 76%, transparent);
-  font-size: var(--ht-type-panel-title-size);
-  font-weight: var(--ht-type-panel-title-weight);
+  font-size: var(--ht-type-focus-text-size);
+  font-weight: var(--ht-type-focus-text-weight);
+  line-height: var(--ht-type-focus-text-line);
 }
 
 .mobile-trainer__style-shape,
@@ -453,7 +456,9 @@
   border-radius: var(--ht-control-radius-soft);
   color: inherit;
   font: inherit;
-  font-weight: var(--ht-type-surface-title-weight);
+  font-size: var(--ht-type-focus-text-size);
+  font-weight: var(--ht-type-focus-text-weight);
+  line-height: var(--ht-type-focus-text-line);
 }
 
 .trainer-page-layer--rail .mobile-trainer__action {

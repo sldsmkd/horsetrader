@@ -58,6 +58,7 @@
   top: 0;
   bottom: 0;
   left: 0;
+  --ht-type-u: calc(var(--world-golshi) / 7);
   /* width is set inline from the axis extent */
   will-change: transform;
   /* Zoom pivots about the left edge horizontally (so contentToScreenX stays

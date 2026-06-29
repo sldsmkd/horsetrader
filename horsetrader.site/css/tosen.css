@@ -1,0 +1,54 @@
+/* Tosen Jordan -- the master typographic styleguide.
+
+   These are the sanctioned optical tiers for ordinary glass presentation.
+   Components inherit normal text and opt into focus or headline only when the
+   design calls for a stronger reading level. Editability composes separately;
+   it never invents another visual tier. */
+:root {
+  --ht-font-family-ui: system-ui, sans-serif;
+
+  --ht-type-normal-text-size: calc(1.2 * var(--glass-type-presentation-u));
+  --ht-type-normal-text-line: 1.35;
+  --ht-type-normal-text-weight: 400;
+  --ht-type-natural-size: var(--ht-type-normal-text-size);
+
+  --ht-type-focus-text-size: calc(1.375 * var(--glass-type-presentation-u));
+  --ht-type-focus-text-line: 1.15;
+  --ht-type-focus-text-weight: 700;
+
+  --ht-type-headline-text-size: calc(1.8 * var(--glass-type-presentation-u));
+  --ht-type-headline-text-line: 1.05;
+  --ht-type-headline-text-weight: 800;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+.ht-type-normal-text {
+  --ht-type-natural-size: var(--ht-type-normal-text-size);
+  font-size: var(--ht-type-normal-text-size);
+  font-weight: var(--ht-type-normal-text-weight);
+  line-height: var(--ht-type-normal-text-line);
+}
+
+.ht-type-focus-text {
+  --ht-type-natural-size: var(--ht-type-focus-text-size);
+  font-size: var(--ht-type-focus-text-size);
+  font-weight: var(--ht-type-focus-text-weight);
+  line-height: var(--ht-type-focus-text-line);
+}
+
+.ht-type-headline-text {
+  --ht-type-natural-size: var(--ht-type-headline-text-size);
+  font-size: var(--ht-type-headline-text-size);
+  font-weight: var(--ht-type-headline-text-weight);
+  line-height: var(--ht-type-headline-text-line);
+}
+
+:root[data-glass-pointer="coarse"] .ht-type-edit-control {
+  font-size: max(var(--ht-type-natural-size, 1em), var(--glass-control-type-size));
+}

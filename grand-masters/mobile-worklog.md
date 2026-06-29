@@ -142,7 +142,7 @@ selector. It measures the browser's painted geometry:
 
 - selector icon width/height in CSS px;
 - selector touch-target width/height in CSS px;
-- locally resolved `--glass-u` and `--glass-u-base` in CSS px;
+- locally resolved `--glass-u` and `--glass-u-device-calibration` in CSS px;
 - icon and target dimensions expressed as multiples of `glass-u`;
 - viewport CSS dimensions and device-pixel ratio.
 
@@ -157,7 +157,7 @@ the physical quantity the browser actually resolved.
 The current Darley expression is:
 
 ```css
---glass-u-base: clamp(7px, min(1svh, 2svw), 20px);
+--glass-u-device-calibration: clamp(7px, min(1svh, 2svw), 20px);
 ```
 
 On the measured iPhone's narrow portrait aperture, the result is expected to sit
@@ -184,7 +184,7 @@ Measured portrait aperture: `390 × 699` CSS px at DPR `3`.
 | Quantity | CSS px | Resolved unit |
 | --- | ---: | ---: |
 | `--glass-u` | 7.0 | `1u` |
-| `--glass-u-base` | 7.0 | `1u` |
+| `--glass-u-device-calibration` | 7.0 | `1u` |
 | Selector target width | 53.7 | `7.67u` |
 | Selector target height | 56.0 | `8.00u` |
 
@@ -224,8 +224,8 @@ the image itself is not a separate hit target.
 | Banner support-type pip | Trailing attribute image inside the same full atom chip | same chip target; pip fills chip height as a square | **not a separate target**; same world-plane caveat |
 | Plan-row content face | Compact atom-chip button in the Desk (`.plan .atom-chip--compact`) | `--plan-cell: 3.625u`, square | **`3.625u²`** |
 | Plan-row coloured date/pity box | Plan commitment button (`.plan__badge` / `.plan-commit`) | same `--plan-cell: 3.625u`, square | **`3.625u²`** |
-| Filmstrip grey face | Filmstrip frame button (`.filmstrip__frame`) | `--fs-frame: 3.75u-base`, square | **`3.75u-base²`** |
-| Filmstrip coloured face | Same filmstrip frame in a different commitment state | same | **`3.75u-base²`** |
+| Filmstrip grey face | Filmstrip frame button (`.filmstrip__frame`) | `--fs-frame: 3.75` device-calibrated units, square | **`3.75²` device-calibrated units** |
+| Filmstrip coloured face | Same filmstrip frame in a different commitment state | same | **`3.75²` device-calibrated units** |
 
 ### World-plane conversion
 
@@ -282,7 +282,7 @@ Convert a dimension to glass-u when the control belongs to the orthographic
 glass plane:
 
 - menubar controls — already glass-u;
-- filmstrip — already `glass-u-base`;
+- filmstrip — already `glass-u-device-calibration`;
 - Desk compact atom and commitment cells — migrated from `2.9rem` to
   **`3.625u`** during this survey.
 

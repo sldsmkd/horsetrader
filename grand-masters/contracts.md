@@ -160,11 +160,13 @@ viewport − persistent chrome reservation, resolved as `--glass-aperture-h` (`c
 A literal rectangle that gives the camera an honest height to fit into — not a renderer (no
 occlusion/visibility negotiation).
 
-**C-D2 · `--glass-u` is height-led, width-vetoed, px-clamped.** `--glass-u-base: clamp(7px,
-min(1svh, 2svw), 20px)` (`css/glass.css`). Height is the sole scale axis; the width term only
-*vetoes* (catches narrow-tall phones); `svh`/`svw`, never `dvh` (dvh reflows as the mobile
-toolbar slides). `--glass-u: var(--glass-u-base)` is the local surface unit (rail dropdown
-overrides it locally to shrink dimensionally). floor/ceiling are calibrated product limits.
+**C-D2 · `--glass-u` is height-led, width-vetoed, px-clamped.** The root device bridge is
+`--glass-u-device-calibration: clamp(7px, min(1svh, 2svw), 20px)` (`css/glass.css`).
+Height is the sole scale axis; the width term only *vetoes* (catches narrow-tall phones);
+`svh`/`svw`, never `dvh` (dvh reflows as the mobile toolbar slides). The public glass ruler is
+`--glass-u: var(--glass-u-device-calibration)`, declared once at root; constrained surfaces fit
+through layout, reflow, or alternate representation rather than redefining the ruler.
+floor/ceiling are calibrated product limits.
 
 **C-D3 · `zMin` is derived; `zMax` is feel.** `zFit = apertureHeightPx() / world-vertical-
 extent`; `zMin = max(Z_FIT_FLOOR, min(Z_MIN_BASE, zFit))` (`timeline.ts setContentDepth`) —
@@ -219,6 +221,11 @@ keyboard reconcile below) is an *input to the cutoff*, not separate machinery.
 cuts across both representations. Mechanism: enforce a touch-target minimum (44 CSS px / Apple
 HIG, 48dp / Material), expand hit-areas beyond the visual icon, swap hover-only affordances for
 tap. Darley supplies the px facts; Godolphin consumes the pointer capability to drive it.
+The stable glass hooks are `--glass-target-fine`, `--glass-target-coarse`, and
+`--glass-target` (`css/glass.css`). Text that must scale with the active control
+target consumes `--glass-control-type-size` (`--glass-target / 3`), so the same
+semantic control can read from fine `3.5u` on mouse and coarse `7u` on touch
+without component-local responsive font rules.
 
 **Physical device size is NOT derivable — and not needed.** Physical PPI is not exposed (privacy),
 and CSS px is *angular*, not physical, so `CSS-px / 96` lies on phones (F11: iPhone reads 390 CSS

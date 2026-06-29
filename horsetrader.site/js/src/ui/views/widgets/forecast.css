@@ -23,9 +23,7 @@
 }
 
 .forecast__pct {
-  /* Sub-token chart label — below the smallest type token, so it measures in
-     glass-u directly (0.6rem × 1.25) to ride the plane with everything else. */
-  font-size: calc(0.75 * var(--glass-u));
+  font-size: var(--ht-type-micro-size);
   font-variant-numeric: tabular-nums;
   opacity: 0.6;
   min-height: var(--glass-u);
@@ -54,8 +52,7 @@
 }
 
 .forecast__count {
-  /* Sub-token too — glass-u directly (0.66rem × 1.25). */
-  font-size: calc(0.825 * var(--glass-u));
+  font-size: var(--ht-type-micro-size);
   opacity: 0.65;
   font-variant-numeric: tabular-nums;
 }

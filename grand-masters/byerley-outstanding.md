@@ -65,17 +65,15 @@ across 32 CSS files + the `surface--modal` bugfix.
      with the plane — confirm sizes read right at the dev calibration.**
 
 2. **Finishing-pass items — now unblocked by #1:**
-   - **a. Retire the rail-card `zoom` — DONE 2026-06-20.** `zoom` is gone from the glass
-     plane. glass.css now splits the unit: `--glass-u-base` (authoritative, the shim) and
-     `--glass-u: var(--glass-u-base)` (the local surface unit). The dropdown rail
-     ([surface.css](../horsetrader.site/js/src/ui/views/surfaces/surface.css)) sets a local
-     `--glass-u: calc(var(--chrome-dropdown-u-scale) * var(--glass-u-base))` (0.8×) on the
-     rail cards, so they shrink *dimensionally* — genuinely smaller, not zoomed. The
-     misnamed `--chrome-dropdown-zoom` token → `--chrome-dropdown-u-scale`. Chrome-frame +
-     clearance tokens ([base.css](../horsetrader.site/css/base.css)) now read
-     `--glass-u-base`, so a rail card's local shrink can never perturb the fixed chrome or
-     its viewport-clearance math. **Eyeball gate: confirm the menubar dropdowns still shrink
-     correctly off their pinned edges.**
+   - **a. Retire the rail-card `zoom` — DONE 2026-06-20; local-ruler variant superseded
+     with extreme prejudice 2026-06-26.** `zoom` is gone from the glass plane. The
+     intermediate local-ruler approach (`--glass-u` redefined under the dropdown rail) was
+     killed during the Godolphin target pass as a unit-contract violation: two controls
+     described as `7u` must not resolve to different physical sizes by ancestry. Current
+     shape: `--glass-u-device-calibration` is the root device bridge,
+     `--glass-u: var(--glass-u-device-calibration)` is the public glass ruler, and a guard
+     rejects non-root `--glass-u` declarations. Constrained surfaces fit through layout,
+     reflow, scrolling, or alternate representation rather than private unit scaling.
    - **c. Chrome sizing-token layer → glass-u — DONE 2026-06-20.** The chrome frame
      ([base.css](../horsetrader.site/css/base.css)) now measures entirely in `--glass-u`:
      `--timeline-chrome-height` (was the lone fixed `64px`), `-gap`, `-max-width`, and the
@@ -109,7 +107,7 @@ across 32 CSS files + the `surface--modal` bugfix.
 ## Seams — explicitly NOT Byerley
 
 - **Darley (Part 2) — DONE 2026-06-21 (merged + deployed).** Real `--glass-u` px derivation
-  (the shim became `--glass-u-base: clamp(7px, min(1svh, 2svw), 20px)`), responsive zoom limits
+  (the shim became `--glass-u-device-calibration: clamp(7px, min(1svh, 2svw), 20px)`), responsive zoom limits
   (`zMin` derived from fit-to-height, `zMax` left feel), and the camera-meets-display seam, all
   built and signed off across all 5 deliverables + a real-iPhone mobile pass.
   - **Plane extents → glass-u — DONE.** The load-bearing rail seam landed: new

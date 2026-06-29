@@ -79,9 +79,9 @@
 
 .card-surface__name {
   margin: 0;
-  font-size: var(--ht-type-surface-title-size);
-  font-weight: var(--ht-type-surface-title-weight);
-  line-height: 1.1;
+  font-size: var(--ht-type-headline-text-size);
+  font-weight: var(--ht-type-headline-text-weight);
+  line-height: var(--ht-type-headline-text-line);
 }
 
 .card-surface__rarity {

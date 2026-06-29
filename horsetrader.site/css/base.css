@@ -5,33 +5,33 @@
   color-scheme: dark;
   font-family: var(--ht-font-family-ui);
   /* Floating timeline chrome knobs: top menu + bottom minimap/nav. The whole frame
-     measures in --glass-u-base so Darley has ONE knob (the glass-u definition) driving
+     measures in --glass-u-device-calibration so Darley has ONE knob (the device calibration) driving
      the entire chrome tier — offsets AND height AND the dropdown clearance follow it.
      These read the calibrated base name because they are the device-frame measurement
      bridge; ordinary glass surfaces use the canonical public --glass-u.
      Only --timeline-chrome-width stays viewport-relative: it's a responsive PROPORTION
      (85% of width), not a dimension — that proportion-vs-derived-width call is Darley's. */
   --timeline-chrome-width: 85vw;
-  --timeline-chrome-max-width: calc(200 * var(--glass-u-base)); /* ultrawide guard; 85vw governs on real monitors */
-  --timeline-chrome-top: calc(5 * var(--glass-u-base));
-  --timeline-chrome-bottom: calc(5 * var(--glass-u-base));
+  --timeline-chrome-max-width: calc(200 * var(--glass-u-device-calibration)); /* ultrawide guard; 85vw governs on real monitors */
+  --timeline-chrome-top: calc(5 * var(--glass-u-device-calibration));
+  --timeline-chrome-bottom: calc(5 * var(--glass-u-device-calibration));
   /* The bar keeps its established 5u fine tier, but honestly reserves the larger
      pointer-sized controls plus its block padding in coarse mode. */
   --timeline-chrome-height: max(
-    calc(5 * var(--glass-u-base)),
-    calc(var(--glass-target) + 1.12 * var(--glass-u-base))
+    calc(5 * var(--glass-u-device-calibration)),
+    calc(var(--glass-target) + 1.12 * var(--glass-u-device-calibration))
   );
-  --timeline-chrome-gap: calc(0.63 * var(--glass-u-base)); /* drop between the bar's bottom edge and its dropdowns */
+  --timeline-chrome-gap: calc(0.63 * var(--glass-u-device-calibration)); /* drop between the bar's bottom edge and its dropdowns */
   /* Pane look (bg/edge/radius/shadow/blur) now comes from the glass register in
      glass.css — these chrome knobs are layout only. */
-  --minimap-h: calc(5 * var(--glass-u-base));
+  --minimap-h: calc(5 * var(--glass-u-device-calibration));
   /* The whole bottom chrome stack the floating surfaces must clear. Was just the minimap
      (at --timeline-chrome-bottom); the FILM STRIP now floats above it (filmstrip.css:
      bottom = chrome-bottom + minimap-h + 0.5u), so the real reserve is
      the minimap PLUS the strip PLUS the gap. The aperture + modal heights read this so they
      stop assuming the minimap is the lower bound. */
   --glass-chrome-bottom-h: calc(
-    var(--timeline-chrome-bottom) + var(--minimap-h) + 0.5 * var(--glass-u-base)
+    var(--timeline-chrome-bottom) + var(--minimap-h) + 0.5 * var(--glass-u-device-calibration)
       + max(var(--minimap-h), var(--glass-target))
   );
   /* The usable world aperture (Darley #1): the viewport MINUS the persistent chrome the
@@ -53,7 +53,7 @@
      derived from the aperture (one source) less the dropdown's own gap top and bottom.
      Plane-fixed clearance → the calibrated base unit. */
   --chrome-dropdown-max-height: calc(
-    var(--glass-aperture-h) - var(--timeline-chrome-gap) - 0.63 * var(--glass-u-base)
+    var(--glass-aperture-h) - var(--timeline-chrome-gap) - 0.63 * var(--glass-u-device-calibration)
   );
 }
 
@@ -75,9 +75,17 @@ body {
   background: var(--ht-colour-surface-page);
   color: var(--ht-colour-text-primary);
   overflow: hidden; /* the canvas owns scrolling (pan) — the page never scrolls */
-  font-size: var(--ht-type-body-size);
-  font-weight: var(--ht-type-body-weight);
-  line-height: var(--ht-type-body-line);
+  font-size: var(--ht-type-normal-text-size);
+  font-weight: var(--ht-type-normal-text-weight);
+  line-height: var(--ht-type-normal-text-line);
+}
+
+h1,
+h2,
+h3,
+h4,
+p {
+  margin-block: 0;
 }
 
 /* The app is one full-viewport canvas world (ui.md principle 1): the timeline
