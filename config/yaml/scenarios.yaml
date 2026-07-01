@@ -105,3 +105,11 @@ scenario-13:
     name: "Beyond Dreams"
     start: 2026-02-24T12:00:00+09:00
   art: https://media.gametora.com/umamusume/scenarios/hero/13.png
+
+scenario-14:
+  en:
+    name: "Welcome! Tracen-ken!"
+  jp:
+    name: "らっしゃい！トレセン軒！～恩返し、始めました～"
+    start: 2026-06-29T12:00:00+09:00
+  art: https://media.gametora.com/umamusume/scenarios/hero/14.png
