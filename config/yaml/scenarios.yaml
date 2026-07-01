@@ -28,6 +28,7 @@ scenario-03:
 scenario-04:
   en:
     name: "Grand Live"
+    start: 2026-07-22T22:00:00+00:00
   jp:
     name: "グランドライブ"
     start: 2022-08-24T12:00:00+09:00

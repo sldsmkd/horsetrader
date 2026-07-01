@@ -550,18 +550,64 @@ banner-30103:
 ## block here once the EN date confirms. Relocate near a related event freely.
 
 # 1.5 / Grand Live
+banner-30104:
+  # Summer Mejiro McQueen and Gold Ship trainee banner, co-released with story-016
+  en:
+    start: 2026-07-02T22:00:00+00:00
+    end: 2026-07-14T22:00:00+00:00
+banner-30105:
+  # Maruzensky and Nakayama Festa support banner, co-released with story-016
+  en:
+    start: 2026-07-02T22:00:00+00:00
+    end: 2026-07-14T22:00:00+00:00
 banner-30106:
+  # Bamboo Memory trainee banner
+  en:
+    start: 2026-07-07T22:00:00+00:00
+    end: 2026-07-16T22:00:00+00:00
   rewards:
     pulls: 4  # Bamboo Memory (Original) - source HH.5.16
+banner-30107:
+  # Yukino Bijin and Ikuno Dictus support rerun
+  en:
+    start: 2026-07-07T22:00:00+00:00
+    end: 2026-07-16T22:00:00+00:00
 banner-30108:
+  # Copano Rickey trainee banner
+  en:
+    start: 2026-07-16T22:00:00+00:00
+    end: 2026-07-26T22:00:00+00:00
   rewards:
     pulls: 5  # Copano Rickey (Original) - source HH.5.16
+banner-30109:
+  # Seiun Sky and Manhattan Cafe support banner
+  en:
+    start: 2026-07-16T22:00:00+00:00
+    end: 2026-07-26T22:00:00+00:00
+banner-30110:
+  # Smart Falcon trainee banner, co-released with Grand Live
+  en:
+    start: 2026-07-22T22:00:00+00:00
+    end: 2026-08-10T22:00:00+00:00
 banner-30111:
+  # Light Hello and Agnes Tachyon support banner, co-released with Grand Live
+  en:
+    start: 2026-07-22T22:00:00+00:00
+    end: 2026-08-10T22:00:00+00:00
   rewards:
     pulls: 60  # Light Hello, Agnes Tachyon (SSR) - source HH.5.16
+banner-30112:
+  # Winning Ticket and Narita Taishin trainee banner, co-released with story-017
+  en:
+    start: 2026-07-27T22:00:00+00:00
+    end: 2026-08-10T22:00:00+00:00
 banner-30113:
+  # Tokai Teio and Twin Turbo support banner, co-released with story-017
+  en:
+    start: 2026-07-27T22:00:00+00:00
+    end: 2026-08-10T22:00:00+00:00
   rewards:
-    pulls: 40  # Tokei Teio / Twin Turbo (SSR) - source HH.5.16
+    pulls: 40  # Tokai Teio / Twin Turbo (SSR) - source HH.5.16
 
 # NY 2023
 banner-30138:

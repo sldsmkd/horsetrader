@@ -37,6 +37,7 @@ _COSTUME_VARIANT_EN_MAP = {
     "SUMMER": "Summer",
     "SUPREME_COMMANDER": "Supreme Commander",
     "THE_TWINKLE_LEGENDS": "The Twinkle Legends",
+    "TRACEN_KEN": "Tracen-ken",
     "UAF": "U.A.F.",
     "VALENTINE": "Valentine",
     "WEDDING": "Wedding",
@@ -69,6 +70,7 @@ _COSTUME_VARIANT_JP_MAP = {
     "FANTASY": "ファンタジー",
     "BEYOND_DREAMS": "Beyond Dreams",
     "THE_TWINKLE_LEGENDS": "The Twinkle Legends",
+    "TRACEN_KEN": "トレセン軒",
     "GREAT_HARVEST_FESTIVAL": "大豊食祭",
     "UAF": "U.A.F.",
     "BLAZE": "Blaze",
@@ -105,6 +107,7 @@ class CostumeVariants(Enum):
     FANTASY = "fantasy"
     BEYOND_DREAMS = "beyond-dreams"
     THE_TWINKLE_LEGENDS = "the-twinkle-legends"
+    TRACEN_KEN = "tracen-ken"
     GREAT_HARVEST_FESTIVAL = "great-harvest-festival"
     UAF = "uaf"
     BLAZE = "blaze"

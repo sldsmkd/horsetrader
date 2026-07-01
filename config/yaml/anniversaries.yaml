@@ -74,6 +74,8 @@ mission-00139:                                   # p3 mid 第3弾
 anniversary-1_5:
   jp:
     start: 2022-08-24T12:00:00+09:00
+  en:
+    start: 2026-07-22T22:00:00+00:00
   paid_ssr_selectors: 1     # dolphin SSR pack; no trainee pack this half
   paid_trainee_selectors: 0
 mission-00217:                                   # p1 countdown 第1弾 (8d → 1200)
