@@ -38,7 +38,7 @@ test("readable typography uses semantic tokens; raw font sizes stay named except
     "js/src/ui/umamark/umamark.css:144", // debug benchmark HUD
     "js/src/ui/views/filmstrip.css:144", // symbolic star glyph
     "js/src/ui/views/trainer/trainerPage.css:134", // symbolic back chevron
-    "js/src/ui/views/surfaces/cardSurface.css:115", // symbolic favourite star
+    "js/src/ui/views/surfaces/cardSurface.css:123", // symbolic favourite star
   ]);
 
   const offenders: string[] = [];

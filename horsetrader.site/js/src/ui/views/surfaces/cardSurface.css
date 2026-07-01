@@ -1,8 +1,17 @@
-/* The card is art-forward and narrower than the generic 45u modal — size that modal
-   down to the card so it doesn't leave a loose empty column on the right. The width is
-   chosen to seat the four-slot Distance/Strategy aptitude rows on one line. */
-.surface--modal:has(> .surface__body > .card-surface) {
-  width: min(calc(34 * var(--glass-u)), calc(100vw - 1.88 * var(--glass-u)));
+/* Card detail is a deliberately useful modal width, not a height-led 34u card.
+   On a short landscape/desktop viewport --glass-u is necessarily small; tying
+   the complete inline budget to it threw away abundant horizontal space. The
+   viewport term chooses the representation's share, while the cap prevents an
+   ultrawide dialog. Portrait phones replace this modal below. */
+.surface--card-detail {
+  width: min(46rem, 55vw, calc(100vw - 1.88 * var(--glass-u)));
+}
+
+/* Card detail is an exclusive modal on every presentation, so its surface
+   plane paints above the persistent chrome it has locked. Landscape leaves the
+   layer transparent and shows the world around the card; portrait fills it. */
+.surface-layer--card-detail {
+  z-index: var(--glass-z-modal);
 }
 
 .card-surface {
@@ -12,6 +21,12 @@
   align-items: stretch;
   gap: calc(1.13 * var(--glass-u));
   width: 100%;
+}
+
+.card-surface button,
+.card-surface textarea,
+.card-surface a {
+  touch-action: manipulation;
 }
 
 /* TOP — art hero beside its identity column. */
@@ -72,23 +87,16 @@
 .card-surface__tagline {
   margin: 0;
   font-style: italic;
-  font-size: var(--ht-type-label-size);
-  line-height: var(--ht-type-label-line);
   opacity: 0.75;
 }
 
 .card-surface__name {
   margin: 0;
-  font-size: var(--ht-type-headline-text-size);
-  font-weight: var(--ht-type-headline-text-weight);
-  line-height: var(--ht-type-headline-text-line);
 }
 
 .card-surface__rarity {
   padding: calc(0.13 * var(--glass-u)) calc(0.5 * var(--glass-u));
   border-radius: 0.5rem;
-  font-size: var(--ht-type-micro-size);
-  font-weight: var(--ht-type-surface-title-weight);
   letter-spacing: var(--ht-type-label-spacing);
 }
 .card-surface__rarity--crystal {
@@ -115,12 +123,12 @@
   font-size: calc(3.4 * var(--glass-u));
   color: var(--ht-colour-rarity-gold);
   cursor: pointer;
-  transition: transform 0.12s, filter 0.12s;
+  transition: filter 0.12s;
 }
 .card-surface__fav:hover,
 .card-surface__fav:focus-visible {
-  transform: scale(1.1);
   outline: 0;
+  filter: drop-shadow(0 0 calc(0.35 * var(--glass-u)) currentColor);
 }
 /* Filled star earns a soft gold glow when selected. */
 .card-surface__fav[aria-pressed="true"] {
@@ -141,7 +149,6 @@
 }
 
 .card-surface__facet-label {
-  font-size: var(--ht-type-micro-size);
   text-transform: uppercase;
   letter-spacing: var(--ht-type-label-spacing);
   line-height: var(--ht-type-label-line);
@@ -153,8 +160,6 @@
   display: flex;
   align-items: center;
   gap: calc(0.31 * var(--glass-u));
-  font-size: var(--ht-type-label-size);
-  line-height: var(--ht-type-label-line);
 }
 
 .card-surface__facet-pip {
@@ -179,7 +184,6 @@
 }
 
 .card-surface__apt-axis-label {
-  font-size: var(--ht-type-micro-size);
   text-transform: uppercase;
   letter-spacing: var(--ht-type-label-spacing);
   line-height: var(--ht-type-label-line);
@@ -206,14 +210,11 @@
 }
 
 .card-surface__apt-slot {
-  font-size: var(--ht-type-label-size);
-  line-height: var(--ht-type-label-line);
   opacity: 0.7;
 }
 
 .card-surface__apt-rank {
   margin-left: auto;
-  font-size: var(--ht-type-label-size);
   font-weight: var(--ht-type-surface-title-weight);
   line-height: 1;
   /* The semantic aptitude band (css/palette.css); resolved per grade below. */
@@ -240,7 +241,6 @@
 }
 
 .card-surface__note-label {
-  font-size: var(--ht-type-micro-size);
   text-transform: uppercase;
   letter-spacing: var(--ht-type-label-spacing);
   line-height: var(--ht-type-label-line);
@@ -257,9 +257,6 @@
   border-radius: var(--ht-control-radius-soft);
   background: var(--ht-control-bg);
   color: inherit;
-  font: inherit;
-  font-size: var(--ht-type-label-size);
-  line-height: var(--ht-type-label-line);
 }
 
 .card-surface__note-input:focus {
@@ -273,7 +270,6 @@
   display: inline-flex;
   min-height: var(--glass-target);
   align-items: center;
-  font-size: var(--ht-type-label-size);
   color: var(--ht-colour-interactive);
   text-decoration: none;
 }
@@ -293,7 +289,6 @@
   padding: calc(0.69 * var(--glass-u)) calc(1.13 * var(--glass-u));
   border-radius: var(--ht-control-radius);
   color: inherit;
-  font: inherit;
   cursor: pointer;
 }
 .card-surface__cancel {
@@ -314,4 +309,104 @@
 .card-surface__update:focus-visible {
   background: var(--ht-control-primary-bg-hover);
   outline: 0;
+}
+
+/* Wide/landscape card: use the inline room to reduce vertical pressure. The
+   identity hero remains intact in the first column; aptitudes and the editor
+   occupy the second. This is still recognisably a modal over the live world. */
+@media (orientation: landscape), (min-width: 900px) {
+  .surface--card-detail {
+    width: min(46rem, 88vw);
+    max-height: calc(100svh - 4 * var(--glass-u));
+  }
+
+  .surface--card-detail .card-surface {
+    display: grid;
+    grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+    grid-template-areas:
+      "top aptitudes"
+      "top note"
+      "link note"
+      "actions actions";
+    align-content: start;
+  }
+
+  .surface--card-detail .card-surface__top {
+    grid-area: top;
+  }
+
+  .surface--card-detail .card-surface__aptitudes {
+    grid-area: aptitudes;
+  }
+
+  .surface--card-detail .card-surface__note {
+    grid-area: note;
+    max-width: none;
+  }
+
+  .surface--card-detail .card-surface__link {
+    grid-area: link;
+  }
+
+  .surface--card-detail .surface-actions {
+    grid-area: actions;
+  }
+}
+
+/* Portrait phone: card detail stops being a squeezed modal and becomes the one
+   full-screen document. The surface layer rises above persistent chrome only in
+   this representation; landscape keeps chrome visible around the modal. */
+@media (orientation: portrait) and (max-width: 620px) {
+  .surface-layer--card-detail {
+    background: var(--ht-colour-surface-page);
+    pointer-events: auto;
+  }
+
+  .surface--card-detail {
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    border: 0;
+    border-radius: 0;
+    transform: none;
+  }
+
+  .surface--card-detail > .surface__body {
+    height: 100%;
+    padding: calc(1.25 * var(--glass-u));
+    overscroll-behavior: contain;
+  }
+
+  .surface--card-detail .card-surface {
+    min-height: 100%;
+  }
+
+  .surface--card-detail .card-surface__top {
+    display: grid;
+    grid-template-columns: minmax(calc(10 * var(--glass-u)), 38%) minmax(0, 1fr);
+  }
+
+  .surface--card-detail .card-surface__art {
+    width: 100%;
+  }
+
+  .surface--card-detail .card-surface__note {
+    max-width: none;
+  }
+
+  .surface--card-detail .surface-actions {
+    position: sticky;
+    bottom: calc(-1.25 * var(--glass-u));
+    z-index: 1;
+    margin-inline: calc(-1.25 * var(--glass-u));
+    padding: calc(0.75 * var(--glass-u)) calc(1.25 * var(--glass-u)) calc(1.25 * var(--glass-u));
+    border-top: 1px solid var(--ht-control-border-quiet);
+    background: var(--ht-colour-surface-page);
+  }
+
+  .surface--card-detail .card-surface__cancel,
+  .surface--card-detail .card-surface__update {
+    flex: 1;
+  }
 }

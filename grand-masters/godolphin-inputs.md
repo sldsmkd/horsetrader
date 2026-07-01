@@ -356,3 +356,65 @@ Expected later synthesis:
 - dense-control reflow patterns;
 - modality/material rules;
 - a repeatable checklist for porting the remaining desktop-native surfaces.
+
+## Session 2 — Card detail (existing-surface port)
+
+### Why this surface
+
+Trainer was a greenfield recomposition. Card detail is the first true port: an
+existing shared trainee/support surface whose semantics, staged editing, and
+desktop composition already work. It is deliberately simpler than Trainer, but
+it tests whether the emerging rules can absorb existing UI without replacing it.
+The trainee form is the denser case because it adds three four-slot aptitude
+axes; support cards continue through the same renderer.
+
+### First cut — explicit wrapper policy and semantic type
+
+The card had a special modal width selected indirectly with
+`:has(> .surface__body > .card-surface)`. On a phone that `34u` intrinsic width
+could outrank the generic mobile modal rule, leaving a narrow desktop card in a
+wide viewport. The surface factory now accepts a semantic variant and card
+detail requests `surface--card-detail`. The representation can therefore size
+its glass wrapper at the wrapper seam without inspecting descendants or leaking
+card selectors into the generic surface router.
+
+The first port also:
+
+- composes the card name from Tosen `headline-text`;
+- composes the note from `normal-text + edit-control`, so only the actual editor
+  receives the coarse browser floor and focus-scoped writing assistance;
+- gives surface actions the shared `focus-text` treatment;
+- removes hover `scale()` from the favourite star—glass hover feedback may use
+  light/material treatment, but cannot borrow the world camera's projection;
+- gives coarse-pointer phone extent the available portrait sheet width while
+  preserving the existing shared content and staged-write behavior.
+
+The first narrow composition was intentionally conservative: art and identity
+remained side by side, aptitudes remained four columns, and the note simply
+consumed the available width. Field review immediately falsified the wrapper
+policy around it:
+
+- portrait still sat beneath the menubar and clipped, so card detail is a true
+  fullscreen document there, above persistent chrome, with its action docked at
+  the bottom;
+- landscape remained a tiny height-led card despite abundant inline room, so it
+  stays modal but uses the viewport for width and nearly the full short axis;
+- responsive desktop showed the same failure: `glass-u` correctly shrinks with
+  limited height, but a modal's useful inline extent cannot therefore be
+  derived from `N × glass-u` alone.
+
+The landscape/desktop form now spends its width to reduce height: the intact
+art/identity hero occupies one column, while aptitudes and note occupy the
+other. Portrait keeps the single reading flow. This is the first clear example
+of representation layout being selected by shape while pointer capability
+continues to govern target geometry independently.
+
+### Candidate guideline from the port — not yet a contract
+
+> A representation that needs to govern generic surface geometry should declare
+> a semantic wrapper variant. Do not infer representation identity from child
+> structure or fight generic responsive rules through selector specificity.
+
+> `glass-u` governs dimensional glass objects inside a representation; it does
+> not require the representation's viewport allocation to be height-led.
+> Modal width may be a bounded viewport policy, especially on short wide views.

@@ -76,7 +76,7 @@ function noteInput(note: string): HTMLTextAreaElement {
   return h(
     "textarea",
     {
-      class: "card-surface__note-input",
+      class: "card-surface__note-input ht-type-normal-text ht-type-edit-control",
       attr: { placeholder: "Why this one?", maxlength: NOTE_MAX_LENGTH, rows: 4 },
     },
     note,
@@ -140,11 +140,15 @@ export function cardSurface(opts: CardSurfaceOpts): HTMLElement {
   // The actions reflect the draft live (editing fires no re-render, so they update
   // themselves): with nothing staged the surface shows a lone "Close"; the first edit reveals
   // Update and turns that button into a "Cancel" (discard).
-  const cancel = surfaceCancel({ class: "card-surface__cancel", onCancel: opts.onCancel, escSafe: pristine });
+  const cancel = surfaceCancel({
+    class: "card-surface__cancel ht-type-focus-text",
+    onCancel: opts.onCancel,
+    escSafe: pristine,
+  });
   const update = h(
     "button",
     {
-      class: "card-surface__update",
+      class: "card-surface__update ht-type-focus-text",
       attr: { type: "button" },
       on: { click: () => opts.onCommit({ favourited: draftFav, note: note.value }) },
     },
@@ -190,9 +194,11 @@ export function cardSurface(opts: CardSurfaceOpts): HTMLElement {
         h(
           "header",
           { class: "card-surface__head" },
-          h("h2", { class: "card-surface__name" }, formatCharacterName(card.name)),
-          card.rarity ? h("span", { class: `card-surface__rarity card-surface__rarity--${card.rarityTier}` }, card.rarity) : null,
-          card.tagline ? h("p", { class: "card-surface__tagline" }, card.tagline) : null,
+          h("h2", { class: "card-surface__name ht-type-headline-text" }, formatCharacterName(card.name)),
+          card.rarity
+            ? h("span", { class: `card-surface__rarity card-surface__rarity--${card.rarityTier} ht-type-micro` }, card.rarity)
+            : null,
+          card.tagline ? h("p", { class: "card-surface__tagline ht-type-normal-text" }, card.tagline) : null,
         ),
 
         // Facets — the kind-appropriate identity lines + bio vitals + release.
@@ -216,7 +222,7 @@ export function cardSurface(opts: CardSurfaceOpts): HTMLElement {
     h(
       "label",
       { class: "card-surface__note" },
-      h("span", { class: "card-surface__note-label" }, "Note"),
+      h("span", { class: "card-surface__note-label ht-type-normal-text" }, "Note"),
       note,
     ),
 

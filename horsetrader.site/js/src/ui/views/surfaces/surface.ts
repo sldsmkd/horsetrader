@@ -18,6 +18,10 @@ export interface SurfaceOpts {
   title: string;
   body: Node;
   placement?: "left" | "right" | "center";
+  /** Optional semantic variant owned by the surface body. This lets a known
+   *  representation size its generic glass wrapper without styling it through
+   *  child inspection (`:has`) or leaking body selectors into the router. */
+  variant?: string;
   /** Historical no-op: surfaces are always headerless now. Surfaces render their own
    *  title hero and dismiss affordance; `title` is the dialog's accessible name. */
   headerless?: boolean;
@@ -105,7 +109,7 @@ export function surface(opts: SurfaceOpts): HTMLElement {
   return h(
     "div",
     {
-      class: `surface surface--${variant} surface--headerless`,
+      class: `surface surface--${variant} surface--headerless${opts.variant ? ` surface--${opts.variant}` : ""}`,
       attr: { role: "dialog", "aria-label": opts.title },
     },
     h("div", { class: "surface__body" }, opts.body),

@@ -811,6 +811,7 @@ export function mountApp(
       const detailCard = surface({
         title: "Card detail",
         placement: "center",
+        variant: "card-detail",
         headerless: true,
         body: cardSurface({
           bundle,
@@ -857,6 +858,7 @@ export function mountApp(
     chromeDropdowns.replaceChildren(...rail);
     surfaceLayer.replaceChildren(...modals);
     surfaceLayer.classList.toggle("surface-layer--over-trainer", view.get().trainer);
+    surfaceLayer.classList.toggle("surface-layer--card-detail", cardDetail !== null);
     trainerLayer.classList.toggle("trainer-page-layer--locked", view.get().trainer && anyModal);
     // Same timing for the resources hero number: fit it to the card now it's measurable.
     liveResources?.fit();

@@ -13,8 +13,10 @@ const tosenPath = fileURLToPath(new URL("../../../../css/tosen.css", import.meta
 const menubarPath = fileURLToPath(new URL("../views/menubar.css", import.meta.url));
 const trainerPath = fileURLToPath(new URL("../views/trainer/trainerPage.css", import.meta.url));
 const trainerTsPath = fileURLToPath(new URL("../views/trainer/trainerPage.ts", import.meta.url));
+const appPath = fileURLToPath(new URL("../app.ts", import.meta.url));
 const editControlPath = fileURLToPath(new URL("../editControl.ts", import.meta.url));
 const cardPath = fileURLToPath(new URL("../views/surfaces/cardSurface.css", import.meta.url));
+const cardTsPath = fileURLToPath(new URL("../views/surfaces/cardSurface.ts", import.meta.url));
 const resourcesPath = fileURLToPath(new URL("../views/surfaces/resourcesSurface.css", import.meta.url));
 const cloudControlsPath = fileURLToPath(new URL("../views/widgets/cloudControls.css", import.meta.url));
 const discreteSliderPath = fileURLToPath(new URL("../views/widgets/discreteSlider.css", import.meta.url));
@@ -25,8 +27,10 @@ const tosen = readFileSync(tosenPath, "utf8");
 const menubar = readFileSync(menubarPath, "utf8");
 const trainer = readFileSync(trainerPath, "utf8");
 const trainerTs = readFileSync(trainerTsPath, "utf8");
+const app = readFileSync(appPath, "utf8");
 const editControl = readFileSync(editControlPath, "utf8");
 const card = readFileSync(cardPath, "utf8");
+const cardTs = readFileSync(cardTsPath, "utf8");
 const resources = readFileSync(resourcesPath, "utf8");
 const cloudControls = readFileSync(cloudControlsPath, "utf8");
 const discreteSlider = readFileSync(discreteSliderPath, "utf8");
@@ -164,7 +168,6 @@ test("headline text shares the 1.8u surface calibration", () => {
   );
   for (const [css, selector] of [
     [trainer, "mobile-trainer__style-title"],
-    [card, "card-surface__name"],
     [resources, "resources-surface__carat-total"],
   ]) {
     assert.match(
@@ -176,10 +179,24 @@ test("headline text shares the 1.8u surface calibration", () => {
     trainerTs,
     /class:\s*"mobile-trainer__name ht-type-headline-text ht-type-edit-control"/,
   );
+  assert.match(cardTs, /class:\s*"card-surface__name ht-type-headline-text"/);
   assert.doesNotMatch(
     trainer,
     /\.mobile-trainer__name\s*\{[^}]*font:\s*inherit/s,
   );
+});
+
+test("card detail composes semantic type and a coarse phone representation", () => {
+  assert.match(cardTs, /class:\s*"card-surface__note-input ht-type-normal-text ht-type-edit-control"/);
+  assert.match(app, /title:\s*"Card detail",[\s\S]*?variant:\s*"card-detail"/);
+  assert.match(card, /\.surface--card-detail\s*\{[^}]*width:\s*min\(46rem, 55vw,/s);
+  assert.match(card, /\.surface-layer--card-detail\s*\{[^}]*z-index:\s*var\(--glass-z-modal\)/s);
+  assert.match(
+    card,
+    /@media \(orientation: portrait\) and \(max-width: 620px\)\s*\{[\s\S]*?\.surface--card-detail\s*\{[^}]*inset:\s*0;[^}]*width:\s*100%;[^}]*height:\s*100%/s,
+  );
+  assert.match(card, /@media \(orientation: landscape\), \(min-width: 900px\)\s*\{[\s\S]*?width:\s*min\(46rem, 88vw\)/s);
+  assert.doesNotMatch(card, /\.card-surface__fav:(?:hover|focus-visible)[^{]*\{[^}]*transform:\s*scale/s);
 });
 
 test("Trainer preset rows occupy 42u in both pointer modes", () => {
