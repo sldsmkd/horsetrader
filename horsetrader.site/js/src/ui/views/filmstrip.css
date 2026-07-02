@@ -22,6 +22,9 @@
   pointer-events: auto;
   touch-action: pan-y;
   cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 /* No favourites yet → nothing to read; fold the strip away rather than float empty. */
 .filmstrip--empty {
@@ -185,6 +188,7 @@
   height: 100%;
   object-fit: cover;
   display: block;
+  -webkit-user-drag: none;
   border-radius: 5px; /* nest the inset picture inside the capsule's rounder corners */
   /* Faces fade in as they decode (filmstrip.ts adds --loaded on `load`) so the icons emerge
      instead of snapping. Cached faces get --loaded before first paint → no transition, instant. */

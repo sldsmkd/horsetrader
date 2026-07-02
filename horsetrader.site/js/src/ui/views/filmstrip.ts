@@ -159,7 +159,6 @@ export function filmstrip({ onWarp }: FilmstripHandlers): Filmstrip {
     const startIndex = heldIndex ?? focusIndex(frames, viewDate);
     if (startIndex < 0) return;
     heldIndex = null; // a fresh direct manipulation supersedes any travelling hold
-    el.setPointerCapture(ev.pointerId);
     drag = {
       pointerId: ev.pointerId,
       startX: ev.clientX,
@@ -174,7 +173,13 @@ export function filmstrip({ onWarp }: FilmstripHandlers): Filmstrip {
   el.addEventListener("pointermove", (ev) => {
     if (!drag || drag.pointerId !== ev.pointerId) return;
     const dx = ev.clientX - drag.startX;
-    if (!drag.moved && Math.abs(dx) >= DRAG_COMMIT_PX) drag.moved = true;
+    if (!drag.moved && Math.abs(dx) >= DRAG_COMMIT_PX) {
+      drag.moved = true;
+      // Capture only after this is unambiguously a drag. Capturing on press
+      // retargets the browser's synthetic click to the strip container, which
+      // prevents an ordinary tapped frame from receiving its existing click.
+      el.setPointerCapture(ev.pointerId);
+    }
     if (!drag.moved) return;
     drag.selectedIndex = draggedFrameIndex(drag.startIndex, dx, metrics.step, frames.length);
     track.style.transform = `translateX(${drag.startOffset + dx}px)`;

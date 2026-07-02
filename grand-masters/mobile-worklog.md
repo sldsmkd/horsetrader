@@ -113,7 +113,11 @@ The remaining filmstrip sits another half-frame lower in this portrait form.
 Across every presentation it now also accepts a horizontal ordinal drag: the
 track follows the pointer, release selects the frame under the read-head, and a
 committed drag suppresses its synthetic click. Ordinary frame tap/click selection
-is unchanged.
+is unchanged: pointer capture begins only after the drag threshold, because
+capturing on press retargets the synthetic click away from the individual frame.
+The complete strip subtree is non-selectable, and portrait images explicitly
+disable WebKit image dragging, so an ordinal drag never paints native selection
+over the faces.
 
 A released drag temporarily owns the filmstrip read-head while the timeline warp
 travels. Intermediate camera dates cannot recenter it on the old position; the

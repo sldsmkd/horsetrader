@@ -36,7 +36,7 @@ test("readable typography uses semantic tokens; raw font sizes stay named except
     "js/src/ui/views/perfHud.css:46", // debug HUD
     "js/src/ui/umamark/umamark.css:133", // debug benchmark HUD
     "js/src/ui/umamark/umamark.css:144", // debug benchmark HUD
-    "js/src/ui/views/filmstrip.css:165", // symbolic star glyph
+    "js/src/ui/views/filmstrip.css:168", // symbolic star glyph
     "js/src/ui/views/trainer/trainerPage.css:134", // symbolic back chevron
     "js/src/ui/views/surfaces/planSurface.css:43", // symbolic back chevron
     "js/src/ui/views/surfaces/resourcesEditor.css:24", // symbolic back chevron
