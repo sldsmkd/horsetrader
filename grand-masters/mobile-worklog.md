@@ -39,6 +39,113 @@ The page:
 
 The first field-test door was a temporary phone button beside Identity.
 
+## Plan takeover — 2026-07-02
+
+The Plan keeps its wide, four-column Desk on fine-pointer and tablet apertures.
+On a coarse-pointer phone it consumes the same explicit capability + short-edge
+presentation policy as Trainer and becomes the sole full-viewport document:
+
+- the surface owns the viewport and scrolls natively, with safe-area padding;
+- the mast uses Trainer's square back button instead of an oshi portrait;
+- each banner reflows from the desktop table into commitment/chips, note, and
+  forecast rows;
+- commitment and portrait controls use the coarse `--glass-target` (`7u`);
+- note and action text use semantic normal/focus roles rather than the compact
+  desktop caption treatment;
+- Close/Cancel and Update form a sticky, equal-width action bar.
+- the Plan layer paints above the menubar, filmstrip, minimap, and world; none
+  of the persistent app navigation remains visible in the takeover.
+
+The surface is identified by the explicit `surface--plan` variant; Plan sizing
+no longer depends on relational `:has()` inspection of its body.
+
+On desktop the Plan has exactly one scroll owner: its row list. The generic modal
+body is clipped and the Plan fills that body as a mast / scrolling rows / actions
+column, keeping Close/Cancel/Update permanently visible. The phone takeover
+retains native outer document scrolling instead.
+
+## Record Balance takeover — 2026-07-02
+
+Record Balance now consumes the same explicit phone presentation policy as
+Trainer and Plan. On a coarse-pointer phone it covers all persistent chrome,
+reflows the resource grid to two columns, uses a Trainer-style back mast,
+applies Tosen's edit-control floor to numeric inputs, and keeps equal Save/Cancel
+actions sticky at the bottom. Its desktop representation remains a modal.
+
+## Resources takeover — 2026-07-02
+
+The read-only Resources dropdown also consumes the shared phone presentation
+policy. Its menubar rail becomes a full-viewport page above the app chrome, the
+desktop collapse pill gives way to the standard back mast, compact explanatory
+copy moves to normal text, and Record Balance becomes its sticky primary action.
+Opening Record Balance stacks the write takeover above this read page.
+
+Both Resources forms now name readable type exclusively through Tosen's
+headline, focus, normal, and edit-control roles. Component CSS retains only the
+symbolic back-chevron size; local readable font size, weight, and line-height
+overrides were removed, including those in the shared resource grid and
+limit-breaker widget.
+
+## Commit dossier takeover — 2026-07-02
+
+The commit dossier's phone layout tested well, so its internal geometry remains
+unchanged. Its presentation frame now takes over the complete viewport above
+app chrome, adds the standard back mast and sticky equal actions, and delegates
+all readable typography to Tosen headline, focus, and normal roles. The dossier
+CSS retains only the symbolic back-chevron size; local readable size, weight,
+and line-height declarations were removed. Its full forecast and paid-spend
+checkbox now consume Tosen roles as well.
+
+## Portrait-phone timeline chrome — 2026-07-02
+
+The minimap is not a useful fine-grained control at a phone's portrait width:
+its complete time extent compresses into a target where taps act as coarse,
+surprising teleports. A Godolphin policy under `ui/caps/` now selects
+`filmstrip-only` only for a touch-first portrait phone. In that mode the minimap
+loses visibility and hit testing, the filmstrip drops into its bottom slot, and
+the camera aperture releases the minimap row. Landscape phones, tablets, and
+fine-pointer narrow windows keep the complete chrome.
+
+The minimap retains measurable geometry while suppressed so its passive render
+path never builds a zero-width axis.
+
+The remaining filmstrip sits another half-frame lower in this portrait form.
+Across every presentation it now also accepts a horizontal ordinal drag: the
+track follows the pointer, release selects the frame under the read-head, and a
+committed drag suppresses its synthetic click. Ordinary frame tap/click selection
+is unchanged.
+
+A released drag temporarily owns the filmstrip read-head while the timeline warp
+travels. Intermediate camera dates cannot recenter it on the old position; the
+strip hands control back to passive timeline following once the selected frame
+becomes the timeline-nearest frame.
+
+## Landscape-phone chrome — 2026-07-02
+
+The first landscape reduction removes the menubar. A separate Godolphin policy
+under `ui/caps/` selects this only for a touch-first phone whose viewport is
+landscape and whose short edge is at most 600 CSS px. The mounted menubar loses
+visibility and hit testing, and its complete top offset/height reservation returns
+to the world aperture. Portrait phones, landscape tablets, and short fine-pointer
+windows retain it.
+
+The landscape-phone minimap remains because the wide aperture gives it useful
+precision. It expands to the complete viewport width while retaining the standard
+bottom clearance and floating corners; anchoring directly to the edge collided
+with the phone's system swipe gesture surface.
+
+The filmstrip does not survive this landscape cut. A vertical edge variant would
+spend scarce width while breaking its horizontal sequence/read-head model, so the
+Godolphin timeline-chrome policy selects `minimap-only`: the filmstrip loses
+visibility and hit testing, and its complete height reservation returns to the
+camera aperture.
+
+Scenario wallpaper is removed on phones in both orientations. A separate
+Godolphin policy uses the same touch-first + phone-extent evidence and writes its
+decision at the root (rather than a component class, because scenario changes
+replace the figure's state classes). Tablets and fine-pointer small windows keep
+the ambient scenario art.
+
 ### Promotion to the standard Trainer — 2026-06-25
 
 The unified page tested better than the desktop two-window surface book, so the

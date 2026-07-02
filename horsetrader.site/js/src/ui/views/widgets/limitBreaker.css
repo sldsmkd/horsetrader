@@ -26,19 +26,12 @@
   gap: calc(0.63 * var(--glass-u));
 }
 
-.limit-breaker__name {
-  font-size: var(--ht-type-number-size);
-  font-weight: var(--ht-type-control-weight);
-}
-
 .limit-breaker__readout {
-  font-size: var(--ht-type-number-size);
   font-variant-numeric: tabular-nums;
 }
 
 .limit-breaker__ratio {
   margin-left: calc(0.38 * var(--glass-u));
-  font-size: var(--ht-type-caption-size);
   opacity: 0.45;
 }
 

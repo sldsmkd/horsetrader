@@ -9,7 +9,6 @@
   border: 0;
   background: var(--ht-control-bg);
   color: inherit;
-  font: inherit;
   text-align: left;
   cursor: pointer;
 }
@@ -69,8 +68,6 @@
   min-width: 0;
   overflow: hidden;
   color: color-mix(in srgb, currentColor 78%, transparent);
-  font-weight: var(--ht-type-control-label-weight);
-  line-height: var(--ht-type-control-label-line);
   text-transform: uppercase;
   text-overflow: ellipsis;
   white-space: nowrap;

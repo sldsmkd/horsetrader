@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { filmFrames, focusIndex } from "./filmstrip.ts";
+import { draggedFrameIndex, filmFrames, focusIndex } from "./filmstrip.ts";
 import type { FilmFrame } from "./filmstrip.ts";
 import { createBundle } from "../bundle/access.ts";
 import { TEST_CONFIG } from "../bundle/fixtures.ts";
@@ -33,6 +33,14 @@ test("focusIndex nearness is metric, not ordinal", () => {
 test("focusIndex clamps past the ends", () => {
   assert.equal(focusIndex(FRAMES, cal("2030-01-01")), 2);
   assert.equal(focusIndex(FRAMES, cal("2020-01-01")), 0);
+});
+
+test("filmstrip drag advances ordinally and clamps at its ends", () => {
+  assert.equal(draggedFrameIndex(2, -51, 50, 6), 3);
+  assert.equal(draggedFrameIndex(2, 51, 50, 6), 1);
+  assert.equal(draggedFrameIndex(0, 500, 50, 6), 0);
+  assert.equal(draggedFrameIndex(5, -500, 50, 6), 5);
+  assert.equal(draggedFrameIndex(0, 10, 0, 0), -1);
 });
 
 // A story-only welfare support: it appears on no banner, but a favourite on it still

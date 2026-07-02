@@ -23,7 +23,7 @@ export function checkbox(opts: CheckboxOpts): HTMLElement {
   el = h(
     "button",
     {
-      class: ["checkbox", opts.checked && "checkbox--on", opts.locked && "checkbox--locked"]
+      class: ["checkbox", "ht-type-normal-text", opts.checked && "checkbox--on", opts.locked && "checkbox--locked"]
         .filter(Boolean)
         .join(" "),
       attr: {

@@ -18,6 +18,12 @@
   display: none;
 }
 
+/* Godolphin phone form: ambient wallpaper competes with the cards at this scale.
+   Key from the root policy because setScenario legitimately replaces local classes. */
+:root[data-scenario-wallpaper="hidden"] .scenario-art {
+  display: none;
+}
+
 .scenario-art__image {
   display: block;
   width: 100%;

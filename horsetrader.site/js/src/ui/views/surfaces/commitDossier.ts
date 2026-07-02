@@ -66,12 +66,12 @@ function featuredCard(atom: CommitAtom, onInspect?: (atom: CommitAtom) => void):
     atom.image
       ? img(atom.image, { class: "commit-dossier__card-img", loading: "lazy" })
       : h("div", { class: "commit-dossier__card-img commit-dossier__card-img--empty", attr: { "aria-hidden": "true" } }),
-    h("span", { class: `commit-dossier__rarity commit-dossier__rarity--${atom.rarityTier}` }, atom.rarity),
+    h("span", { class: `commit-dossier__rarity commit-dossier__rarity--${atom.rarityTier} ht-type-normal-text` }, atom.rarity),
     atom.attribute
       ? h("img", { class: "commit-dossier__attr", attr: { src: `/icons/old/${atom.attribute}.png`, alt: atom.attribute, width: 18, height: 18, loading: "lazy" } })
       : null,
   );
-  const name = h("span", { class: "commit-dossier__card-name" }, atom.name);
+  const name = h("span", { class: "commit-dossier__card-name ht-type-normal-text" }, atom.name);
 
   const body = onInspect
     ? h(
@@ -120,7 +120,7 @@ function impactLine(icon: string, label: string, value: HTMLElement): HTMLElemen
     { class: "commit-dossier__impact-line" },
     iconEl,
     value,
-    h("span", { class: "commit-dossier__impact-label" }, label),
+    h("span", { class: "commit-dossier__impact-label ht-type-normal-text" }, label),
   );
 }
 
@@ -132,18 +132,18 @@ export function commitDossier(opts: CommitDossierOpts): HTMLElement {
   let usePaid = ctx.committedUsePaid;
 
   // YOUR PLAN — the stepper read-backs.
-  const pityValue = h("span", { class: "commit-dossier__pity-value" }, String(pity));
+  const pityValue = h("span", { class: "commit-dossier__pity-value ht-type-headline-text" }, String(pity));
   // The pity box wears the shared pity-band fill (grey/green/purple/red), same rule
   // as the timeline commitment badge — recoloured as pity changes in render().
   const pityBox = h("div", { class: "commit-dossier__pity" }, pityValue);
-  const committedLabel = h("span", { class: "commit-dossier__plan-heading" });
-  const reservedLabel = h("p", { class: "commit-dossier__reserved" });
+  const committedLabel = h("span", { class: "commit-dossier__plan-heading ht-type-focus-text" });
+  const reservedLabel = h("p", { class: "commit-dossier__reserved ht-type-normal-text" });
 
   // RESOURCE IMPACT — the "after" column, re-rendered as pity changes.
-  const afterFree = h("span", { class: "commit-dossier__impact-value" });
-  const afterPaid = h("span", { class: "commit-dossier__impact-value" });
-  const afterTickets = h("span", { class: "commit-dossier__impact-value" });
-  const afterGiftPulls = h("span", { class: "commit-dossier__impact-value" });
+  const afterFree = h("span", { class: "commit-dossier__impact-value ht-type-focus-text" });
+  const afterPaid = h("span", { class: "commit-dossier__impact-value ht-type-focus-text" });
+  const afterTickets = h("span", { class: "commit-dossier__impact-value ht-type-focus-text" });
+  const afterGiftPulls = h("span", { class: "commit-dossier__impact-value ht-type-focus-text" });
 
   // FORECAST — the target-copy distribution, redrawn as pity changes.
   const forecast = forecastWidget({ pullsPerPity: ctx.sparkThreshold, featuredRate: ctx.featuredRate, maxCopies: ctx.maxCopies }, ctx.kind);
@@ -178,6 +178,7 @@ export function commitDossier(opts: CommitDossierOpts): HTMLElement {
       render();
     },
   });
+  paidToggle.classList.add("ht-type-normal-text");
 
   render();
 
@@ -190,8 +191,21 @@ export function commitDossier(opts: CommitDossierOpts): HTMLElement {
     h(
       "header",
       { class: "commit-dossier__mast" },
-      h("h2", { class: "commit-dossier__title" }, TITLE[ctx.kind]),
-      h("p", { class: "commit-dossier__dates" }, `${formatDate(ctx.start)} – ${formatDate(ctx.end)}`),
+      h(
+        "button",
+        {
+          class: "commit-dossier__back",
+          attr: { type: "button", "aria-label": "Back to timeline" },
+          on: { click: opts.onClose },
+        },
+        "‹",
+      ),
+      h(
+        "div",
+        { class: "commit-dossier__masthead" },
+        h("h2", { class: "commit-dossier__title ht-type-headline-text" }, TITLE[ctx.kind]),
+        h("p", { class: "commit-dossier__dates ht-type-focus-text" }, `${formatDate(ctx.start)} – ${formatDate(ctx.end)}`),
+      ),
     ),
 
     // FEATURED CARDS: the hero answer to "what am I pulling for?" (the banner
@@ -199,7 +213,7 @@ export function commitDossier(opts: CommitDossierOpts): HTMLElement {
     h(
       "div",
       { class: "commit-dossier__featured" },
-      h("span", { class: "commit-dossier__section-label" }, "Featured"),
+      h("span", { class: "commit-dossier__section-label ht-type-normal-text" }, "Featured"),
       h(
         "ul",
         { class: `commit-dossier__cards${ctx.atoms.length > FEATURED_SCROLL_THRESHOLD ? " commit-dossier__cards--scroll" : ""}` },
@@ -215,21 +229,21 @@ export function commitDossier(opts: CommitDossierOpts): HTMLElement {
       h(
         "div",
         { class: "commit-dossier__plan" },
-        h("span", { class: "commit-dossier__section-label" }, "Your Plan"),
+        h("span", { class: "commit-dossier__section-label ht-type-normal-text" }, "Your Plan"),
         committedLabel,
         h(
           "div",
           { class: "commit-dossier__stepper" },
-          h("button", { class: "commit-dossier__step", attr: { type: "button", "aria-label": "Less pity" }, on: { click: () => step(-1) } }, "−"),
+          h("button", { class: "commit-dossier__step ht-type-headline-text", attr: { type: "button", "aria-label": "Less pity" }, on: { click: () => step(-1) } }, "−"),
           pityBox,
-          h("button", { class: "commit-dossier__step", attr: { type: "button", "aria-label": "More pity" }, on: { click: () => step(1) } }, "+"),
+          h("button", { class: "commit-dossier__step ht-type-headline-text", attr: { type: "button", "aria-label": "More pity" }, on: { click: () => step(1) } }, "+"),
         ),
         reservedLabel,
       ),
       h(
         "div",
         { class: "commit-dossier__forecast" },
-        h("span", { class: "commit-dossier__section-label" }, "Forecast"),
+        h("span", { class: "commit-dossier__section-label ht-type-normal-text" }, "Forecast"),
         forecast.el,
       ),
     ),
@@ -238,10 +252,10 @@ export function commitDossier(opts: CommitDossierOpts): HTMLElement {
     h(
       "div",
       { class: "commit-dossier__impact" },
-      h("span", { class: "commit-dossier__section-label" }, "Resource Impact"),
+      h("span", { class: "commit-dossier__section-label ht-type-normal-text" }, "Resource Impact"),
       h(
         "p",
-        { class: "commit-dossier__impact-copy" },
+        { class: "commit-dossier__impact-copy ht-type-normal-text" },
         "Horsetrader looks at what you should have on this banner's last day, then sets your plan aside from the first day so later banners cannot spend it twice.",
       ),
       paidToggle,
@@ -251,17 +265,17 @@ export function commitDossier(opts: CommitDossierOpts): HTMLElement {
         h(
           "div",
           { class: "commit-dossier__impact-col" },
-          h("span", { class: "commit-dossier__impact-heading" }, "Predicted Available"),
-          impactLine("🎁", "Gift Pulls", h("span", { class: "commit-dossier__impact-value" }, formatBalance(floorDisplay(ctx.freePulls, false)))),
-          impactLine("/icons/carat.png", "Carats", h("span", { class: "commit-dossier__impact-value" }, formatBalance(floorDisplay(ctx.freeCarats, true)))),
-          impactLine(`/icons/${ctx.kind}_ticket.png`, TICKET_LABEL[ctx.kind], h("span", { class: "commit-dossier__impact-value" }, formatBalance(floorDisplay(ctx.tickets, false)))),
-          impactLine("/icons/carat.png", "Paid Carats", h("span", { class: "commit-dossier__impact-value" }, formatBalance(floorDisplay(ctx.paidCarats, false)))),
+          h("span", { class: "commit-dossier__impact-heading ht-type-normal-text" }, "Predicted Available"),
+          impactLine("🎁", "Gift Pulls", h("span", { class: "commit-dossier__impact-value ht-type-focus-text" }, formatBalance(floorDisplay(ctx.freePulls, false)))),
+          impactLine("/icons/carat.png", "Carats", h("span", { class: "commit-dossier__impact-value ht-type-focus-text" }, formatBalance(floorDisplay(ctx.freeCarats, true)))),
+          impactLine(`/icons/${ctx.kind}_ticket.png`, TICKET_LABEL[ctx.kind], h("span", { class: "commit-dossier__impact-value ht-type-focus-text" }, formatBalance(floorDisplay(ctx.tickets, false)))),
+          impactLine("/icons/carat.png", "Paid Carats", h("span", { class: "commit-dossier__impact-value ht-type-focus-text" }, formatBalance(floorDisplay(ctx.paidCarats, false)))),
         ),
-        h("span", { class: "commit-dossier__impact-arrow", attr: { "aria-hidden": "true" } }, "→"),
+        h("span", { class: "commit-dossier__impact-arrow ht-type-headline-text", attr: { "aria-hidden": "true" } }, "→"),
         h(
           "div",
           { class: "commit-dossier__impact-col" },
-          h("span", { class: "commit-dossier__impact-heading" }, "After Commitment"),
+          h("span", { class: "commit-dossier__impact-heading ht-type-normal-text" }, "After Commitment"),
           impactLine("🎁", "Gift Pulls", afterGiftPulls),
           impactLine("/icons/carat.png", "Carats", afterFree),
           impactLine(`/icons/${ctx.kind}_ticket.png`, TICKET_LABEL[ctx.kind], afterTickets),
@@ -273,7 +287,7 @@ export function commitDossier(opts: CommitDossierOpts): HTMLElement {
     // Save writes the pity through to the commitments map; 0 clears it.
     surfaceActions(
       surfaceCancel({
-        class: "commit-dossier__cancel",
+        class: "commit-dossier__cancel ht-type-focus-text",
         onCancel: opts.onClose,
         // Pristine ⇒ Esc backs out; a dialled-but-unsaved pity/paid draft is a pending
         // decision, so Esc holds and Cancel stays the deliberate way out.
@@ -282,7 +296,7 @@ export function commitDossier(opts: CommitDossierOpts): HTMLElement {
       h(
         "button",
         {
-          class: "commit-dossier__save",
+          class: "commit-dossier__save ht-type-focus-text",
           attr: { type: "button" },
           on: {
             click: () => {

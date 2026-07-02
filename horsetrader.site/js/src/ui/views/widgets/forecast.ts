@@ -36,7 +36,7 @@ export function forecastWidget(base: Omit<ForecastInput, "pity">, kind: BannerKi
 
   for (let copies = 1; copies <= base.maxCopies; copies++) {
     const fill = h("div", { class: "forecast__fill" });
-    const pct = h("span", { class: "forecast__pct" });
+    const pct = h("span", { class: "forecast__pct ht-type-normal-text" });
     handles.push({ fill, pct });
     chart.append(
       h(
@@ -44,12 +44,12 @@ export function forecastWidget(base: Omit<ForecastInput, "pity">, kind: BannerKi
         { class: "forecast__bar" },
         pct,
         h("div", { class: "forecast__track" }, fill),
-        h("span", { class: "forecast__count" }, barLabel(copies, base.maxCopies, kind)),
+        h("span", { class: "forecast__count ht-type-normal-text" }, barLabel(copies, base.maxCopies, kind)),
       ),
     );
   }
 
-  const caption = h("p", { class: "forecast__caption" });
+  const caption = h("p", { class: "forecast__caption ht-type-normal-text" });
   const el = h("div", { class: "forecast" }, chart, caption);
 
   const update = (pity: number): void => {

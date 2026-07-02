@@ -54,7 +54,7 @@ export function resourcesEditor(opts: ResourcesEditorOpts): HTMLElement {
 
   const editCell = (cell: Cell): HTMLElement => {
     const input = h("input", {
-      class: "resource-field__input",
+      class: "resource-field__input ht-type-normal-text ht-type-edit-control",
       attr: { type: "number", min: "0", max: String(resourceCap(cell.key)), step: "1", inputmode: "numeric", value: String(values[cell.key] ?? 0), id: `rs-${cell.key}` },
     });
     // Clamp every keystroke through the same normaliser the commit/ingress use, so a
@@ -94,12 +94,12 @@ export function resourcesEditor(opts: ResourcesEditorOpts): HTMLElement {
     on: { change: () => syncPack() },
   });
   const packDays = h("input", {
-    class: "resources-editor__pack-days",
+    class: "resources-editor__pack-days ht-type-normal-text ht-type-edit-control",
     attr: { type: "number", min: "0", step: "1", inputmode: "numeric", value: daysUntil(opts.dailyPack) },
   });
   const packDateField = h(
     "label",
-    { class: "resources-editor__pack-date-field" },
+    { class: "resources-editor__pack-date-field ht-type-normal-text" },
     "Top up in",
     packDays,
     "days",
@@ -156,33 +156,46 @@ export function resourcesEditor(opts: ResourcesEditorOpts): HTMLElement {
   return h(
     "section",
     { class: "resources-editor" },
-    h("h2", { class: "resources-editor__title" }, "Record Balance"),
+    h(
+      "header",
+      { class: "resources-editor__mast" },
+      h(
+        "button",
+        {
+          class: "resources-editor__back",
+          attr: { type: "button", "aria-label": "Back to resources" },
+          on: { click: opts.onClose },
+        },
+        "‹",
+      ),
+      h("h2", { class: "resources-editor__title ht-type-headline-text" }, "Record Balance"),
+    ),
     h(
       "p",
-      { class: "resources-editor__intro" },
+      { class: "resources-editor__intro ht-type-normal-text" },
       "Copy your current totals straight from the game. The whole timeline projects " +
         "forward from this snapshot, so re-record it whenever your real balance drifts.",
     ),
     resourceGrid(editCell),
     h(
       "label",
-      { class: "resources-editor__toggle" },
+      { class: "resources-editor__toggle ht-type-normal-text" },
       packToggle,
       "I spend money for the Daily Carats pack",
     ),
     packDateField,
     h(
       "label",
-      { class: "resources-editor__toggle" },
+      { class: "resources-editor__toggle ht-type-normal-text" },
       passToggle,
       "I buy the Training Pass premium track",
     ),
     surfaceActions(
-      surfaceCancel({ class: "resources-editor__cancel", onCancel: opts.onClose, escSafe: pristine }),
+      surfaceCancel({ class: "resources-editor__cancel ht-type-focus-text", onCancel: opts.onClose, escSafe: pristine }),
       h(
         "button",
         {
-          class: "resources-editor__save",
+          class: "resources-editor__save ht-type-focus-text",
           attr: { type: "button" },
           on: {
             click: () => {

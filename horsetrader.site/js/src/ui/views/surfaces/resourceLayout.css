@@ -14,10 +14,7 @@
   display: flex;
   align-items: center;
   gap: calc(0.31 * var(--glass-u));
-  font-size: var(--ht-type-micro-size);
-  font-weight: var(--ht-type-micro-weight);
   letter-spacing: var(--ht-type-label-spacing);
-  line-height: var(--ht-type-micro-line);
   text-transform: uppercase;
   opacity: 0.5;
 }
@@ -30,13 +27,10 @@
 }
 
 .resource-field__value {
-  font-size: var(--ht-type-number-size);
   font-variant-numeric: tabular-nums;
 }
 
 .resource-field__input {
-  font: inherit;
-  font-size: var(--ht-type-number-size);
   font-variant-numeric: tabular-nums;
   width: 100%;
   min-height: var(--glass-target);

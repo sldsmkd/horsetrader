@@ -57,6 +57,27 @@
   );
 }
 
+/* Godolphin portrait-phone chrome: only the filmstrip remains at the bottom, so
+   the world aperture no longer reserves a second, invisible minimap row. */
+:root[data-timeline-chrome="filmstrip-only"] {
+  --glass-chrome-bottom-h: calc(
+    var(--timeline-chrome-bottom) + max(var(--minimap-h), var(--glass-target))
+  );
+}
+
+:root[data-timeline-chrome="minimap-only"] {
+  --glass-chrome-bottom-h: calc(
+    var(--timeline-chrome-bottom) + var(--minimap-h)
+  );
+}
+
+/* A touch landscape phone omits the menubar, so its complete top reservation
+   returns to the timeline camera aperture. */
+:root[data-menubar="hidden"] {
+  --timeline-chrome-top: 0px;
+  --timeline-chrome-height: 0px;
+}
+
 html {
   background: var(--ht-colour-surface-page);
   color: var(--ht-colour-text-primary);

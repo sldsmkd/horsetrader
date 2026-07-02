@@ -1,9 +1,15 @@
 /* The Desk is a spreadsheet, not a dialog — it runs wider than the standard modal. Snug to
    the current columns for now (commit · chips · half-note · forecast); it'll grow as more
    info lands. Widened on the card itself (.surface--modal fixes the width + clips overflow),
-   scoped to the plan via :has so no other modal changes. Capped to the viewport. */
-.surface--modal:has(.plan) {
+   named by the plan surface variant so no other modal changes. Capped to the viewport. */
+.surface--plan {
   width: min(calc(64 * var(--glass-u)), calc(100vw - 1.88 * var(--glass-u)));
+  height: calc(100svh - 2 * var(--glass-chrome-bottom-h));
+}
+
+.surface--plan > .surface__body {
+  min-height: 0;
+  overflow: hidden;
 }
 
 .plan {
@@ -11,6 +17,8 @@
   flex-direction: column;
   gap: calc(1.38 * var(--glass-u));
   width: 100%; /* fill the (now wide) card; the row grid distributes the columns */
+  height: 100%;
+  min-height: 0;
 }
 
 /* Title hero — personalised: the oshi's portrait beside "Xelene's Plan" + the count. */
@@ -21,15 +29,25 @@
   gap: calc(1 * var(--glass-u));
 }
 
-/* The oshi portrait — a larger character mark than the menubar pill icon. Round, ringed. */
-.plan__oshi {
-  width: calc(5 * var(--glass-u));
-  height: calc(5 * var(--glass-u));
+/* The page exit uses the same square back-button grammar as Trainer. */
+.plan__back {
+  box-sizing: border-box;
+  width: var(--glass-target);
+  height: var(--glass-target);
   flex-shrink: 0;
-  border-radius: 50%;
-  object-fit: cover;
-  object-position: top center;
-  box-shadow: 0 0 0 1px color-mix(in srgb, currentColor 25%, transparent);
+  border: 1px solid var(--ht-control-border);
+  border-radius: var(--ht-control-radius-soft);
+  background: var(--ht-control-bg);
+  color: inherit;
+  font: inherit;
+  font-size: min(2rem, calc(2.5 * var(--glass-u)));
+  cursor: pointer;
+}
+
+.plan__back:hover,
+.plan__back:focus-visible {
+  background: var(--ht-control-bg-hover-subtle);
+  outline: 0;
 }
 
 .plan__masthead {
@@ -40,27 +58,23 @@
 
 .plan__title {
   margin: 0;
-  font-size: var(--ht-type-surface-title-size);
-  font-weight: var(--ht-type-surface-title-weight);
-  line-height: 1.1;
 }
 
 .plan__count {
   margin: 0;
-  font-size: var(--ht-type-caption-size);
-  line-height: var(--ht-type-caption-line);
   opacity: 0.6;
 }
 
 /* The rows — the readable whole-plan, one banner each, stacked along the time spine. */
 .plan__rows {
   display: flex;
+  flex: 1;
+  min-height: 0;
   flex-direction: column;
   gap: calc(0.5 * var(--glass-u));
   margin: 0;
   padding: 0;
   list-style: none;
-  max-height: 60vh;
   overflow-y: auto;
 }
 
@@ -160,9 +174,6 @@
   border-radius: var(--ht-control-radius-soft);
   background: transparent;
   color: inherit;
-  font: inherit;
-  font-size: var(--ht-type-caption-size);
-  line-height: 1.3;
   opacity: 0.55;
   transition: opacity 0.12s, border-color 0.12s, background 0.12s;
 }
@@ -191,6 +202,7 @@
 .plan__cancel,
 .plan__update {
   min-width: calc(6.88 * var(--glass-u));
+  min-height: var(--glass-target);
   padding: calc(0.69 * var(--glass-u)) calc(1.13 * var(--glass-u));
   border-radius: var(--ht-control-radius);
   color: inherit;
@@ -215,4 +227,105 @@
 .plan__update:focus-visible {
   background: var(--ht-control-primary-bg-hover);
   outline: 0;
+}
+
+/* Touch-phone Godolphin form: app.ts applies the same explicit capability +
+   short-edge presentation policy as Trainer. The layer then becomes the sole
+   viewport document, painting above every persistent piece of app chrome. */
+.surface-layer--plan.surface-layer--plan-fullscreen {
+  z-index: var(--glass-z-modal);
+  background: var(--ht-colour-surface-page);
+  pointer-events: auto;
+}
+
+.surface-layer--plan-fullscreen {
+  .surface--plan {
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    border: 0;
+    border-radius: 0;
+    transform: none;
+    background: var(--ht-colour-surface-page);
+  }
+
+  .surface--plan > .surface__body {
+    height: 100%;
+    padding:
+      max(calc(1.25 * var(--glass-u)), env(safe-area-inset-top))
+      max(calc(1.25 * var(--glass-u)), env(safe-area-inset-right))
+      max(calc(1.25 * var(--glass-u)), env(safe-area-inset-bottom))
+      max(calc(1.25 * var(--glass-u)), env(safe-area-inset-left));
+    overscroll-behavior: contain;
+    overflow: hidden auto;
+  }
+
+  .plan {
+    min-height: 100%;
+    height: auto;
+  }
+
+  .plan__mast {
+    justify-content: flex-start;
+  }
+
+  .plan__rows {
+    flex: none;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .plan__row {
+    --plan-cell: var(--glass-target);
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      "badge chips"
+      "note note"
+      "forecast forecast";
+    align-items: start;
+  }
+
+  .plan__badge {
+    grid-area: badge;
+  }
+
+  .plan__chips {
+    grid-area: chips;
+    grid-template-columns: repeat(4, var(--plan-cell));
+    justify-content: start;
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+  }
+
+  .plan__note {
+    grid-area: note;
+    max-width: none;
+    min-height: calc(2 * var(--glass-target));
+    opacity: 0.75;
+  }
+
+  .plan__forecast {
+    grid-area: forecast;
+    justify-self: end;
+  }
+
+  .surface--plan .surface-actions {
+    position: sticky;
+    bottom: calc(-1.25 * var(--glass-u));
+    z-index: 1;
+    margin-inline: calc(-1.25 * var(--glass-u));
+    padding: calc(0.75 * var(--glass-u)) calc(1.25 * var(--glass-u)) calc(1.25 * var(--glass-u));
+    border-top: 1px solid var(--ht-control-border-quiet);
+    background: var(--ht-colour-surface-page);
+  }
+
+  .plan__cancel,
+  .plan__update {
+    flex: 1;
+    font-size: var(--ht-type-focus-text-size);
+    font-weight: var(--ht-type-focus-text-weight);
+    line-height: var(--ht-type-focus-text-line);
+  }
 }

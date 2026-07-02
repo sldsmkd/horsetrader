@@ -17,7 +17,16 @@ const appPath = fileURLToPath(new URL("../app.ts", import.meta.url));
 const editControlPath = fileURLToPath(new URL("../editControl.ts", import.meta.url));
 const cardPath = fileURLToPath(new URL("../views/surfaces/cardSurface.css", import.meta.url));
 const cardTsPath = fileURLToPath(new URL("../views/surfaces/cardSurface.ts", import.meta.url));
+const planPath = fileURLToPath(new URL("../views/surfaces/planSurface.css", import.meta.url));
+const planTsPath = fileURLToPath(new URL("../views/surfaces/planSurface.ts", import.meta.url));
 const resourcesPath = fileURLToPath(new URL("../views/surfaces/resourcesSurface.css", import.meta.url));
+const resourcesTsPath = fileURLToPath(new URL("../views/surfaces/resourcesSurface.ts", import.meta.url));
+const resourcesEditorPath = fileURLToPath(new URL("../views/surfaces/resourcesEditor.css", import.meta.url));
+const resourcesEditorTsPath = fileURLToPath(new URL("../views/surfaces/resourcesEditor.ts", import.meta.url));
+const resourceLayoutPath = fileURLToPath(new URL("../views/surfaces/resourceLayout.css", import.meta.url));
+const limitBreakerPath = fileURLToPath(new URL("../views/widgets/limitBreaker.css", import.meta.url));
+const commitPath = fileURLToPath(new URL("../views/surfaces/commitDossier.css", import.meta.url));
+const commitTsPath = fileURLToPath(new URL("../views/surfaces/commitDossier.ts", import.meta.url));
 const cloudControlsPath = fileURLToPath(new URL("../views/widgets/cloudControls.css", import.meta.url));
 const discreteSliderPath = fileURLToPath(new URL("../views/widgets/discreteSlider.css", import.meta.url));
 const glass = readFileSync(glassPath, "utf8");
@@ -31,7 +40,16 @@ const app = readFileSync(appPath, "utf8");
 const editControl = readFileSync(editControlPath, "utf8");
 const card = readFileSync(cardPath, "utf8");
 const cardTs = readFileSync(cardTsPath, "utf8");
+const plan = readFileSync(planPath, "utf8");
+const planTs = readFileSync(planTsPath, "utf8");
 const resources = readFileSync(resourcesPath, "utf8");
+const resourcesTs = readFileSync(resourcesTsPath, "utf8");
+const resourcesEditor = readFileSync(resourcesEditorPath, "utf8");
+const resourcesEditorTs = readFileSync(resourcesEditorTsPath, "utf8");
+const resourceLayout = readFileSync(resourceLayoutPath, "utf8");
+const limitBreaker = readFileSync(limitBreakerPath, "utf8");
+const commitDossier = readFileSync(commitPath, "utf8");
+const commitDossierTs = readFileSync(commitTsPath, "utf8");
 const cloudControls = readFileSync(cloudControlsPath, "utf8");
 const discreteSlider = readFileSync(discreteSliderPath, "utf8");
 
@@ -166,15 +184,11 @@ test("headline text shares the 1.8u surface calibration", () => {
     tosen,
     /--ht-type-headline-text-size:\s*calc\(1\.8 \* var\(--glass-type-presentation-u\)\)/,
   );
-  for (const [css, selector] of [
-    [trainer, "mobile-trainer__style-title"],
-    [resources, "resources-surface__carat-total"],
-  ]) {
-    assert.match(
-      css,
-      new RegExp(`\\.${selector}\\s*\\{[^}]*font-size:\\s*var\\(--ht-type-headline-text-size\\)`, "s"),
-    );
-  }
+  assert.match(
+    trainer,
+    /\.mobile-trainer__style-title\s*\{[^}]*font-size:\s*var\(--ht-type-headline-text-size\)/s,
+  );
+  assert.match(resourcesTs, /class:\s*"resources-surface__carat-total ht-type-headline-text"/);
   assert.match(
     trainerTs,
     /class:\s*"mobile-trainer__name ht-type-headline-text ht-type-edit-control"/,
@@ -197,6 +211,87 @@ test("card detail composes semantic type and a coarse phone representation", () 
   );
   assert.match(card, /@media \(orientation: landscape\), \(min-width: 900px\)\s*\{[\s\S]*?width:\s*min\(46rem, 88vw\)/s);
   assert.doesNotMatch(card, /\.card-surface__fav:(?:hover|focus-visible)[^{]*\{[^}]*transform:\s*scale/s);
+});
+
+test("Plan keeps its desktop Desk and takes over a coarse phone viewport", () => {
+  assert.match(app, /title:\s*"The Plan",[\s\S]*?variant:\s*"plan"/);
+  assert.match(app, /classList\.toggle\("surface-layer--plan", view\.get\(\)\.plan\)/);
+  assert.match(app, /classList\.toggle\("surface-layer--plan-fullscreen", mode === "fullscreen"\)/);
+  assert.match(plan, /\.surface--plan\s*\{[^}]*width:\s*min\(calc\(64 \* var\(--glass-u\)\)/s);
+  assert.match(plan, /\.surface--plan > \.surface__body\s*\{[^}]*overflow:\s*hidden/s);
+  assert.match(plan, /\.plan__rows\s*\{[^}]*flex:\s*1;[^}]*min-height:\s*0;[^}]*overflow-y:\s*auto/s);
+  assert.match(
+    plan,
+    /\.surface-layer--plan\.surface-layer--plan-fullscreen\s*\{[^}]*z-index:\s*var\(--glass-z-modal\)/s,
+  );
+  assert.match(plan, /\.surface-layer--plan-fullscreen\s*\{[\s\S]*?\.surface--plan\s*\{[^}]*inset:\s*0;[^}]*width:\s*100%;[^}]*height:\s*100%/s);
+  assert.match(plan, /--plan-cell:\s*var\(--glass-target\)/);
+  assert.match(plan, /\.plan__cancel,\s*\n\.plan__update\s*\{[^}]*min-height:\s*var\(--glass-target\)/s);
+  assert.match(planTs, /class:\s*"plan__note ht-type-normal-text ht-type-edit-control"/);
+  assert.match(planTs, /class:\s*"plan__title ht-type-headline-text"/);
+  assert.match(planTs, /class:\s*"plan__count ht-type-focus-text"/);
+  assert.match(planTs, /class:\s*"plan__back"[\s\S]*?"aria-label":\s*"Back to timeline"[\s\S]*?click:\s*discard/);
+  assert.match(plan, /\.plan__back\s*\{[^}]*width:\s*var\(--glass-target\);[^}]*height:\s*var\(--glass-target\)/s);
+  assert.doesNotMatch(planTs, /oshiPortrait|oshiName/);
+  assert.doesNotMatch(plan, /\.plan__note\s*\{[^}]*font-size:/s);
+  assert.doesNotMatch(plan, /\.plan__(?:title|count)\s*\{[^}]*font-(?:size|weight):/s);
+});
+
+test("Record Balance takes over a coarse phone viewport", () => {
+  assert.match(app, /title:\s*"Record Balance",[\s\S]*?variant:\s*"balance-editor"/);
+  assert.match(app, /classList\.toggle\("surface-layer--balance-fullscreen", mode === "fullscreen"\)/);
+  assert.match(app, /classList\.toggle\("surface-layer--balance-editor", view\.get\(\)\.resourcesEditing\)/);
+  assert.match(
+    resourcesEditor,
+    /\.surface-layer--balance-editor\.surface-layer--balance-fullscreen\s*\{[^}]*z-index:\s*var\(--glass-z-modal\)/s,
+  );
+  assert.match(resourcesEditor, /\.surface-layer--balance-fullscreen\s*\{[\s\S]*?\.surface--balance-editor\s*\{[^}]*inset:\s*0;[^}]*width:\s*100%;[^}]*height:\s*100%/s);
+  assert.match(resourcesEditorTs, /class:\s*"resources-editor__title ht-type-headline-text"/);
+  assert.match(resourcesEditorTs, /class:\s*"resource-field__input ht-type-normal-text ht-type-edit-control"/);
+  assert.match(resourcesEditorTs, /class:\s*"resources-editor__pack-days ht-type-normal-text ht-type-edit-control"/);
+  assert.match(resourcesEditorTs, /class:\s*"resources-editor__back"[\s\S]*?"aria-label":\s*"Back to resources"/);
+});
+
+test("Resources leaves the menubar rail and takes over a coarse phone viewport", () => {
+  assert.match(app, /title:\s*"Resources",[\s\S]*?variant:\s*"resources"/);
+  assert.match(app, /classList\.toggle\("chrome-dropdowns--resources-fullscreen", mode === "fullscreen"\)/);
+  assert.match(app, /classList\.toggle\("chrome-dropdowns--resources", right === "resources"\)/);
+  assert.match(
+    resources,
+    /\.chrome-dropdowns--resources\.chrome-dropdowns--resources-fullscreen\s*\{[^}]*position:\s*fixed;[^}]*inset:\s*0;[^}]*z-index:\s*900/s,
+  );
+  assert.match(resources, /\.chrome-dropdowns--resources-fullscreen\s*\{[\s\S]*?\.surface--resources\s*\{[^}]*inset:\s*0;[^}]*width:\s*100%;[^}]*height:\s*100%/s);
+  assert.match(resourcesTs, /class:\s*"resources-surface__title ht-type-headline-text"/);
+  assert.match(resourcesTs, /class:\s*"resources-surface__back"[\s\S]*?"aria-label":\s*"Back to timeline"/);
+});
+
+test("Resources and Record Balance delegate readable type to Tosen roles", () => {
+  assert.deepEqual(resources.match(/font-size:/g), ["font-size:"]); // symbolic back chevron only
+  assert.deepEqual(resourcesEditor.match(/font-size:/g), ["font-size:"]); // symbolic back chevron only
+  for (const css of [resources, resourcesEditor, resourceLayout, limitBreaker]) {
+    assert.doesNotMatch(css, /font-weight:/);
+    assert.doesNotMatch(css, /line-height:/);
+  }
+  assert.doesNotMatch(resourceLayout, /font-size:/);
+  assert.doesNotMatch(limitBreaker, /font-size:/);
+  assert.match(resourcesTs, /resources-surface__edit ht-type-focus-text/);
+  assert.match(resourcesEditorTs, /resources-editor__save ht-type-focus-text/);
+});
+
+test("commit dossier keeps its layout inside a Tosen-typed phone takeover", () => {
+  assert.match(app, /title:\s*commitTitle\(ctx\),[\s\S]*?variant:\s*"commit"/);
+  assert.match(app, /classList\.toggle\("surface-layer--commit-fullscreen", mode === "fullscreen"\)/);
+  assert.match(app, /classList\.toggle\("surface-layer--commit", committing !== null\)/);
+  assert.match(
+    commitDossier,
+    /\.surface-layer--commit\.surface-layer--commit-fullscreen\s*\{[^}]*z-index:\s*var\(--glass-z-modal\)/s,
+  );
+  assert.match(commitDossier, /\.surface-layer--commit-fullscreen\s*\{[\s\S]*?\.surface--commit\s*\{[^}]*inset:\s*0;[^}]*width:\s*100%;[^}]*height:\s*100%/s);
+  assert.match(commitDossierTs, /class:\s*"commit-dossier__title ht-type-headline-text"/);
+  assert.match(commitDossierTs, /class:\s*"commit-dossier__dates ht-type-focus-text"/);
+  assert.match(commitDossierTs, /class:\s*"commit-dossier__back"[\s\S]*?"aria-label":\s*"Back to timeline"/);
+  assert.deepEqual(commitDossier.match(/font-size:/g), ["font-size:"]); // symbolic back chevron only
+  assert.doesNotMatch(commitDossier, /font-weight:|line-height:/);
 });
 
 test("Trainer preset rows occupy 42u in both pointer modes", () => {

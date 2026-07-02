@@ -20,6 +20,25 @@
   transform: translateX(-50%);
   backdrop-filter: var(--glass-blur);
 }
+
+/* Godolphin removes the minimap as a control on touch portrait phones. Keep its
+   measurable box alive so the passive refresh path never constructs a zero-width
+   axis; visibility + hit testing disappear completely. */
+.minimap--suppressed {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Landscape phone has width to spend but no spare height: turn the retained
+   minimap into an edge-to-edge bottom rail instead of a floating instrument. */
+:root[data-menubar="hidden"] .minimap {
+  left: 0;
+  bottom: var(--timeline-chrome-bottom);
+  width: 100vw;
+  max-width: none;
+  border-radius: var(--glass-radius);
+  transform: none;
+}
 .minimap--grabbing {
   cursor: grabbing;
 }

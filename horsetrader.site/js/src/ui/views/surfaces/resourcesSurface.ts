@@ -86,7 +86,7 @@ function ticket(icon: string, name: string, count: number): HTMLElement {
     "div",
     { class: "resources-surface__ticket" },
     h("img", { class: "resources-surface__ticket-icon", attr: { src: icon, alt: name, title: name, width: 24, height: 24 } }),
-    h("span", { class: "resources-surface__ticket-count" }, formatBalance(count)),
+    h("span", { class: "resources-surface__ticket-count ht-type-focus-text" }, formatBalance(count)),
   );
 }
 
@@ -103,7 +103,7 @@ function footer(opts: ResourcesSurfaceOpts): HTMLElement {
       h("span", { class: "resources-surface__clock", attr: { "aria-hidden": "true" } }, "🕐"),
       h(
         "p",
-        { class: "resources-surface__footer-text" },
+        { class: "resources-surface__footer-text ht-type-normal-text" },
         "This projection is based on your last recorded balance. ",
         h(
           "span",
@@ -115,7 +115,7 @@ function footer(opts: ResourcesSurfaceOpts): HTMLElement {
     h(
       "button",
       {
-        class: "resources-surface__edit",
+        class: "resources-surface__edit ht-type-focus-text",
         attr: { type: "button" },
         on: { click: opts.onEdit },
       },
@@ -139,14 +139,14 @@ function readout(viewDate: string, p: ResourceVector): HTMLElement {
         "div",
         { class: "resources-surface__carats" },
         h("img", { class: "resources-surface__carat-icon", attr: { src: "/icons/carat.png", alt: "", width: 56, height: 56 } }),
-        h("span", { class: "resources-surface__carat-total" }, formatBalance(free + paid)),
+        h("span", { class: "resources-surface__carat-total ht-type-headline-text" }, formatBalance(free + paid)),
       ),
       h(
         "div",
-        { class: "resources-surface__carat-split" },
+        { class: "resources-surface__carat-split ht-type-normal-text" },
         `(${formatBalance(free)} Free • ${formatBalance(paid)} Paid)`,
       ),
-      h("div", { class: "resources-surface__projected-on" }, `Projected on ${formatDate(viewDate)}`),
+      h("div", { class: "resources-surface__projected-on ht-type-normal-text" }, `Projected on ${formatDate(viewDate)}`),
     ),
 
     h("hr", { class: "resources-surface__divider" }),
@@ -163,7 +163,7 @@ function readout(viewDate: string, p: ResourceVector): HTMLElement {
     h(
       "div",
       { class: "resources-surface__breakers" },
-      h("span", { class: "resources-surface__label" }, "Limit Breakers"),
+      h("span", { class: "resources-surface__label ht-type-normal-text" }, "Limit Breakers"),
       limitBreaker({
         variant: "rainbow",
         name: "Rainbow",
@@ -194,7 +194,27 @@ export function resourcesSurface(opts: ResourcesSurfaceOpts): ResourcesSurfaceHa
     label: "Collapse resources",
     onClick: opts.onClose,
   });
-  const el = h("section", { class: "resources-surface" }, collapse, live, footer(opts));
+  const el = h(
+    "section",
+    { class: "resources-surface" },
+    h(
+      "header",
+      { class: "resources-surface__mast" },
+      h(
+        "button",
+        {
+          class: "resources-surface__back",
+          attr: { type: "button", "aria-label": "Back to timeline" },
+          on: { click: opts.onClose },
+        },
+        "‹",
+      ),
+      h("h2", { class: "resources-surface__title ht-type-headline-text" }, "Resources"),
+    ),
+    collapse,
+    live,
+    footer(opts),
+  );
 
   return {
     el,

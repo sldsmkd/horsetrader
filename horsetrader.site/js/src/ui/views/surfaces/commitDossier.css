@@ -9,31 +9,50 @@
    window title bar. */
 .commit-dossier__mast {
   display: flex;
+  align-items: center;
+  gap: calc(1 * var(--glass-u));
+}
+
+.commit-dossier__back {
+  box-sizing: border-box;
+  width: var(--glass-target);
+  height: var(--glass-target);
+  flex: none;
+  border: 1px solid var(--ht-control-border);
+  border-radius: var(--ht-control-radius-soft);
+  background: var(--ht-control-bg);
+  color: inherit;
+  font: inherit;
+  font-size: min(2rem, calc(2.5 * var(--glass-u)));
+  cursor: pointer;
+}
+
+.commit-dossier__back:hover,
+.commit-dossier__back:focus-visible {
+  background: var(--ht-control-bg-hover-subtle);
+  outline: 0;
+}
+
+.commit-dossier__masthead {
+  display: flex;
+  min-width: 0;
   flex-direction: column;
   gap: calc(0.19 * var(--glass-u));
-  text-align: center;
 }
 
 .commit-dossier__title {
   margin: 0;
-  font-size: var(--ht-type-surface-title-size);
-  font-weight: var(--ht-type-surface-title-weight);
-  line-height: 1.1;
 }
 
 .commit-dossier__dates {
   margin: 0;
-  font-size: var(--ht-type-caption-size);
-  line-height: var(--ht-type-caption-line);
   opacity: 0.6;
 }
 
 .commit-dossier__section-label {
   display: block;
-  font-size: var(--ht-type-micro-size);
   text-transform: uppercase;
   letter-spacing: var(--ht-type-label-spacing);
-  line-height: var(--ht-type-micro-line);
   opacity: 0.55;
   margin-bottom: calc(0.5 * var(--glass-u));
   /* Every section label rides the same centred spine — labels, cards, panels and the
@@ -84,7 +103,6 @@
   border: 0;
   background: none;
   color: inherit;
-  font: inherit;
   cursor: pointer;
 }
 .commit-dossier__card-inspect:hover .commit-dossier__card-art,
@@ -121,8 +139,6 @@
   position: absolute;
   top: 0;
   left: 0;
-  font-size: var(--ht-type-micro-size);
-  font-weight: var(--ht-type-label-weight);
   letter-spacing: var(--ht-type-label-spacing);
   padding: calc(0.06 * var(--glass-u)) calc(0.31 * var(--glass-u));
   border-bottom-right-radius: 0.3rem;
@@ -145,9 +161,7 @@
   background: color-mix(in srgb, Canvas 60%, transparent);
 }
 .commit-dossier__card-name {
-  font-size: var(--ht-type-micro-size);
   text-align: center;
-  line-height: var(--ht-type-micro-line);
   opacity: 0.85;
 }
 
@@ -165,8 +179,6 @@
   margin-bottom: 0;
 }
 .commit-dossier__plan-heading {
-  font-size: var(--ht-type-control-size);
-  font-weight: var(--ht-type-label-weight);
   letter-spacing: var(--ht-type-label-spacing);
 }
 .commit-dossier__stepper {
@@ -176,10 +188,6 @@
 }
 .commit-dossier__step {
   box-sizing: border-box;
-  font: inherit;
-  font-size: var(--ht-type-surface-title-size);
-  font-weight: var(--ht-type-control-weight);
-  line-height: 1;
   width: var(--glass-target);
   height: var(--glass-target);
   border-radius: 0.4rem;
@@ -202,14 +210,10 @@
   /* Fill comes from the shared pity-band--* class (set per pity in render). */
 }
 .commit-dossier__pity-value {
-  font-size: var(--ht-type-number-large-size);
-  font-weight: var(--ht-type-number-large-weight);
   font-variant-numeric: tabular-nums;
 }
 .commit-dossier__reserved {
   margin: 0;
-  font-size: var(--ht-type-label-size);
-  line-height: var(--ht-type-label-line);
   opacity: 0.7;
 }
 
@@ -252,8 +256,6 @@
   max-width: calc(47.5 * var(--glass-u));
   margin: calc(-0.13 * var(--glass-u)) auto calc(0.81 * var(--glass-u));
   color: color-mix(in srgb, currentColor 72%, transparent);
-  font-size: var(--ht-type-caption-size);
-  line-height: var(--ht-type-caption-line);
   text-align: center;
 }
 
@@ -272,8 +274,6 @@
   border: 1px solid color-mix(in srgb, currentColor 15%, transparent);
 }
 .commit-dossier__impact-heading {
-  font-size: var(--ht-type-micro-size);
-  font-weight: var(--ht-type-micro-weight);
   text-align: center;
   opacity: 0.7;
   margin-bottom: calc(0.25 * var(--glass-u));
@@ -292,11 +292,8 @@
   justify-content: center;
   width: calc(2 * var(--glass-u));
   height: calc(2 * var(--glass-u));
-  font-size: var(--ht-type-body-size);
 }
 .commit-dossier__impact-value {
-  font-size: var(--ht-type-number-size);
-  font-weight: var(--ht-type-number-weight);
   font-variant-numeric: tabular-nums;
 }
 /* Overcommitted: the reservation ran the balance negative — flag it red. */
@@ -304,12 +301,9 @@
   color: var(--ht-colour-commit-unfundable);
 }
 .commit-dossier__impact-label {
-  font-size: var(--ht-type-micro-size);
-  line-height: var(--ht-type-micro-line);
   opacity: 0.6;
 }
 .commit-dossier__impact-arrow {
-  font-size: var(--ht-type-panel-title-size);
   opacity: 0.5;
 }
 
@@ -319,8 +313,6 @@
    the buttons themselves. */
 .commit-dossier__cancel,
 .commit-dossier__save {
-  font: inherit;
-  font-size: var(--ht-type-control-size);
   min-height: var(--glass-target);
   padding: calc(0.63 * var(--glass-u)) calc(1.75 * var(--glass-u));
   border-radius: var(--ht-control-radius);
@@ -335,8 +327,59 @@
 .commit-dossier__save {
   background: var(--ht-control-commit-bg);
   border-color: var(--ht-control-commit-border);
-  font-weight: var(--ht-type-control-weight);
 }
 .commit-dossier__save:hover {
   background: var(--ht-control-commit-bg-hover);
+}
+
+/* Touch-phone dossier: preserve the proven internal layout and change only its
+   presentation frame. The same explicit policy as Trainer promotes it from a
+   centred modal to the sole viewport document above all persistent chrome. */
+.surface-layer--commit.surface-layer--commit-fullscreen {
+  z-index: var(--glass-z-modal);
+  background: var(--ht-colour-surface-page);
+  pointer-events: auto;
+}
+
+.surface-layer--commit-fullscreen {
+  .surface--commit {
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    border: 0;
+    border-radius: 0;
+    transform: none;
+    background: var(--ht-colour-surface-page);
+  }
+
+  .surface--commit > .surface__body {
+    height: 100%;
+    padding:
+      max(calc(1.25 * var(--glass-u)), env(safe-area-inset-top))
+      max(calc(1.25 * var(--glass-u)), env(safe-area-inset-right))
+      max(calc(1.25 * var(--glass-u)), env(safe-area-inset-bottom))
+      max(calc(1.25 * var(--glass-u)), env(safe-area-inset-left));
+    overscroll-behavior: contain;
+  }
+
+  .commit-dossier {
+    min-width: 0;
+    min-height: 100%;
+  }
+
+  .surface--commit .surface-actions {
+    position: sticky;
+    bottom: calc(-1.25 * var(--glass-u));
+    z-index: 1;
+    margin-inline: calc(-1.25 * var(--glass-u));
+    padding: calc(0.75 * var(--glass-u)) calc(1.25 * var(--glass-u)) calc(1.25 * var(--glass-u));
+    border-top: 1px solid var(--ht-control-border-quiet);
+    background: var(--ht-colour-surface-page);
+  }
+
+  .commit-dossier__cancel,
+  .commit-dossier__save {
+    flex: 1;
+  }
 }

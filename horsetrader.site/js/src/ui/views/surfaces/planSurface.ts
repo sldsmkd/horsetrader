@@ -15,7 +15,6 @@ import "./planSurface.css";
 import "../widgets/pityBand.css"; // the .pity-band--<band> fills, shared with the badge/dossier
 
 import { h } from "../../h.ts";
-import { img } from "../../image.ts";
 import { formatMonthDay, formatYear, possessive } from "../../format.ts";
 import { surfaceActions } from "./surfaceActions.ts";
 import { surfaceCancel } from "./surface.ts";
@@ -27,10 +26,8 @@ import type { PlanRow } from "../../select/plan.ts";
 
 export interface PlanSurfaceOpts {
   rows: PlanRow[];
-  /** The player — personalises the mast ("Xelene's Plan" beside their oshi's portrait). */
+  /** The player — personalises the mast ("Xelene's Plan"). */
   trainerName: string;
-  oshiPortrait: string;
-  oshiName: string;
   fav: FavouriteBinding;
   inspect: InspectBinding;
   /** Open the commit dossier for a banner (the Desk swaps itself out for it — the
@@ -58,7 +55,7 @@ function noteBox(row: PlanRow, drafts: Map<string, string>): HTMLTextAreaElement
   const ta = h(
     "textarea",
     {
-      class: "plan__note",
+      class: "plan__note ht-type-normal-text ht-type-edit-control",
       attr: { placeholder: "Add a note…", maxlength: NOTE_MAX_LENGTH, rows: 3, "aria-label": "Banner note", "data-note-key": row.key },
       on: {
         input: () => {
@@ -171,13 +168,25 @@ export function planSurface(opts: PlanSurfaceOpts): HTMLElement {
     h(
       "header",
       { class: "plan__mast" },
-      img(opts.oshiPortrait, { class: "plan__oshi", alt: opts.oshiName, loading: "lazy", decoding: "async", draggable: false }),
+      h(
+        "button",
+        {
+          class: "plan__back",
+          attr: { type: "button", "aria-label": "Back to timeline" },
+          on: { click: discard },
+        },
+        "‹",
+      ),
       h(
         "div",
         { class: "plan__masthead" },
         // Personalised: "Xelene's Plan" / "Kris' Plan" (possessive handles the trailing s).
-        h("h2", { class: "plan__title" }, `${possessive(opts.trainerName)} Plan`),
-        h("p", { class: "plan__count" }, `${opts.rows.length} planned ${opts.rows.length === 1 ? "banner" : "banners"}`),
+        h("h2", { class: "plan__title ht-type-headline-text" }, `${possessive(opts.trainerName)} Plan`),
+        h(
+          "p",
+          { class: "plan__count ht-type-focus-text" },
+          `${opts.rows.length} planned ${opts.rows.length === 1 ? "banner" : "banners"}`,
+        ),
       ),
     ),
     h("ul", { class: "plan__rows" }, ...rowsWithYears(opts.rows, opts)),

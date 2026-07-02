@@ -33,7 +33,7 @@ export function cellHeading(cell: Cell, tag: "label", attrs: { for: string }): H
 export function cellHeading(cell: Cell, tag: "span" | "label", attrs: Record<string, string> = {}): HTMLElement {
   return h(
     tag,
-    { class: "resource-field__heading", attr: attrs },
+    { class: "resource-field__heading ht-type-normal-text", attr: attrs },
     h("img", { class: "resource-field__icon", attr: { src: cell.icon, alt: "", width: 14, height: 14 } }),
     cell.heading,
   );

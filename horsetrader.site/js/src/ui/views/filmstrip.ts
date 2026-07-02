@@ -9,8 +9,8 @@
  * Like the minimap it is a passive cheap-path consumer: `refresh` rebuilds the
  * frames on the render path; `setView` slides the strip so the frame nearest the
  * view centres under the read-head, on every 60 Hz pan, with no broadcast. The
- * strip→timeline coupling (click to warp / open a card) is deliberately NOT wired
- * yet — this is the conceptual pass: prove the follow + the compression first.
+ * Strip→timeline coupling has two equivalent doors: tap/click a frame to warp
+ * directly, or drag the ordinal track and release the chosen frame under the head.
  *
  * The carat-domain logic is the pure `select/filmstrip.ts`; this file owns the
  * frame width, the read-head, and the glide.
@@ -22,7 +22,7 @@ import { h } from "../h.ts";
 import { img } from "../image.ts";
 import { resolveLengthPx } from "../glassUnit.ts";
 import type { CalendarDate } from "../../core/projection/dates.ts";
-import { focusIndex } from "../select/filmstrip.ts";
+import { draggedFrameIndex, focusIndex } from "../select/filmstrip.ts";
 import type { FilmFrame } from "../select/filmstrip.ts";
 
 /** The strip's geometry rides the glass plane (Grand Masters): the frame follows the
@@ -124,27 +124,98 @@ export function filmstrip({ onWarp }: FilmstripHandlers): Filmstrip {
   let frames: readonly FilmFrame[] = [];
   let viewDate: CalendarDate | null = null;
   let metrics: Metrics = { frame: 0, step: 0 };
+  // A drag selection owns the read-head while its timeline warp travels. Without
+  // this hold, intermediate onView dates recenter the strip on the old timeline
+  // position, producing a reset-then-return jerk before the camera arrives.
+  let heldIndex: number | null = null;
+  let drag:
+    | { pointerId: number; startX: number; startIndex: number; startOffset: number; selectedIndex: number; moved: boolean }
+    | null = null;
+  let suppressClick = false;
+  const DRAG_COMMIT_PX = 6;
 
   const track = h("div", { class: "filmstrip__track" });
   const head = h("div", { class: "filmstrip__head" }); // the fixed read-head line
   const el = h("section", { class: "filmstrip", attr: { "aria-label": "Favourites" } }, track, head);
+
+  const offsetFor = (i: number): number => {
+    const centreX = el.clientWidth / 2;
+    const frameCentre = i * metrics.step + metrics.frame / 2;
+    return centreX - frameCentre;
+  };
 
   /** Translate the track so frame `i` centres under the read-head (the strip's
    *  midline). The frames are equidistant, so the offset is pure index arithmetic
    *  off the resolved unit metrics. */
   const settle = () => {
     if (viewDate === null || frames.length === 0 || metrics.step === 0) return;
-    const i = focusIndex(frames, viewDate);
+    const i = heldIndex ?? focusIndex(frames, viewDate);
     if (i < 0) return;
-    const centreX = el.clientWidth / 2;
-    const frameCentre = i * metrics.step + metrics.frame / 2;
-    track.style.transform = `translateX(${centreX - frameCentre}px)`;
+    track.style.transform = `translateX(${offsetFor(i)}px)`;
   };
+
+  el.addEventListener("pointerdown", (ev) => {
+    if (frames.length === 0 || metrics.step === 0 || viewDate === null) return;
+    const startIndex = heldIndex ?? focusIndex(frames, viewDate);
+    if (startIndex < 0) return;
+    heldIndex = null; // a fresh direct manipulation supersedes any travelling hold
+    el.setPointerCapture(ev.pointerId);
+    drag = {
+      pointerId: ev.pointerId,
+      startX: ev.clientX,
+      startIndex,
+      startOffset: offsetFor(startIndex),
+      selectedIndex: startIndex,
+      moved: false,
+    };
+    el.classList.add("filmstrip--grabbing");
+  });
+
+  el.addEventListener("pointermove", (ev) => {
+    if (!drag || drag.pointerId !== ev.pointerId) return;
+    const dx = ev.clientX - drag.startX;
+    if (!drag.moved && Math.abs(dx) >= DRAG_COMMIT_PX) drag.moved = true;
+    if (!drag.moved) return;
+    drag.selectedIndex = draggedFrameIndex(drag.startIndex, dx, metrics.step, frames.length);
+    track.style.transform = `translateX(${drag.startOffset + dx}px)`;
+  });
+
+  const endDrag = (ev: PointerEvent, cancelled = false) => {
+    if (!drag || drag.pointerId !== ev.pointerId) return;
+    const finished = drag;
+    drag = null;
+    if (el.hasPointerCapture(ev.pointerId)) el.releasePointerCapture(ev.pointerId);
+    el.classList.remove("filmstrip--grabbing");
+    if (cancelled || !finished.moved) {
+      settle();
+      return;
+    }
+    suppressClick = true;
+    heldIndex = finished.selectedIndex;
+    settle();
+    onWarp(frames[finished.selectedIndex]!.date);
+  };
+  el.addEventListener("pointerup", (ev) => endDrag(ev));
+  el.addEventListener("pointercancel", (ev) => endDrag(ev, true));
+  // Pointer release over a child normally synthesises its click. A committed drag
+  // owns that release; swallow exactly that click while ordinary taps keep their
+  // existing per-frame warp behavior.
+  el.addEventListener(
+    "click",
+    (ev) => {
+      if (!suppressClick) return;
+      suppressClick = false;
+      ev.preventDefault();
+      ev.stopImmediatePropagation();
+    },
+    true,
+  );
 
   return {
     el,
     refresh(next) {
       frames = next;
+      heldIndex = null; // rebuilt sequence: an old ordinal index is no longer authoritative
       // Resolve the frame + gap off the live glass unit (the calibration bridge) —
       // a refresh is a view change (resize/recompute), the right cadence for this.
       const frame = resolveLengthPx(el, "var(--fs-frame)");
@@ -156,6 +227,10 @@ export function filmstrip({ onWarp }: FilmstripHandlers): Filmstrip {
     },
     setView(date) {
       viewDate = date;
+      // Keep the released drag target centred across intermediate warp dates.
+      // Once metric time says that target is nearest, the camera has caught up
+      // enough to resume ordinary passive following with no visual jump.
+      if (heldIndex !== null && focusIndex(frames, date) === heldIndex) heldIndex = null;
       settle();
     },
   };

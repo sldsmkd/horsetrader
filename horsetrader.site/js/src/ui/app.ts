@@ -65,6 +65,9 @@ import type { RightSurface } from "./views/menubar.ts";
 import { createIdentityController } from "./identity/controller.ts";
 import { createCapabilities, glassPointer } from "./caps/capabilities.ts";
 import { trainerPresentation } from "./caps/trainerPresentation.ts";
+import { timelineChromePresentation } from "./caps/timelineChromePresentation.ts";
+import { menubarPresentation } from "./caps/menubarPresentation.ts";
+import { scenarioPresentation } from "./caps/scenarioPresentation.ts";
 
 import type { UiStrings } from "./strings.ts";
 import { belowLaneCards } from "./select/belowLane.ts";
@@ -404,13 +407,13 @@ export function mountApp(
   // bounds and the centred markers are all measured off clientWidth/Height, so a
   // resize must re-lay everything. rAF-coalesced so a drag-resize runs at most
   // once per frame rather than per resize tick.
-  let applyTrainerPresentation = (): void => {};
+  let applySurfacePresentation = (): void => {};
   let resizePending = 0;
   window.addEventListener("resize", () => {
     if (resizePending) return;
     resizePending = requestAnimationFrame(() => {
       resizePending = 0;
-      applyTrainerPresentation();
+      applySurfacePresentation();
       refresh();
     });
   });
@@ -419,18 +422,35 @@ export function mountApp(
   // it flows through `subscribe` and re-renders here (the render path).
   const surfaceLayer = h("div", { class: "surface-layer" });
   const trainerLayer = h("div", { class: "trainer-page-layer" });
-  applyTrainerPresentation = (): void => {
-    const mode = trainerPresentation(capabilities.get(), window.innerWidth, window.innerHeight);
+  // The menubar's dropdown rail: a layer that mirrors the floating bar's geometry so
+  // its surfaces drop in under the bar's own edges. On a phone the same node can become
+  // the explicit full-viewport Resources page.
+  const chromeDropdowns = h("div", { class: "chrome-dropdowns" });
+  applySurfacePresentation = (): void => {
+    const caps = capabilities.get();
+    const mode = trainerPresentation(caps, window.innerWidth, window.innerHeight);
+    const timelineChrome = timelineChromePresentation(caps, window.innerWidth, window.innerHeight);
+    const menubarMode = menubarPresentation(caps, window.innerWidth, window.innerHeight);
+    const scenarioMode = scenarioPresentation(caps, window.innerWidth, window.innerHeight);
     trainerLayer.classList.toggle("trainer-page-layer--fullscreen", mode === "fullscreen");
     trainerLayer.classList.toggle("trainer-page-layer--rail", mode === "rail");
+    surfaceLayer.classList.toggle("surface-layer--plan-fullscreen", mode === "fullscreen");
+    surfaceLayer.classList.toggle("surface-layer--balance-fullscreen", mode === "fullscreen");
+    surfaceLayer.classList.toggle("surface-layer--commit-fullscreen", mode === "fullscreen");
+    chromeDropdowns.classList.toggle("chrome-dropdowns--resources-fullscreen", mode === "fullscreen");
+    mini.el.classList.toggle("minimap--suppressed", timelineChrome === "filmstrip-only");
+    strip.el.classList.toggle("filmstrip--without-minimap", timelineChrome === "filmstrip-only");
+    strip.el.classList.toggle("filmstrip--suppressed", timelineChrome === "minimap-only");
+    document.documentElement.dataset["timelineChrome"] = timelineChrome;
+    menu.el.classList.toggle("menubar--suppressed", menubarMode === "hidden");
+    document.documentElement.dataset["menubar"] = menubarMode;
+    document.documentElement.dataset["scenarioWallpaper"] = scenarioMode;
   };
-  applyTrainerPresentation();
-  capabilities.subscribe(applyTrainerPresentation);
-  // The menubar's dropdown rail: a layer that mirrors the floating bar's geometry so
-  // its surfaces drop in under the bar's own edges (left book off the left edge, right
-  // resources off the right). Sibling to the bar today; the coherent-scale wrapper folds
-  // both together next.
-  const chromeDropdowns = h("div", { class: "chrome-dropdowns" });
+  applySurfacePresentation();
+  capabilities.subscribe(() => {
+    applySurfacePresentation();
+    refresh();
+  });
 
   // Escape dismisses the topmost open surface — but only via its declared dismiss
   // affordance (surfaceClose / surfaceCancel), so it closes a viewer or backs out of a
@@ -657,6 +677,7 @@ export function mountApp(
       const resourcesCard = surface({
         title: "Resources",
         placement: "right",
+        variant: "resources",
         headerless: true,
         body: resources.el,
         // Closing the surface tears the editor modal down with it.
@@ -668,6 +689,7 @@ export function mountApp(
         const balanceCard = surface({
           title: "Record Balance",
           placement: "center",
+          variant: "balance-editor",
           headerless: true,
           body: resourcesEditor({
             snapshot: coord.document().snapshot,
@@ -739,16 +761,14 @@ export function mountApp(
       const statuses = coord.commitmentStatuses();
       const notes = coord.document().notes ?? {};
       const rows = planRows(bundle, statuses, fav.isFavourited, (key) => notes[key] ?? "");
-      const oshi = identity.currentOshi();
       const planCard = surface({
         title: "The Plan",
         placement: "center",
+        variant: "plan",
         headerless: true,
         body: planSurface({
           rows,
           trainerName: identity.trainerName(),
-          oshiPortrait: oshi.portrait,
-          oshiName: oshi.name,
           fav,
           // The Desk intentionally STACKS its children (it stays open beneath them), so it
           // sets view directly rather than going through the guarded commit/inspect seams
@@ -787,6 +807,7 @@ export function mountApp(
       const commitCard = surface({
         title: commitTitle(ctx), // kept as the dialog aria-label; the body renders its own title hero
         placement: "center",
+        variant: "commit",
         headerless: true,
         body: commitDossier({
           context: ctx,
@@ -857,8 +878,12 @@ export function mountApp(
     modals.slice(0, -1).forEach((node) => node instanceof HTMLElement && lockSurface(node));
     chromeDropdowns.replaceChildren(...rail);
     surfaceLayer.replaceChildren(...modals);
+    chromeDropdowns.classList.toggle("chrome-dropdowns--resources", right === "resources");
     surfaceLayer.classList.toggle("surface-layer--over-trainer", view.get().trainer);
     surfaceLayer.classList.toggle("surface-layer--card-detail", cardDetail !== null);
+    surfaceLayer.classList.toggle("surface-layer--plan", view.get().plan);
+    surfaceLayer.classList.toggle("surface-layer--balance-editor", view.get().resourcesEditing);
+    surfaceLayer.classList.toggle("surface-layer--commit", committing !== null);
     trainerLayer.classList.toggle("trainer-page-layer--locked", view.get().trainer && anyModal);
     // Same timing for the resources hero number: fit it to the card now it's measurable.
     liveResources?.fit();

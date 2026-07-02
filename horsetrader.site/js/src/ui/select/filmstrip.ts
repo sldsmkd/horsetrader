@@ -146,3 +146,15 @@ export function focusIndex(frames: readonly FilmFrame[], viewDate: CalendarDate)
   }
   return best;
 }
+
+/** Frame selected by an ordinal strip drag. Leftward travel advances through the
+ * sequence; rightward travel moves back. Clamped so the strip has firm ends. */
+export function draggedFrameIndex(
+  startIndex: number,
+  deltaX: number,
+  step: number,
+  frameCount: number,
+): number {
+  if (frameCount <= 0 || step <= 0) return -1;
+  return Math.max(0, Math.min(frameCount - 1, Math.round(startIndex - deltaX / step)));
+}

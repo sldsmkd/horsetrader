@@ -5,19 +5,39 @@
   min-width: calc(27.5 * var(--glass-u));
 }
 
-/* Title hero — replaces the window title bar, like the other surfaces. */
+.resources-editor__mast {
+  display: flex;
+  align-items: center;
+  gap: calc(1 * var(--glass-u));
+}
+
+.resources-editor__back {
+  box-sizing: border-box;
+  width: var(--glass-target);
+  height: var(--glass-target);
+  flex: none;
+  border: 1px solid var(--ht-control-border);
+  border-radius: var(--ht-control-radius-soft);
+  background: var(--ht-control-bg);
+  color: inherit;
+  font: inherit;
+  font-size: min(2rem, calc(2.5 * var(--glass-u)));
+  cursor: pointer;
+}
+
+.resources-editor__back:hover,
+.resources-editor__back:focus-visible {
+  background: var(--ht-control-bg-hover-subtle);
+  outline: 0;
+}
+
 .resources-editor__title {
   margin: 0;
-  font-size: var(--ht-type-surface-title-size);
-  font-weight: var(--ht-type-surface-title-weight);
-  line-height: 1.1;
 }
 
 .resources-editor__intro {
   margin: calc(-0.63 * var(--glass-u)) 0 0;
   max-width: calc(42.5 * var(--glass-u));
-  font-size: var(--ht-type-caption-size);
-  line-height: var(--ht-type-caption-line);
   opacity: 0.7;
 }
 
@@ -33,8 +53,6 @@
   gap: calc(0.5 * var(--glass-u));
   min-height: var(--glass-target);
   padding-inline: calc(0.5 * var(--glass-u));
-  font-size: var(--ht-type-caption-size);
-  line-height: var(--ht-type-caption-line);
   opacity: 0.8;
   cursor: pointer;
 }
@@ -47,8 +65,6 @@
   display: flex;
   align-items: center;
   gap: calc(0.5 * var(--glass-u));
-  font-size: var(--ht-type-caption-size);
-  line-height: var(--ht-type-caption-line);
   opacity: 0.8;
   margin-top: calc(-0.63 * var(--glass-u));
   margin-left: calc(1.75 * var(--glass-u));
@@ -61,8 +77,6 @@
 .resources-editor__pack-days {
   width: calc(4.38 * var(--glass-u));
   min-height: var(--glass-target);
-  font: inherit;
-  font-size: var(--ht-type-caption-size);
   text-align: center;
   color: inherit;
   background: color-mix(in srgb, currentColor 8%, transparent);
@@ -73,8 +87,6 @@
 
 .resources-editor__cancel,
 .resources-editor__save {
-  font: inherit;
-  font-size: var(--ht-type-control-size);
   min-height: var(--glass-target);
   padding: calc(0.44 * var(--glass-u)) calc(1.13 * var(--glass-u));
   border-radius: var(--ht-control-radius);
@@ -90,9 +102,63 @@
 
 .resources-editor__save {
   background: var(--ht-control-bg-hover-subtle);
-  font-weight: var(--ht-type-control-weight);
 }
 
 .resources-editor__save:hover {
   background: color-mix(in srgb, currentColor 18%, transparent);
+}
+
+/* Record Balance consumes the same explicit touch-phone presentation decision
+   as Trainer and Plan. It becomes the only visible viewport document. */
+.surface-layer--balance-editor.surface-layer--balance-fullscreen {
+  z-index: var(--glass-z-modal);
+  background: var(--ht-colour-surface-page);
+  pointer-events: auto;
+}
+
+.surface-layer--balance-fullscreen {
+  .surface--balance-editor {
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    border: 0;
+    border-radius: 0;
+    transform: none;
+    background: var(--ht-colour-surface-page);
+  }
+
+  .surface--balance-editor > .surface__body {
+    height: 100%;
+    padding:
+      max(calc(1.25 * var(--glass-u)), env(safe-area-inset-top))
+      max(calc(1.25 * var(--glass-u)), env(safe-area-inset-right))
+      max(calc(1.25 * var(--glass-u)), env(safe-area-inset-bottom))
+      max(calc(1.25 * var(--glass-u)), env(safe-area-inset-left));
+    overscroll-behavior: contain;
+  }
+
+  .resources-editor {
+    min-width: 0;
+    min-height: 100%;
+  }
+
+  .resource-grid__row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .surface--balance-editor .surface-actions {
+    position: sticky;
+    bottom: calc(-1.25 * var(--glass-u));
+    z-index: 1;
+    margin-inline: calc(-1.25 * var(--glass-u));
+    padding: calc(0.75 * var(--glass-u)) calc(1.25 * var(--glass-u)) calc(1.25 * var(--glass-u));
+    border-top: 1px solid var(--ht-control-border-quiet);
+    background: var(--ht-colour-surface-page);
+  }
+
+  .resources-editor__cancel,
+  .resources-editor__save {
+    flex: 1;
+  }
 }

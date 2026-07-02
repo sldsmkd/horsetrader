@@ -40,12 +40,12 @@ export function limitBreaker(opts: LimitBreakerOpts): HTMLElement {
       h(
         "div",
         { class: "limit-breaker__head" },
-        h("span", { class: "limit-breaker__name" }, opts.name),
+        h("span", { class: "limit-breaker__name ht-type-normal-text" }, opts.name),
         h(
           "span",
           { class: "limit-breaker__readout" },
-          h("strong", `${whole} + ${rem}/${SHARDS_PER_CRYSTAL}`),
-          h("span", { class: "limit-breaker__ratio" }, `(${ratio.toFixed(2)})`),
+          h("span", { class: "limit-breaker__whole ht-type-focus-text" }, `${whole} + ${rem}/${SHARDS_PER_CRYSTAL}`),
+          h("span", { class: "limit-breaker__ratio ht-type-normal-text" }, `(${ratio.toFixed(2)})`),
         ),
       ),
       h(

@@ -19,11 +19,32 @@
   z-index: var(--glass-z-chrome);
   overflow: hidden;
   transform: translateX(-50%);
-  pointer-events: none; /* the band passes panning through; only the faces opt back in */
+  pointer-events: auto;
+  touch-action: pan-y;
+  cursor: grab;
 }
 /* No favourites yet → nothing to read; fold the strip away rather than float empty. */
 .filmstrip--empty {
   display: none;
+}
+
+.filmstrip--suppressed {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* With no portrait-phone minimap beneath it, the ordinal strip drops into the
+   released bottom-chrome slot. */
+.filmstrip--without-minimap {
+  bottom: calc(var(--timeline-chrome-bottom) - 0.5 * var(--fs-frame));
+}
+
+.filmstrip--grabbing {
+  cursor: grabbing;
+}
+
+.filmstrip--grabbing .filmstrip__track {
+  transition: none;
 }
 
 /* The frame row. Equidistant frames; the transform glides only when the focused
