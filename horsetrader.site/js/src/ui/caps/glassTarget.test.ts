@@ -110,9 +110,11 @@ test("the Trainer chip scales its portrait optically by pointer mode", () => {
     menubar,
     /:root\[data-glass-pointer="coarse"\] \.menubar\s*\{[^}]*--menubar-identity-icon:\s*calc\(5 \* var\(--glass-u\)\)/s,
   );
+  // The avatar bleeds past its slot by honest dimension (1.3× + negative re-centre),
+  // never by `scale` — that would be a C-B4 projection violation on glass.
   assert.match(
     menubar,
-    /\.menubar__identity-icon\s*\{[^}]*width:\s*var\(--menubar-identity-icon\);[^}]*height:\s*var\(--menubar-identity-icon\)/s,
+    /\.menubar__identity-icon\s*\{[^}]*width:\s*calc\(1\.3 \* var\(--menubar-identity-icon\)\);[^}]*height:\s*calc\(1\.3 \* var\(--menubar-identity-icon\)\)/s,
   );
   assert.match(
     menubar,

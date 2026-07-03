@@ -122,9 +122,12 @@
 .menubar__identity-icon {
   display: block;
   flex: none;
-  transform: translate(-1px, -2.5px) scale(1.3);
-  width: var(--menubar-identity-icon);
-  height: var(--menubar-identity-icon);
+  /* The avatar deliberately bleeds past its slot. Honest dimension (1.3× the slot,
+     re-centred by negative margin), not `scale` — glass size IS dimension (C-B4). */
+  width: calc(1.3 * var(--menubar-identity-icon));
+  height: calc(1.3 * var(--menubar-identity-icon));
+  margin: calc(-0.15 * var(--menubar-identity-icon));
+  transform: translate(-1px, -2.5px);
   border-radius: 50%;
   object-fit: cover;
 }
