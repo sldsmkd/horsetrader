@@ -109,9 +109,11 @@ _TraineeKey = tuple[str, CostumeVariants]
 _TraineeIndexes = tuple[dict[_TraineeKey, Trainee], dict[_TraineeKey, Trainee]]
 
 _SupportKey = tuple[str, SupportRarity, SupportType]
+_SupportKind = tuple[SupportRarity, SupportType]
 _SupportIndexes = tuple[
     dict[_SupportKey, list[Support]],
     dict[_SupportKey, list[Support]],
+    dict[_SupportKind, list[Support]],
 ]
 
 
@@ -346,9 +348,11 @@ class Banners(Events[Banner], metaclass=SingletonMeta):
     def _build_support_indexes() -> _SupportIndexes:
         by_slug: dict[_SupportKey, list[Support]] = defaultdict(list)
         by_canonical: dict[_SupportKey, list[Support]] = defaultdict(list)
+        by_kind: dict[_SupportKind, list[Support]] = defaultdict(list)
         for s in Supports().values():
             if s.type is None or s.rarity == SupportRarity.UNKNOWN:
                 continue
+            by_kind[(s.rarity, s.type)].append(s)
             if s.type == SupportType.GROUP:
                 # Group cards (e.g. "The Throne's Assemblage") have no single
                 # character, so they're keyed by the slug of their display name
@@ -366,7 +370,7 @@ class Banners(Events[Banner], metaclass=SingletonMeta):
                 continue
             by_slug[(slug, s.rarity, s.type)].append(s)
             by_canonical[(_canonical(slug), s.rarity, s.type)].append(s)
-        return by_slug, by_canonical
+        return by_slug, by_canonical, by_kind
 
     @staticmethod
     def _resolve_trainee_pickup(
@@ -422,10 +426,35 @@ class Banners(Events[Banner], metaclass=SingletonMeta):
             )
             return None
 
-        by_slug, by_canonical = indexes
+        by_slug, by_canonical, by_kind = indexes
         candidates = by_slug.get(
             (_slugify(name), rarity, sup_type)
         ) or by_canonical.get((_canonical(name), rarity, sup_type), [])
+        if not candidates and sup_type == SupportType.GROUP:
+            # GROUP pickup copy is not a stable identity. Gametora has called
+            # support-30067 both "The Throne's Assemblage" and "Heirs to the
+            # Throne", while the card itself has no character key to match on.
+            # A newly released card is nevertheless unambiguous by the banner's
+            # original date plus rarity/type, so use those stable facts before
+            # treating the row as an unresolved collection label.
+            banner_date = banner_start.date()
+            released_today = [
+                s
+                for s in by_kind.get((rarity, sup_type), [])
+                if s.release.start.date() == banner_date
+            ]
+            if len(released_today) == 1:
+                return released_today[0]
+            if len(released_today) > 1:
+                logger.warning(
+                    "Ambiguous GROUP pickup %r on %s: %d %s cards released %s",
+                    name,
+                    record_key,
+                    len(released_today),
+                    rarity.name,
+                    banner_date,
+                )
+                return None
         if not candidates:
             # GROUP cards (e.g. "The Throne's Assemblage") are real cards with no
             # single character, keyed by display-name slug above. An unresolved
