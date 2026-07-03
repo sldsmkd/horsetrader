@@ -1,5 +1,8 @@
 # Darley Arabian — Part 2: bravery
 
+> **SUPERSEDED 2026-07-03** — historical design/worklog record from the Grand Masters build.
+> Living contracts: [contracts.md](contracts.md) · as-built ledger: [grand-masters-summary.md](grand-masters-summary.md).
+
 > The second AI. Where Byerley lives in an idealised, unit-relative orthographic
 > order, Darley **faces the messy reality of actual hardware** — real pixels, real
 > viewports, the range of displays we don't control. She grounds the abstraction.

@@ -1,5 +1,8 @@
 # Mobile worklog
 
+> **SUPERSEDED 2026-07-03** — historical design/worklog record from the Grand Masters build.
+> Living contracts: [contracts.md](contracts.md) · as-built ledger: [grand-masters-summary.md](grand-masters-summary.md).
+
 > Field notebook for the first Godolphin alternate surface: a standalone portrait
 > Trainer page built alongside the existing desktop-first Trainer Card. This is
 > evidence and build history, not yet the final mobile contract.

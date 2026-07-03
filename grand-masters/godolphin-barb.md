@@ -1,5 +1,8 @@
 # Godolphin Barb — Part 3: affection and love
 
+> **SUPERSEDED 2026-07-03** — historical design/worklog record from the Grand Masters build.
+> Living contracts: [contracts.md](contracts.md) · as-built ledger: [grand-masters-summary.md](grand-masters-summary.md).
+
 > The third AI. Where Byerley orders the abstract and Darley grounds it on real
 > hardware as one representation, Godolphin **meets each device on its own terms** —
 > tending to the contexts a single mapping can't serve. Love is the right register:

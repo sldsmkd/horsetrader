@@ -1,5 +1,8 @@
 # Glass interaction targets — proposed contract and migration register
 
+> **SUPERSEDED 2026-07-03** — historical design/worklog record from the Grand Masters build.
+> Living contracts: [contracts.md](contracts.md) · as-built ledger: [grand-masters-summary.md](grand-masters-summary.md).
+
 > Validation draft, 2026-06-25. This is the handoff for a fresh implementation
 > context, not yet a hardened entry in [contracts.md](contracts.md). Validate the
 > assumptions marked **DECIDE** before treating the checklist as mechanical work.
