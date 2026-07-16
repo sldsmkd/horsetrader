@@ -346,8 +346,20 @@ class Banners(Events[Banner], metaclass=SingletonMeta):
     def _build_support_indexes() -> _SupportIndexes:
         by_slug: dict[_SupportKey, list[Support]] = defaultdict(list)
         by_canonical: dict[_SupportKey, list[Support]] = defaultdict(list)
+        welfare_keys = {
+            reward
+            for record in Static().main_story()
+            for reward in record["rewards"]
+            if reward.startswith(Support.KEY_PREFIX)
+        }
         for s in Supports().values():
             if s.type is None or s.rarity == SupportRarity.UNKNOWN:
+                continue
+            # Main-story supports are permanent welfare rewards, not cards that
+            # can appear on a gacha banner. Leaving them in this index makes a
+            # rerun incorrectly select a newer welfare card over the older
+            # pullable card with the same character/rarity/type.
+            if str(s.key) in welfare_keys:
                 continue
             if s.type == SupportType.GROUP:
                 # Group cards (e.g. "The Throne's Assemblage") have no single

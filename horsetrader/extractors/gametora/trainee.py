@@ -1,14 +1,14 @@
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from lxml import html
 
 from horsetrader.core import JST, Period, SingletonMeta
-from horsetrader.enums import AptitudeRank, CacheTime
+from horsetrader.enums import AptitudeRank
 from horsetrader.extractors.helpers import xpath_first
 from horsetrader.info import Logger
 from horsetrader.semantics import transcend
-from horsetrader.transport import UmaClient
+from horsetrader.transport import UmaClient, progressive_cache_time
 
 logger = Logger.get(__name__)
 
@@ -89,6 +89,14 @@ class GametoraTrainee(metaclass=SingletonMeta):
                 )
         raise ValueError("Could not extract release date from trainee page")
 
+    @classmethod
+    def _cache_time(cls, response: str | bytes, cached_at: datetime) -> timedelta:
+        try:
+            release = cls._extract_release_date(html.fromstring(response)).start
+        except (TypeError, ValueError):
+            return timedelta(0)
+        return progressive_cache_time(release, cached_at)
+
     @staticmethod
     def _extract_aptitudes(tree: html.HtmlElement) -> dict[str, dict[str, AptitudeRank]] | None:
         """Read the aptitude block into `{axis: {slot: AptitudeRank}}`.
@@ -134,7 +142,7 @@ class GametoraTrainee(metaclass=SingletonMeta):
 
         source_url = f"{_TRAINEE_PAGE_URL_PREFIX}{slug}"
         tree = html.fromstring(
-            self._uc.get(source_url, chrome=True, cache=CacheTime.LEAF)
+            self._uc.get(source_url, chrome=True, cache=self._cache_time)
         )
 
         name_node = xpath_first(tree, _TRAINEE_NAME_EXPR)

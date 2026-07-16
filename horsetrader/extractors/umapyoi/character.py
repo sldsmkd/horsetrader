@@ -1,10 +1,12 @@
 import json
 
 from horsetrader.core import Japlish, SingletonMeta
-from horsetrader.enums import CacheTime, Sources
+from horsetrader.enums import Sources
 from horsetrader.info import Logger
 from horsetrader.semantics import transcend
 from horsetrader.transport import UmaClient
+
+from ._cache import http_date_json_cache_time
 
 logger = Logger.get(__name__)
 
@@ -26,7 +28,14 @@ class UmapyoiCharacter(metaclass=SingletonMeta):
         value (NPCs, or simply not filled in yet).
         """
         url = f"https://umapyoi.net/api/v1/character/{char_id}"
-        response = self._uc.get(url, cache=CacheTime.LEAF)
+        response = self._uc.get(
+            url,
+            cache=lambda content, cached_at: http_date_json_cache_time(
+                content,
+                cached_at,
+                ("modified_gmt", "date_gmt"),
+            ),
+        )
         if isinstance(response, bytes):
             raise RuntimeError(f"Expected text response from {url}, got bytes")
 

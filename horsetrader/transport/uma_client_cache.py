@@ -1,10 +1,18 @@
-from datetime import datetime, timedelta
-from ethicrawl import Url
+from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 from hashlib import sha256
 from pathlib import Path
 
+from ethicrawl import Url
+
 from horsetrader.core import Config
 from horsetrader.semantics import shakur
+
+
+@dataclass(frozen=True)
+class CacheEntry:
+    content: str | bytes
+    modified_at: datetime
 
 
 @shakur
@@ -158,22 +166,33 @@ class UmaClientCache:
         return _directory / f"{_hash}.{_extension}"
 
     @staticmethod
-    def read(url: Url, max_age: timedelta | None = None) -> str | bytes | None:
+    def read_entry(url: Url, max_age: timedelta | None = None) -> CacheEntry | None:
         _existing = UmaClientCache._existing_cache_paths(url)
         _cache_path = _existing[-1] if _existing else UmaClientCache.cache_path(url)
         if not _cache_path.exists():
             return None
+        _modified_at = datetime.fromtimestamp(
+            _cache_path.stat().st_mtime,
+            tz=timezone.utc,
+        )
         if max_age is not None:
-            _modified_at = datetime.fromtimestamp(_cache_path.stat().st_mtime)
-            if (datetime.now() - _modified_at) > max_age:
+            if (datetime.now(timezone.utc) - _modified_at) > max_age:
                 return None
         with _cache_path.open("rb") as f:
             _cached = f.read()
-        return (
-            _cached
-            if UmaClientCache._is_binary_cache_file(_cache_path)
-            else _cached.decode("utf-8", errors="replace")
+        return CacheEntry(
+            content=(
+                _cached
+                if UmaClientCache._is_binary_cache_file(_cache_path)
+                else _cached.decode("utf-8", errors="replace")
+            ),
+            modified_at=_modified_at,
         )
+
+    @staticmethod
+    def read(url: Url, max_age: timedelta | None = None) -> str | bytes | None:
+        _entry = UmaClientCache.read_entry(url, max_age=max_age)
+        return _entry.content if _entry is not None else None
 
     @staticmethod
     def write(url: Url, content: bytes, mime_type: str | None = None) -> None:
