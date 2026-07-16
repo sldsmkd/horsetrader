@@ -1,14 +1,13 @@
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from lxml import html
 
 from horsetrader.core import JST, Japlish, Period, SingletonMeta
-from horsetrader.enums import CacheTime
 from horsetrader.extractors.helpers import xpath_first
 from horsetrader.info import Logger
 from horsetrader.semantics import transcend
-from horsetrader.transport import UmaClient
+from horsetrader.transport import UmaClient, progressive_cache_time
 
 logger = Logger.get(__name__)
 
@@ -88,6 +87,14 @@ class GametoraSupport(metaclass=SingletonMeta):
 
         raise ValueError("Could not extract release date from support page")
 
+    @classmethod
+    def _cache_time(cls, response: str | bytes, cached_at: datetime) -> timedelta:
+        try:
+            release = cls._extract_release(html.fromstring(response)).start
+        except (TypeError, ValueError):
+            return timedelta(0)
+        return progressive_cache_time(release, cached_at)
+
     def support(self, record: dict) -> dict:
         slug = record.get("slug")
         if not isinstance(slug, str) or not slug:
@@ -95,14 +102,24 @@ class GametoraSupport(metaclass=SingletonMeta):
 
         source_url = f"{_SUPPORT_PAGE_URL_PREFIX}{slug}"
         tree = html.fromstring(
-            self._uc.get(source_url, chrome=True, cache=CacheTime.LEAF)
+            self._uc.get(source_url, chrome=True, cache=self._cache_time)
         )
+        release = self._extract_release(tree)
 
         # EN page fetch for bilingual title + character name: umapyoi API covers
         # character/trainee name translation but has no equivalent for support cards.
+        # The EN page carries no parseable JP release field, but its matching JP
+        # page above does; use that known release for the same progressive policy.
         en_url = f"{_SUPPORT_PAGE_EN_URL_PREFIX}{slug}"
         en_tree = html.fromstring(
-            self._uc.get(en_url, chrome=True, cache=CacheTime.LEAF)
+            self._uc.get(
+                en_url,
+                chrome=True,
+                cache=lambda content, cached_at: progressive_cache_time(
+                    release.start,
+                    cached_at,
+                ),
+            )
         )
 
         jp_title = self._extract_card_title(tree)
@@ -130,7 +147,7 @@ class GametoraSupport(metaclass=SingletonMeta):
             # The canonical reader-facing page: Gametora's English mirror (the
             # `/ja/` source is the Japanese page). The card surface deep-links here.
             "source": en_url,
-            "release": self._extract_release(tree),
+            "release": release,
             "title": title,
             "character_name": character_name,
         }

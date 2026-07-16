@@ -2,6 +2,13 @@
 
 > Building the **Mega Dream Supporter**.
 
+> **STATUS: SHIPPED + INTEGRATED (2026-07-03).** All three parts are live on `main`;
+> the integration pass (deviceForm seam, C-B4 guard, doc consolidation) closed the project.
+> Living contracts: [contracts.md](contracts.md) · as-built ledger:
+> [grand-masters-summary.md](grand-masters-summary.md). The rotation direction
+> ("modality-as-orientation") was retired 2026-07-03 — the phone takeover surfaces made it
+> unnecessary. Phase docs below carry SUPERSEDED banners; read them as history.
+
 ## The fiction (and the licence it gives us)
 
 In the Grand Masters scenario, the Satono Group develops a VR device — the *Mega

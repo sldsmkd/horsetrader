@@ -1,4 +1,5 @@
 import type { Capabilities } from "./capabilities.ts";
+import { deviceForm } from "./deviceForm.ts";
 
 export type ScenarioPresentation = "visible" | "hidden";
 
@@ -8,7 +9,5 @@ export function scenarioPresentation(
   viewportWidth: number,
   viewportHeight: number,
 ): ScenarioPresentation {
-  const touchFirst = caps.pointer === "coarse" && caps.noHover && caps.touchPoints > 0;
-  const phoneExtent = Math.min(viewportWidth, viewportHeight) <= 600;
-  return touchFirst && phoneExtent ? "hidden" : "visible";
+  return deviceForm(caps, viewportWidth, viewportHeight) === "spacious" ? "visible" : "hidden";
 }

@@ -6,16 +6,15 @@
 >
 > Audit date: 2026-07-03. Scaffold + rationale live in
 > [grand-masters.md](grand-masters.md); this file is the ledger of the push.
+> The integration phase that closed these threads is recorded at the bottom.
 
 ## Push status — everything is on `main`
 
-The working branch **`gm-godolphin` is identical to `main`** (both at `62674ab`,
-"filmstrip fixes"): no commits ahead, none behind. Nothing is stranded on it — it is a
-spent branch, safe to delete once this audit is filed. `byerley-turk` has already been
-deleted; `special-week-onboarding` is merged/behind. So "the last big push" is fully
-integrated; the "skipped parts" below are **things the docs specify that were never
-built**, not commits left unmerged. The tree is clean of Grand Masters work (the only
-dirty paths — `models/events/banner.py`, `2cards.py` — are unrelated).
+The working branch **`gm-godolphin` was identical to `main`** (both at `62674ab`,
+"filmstrip fixes"): no commits ahead, none behind — a spent branch (since deleted).
+`byerley-turk` had already been deleted; `special-week-onboarding` is merged/behind. So
+"the last big push" was fully integrated; the "skipped parts" below are **things the docs
+specify that were never built**, not commits left unmerged.
 
 The three phases map onto commit ranges, but **not cleanly** (see Boundary crossings):
 
@@ -25,8 +24,8 @@ The three phases map onto commit ranges, but **not cleanly** (see Boundary cross
 | **Darley** | `435aa28` · `4f3440a` | 2026-06-20 | 8 files, +355 / −56 |
 | **Godolphin** | `8721a5a` … `62674ab` | 2026-06-24 → 07-02 | 272 files, +17082 / −3703 |
 
-Test posture at HEAD: **312 `test()` calls across 45 `*.test.ts` files**; tsc + build
-clean per the phase worklogs.
+Test posture at audit: **312 `test()` calls across 45 `*.test.ts` files**; tsc + build
+clean per the phase worklogs (316 after the integration phase).
 
 ---
 
@@ -156,42 +155,58 @@ Detail: [godolphin-barb.md](godolphin-barb.md) · [mobile-worklog.md](mobile-wor
    **copy-pasted verbatim in all five** `caps/*.ts` policies, and `Math.min(w,h) <= 600`
    (with orientation variants) is duplicated alongside it. A single
    `deviceClass(caps, viewport) → phone/tablet/desktop (+orientation)` seam would centralize
-   the swap threshold that is currently smeared across every policy. (Deliberately *not* in
-   `capabilities.ts` today — it's a policy derivation over caps + Darley's extent — but it
-   wants its own module.)
+   the swap threshold that is currently smeared across every policy.
 2. **Accessibility capabilities are detected but consumed by nothing.** `reducedMotion`,
    `reducedTransparency`, `contrast`, and `forcedColors` are read and unit-tested in
    `capabilities.ts`, but **no production policy reads them** (only the `.test.ts` files
-   reference them). The near side of the seam exists; the far side is empty — an a11y
-   presentation policy is the obvious next consumer.
+   reference them). The near side of the seam exists; the far side is empty.
 3. **Safe-area insets as an aperture field.** Deferred by design — needs
    `viewport-fit=cover` in `index.html` (an app-wide change) before `env()` reads non-zero.
    Darley's aperture is the natural home; recording the inset is Darley, reflowing to it is
    Godolphin. Currently phone takeovers hand-apply `safe-area` padding per surface.
 4. **Formalize the mobile icon token.** `--glass-target` (coarse `7u`) is already a CSS
-   token (menubar, clubSelector), but the measured `8u / 56px` touch-target and the
-   graphic-box standard from the field reads were **left as `rem` happy-accidents**, not
-   migrated to `N × --glass-u` mobile tokens (the worklog explicitly held this pending a
-   corrected device read).
+   token, but the measured `8u / 56px` touch-target and graphic-box standards from the field
+   reads were left as `rem` happy-accidents pending a corrected device read.
 
 ## Missing / skipped — specified but NOT built
 
-1. **Self-owned orientation (the big one).** The memory DIRECTION and
-   [contracts.md](contracts.md) §"The Godolphin seam" (F11) design an *app-driven* rotation:
-   own orientation as a modality trait via CSS `rotate` + input-frame rotate, never the flaky
-   OS API, with a **reconcile-on-text-input** dance against `screen.orientation` for the OS
-   keyboard. **None of this shipped.** The live policies instead key off short-edge extent
-   (`≤600px`) + capabilities — the *incidental-fit* approach, not the intended
-   orientation-ownership one. This is the largest un-built Godolphin chunk.
+1. **Self-owned orientation (the big one).** [contracts.md](contracts.md) (F11) designed an
+   *app-driven* rotation: own orientation as a modality trait via CSS `rotate` +
+   input-frame rotate, with a **reconcile-on-text-input** dance against `screen.orientation`
+   for the OS keyboard. **None of this shipped.** The live policies key off short-edge
+   extent + capabilities — the *incidental-fit* approach.
 2. **Device *class* modeling** — see seam #1. Left as ad-hoc per-policy predicates.
 3. **Fast-pan card churn** — explicitly **accepted as-is** (iPhone 44fps on worst-case fling);
    the Trackblazer pooling/batching revisit stays parked, not built.
 4. **Mobile icon token migration** — see seam #4; measured, not locked.
 5. **Orphan left behind:** the now-empty `horsetrader.site/js/src/ui/views/mobile/`
-   directory (from `mobileTrainerPage.ts`'s promotion to `views/trainer/`) — a stray `rmdir`.
+   directory (from `mobileTrainerPage.ts`'s promotion to `views/trainer/`).
 
-## Housekeeping actions this audit implies
+---
 
-- Delete the spent `gm-godolphin` branch (identical to `main`).
-- `rmdir` the empty `views/mobile/` directory.
-- Mark `byerley-outstanding.md`'s "Godolphin DEFERRED" seam section as superseded by this file.
+## Integration phase — CLOSED 2026-07-03 (branch `grandmasters-integration`)
+
+Every open thread above was resolved in the integration pass:
+
+- **Seam #1 built:** `ui/caps/deviceForm.ts` — the shared
+  `caps + extent → phone-portrait | phone-landscape | spacious` derivation; the extent
+  policies now consume it (square viewport deliberately ties to portrait). Guarded by
+  `deviceForm.test.ts`; the untouched policy tests double as refactor-preservation proof.
+- **Seam #2 decided:** a11y capabilities stay **dormant** by choice (no speculative
+  behavior); recorded as a dormant seam in contracts.md.
+- **Seam #3 deferred:** safe-area as an aperture field still waits on `viewport-fit=cover`.
+- **Seam #4 verified closed:** the trainer selector and all takeover primary controls
+  already ride `--glass-target`; the remaining rems are cosmetic/graphic boxes (e.g. the
+  `aria-hidden` portrait-edit pencil inside the whole-portrait button). No migration needed.
+- **Missing #1 resolved by decision:** self-owned orientation **RETIRED 2026-07-03** — the
+  takeover surfaces made mobile usable without rotation. Design record kept in contracts.md
+  (RETIRED section) + godolphin-findings.md; the iOS keyboard-sequencing findings stay
+  banked.
+- **C-B4 guard built** (`glassDimensional.test.ts`: steady-state scan, keyframes/grayscale
+  exempt); it caught and fixed one live violation — the menubar identity avatar's
+  `scale(1.3)` became an honest 1.3× dimension with negative re-centre margin.
+- **Housekeeping done:** `gm-godolphin` branch deleted, empty `views/mobile/` removed,
+  the eight phase docs carry SUPERSEDED banners, contracts.md is the one living doc.
+
+Still open by design: fast-pan churn (accepted), safe-area aperture field (gated),
+C-B6 culling exception (gated on a real-device repro; intended fix is the frustum reframe).

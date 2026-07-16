@@ -1,5 +1,9 @@
 # Godolphin — field findings (portrait phone)
 
+> **SUPERSEDED 2026-07-03** — historical design/worklog record from the Grand Masters build.
+> Living contracts: [contracts.md](contracts.md) · as-built ledger: [grand-masters-summary.md](grand-masters-summary.md).
+> The "Design direction" (rotation) herein was RETIRED 2026-07-03; kept as banked research.
+
 > Live field study on iPhone (1170×2532, real device over LAN). Capture raw
 > observations + commentary here as we browse; derive the plan from the patterns,
 > not reactively. See [godolphin-barb.md](godolphin-barb.md) for thesis/deliverables.

@@ -1,5 +1,9 @@
 # Byerley Turk — outstanding work (handoff)
 
+> **SUPERSEDED 2026-07-03** — historical design/worklog record from the Grand Masters build.
+> Living contracts: [contracts.md](contracts.md) · as-built ledger: [grand-masters-summary.md](grand-masters-summary.md).
+> In particular the "Godolphin — DEFERRED" seam note below predates Part 3 actually shipping.
+
 Cold-start pickup for Part 1. Full design + rationale is in
 [byerley-turk.md](byerley-turk.md); project frame in [grand-masters.md](grand-masters.md).
 This file is just *what's left*.

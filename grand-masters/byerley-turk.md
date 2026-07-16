@@ -1,5 +1,8 @@
 # Byerley Turk — Part 1: order and discipline
 
+> **SUPERSEDED 2026-07-03** — historical design/worklog record from the Grand Masters build.
+> Living contracts: [contracts.md](contracts.md) · as-built ledger: [grand-masters-summary.md](grand-masters-summary.md).
+
 > The first AI. Imposes **order** on the chrome we floated but left with blast
 > damage, and **discipline** on geometry we faked. Delivers the disciplined glass
 > substrate the other two sires build on.

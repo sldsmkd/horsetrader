@@ -7,6 +7,8 @@ from horsetrader.info import Logger
 from horsetrader.semantics import transcend
 from horsetrader.transport import UmaClient
 
+from ._cache import unix_json_cache_time
+
 logger = Logger.get(__name__)
 
 _NEWS_INDEX_URL = "https://umapyoi.net/api/v1/news"
@@ -56,7 +58,14 @@ class UmapyoiNews(metaclass=SingletonMeta):
             return cached
 
         url = f"{_NEWS_LEAF_URL_PREFIX}/{normalized_id}"
-        response = self._uc.get(url, cache=CacheTime.LEAF)
+        response = self._uc.get(
+            url,
+            cache=lambda content, cached_at: unix_json_cache_time(
+                content,
+                cached_at,
+                ("update_at", "post_at"),
+            ),
+        )
         payload = self._json(response, url)
         self._leaf_cache[normalized_id] = payload
         logger.info("Fetched news item from umapyoi: %s", normalized_id)

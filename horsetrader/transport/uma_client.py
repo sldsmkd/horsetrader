@@ -1,12 +1,62 @@
-from datetime import timedelta
+from collections.abc import Callable
+from datetime import datetime, timedelta, timezone
+
 from ethicrawl import Ethicrawl, HttpClient, Config as EthicrawlConfig, Url, Resource
 
 from horsetrader.core import Config, SingletonMeta
 from horsetrader.enums import CacheTime
-from horsetrader.info import Metrics
+from horsetrader.info import Logger, Metrics
 from horsetrader.semantics import shakur
 
-from .uma_client_cache import UmaClientCache
+from .uma_client_cache import CacheEntry, UmaClientCache
+
+logger = Logger.get(__name__)
+
+CacheTimeResolver = Callable[[str | bytes, datetime], CacheTime | timedelta]
+CacheTimeSpec = CacheTime | timedelta | CacheTimeResolver | None
+
+
+def progressive_cache_time(
+    changed_at: datetime,
+    cached_at: datetime,
+    minimum: timedelta = timedelta(days=1),
+) -> timedelta:
+    """Age-proportional TTL for content that settles after publication.
+
+    The age is measured when the cache file was written, not when it is read.
+    That makes refreshes naturally back off (roughly 1d, 2d, 4d, 8d, ...)
+    instead of allowing the TTL to grow forever alongside the cached file.
+    """
+    if changed_at.tzinfo is None or cached_at.tzinfo is None:
+        raise ValueError("changed_at and cached_at must be timezone-aware")
+    if minimum < timedelta(0):
+        raise ValueError("minimum cache time cannot be negative")
+    return max(minimum, cached_at - changed_at)
+
+
+def _fixed_cache_time(cache: CacheTime | timedelta) -> timedelta:
+    return cache.value if isinstance(cache, CacheTime) else cache
+
+
+def _cache_entry_is_fresh(
+    entry: CacheEntry,
+    cache: CacheTimeSpec,
+    *,
+    is_binary: bool,
+    skip_refresh: bool,
+    now: datetime,
+) -> bool:
+    if skip_refresh:
+        return True
+    if callable(cache):
+        cache_ttl = _fixed_cache_time(cache(entry.content, entry.modified_at))
+    elif cache is not None:
+        cache_ttl = _fixed_cache_time(cache)
+    else:
+        cache_ttl = CacheTime.BINARY.value if is_binary else CacheTime.INDEX.value
+    if cache_ttl <= timedelta(0):
+        return False
+    return now - entry.modified_at <= cache_ttl
 
 
 class HttpError(RuntimeError):
@@ -46,7 +96,7 @@ class UmaClient(metaclass=SingletonMeta):
         self,
         resource: str | Url | Resource,
         chrome: bool = False,
-        cache: CacheTime | timedelta | None = None,
+        cache: CacheTimeSpec = None,
     ) -> str | bytes:
         if isinstance(resource, str):
             resource = Url(resource)
@@ -57,21 +107,21 @@ class UmaClient(metaclass=SingletonMeta):
                 f"resource must be a str, Url, or Resource, got {type(resource)}"
             )
         _is_binary = UmaClientCache.is_binary(resource.url)
-        if isinstance(cache, CacheTime):
-            _cache_ttl = cache.value
-        elif cache is not None:
-            _cache_ttl = cache
-        else:
-            _cache_ttl = CacheTime.BINARY.value if _is_binary else CacheTime.INDEX.value
         _skip_refresh = Config().skip_cache_refresh
-        _cached = UmaClientCache.read(
-            resource.url, max_age=None if _skip_refresh else _cache_ttl
+        _entry = UmaClientCache.read_entry(resource.url)
+        _cache_fresh = _entry is not None and _cache_entry_is_fresh(
+            _entry,
+            cache,
+            is_binary=_is_binary,
+            skip_refresh=_skip_refresh,
+            now=datetime.now(timezone.utc),
         )
-        if _cached is not None:
+        if _entry is not None and _cache_fresh:
+            logger.debug("CACHE HIT %s", resource.url)
             Metrics().incr("shakur.cache.hit")
             # No header on a cache hit — content_label infers from the file on disk.
             Metrics().incr(f"shakur.content_type.{UmaClientCache.content_label(resource.url)}")
-            return _cached
+            return _entry.content
         Metrics().incr("shakur.cache.miss")
 
         if _is_binary or not chrome:
@@ -91,6 +141,7 @@ class UmaClient(metaclass=SingletonMeta):
             self._bound_domains[_domain] = _client
 
         Metrics().incr("shakur.requests")
+        logger.debug("GET %s", resource.url)
         try:
             response = _client.get(resource)
         except Exception as exc:
@@ -104,6 +155,7 @@ class UmaClient(metaclass=SingletonMeta):
                 self._ec.bind(resource.url, client=_client)
                 self._bound_domains[_domain] = _client
                 Metrics().incr("shakur.requests")
+                logger.debug("GET %s (retry after stale Chrome session)", resource.url)
                 response = _client.get(resource)
             else:
                 Metrics().incr("shakur.errors")
@@ -135,7 +187,7 @@ class UmaClient(metaclass=SingletonMeta):
     def try_get(
         self,
         resource: str | Url | Resource,
-        cache: CacheTime | timedelta | None = None,
+        cache: CacheTimeSpec = None,
     ) -> str | bytes | None:
         """Like `get`, but treats 404 as "missing" rather than an error.
 
@@ -154,6 +206,7 @@ class UmaClient(metaclass=SingletonMeta):
             )
 
         if UmaClientCache.is_sentinel(resource.url, max_age=CacheTime.SENTINEL.value):
+            logger.debug("CACHE HIT 404 %s", resource.url)
             return None
 
         try:

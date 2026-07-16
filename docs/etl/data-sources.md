@@ -58,9 +58,11 @@ Extractors live in [`horsetrader/extractors/gametora/`](../../horsetrader/extrac
 
 - `characters.py` / `character.py` — character index + detail.
 - `trainees.py` / `trainee.py` — trainee (outfit) records, two-pass image
-  inference.
+  inference. Detail-page caches use the parsed release date for progressive
+  expiry: new cards refresh frequently, then back off as they settle.
 - `supports.py` / `support.py` — support card index + detail. Image URLs
-  inferred from `support_id`:
+  inferred from `support_id`; both JP and EN detail pages use release-aware
+  progressive caching (the EN mirror inherits the release parsed from JP):
   - thumb: `…/supports/support_card_s_{id}.png`
   - art: `…/supports/tex_support_card_{id}.png`
 - `banners.py` — banner records, JP dates parsed into `Period`s, mixed
@@ -90,6 +92,13 @@ corpus and exposes a compact queryable article index (`announce_id`,
 `label_name_en`, `title`, `title_english`, `post_at`) for model enrichment; it
 deliberately does **not** materialise news into project entities yet. Hands
 records back to the appropriate `_enrich_…` method on each `TracenModels`.
+
+Umapyoi JSON leaves opt into progressive caching where the payload supplies a
+trustworthy clock: support cards use `start_date`, character details use the
+newer of `modified_gmt` / `date_gmt`, and news details use the newer of
+`update_at` / `post_at`. Outfit lists carry no release/update timestamp and are
+growing per-character collections, so they deliberately retain `CacheTime.LEAF`.
+All Umapyoi index/list discovery endpoints retain their fixed index TTL.
 
 ## Wikiru
 
@@ -313,6 +322,10 @@ All network I/O goes through [`UmaClient`](../../horsetrader/transport/uma_clien
 - `client.try_get(resource, ...)` — tolerant; returns `None` on missing /
   404. Negative-caches the sentinel so a known-bad URL doesn't get
   retried inside the TTL.
+- `cache=` accepts a fixed `CacheTime`, a `timedelta`, or a resolver called with
+  the cached body and its on-disk timestamp. Timestamped detail payloads use
+  this last form to return an age-proportional TTL (minimum one day), producing
+  natural exponential backoff across refreshes.
 - `UmaClientCache` is **internal** — do not read or write it from
   outside the transport module.
 - HTTP errors are surfaced as `HttpError(message, status_code)`. Do

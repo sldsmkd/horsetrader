@@ -1,4 +1,5 @@
 import type { Capabilities } from "./capabilities.ts";
+import { deviceForm } from "./deviceForm.ts";
 
 export type MenubarPresentation = "visible" | "hidden";
 
@@ -8,7 +9,5 @@ export function menubarPresentation(
   viewportWidth: number,
   viewportHeight: number,
 ): MenubarPresentation {
-  const touchFirst = caps.pointer === "coarse" && caps.noHover && caps.touchPoints > 0;
-  const landscapePhone = viewportWidth > viewportHeight && viewportHeight <= 600;
-  return touchFirst && landscapePhone ? "hidden" : "visible";
+  return deviceForm(caps, viewportWidth, viewportHeight) === "phone-landscape" ? "hidden" : "visible";
 }

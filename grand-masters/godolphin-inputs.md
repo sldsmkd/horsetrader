@@ -1,5 +1,8 @@
 # Godolphin inputs — responsive surface migration notebook
 
+> **SUPERSEDED 2026-07-03** — historical design/worklog record from the Grand Masters build.
+> Living contracts: [contracts.md](contracts.md) · as-built ledger: [grand-masters-summary.md](grand-masters-summary.md).
+
 > Working field log, started 2026-06-25. This records what we learn while
 > converting existing desktop-native glass surfaces into intentional responsive
 > representations. It is evidence for a later design contract, not yet that

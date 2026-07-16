@@ -140,8 +140,8 @@ Safari, so the rect can still be z-scaled. *Enforced:* `app.ts` packer (`packBel
     through the camera conversion into a world rect `[screenToContentX(0), …W] ×
     [screenToContentY(0), …H]` — there is no rect to measure, so C-B6's exception *ceases to
     exist* rather than being patched. Bonus: the frustum is 2D + zoom-aware, retiring today's
-    "blind x" (no vertical cull) — which matters as vertical pan/zoom grow, and especially
-    under Godolphin's landscape rotation (the long axis becomes vertical in screen terms).
+    "blind x" (no vertical cull) — which matters as vertical pan/zoom grow. (An earlier
+    motivation, Godolphin's landscape rotation, was retired 2026-07-03.)
     Owner seam: the frustum is Darley's aperture projected into world space, consumed by the
     world-plane culler. Not scheduled; recorded so the exception reads as a placeholder.
 
@@ -195,25 +195,49 @@ The **only** place feel touches screen-space is the rail extent (C-D4).
 
 ---
 
-## The Godolphin seam — what Part 3 is allowed to build (held loosely)
+## The Godolphin substrate — as built
 
-Godolphin owns **modality-as-orientation**: the device-agnostic capability+policy substrate
-that wires the rotation transform and the input-frame. It **consumes capability** (reliable,
-feature-detectable: can-portrait / coarse-pointer / orientation-present) to set policy.
+Godolphin's shipped shape is **capability + policy**, not rotation:
 
-**Surfaces have a dual representation — portrait and landscape — and policy owns the cutoff**
-(the core Godolphin abstraction, 2026-06-24). A surface like the card detail isn't "a thing
-that rotates"; it declares two forms (`{ portrait, landscape }` — e.g. the wide card modal vs
-the tall card sheet) and the cutoff between them is ours. Everything else (capability, the
-keyboard reconcile below) is an *input to the cutoff*, not separate machinery.
-- **Representation ⊥ rotation.** The *representation* is the content/layout. The *rotation* is
-  only the transform that fits a chosen representation onto a viewport whose natural shape
-  disagrees — showing the landscape-rep on a phone's portrait-shaped DOM viewport needs the 90°
-  CSS-rotate to map the long DOM axis to the visual horizontal. Cutoff picks the representation;
-  viewport shape decides whether a rotation bridges it.
-- **Desktop is the identity config (again):** it only ever lands on the landscape-rep, and its
-  viewport already matches, so no rotation ever fires. Same dual-rep surface; the bridge is just
-  never exercised. No `if (isPhone)`.
+- **`ui/caps/capabilities.ts`** — the qualitative, feature-detectable capability store
+  (pointer character, hover, touch points; reactive `matchMedia`, never polled).
+- **`ui/caps/deviceForm.ts`** — the one shared policy derivation
+  (`caps + viewport extent → phone-portrait | phone-landscape | spacious`), the
+  "device class falls out of CSS-px viewport extent + pointer" prediction below, made
+  executable during the integration phase (2026-07-03). A square viewport deliberately
+  ties to portrait. *Guard:* `deviceForm.test.ts`.
+- **Per-surface presentation policies** (`trainerPresentation`, `menubarPresentation`,
+  `timelineChromePresentation`, `scenarioPresentation`) — pure functions over the device
+  form; consumed in one place (`app.ts applySurfacePresentation`).
+- **Phone takeover surfaces** — Trainer, Plan, Record Balance, Resources, commit dossier
+  each own the full viewport above all chrome on a phone form, with back-mast + sticky
+  actions; desktop keeps the rail/modal representations
+  ([mobile-worklog.md](mobile-worklog.md)).
+
+**Dormant seam — accessibility capabilities.** `reducedMotion`, `reducedTransparency`,
+`contrast`, and `forcedColors` are detected and tested in `capabilities.ts` but consumed by
+no production policy yet (decided 2026-07-03: leave dormant, no speculative behavior). When
+an a11y treatment is wanted, the detection half of the seam is already live — write the
+policy, don't re-derive the reads.
+
+### RETIRED 2026-07-03 — modality-as-orientation (rotation)
+
+The original Part 3 direction — own orientation as a modality trait (CSS rotate +
+input-frame rotate), dual `{ portrait, landscape }` representations per surface with a
+policy-owned cutoff — is **retired, not parked**. The takeover surfaces + the single
+landscape timeline made the phone presentation usable without ever rotating anything the OS
+didn't; the rotation machinery would have been cost without a consumer. The design record
+below is kept because the iOS findings are load-bearing if text-input-over-forced-landscape
+is ever attempted:
+
+- **Reconcile-on-text-input** (banked research): the OS keyboard renders in
+  `screen.orientation`, which an app-owned rotation cannot move. Any future forced-landscape
+  surface that summons a keyboard must reconcile to the device orientation *as* the keyboard
+  rises. iOS sequencing constraint: `focus()` must run inside the user gesture — flip the
+  orientation state and call `focus()` in the same synchronous tap handler; rotation and
+  keyboard co-animate. `visualViewport.height` is the separate cross-engine keyboard-size
+  detector. Motion sensors stay dropped. Full direction:
+  [godolphin-findings.md](godolphin-findings.md) "Design direction".
 
 **Touch ergonomics — a capability axis orthogonal to the orientation cutoff** (Godolphin,
 2026-06-24). Making icons hittable with fat thumbs keys off `coarse pointer` (+ `maxTouchPoints`,
@@ -237,40 +261,12 @@ pointer** (iPad = coarse+large, phone = coarse+small, desktop = fine). A true in
 ever wanted, is a fuzzy resolution-fingerprint / `userAgentData.model` heuristic (iOS gives no
 model) — don't build on it.
 
-**We own rotation for display — until a keyboard is summoned, where we defer to the device**
-(decided 2026-06-24, F11). By default we drive rotation (mode→orientation: app picks, user
-turns to match), and owning the CSS rotation works straight through OS rotation-lock for all
-*our* surfaces. The **one exception is the on-screen keyboard**: the OS renders it in
-`screen.orientation`, an orientation we cannot rotate ourselves. So when text input is invoked
-we must reconcile to the device:
-- **Reconcile-on-text-input:** read `screen.orientation`; set our presented orientation to match
-  it *before/as* the keyboard rises. Concrete case — editing the card NOTE over a forced-landscape
-  world on a **portrait-locked** device (held sideways): the OS keyboard would slide up sideways →
-  **rotate the world to portrait**, then the keyboard rises aligned. If the device already
-  **reports landscape** → keyboard aligns → **no action.** The keyboard can appear in *any* mode
-  (timeline search, card NOTE), so this is not scoped to the forms sheet. Reverse on blur/close.
-- **iOS sequencing constraint (load-bearing):** iOS only raises the keyboard if `focus()` runs
-  *inside the user gesture*. So we **cannot** "animate rotation, then `focus()` on animation-end"
-  — that focus lands outside the gesture stack and iOS shows no keyboard. Instead, in the *same
-  synchronous tap handler*, flip the orientation state to portrait (CSS transform begins
-  animating) **and** call `focus()`. The OS keyboard rises in `screen.orientation` while our world
-  rotates to match — they co-animate and converge, rotation leading. "Rotate before the keyboard"
-  is really "rotate *with* it, triggered in one gesture." (The reverse rotation on blur has no
-  focus, so it's an unconstrained transform.)
-- **So `screen.orientation` IS consumed** — but only to reconcile rotation with the OS keyboard,
-  not to drive mode selection. Motion sensors (`DeviceOrientationEvent`/gravity, https +
-  permission-gated) stay dropped: their extra (true hold under lock) is still irrelevant —
-  what matters is where the OS will *put the keyboard*, which is exactly `screen.orientation`.
-- **Then `visualViewport` does its separate job:** once oriented, its `.height` shrink is the
-  cross-engine keyboard-size detector (iOS overlays → only `visualViewport` sees it; Android may
-  resize the layout viewport, also caught) → reflow to keep the focused input above the keyboard.
-- **Keep it out of the sizing unit.** `--glass-u` stays `svh` — stable, deliberately not
-  reflowing as toolbars/keyboard slide (C-D2). The `visualViewport` read is a separate dynamic
-  consumer; do not let its dynamism leak into the unit. Desktop is the **identity
-configuration** of the same controller (portrait declined → rotation/input-frame are no-ops) —
-not an `if (isPhone)` branch. It may not redefine any contract above; it grounds *on top* of
-them, which is why they are locked down first. Full direction:
-[godolphin-findings.md](godolphin-findings.md) "Design direction".
+**One rotation-era rule survives the retirement because it is really C-D2:** keep dynamic
+viewport reads out of the sizing unit. `--glass-u` stays `svh` — stable, deliberately not
+reflowing as toolbars/keyboard slide. If keyboard-aware reflow is ever built, `visualViewport`
+is a *separate dynamic consumer*; its dynamism must not leak into the unit. (The full
+rotation/keyboard design record lives under RETIRED above and in
+[godolphin-findings.md](godolphin-findings.md) "Design direction".)
 
 ---
 
@@ -282,6 +278,7 @@ them, which is why they are locked down first. Full direction:
 | C-B6 camera-measure | app.ts packer | `cameraMeasure.test.ts` |
 | C-D4 rail seam | timeline.css/.ts, glassUnit.ts | `railSeam.test.ts` |
 | Godolphin capability substrate | caps/capabilities.ts | `caps/capabilities.test.ts` |
+| Godolphin device form | caps/deviceForm.ts | `caps/deviceForm.test.ts` |
 | C-B7 Golshi world unit | timelineSizing.css, atomChip.css, belowCard.css | `worldUnit.test.ts` |
-| C-B4 dimensional | glass CSS | *candidate* (no-scale-on-glass) |
+| C-B4 dimensional | glass CSS | `glassDimensional.test.ts` (steady-state scan; keyframes = motion, exempt) |
 | C-B2/B3/D1/D2/D3 | as cited | covered by prose + tsc; no guard yet |

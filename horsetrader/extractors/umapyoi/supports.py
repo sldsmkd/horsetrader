@@ -1,10 +1,11 @@
 import json
 
 from horsetrader.core import SingletonMeta
-from horsetrader.enums import CacheTime
 from horsetrader.info import Logger
 from horsetrader.semantics import transcend
 from horsetrader.transport import UmaClient
+
+from ._cache import unix_json_cache_time
 
 logger = Logger.get(__name__)
 
@@ -33,7 +34,14 @@ class UmapyoiSupports(metaclass=SingletonMeta):
             return cached
 
         url = f"{_SUPPORT_BASE_URL}/{support_id}"
-        response = self._uc.try_get(url, cache=CacheTime.LEAF)
+        response = self._uc.try_get(
+            url,
+            cache=lambda content, cached_at: unix_json_cache_time(
+                content,
+                cached_at,
+                ("start_date",),
+            ),
+        )
         if response is None:
             result: dict = {"rarity_string": None, "references": []}
             self._cache[support_id] = result
