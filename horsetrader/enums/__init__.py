@@ -1,9 +1,11 @@
 from .aptitude_rank import AptitudeRank
 from .cache_time import CacheTime
+from .career_class import CareerClass
 from .costume_variants import CostumeVariants
 from .course_variant import CourseVariant
 from .gacha import GachaDefaults, GachaRarityTier
 from .japlish_encoding import JaplishEncoding
+from .month_half import MonthHalf
 from .output_format import OutputFormat
 from .race_grade import RaceGrade
 from .sources import Sources
@@ -14,11 +16,13 @@ from .surface import Surface
 __all__ = [
     "AptitudeRank",
     "CacheTime",
+    "CareerClass",
     "CostumeVariants",
     "CourseVariant",
     "GachaDefaults",
     "GachaRarityTier",
     "JaplishEncoding",
+    "MonthHalf",
     "OutputFormat",
     "RaceGrade",
     "Sources",

@@ -9,7 +9,7 @@ place that talks to the network — everything else routes through `UmaClient`.
 
 | Source | Protocol | Feeds | Owned by |
 | --- | --- | --- | --- |
-| Gametora | HTTP + Selenium (some pages are JS-rendered) | Characters, Trainees, Supports, Banners, Stories, JP event dates | `@transcend` (uses `@shakur`) |
+| Gametora | HTTP + Selenium (some pages are JS-rendered) | Characters, Trainees, Supports, Races, Courses, Racetracks, Banners, Stories, JP event dates | `@transcend` (uses `@shakur`) |
 | Umapyoi | HTTP | Character / Trainee enrichment | `@transcend` (uses `@shakur`) |
 | Wikiru | HTTP | JP event dates for the event types Gametora doesn't cover (Showtime, …) | `@transcend` |
 | `config/*.yaml` | Local YAML | Consolidated per-event corpora (JP + EN dates, names, overrides); JP scenarios corpus | `@transcend` (`extractors/static/`) |
@@ -67,6 +67,16 @@ Extractors live in [`horsetrader/extractors/gametora/`](../../horsetrader/extrac
   - art: `…/supports/tex_support_card_{id}.png`
 - `banners.py` — banner records, JP dates parsed into `Period`s, mixed
   trainee/support typing under the same gacha-history page.
+- `races.py` — the JP/EN race index. Repeated rows with one banner id fold into
+  one named `Race`; every JP career-class + half-month row is retained as a
+  nested `RaceOccurrence`. Debut, Maiden, and EX rows are generated pseudo-races
+  and stay outside the named-fixture collection.
+- `racetracks.py` — JP/EN racetrack identity plus the per-racetrack course
+  pages. Courses carry venue, surface, distance, optional inner/outer variant,
+  and diagram. A race occurrence resolves by `(racetrack, surface, distance)`;
+  the three live ambiguities (Kyoto turf 1400/1600 and Niigata turf 2000) map to
+  their outer courses because GameTora confirms no scenario races use the inner
+  configurations. Any new unresolved ambiguity fails loud.
 - `story.py` — story-event index + detail pages (`GametoraStories` and
   `GametoraStory` in one file). Both are JS-rendered and require
   `chrome=True`. The index (`/ja/umamusume/events/story-events`) yields

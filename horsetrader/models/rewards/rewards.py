@@ -193,12 +193,13 @@ class SequenceReward(Reward):
     an amount of that type, or `None` for a day it isn't paid.
 
     The type is fixed across the sequence, so a skip is the *absence of the
-    type* — `Null` in curated YAML, `None` here, not `0`. Anniversary login
-    tables pay every day, but some days hand out a welfare/support card we don't
-    track; those days are `None`. A second type we *did* track wouldn't fold in
-    here — it'd be its own `SequenceReward`. `reward_type` is a plain
-    `CounterReward` subclass (never a sequence or generator); the event stays
-    open indefinitely, so the ETL models no end. `total()` sums the paying days.
+    type* — `Null` in curated YAML, `None` here, not `0`. An additional reward
+    of another type does not make the counter absent: for example, anniversary
+    welfare-copy days still carry their 300-carats entry. A second type we did
+    track wouldn't fold in here — it'd be its own `SequenceReward`.
+    `reward_type` is a plain `CounterReward` subclass (never a sequence or
+    generator); the event stays open indefinitely, so the ETL models no end.
+    `total()` sums the paying days.
     """
 
     key: ClassVar[str] = "sequence"
@@ -296,8 +297,7 @@ def _sequence_from_baked(value: object) -> SequenceReward:
         raise ValueError(f"{key} 'sequence' must be a list; got {steps!r}")
     amounts: list[int | None] = []
     for step in steps:
-        # `Null` (or a bare `0`) — the type isn't paid that day; an unmodelled
-        # welfare-card day, an *absence* of the type rather than zero of it.
+        # `Null` (or a bare `0`) means this type isn't paid that day.
         if step is None or step == 0:
             amounts.append(None)
         elif isinstance(step, int):

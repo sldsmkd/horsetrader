@@ -5,7 +5,7 @@ from .character import Bio, Birthday, Character, Characters, ThreeSizes
 
 from .racetrack import Racetrack, Racetracks
 from .course import Course, Courses
-from .race import Race, Races
+from .race import Race, RaceOccurrence, Races
 
 from .support import Support, Supports
 from .trainee import Trainee, Trainees
@@ -26,6 +26,7 @@ __all__ = [
     "Courses",
     # Races
     "Race",
+    "RaceOccurrence",
     "Races",
     # Supports
     "Support",

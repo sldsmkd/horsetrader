@@ -19,6 +19,7 @@ from ._records import (
     CourseRecord,
     DistanceAptitudesRecord,
     RaceRecord,
+    RaceOccurrenceRecord,
     RacetrackRecord,
     SelectorRecord,
     StrategyAptitudesRecord,
@@ -91,6 +92,15 @@ def _map_race(r: Race) -> RaceRecord:
         distance=r.distance,
         racetrack=r.racetrack.key if r.racetrack else None,
         banner=str(r.banner.url) if r.banner else None,
+        occurrences=[
+            RaceOccurrenceRecord(
+                course=o.course.key if o.course else None,
+                career_class=o.career_class.value,
+                month=o.month,
+                half=o.half.value,
+            )
+            for o in r.occurrences
+        ],
     )
 
 

@@ -18,11 +18,10 @@ logger = Logger.get(__name__)
 # locale-less index overlays the EN name. Joined by banner id.
 #
 # A race recurs once per career year it can be run in (Junior/Classic/Senior),
-# so a banner id appears on several rows; we keep the first (the structured
-# fields are identical across them) — the career-occurrence dimension is not yet
-# modelled. The gamey calendar-less pseudo-races (Debut/Maiden/Exhibition) reuse
-# banner art across distinct races (9001, 9002), so they're filtered out by
-# grade (`RaceGrade.is_fixture`); the survivors are 1:1 with banner id.
+# so a banner id appears on several rows. Those rows fold into one fixture record
+# with an `occurrences` list. The gamey pseudo-races (Debut/Maiden/EX) reuse
+# banner art across distinct races (9001, 9002), so they are filtered out by
+# grade (`RaceGrade.is_fixture`) and handled by career-schedule rules instead.
 _RACES_URL_JP = "https://gametora.com/ja/umamusume/races"
 _RACES_URL_EN = "https://gametora.com/umamusume/races"
 
@@ -31,6 +30,13 @@ _RACE_RIBBON_EXPR = './/img[contains(@src, "race_ribbons")]'
 _BANNER_ID_PATTERN = re.compile(r"/races/banners/(?:en/)?(\d+)\.png")
 _RIBBON_NUM_PATTERN = re.compile(r"grade_ribbon_(\d+)\.png")
 _VARIES = "多様"  # Gametora's JP "varies" marker for randomly-generated fields
+_CAREER_CLASSES = {
+    "ジュニア級": "junior",
+    "クラシック級": "classic",
+    "シニア級": "senior",
+}
+_TIMING_PATTERN = re.compile(r"^(?P<month>\d{1,2})月\s*(?P<half>前半|後半)$")
+_MONTH_HALVES = {"前半": "early", "後半": "late"}
 
 
 @transcend
@@ -56,22 +62,20 @@ class GametoraRaces(metaclass=SingletonMeta):
                 return node
         return None
 
-    def _scrape(self, url: str) -> dict[str, dict]:
-        """{banner_id: row record} for one index page; first row per id wins."""
+    def _scrape(self, url: str) -> list[dict]:
+        """Every race-table row on one locale's index page, in display order."""
         tree = html.fromstring(self._uc.get(url, chrome=True, cache=CacheTime.INDEX))
         banners = xpath_all(tree, _RACE_BANNER_EXPR)
         if not banners:
             raise ValueError(f"Gametora races: no banners found on {url}")
 
-        out: dict[str, dict] = {}
+        out: list[dict] = []
         for banner in banners:
             src = banner.get("src") or ""
             id_match = _BANNER_ID_PATTERN.search(src)
             if not id_match:
                 continue
             banner_id = id_match.group(1)
-            if banner_id in out:
-                continue
 
             row = self._row_of(banner)
             if row is None:
@@ -86,35 +90,57 @@ class GametoraRaces(metaclass=SingletonMeta):
             if not ribbon_match or not tokens:
                 continue
 
-            out[banner_id] = {
-                "banner_id": banner_id,
-                "banner_url": src,
-                "grade": RaceGrade.from_ribbon(int(ribbon_match.group(1))),
-                "tokens": tokens,
-            }
+            out.append(
+                {
+                    "banner_id": banner_id,
+                    "banner_url": src,
+                    "grade": RaceGrade.from_ribbon(int(ribbon_match.group(1))),
+                    "tokens": tokens,
+                }
+            )
         return out
 
-    def races(self) -> Sequence[dict]:
-        jp = self._scrape(_RACES_URL_JP)
-        if not jp:
-            raise ValueError("Gametora races: no records extracted from JP page")
-        en = self._scrape(_RACES_URL_EN)
-        if not en:
-            raise ValueError("Gametora races: no records extracted from EN page")
+    @staticmethod
+    def _occurrence(tokens: list[str], banner_id: str) -> dict:
+        """Parse the JP career-class + half-month columns for one fixture row."""
+        career_class = _CAREER_CLASSES.get(tokens[1])
+        timing = _TIMING_PATTERN.fullmatch(tokens[2])
+        if career_class is None or timing is None:
+            raise ValueError(
+                f"Race {banner_id}: invalid career occurrence "
+                f"{tokens[1:3]!r}"
+            )
+        month = int(timing.group("month"))
+        if not 1 <= month <= 12:
+            raise ValueError(f"Race {banner_id}: invalid career month {month}")
+        return {
+            "career_class": career_class,
+            "month": month,
+            "half": _MONTH_HALVES[timing.group("half")],
+        }
 
-        out: list[dict] = []
-        for banner_id, jp_rec in sorted(jp.items()):
+    def races(self) -> Sequence[dict]:
+        jp_rows = self._scrape(_RACES_URL_JP)
+        if not jp_rows:
+            raise ValueError("Gametora races: no records extracted from JP page")
+        en_rows = self._scrape(_RACES_URL_EN)
+        if not en_rows:
+            raise ValueError("Gametora races: no records extracted from EN page")
+        en_by_id = {row["banner_id"]: row for row in en_rows}
+
+        out_by_id: dict[str, dict] = {}
+        for jp_rec in jp_rows:
+            banner_id = jp_rec["banner_id"]
             grade = jp_rec["grade"]
             # Filter the gamey calendar-less pseudo-races (Debut/Maiden/Exhibition);
-            # the survivors are real fixtures, 1:1 with banner id.
+            # their generated schedules are not occurrences of named fixtures.
             if grade is None or not grade.is_fixture:
                 continue
 
             tokens = jp_rec["tokens"]
             # JA row layout: [name, careerClass, timing, surface, racetrack,
-            # distanceCategory, distance, "詳細"]. We take name + surface +
-            # racetrack + distance; career/timing (the occurrence dimension) and
-            # the distance-category bucket are deliberately not modelled yet.
+            # distanceCategory, distance, "詳細"]. The fixture owns the stable
+            # physical fields; career class + timing become one occurrence.
             if len(tokens) < 7:
                 logger.warning("Race %s: short row %r; skipping", banner_id, tokens)
                 continue
@@ -129,9 +155,10 @@ class GametoraRaces(metaclass=SingletonMeta):
                 continue
             distance_match = re.search(r"(\d+)", tokens[6])
 
-            en_rec = en.get(banner_id)
-            out.append(
-                {
+            record = out_by_id.get(banner_id)
+            if record is None:
+                en_rec = en_by_id.get(banner_id)
+                record = {
                     "key": f"race-{banner_id}",
                     "gametora_id": int(banner_id),
                     "name_jp": tokens[0],
@@ -144,7 +171,15 @@ class GametoraRaces(metaclass=SingletonMeta):
                     "banner_url": en_rec["banner_url"] if en_rec else jp_rec["banner_url"],
                     "correlations": {Sources.GAMETORA.value: int(banner_id)},
                     "references": [_RACES_URL_JP, _RACES_URL_EN],
+                    "occurrences": [],
                 }
-            )
-        logger.info("Extracted %d race fixtures from Gametora", len(out))
+                out_by_id[banner_id] = record
+            record["occurrences"].append(self._occurrence(tokens, banner_id))
+
+        out = [out_by_id[key] for key in sorted(out_by_id)]
+        logger.info(
+            "Extracted %d race fixtures with %d career occurrences from Gametora",
+            len(out),
+            sum(len(record["occurrences"]) for record in out),
+        )
         return out

@@ -19,18 +19,27 @@ from .mission import Mission, scraped_missions
 logger = Logger.get(__name__)
 
 
-def _celebration_rewards(key: StableKey) -> SequenceReward | None:
-    """The celebration FreeCarats `login` sequence curated for this mission in
-    `anniversaries.yaml`, or None if it carries no login bonus.
+def _celebration_rewards(key: StableKey) -> Rewards:
+    """The celebration carats curated for this mission in `anniversaries.yaml`.
 
-    A plain read — the sequence is final in the data (the anniversary-day mailbox
-    present is already folded into the main part's day-0 there, since the baked
-    shape carries one sequence per event; see the yaml header). Anchored at the
-    part start, same basis as the login days."""
-    login = store.shared(str(key)).get("login")
-    if not login:
-        return None
-    return SequenceReward(reward_type=FreeCarats, sequence=tuple(login))
+    `login` is the per-day sequence anchored at the part start. `present` is a
+    separate anniversary-day mailbox grant, so it remains a plain counter rather
+    than being hidden inside login day 1.
+    """
+    fields = store.shared(str(key))
+    rewards = Rewards()
+    login = fields.get("login")
+    if login:
+        rewards.append(SequenceReward(reward_type=FreeCarats, sequence=tuple(login)))
+    present = fields.get("present")
+    if present is not None:
+        if not isinstance(present, int) or isinstance(present, bool):
+            raise ValueError(
+                f"{store.source()}: event {key!s}: 'present' must be an int; "
+                f"got {present!r}"
+            )
+        rewards.append(FreeCarats(present))
+    return rewards
 
 
 def _selector_rewards(key: StableKey) -> SsrSelector | None:
@@ -111,12 +120,9 @@ class AnniversaryMissions(Events[AnniversaryMission], metaclass=SingletonMeta):
                 continue
             anniversary, part = tag
             # The scraped completion rewards stand; the curated celebration login
-            # bonus (with the anniversary-day present folded in) rides alongside as
-            # a separate FreeCarats sequence — they're distinct income, not a sum.
+            # bonus and anniversary-day present ride alongside as distinct income.
             rewards = Rewards(r["rewards"] or [])
-            celebration = _celebration_rewards(r["key"])
-            if celebration is not None:
-                rewards.append(celebration)
+            rewards.extend(_celebration_rewards(r["key"]))
             selector = _selector_rewards(r["key"])
             if selector is not None:
                 rewards.append(selector)

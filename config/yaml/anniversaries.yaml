@@ -23,18 +23,20 @@
 ##   login:   per-day login bonus. Shapes (all 150/day except main):
 ##              p1 countdown  150 ×10  — len = anniversary-date − p1-start gap (halves
 ##                                       that open Aug16 run ×8 = 1200)
-##              p2 main       300 ×10  — but 12 SLOTS: 2 entries are `Null` (no carats),
-##                                       the days that pay an SSR welfare copy instead
-##                                       (out of currency model → None per the int|None
-##                                       skip; positions guessed until an anni hits Global)
+##              p2 main       300 ×10  — ten consecutive login days. Welfare SSR copies
+##                                       are additional rewards on days 1 and 3, not
+##                                       replacements for those days' 300 carats. We carry
+##                                       the card once in mission `contents`; copy count
+##                                       and timing remain outside the resource model.
 ##              p3 mid        150 ×15  — 4-phase majors only (sourced from 2.0's 第3弾);
 ##                                       halves' p3 is "late" = mission carats only, NO login
 ##
-## PRESENT FOLDED IN: every main part also gets a 3,000-jewel mailbox present on the
-## anniversary day (= login day-0). The baked rewards shape carries ONE sequence per event
-## and both are FreeCarats on the same day, so the present is folded into login[0] in the DATA
-## here (300 daily + 3000 = 3300), not merged in code. That's why each main part's login total
-## is 6,000, day-0 = 3300 (2.0's Cygames-confirmed "up to 6000 jewels").
+## PRESENT: every main part also gets a separate 3,000-jewel mailbox present on the
+## anniversary day. `present: 3000` becomes a plain FreeCarats counter alongside the
+## sequence, preserving the observed 300-carats login table while keeping the combined
+## main-part total at 6,000 (2.0's Cygames-confirmed "up to 6000 jewels").
+## Concrete Global reference: docs/references/anni/loginbonus.png (1.5th Part 2,
+## day 1: Mihono Bourbon copy + 300 carats; the table shows card copies on days 1 and 3).
 
 anniversary-0_5:
   jp:
@@ -47,8 +49,9 @@ mission-00100:                                   # p1 countdown 第1弾 (8d → 
   en: {name: "Half Anniversary Celebration Part 1", duration: P8D}
   login: [150, 150, 150, 150, 150, 150, 150, 150]
 mission-00101:                                   # p2 main 第2弾
-  en: {name: "Half Anniversary Celebration Part 2", duration: P12D}
-  login: [3300, 300, Null, 300, 300, 300, 300, 300, Null, 300, 300, 300]   # day-0 = 300 + 3000 present
+  en: {name: "Half Anniversary Celebration Part 2", duration: P10D}
+  login: [300, 300, 300, 300, 300, 300, 300, 300, 300, 300]
+  present: 3000
 mission-00102:                                   # p3 late — no login (mission carats only)
   ssr_selectors: 1                               # free SSR exchange voucher (引換券), via 第3弾 missions
 
@@ -64,8 +67,9 @@ mission-00137:                                   # p1 countdown 第1弾
   en: {name: "1st Anniversary Celebration Part 1", duration: P10D}
   login: [150, 150, 150, 150, 150, 150, 150, 150, 150, 150]
 mission-00138:                                   # p2 main 第2弾
-  en: {name: "1st Anniversary Celebration Part 2", duration: P12D}
-  login: [3300, 300, Null, 300, 300, 300, 300, 300, Null, 300, 300, 300]   # day-0 = 300 + 3000 present
+  en: {name: "1st Anniversary Celebration Part 2", duration: P10D}
+  login: [300, 300, 300, 300, 300, 300, 300, 300, 300, 300]
+  present: 3000
 mission-00139:                                   # p3 mid 第3弾
   en: {name: "1st Anniversary Celebration Part 3", duration: P15D}
   login: [150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150]
@@ -82,8 +86,9 @@ mission-00217:                                   # p1 countdown 第1弾 (8d → 
   en: {name: "1.5th Anniversary Celebration Part 1", duration: P8D}
   login: [150, 150, 150, 150, 150, 150, 150, 150]
 mission-00218:                                   # p2 main 第2弾
-  en: {name: "1.5th Anniversary Celebration Part 2", duration: P12D}
-  login: [3300, 300, Null, 300, 300, 300, 300, 300, Null, 300, 300, 300]   # day-0 = 300 + 3000 present
+  en: {name: "1.5th Anniversary Celebration Part 2", duration: P10D}
+  login: [300, 300, 300, 300, 300, 300, 300, 300, 300, 300]
+  present: 3000
   ssr_selectors: 1 # This isn't strictly true; it came from a permanent mission we dont and wont model as it was the last of it's kind
 
 anniversary-2_0:
@@ -95,8 +100,9 @@ mission-00301:                                   # p1 countdown 第1弾
   en: {name: "2nd Anniversary Celebration Part 1", duration: P10D}
   login: [150, 150, 150, 150, 150, 150, 150, 150, 150, 150]
 mission-00302:                                   # p2 main 第2弾
-  en: {name: "2nd Anniversary Celebration Part 2", duration: P12D}
-  login: [3300, 300, Null, 300, 300, 300, 300, 300, Null, 300, 300, 300]   # day-0 = 300 + 3000 present (Cygames "6000 jewels" = 6000 login total)
+  en: {name: "2nd Anniversary Celebration Part 2", duration: P10D}
+  login: [300, 300, 300, 300, 300, 300, 300, 300, 300, 300]
+  present: 3000                                   # Cygames "6000 jewels" = 3000 login + 3000 present
 mission-00303:                                   # p3 mid 第3弾
   en: {name: "2nd Anniversary Celebration Part 3", duration: P15D}
   login: [150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150]
@@ -111,8 +117,9 @@ mission-00372:                                   # p1 countdown 第1弾
   en: {name: "2.5th Anniversary Celebration Part 1", duration: P10D}
   login: [150, 150, 150, 150, 150, 150, 150, 150, 150, 150]
 mission-00373:                                   # p2 main 第2弾
-  en: {name: "2.5th Anniversary Celebration Part 2", duration: P12D}
-  login: [3300, 300, Null, 300, 300, 300, 300, 300, Null, 300, 300, 300]   # day-0 = 300 + 3000 present
+  en: {name: "2.5th Anniversary Celebration Part 2", duration: P10D}
+  login: [300, 300, 300, 300, 300, 300, 300, 300, 300, 300]
+  present: 3000
 mission-00374:                                   # p3 late — no login (mission carats only)
   ssr_selectors: 1                               # free SSR exchange voucher (引換券), via 第3弾 missions
 
@@ -125,8 +132,9 @@ mission-00631:                                   # p1 countdown 第1弾
   en: {name: "3rd Anniversary Celebration Part 1", duration: P10D}
   login: [150, 150, 150, 150, 150, 150, 150, 150, 150, 150]
 mission-00632:                                   # p2 main 第2弾
-  en: {name: "3rd Anniversary Celebration Part 2", duration: P12D}
-  login: [3300, 300, Null, 300, 300, 300, 300, 300, Null, 300, 300, 300]   # day-0 = 300 + 3000 present
+  en: {name: "3rd Anniversary Celebration Part 2", duration: P10D}
+  login: [300, 300, 300, 300, 300, 300, 300, 300, 300, 300]
+  present: 3000
 mission-00633:                                   # p3 mid 第3弾
   en: {name: "3rd Anniversary Celebration Part 3", duration: P15D}
   login: [150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150]
@@ -141,8 +149,9 @@ mission-00675:                                   # p1 countdown 第1弾
   en: {name: "3.5th Anniversary Celebration Part 1", duration: P10D}
   login: [150, 150, 150, 150, 150, 150, 150, 150, 150, 150]
 mission-00676:                                   # p2 main 第2弾
-  en: {name: "3.5th Anniversary Celebration Part 2", duration: P12D}
-  login: [3300, 300, Null, 300, 300, 300, 300, 300, Null, 300, 300, 300]   # day-0 = 300 + 3000 present
+  en: {name: "3.5th Anniversary Celebration Part 2", duration: P10D}
+  login: [300, 300, 300, 300, 300, 300, 300, 300, 300, 300]
+  present: 3000
 mission-00677:                                   # p3 late — no login (mission carats only)
   ssr_selectors: 1                               # free SSR exchange voucher (引換券), via 第3弾 missions
 
@@ -155,8 +164,9 @@ mission-00808:                                   # p1 countdown 第1弾
   en: {name: "4th Anniversary Celebration Part 1", duration: P10D}
   login: [150, 150, 150, 150, 150, 150, 150, 150, 150, 150]
 mission-00809:                                   # p2 main 第2弾
-  en: {name: "4th Anniversary Celebration Part 2", duration: P12D}
-  login: [3300, 300, Null, 300, 300, 300, 300, 300, Null, 300, 300, 300]   # day-0 = 300 + 3000 present
+  en: {name: "4th Anniversary Celebration Part 2", duration: P10D}
+  login: [300, 300, 300, 300, 300, 300, 300, 300, 300, 300]
+  present: 3000
   # (livestream present ~650 deliberately IGNORED — irregular mailbox drop, not dependable income)
 mission-00810:                                   # p3 mid 第3弾
   en: {name: "4th Anniversary Celebration Part 3", duration: P15D}
@@ -172,8 +182,9 @@ mission-00864:                                   # p1 countdown 第1弾
   en: {name: "4.5th Anniversary Celebration Part 1", duration: P10D}
   login: [150, 150, 150, 150, 150, 150, 150, 150, 150, 150]
 mission-00865:                                   # p2 main 第2弾
-  en: {name: "4.5th Anniversary Celebration Part 2", duration: P12D}
-  login: [3300, 300, Null, 300, 300, 300, 300, 300, Null, 300, 300, 300]   # day-0 = 300 + 3000 present
+  en: {name: "4.5th Anniversary Celebration Part 2", duration: P10D}
+  login: [300, 300, 300, 300, 300, 300, 300, 300, 300, 300]
+  present: 3000
 mission-00866:                                   # p3 late — no login (mission carats only)
   ssr_selectors: 1                               # free SSR exchange voucher (引換券), via 第3弾 missions
 
@@ -186,8 +197,9 @@ mission-01006:                                   # p1 countdown 第1弾
   en: {name: "5th Anniversary Celebration Part 1", duration: P10D}
   login: [150, 150, 150, 150, 150, 150, 150, 150, 150, 150]
 mission-01007:                                   # p2 main 第2弾
-  en: {name: "5th Anniversary Celebration Part 2", duration: P12D}
-  login: [3300, 300, Null, 300, 300, 300, 300, 300, Null, 300, 300, 300]   # day-0 = 300 + 3000 present
+  en: {name: "5th Anniversary Celebration Part 2", duration: P10D}
+  login: [300, 300, 300, 300, 300, 300, 300, 300, 300, 300]
+  present: 3000
   # (PakaLive 950 deliberately IGNORED — 800 is pinball-bug compensation, a one-off)
 mission-01008:                                   # p3 mid 第3弾
   en: {name: "5th Anniversary Celebration Part 3", duration: P15D}

@@ -307,6 +307,33 @@ those land at plausible-but-far-future EN dates (Global is ~3.7 years behind JP)
 `/img/missions/<mission-key>.webp` and baked as `image` on regular, anniversary,
 and scenario mission records.
 
+## Career race schedule
+
+`Race` is the named fixture (Arima Kinen, Tenno Sho (Spring), …). It owns a list
+of `RaceOccurrence` values because the same fixture can run in more than one
+career year: Arima Kinen occurs in Classic and Senior Late December, while Tenno
+Sho (Spring) occurs only in Senior Late April.
+
+Each occurrence carries:
+
+- `course` — the exact `Course` reference, including inner/outer configuration;
+  `null` only for adaptive fixtures such as the JBC trio;
+- `career_class` — `junior`, `classic`, or `senior`;
+- `month` — 1–12;
+- `half` — `early` or `late`.
+
+The client can derive the 1–72 main-career turn from those calendar components;
+the ETL does not duplicate that arithmetic in the wire data. Debut, Maiden, and
+EX are generated pseudo-races rather than named fixtures, so they do not appear
+in `Race.occurrences`: Debut is fixed at Junior Late June, Maiden is a
+qualification fallback generated after a failed debut until the first win, and
+the scenario finals adapt to the career that was actually run.
+
+Course resolution is structural by `(racetrack, surface, distance)`. The only
+named-fixture ambiguities in the current corpus are Kyoto turf 1400/1600 and
+Niigata turf 2000; all use the outer configuration. The corresponding inner
+courses remain valid geometry even though no career/scenario race uses them.
+
 ## Banners
 
 Banner identity and media conventions:
@@ -368,16 +395,17 @@ in `models/rewards/`. Two shapes matter to the domain:
 - **`SequenceReward`** is a **daily login bonus** for a *single* counter type,
   spelled out day by day: each login-day pays an amount of that type or `Null`
   for a day it isn't paid. Because the type is fixed, a skip is the **absence of
-  that type** (`Null` in YAML, `None` in the model, *not* `0`) — anniversary
-  tables pay every day, but some days give a welfare/support card we don't
-  track, and those days are `Null`. (A bare `0` is accepted as shorthand.) A
-  second type we *did* track wouldn't fold in here — it'd be its own
-  `SequenceReward`. The `reward_type` is a plain `CounterReward` subclass, never
-  a sequence or generator; the event stays open indefinitely, so the ETL models
-  no end. `total()` sums the paying days.
+  that type** (`Null` in YAML, `None` in the model, *not* `0`). An additional
+  reward does not make the counter absent: anniversary Part 2 pays 300 carats on
+  each of ten consecutive login days, including days 1 and 3 when it also gives
+  welfare-card copies. (A bare `0` is accepted as shorthand.) A second type we
+  *did* track wouldn't fold in here — it'd be its own `SequenceReward`. The
+  `reward_type` is a plain `CounterReward` subclass, never a sequence or
+  generator; the event stays open indefinitely, so the ETL models no end.
+  `total()` sums the paying days.
 
-  Note the two reward shapes coexist on an anniversary event: a one-time
-  `free_carats` gift at the start (a plain counter) sits beside the `sequence` daily
+  Note the two reward shapes coexist on an anniversary event: the separate
+  3,000-carats mailbox present (a plain counter) sits beside the ten-day daily
   login table — `{ "free_carats": 3000, "sequence": { "type": "free_carats", … } }`.
 
 **Baked shape.** A `Rewards` list folds (in

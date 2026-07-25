@@ -12,7 +12,8 @@ in [frontend/architecture.md](frontend/architecture.md) +
 
 The ETL bakes a static, read-only bundle into the repo-root **`static/`** deploy dir:
 
-- `static/json/academy.json` — entity reference data (characters, trainees, supports, items).
+- `static/json/academy.json` — entity reference data (characters, trainees,
+  supports, races and their career occurrences, courses, racetracks, selectors).
 - `static/json/events.json` — the dated event timeline (the forecast).
 - `static/json/config.json` — non-timeline game constants and recipes the client
   expands procedurally (reward structures, rank maps, gacha rates).
@@ -85,6 +86,9 @@ invented slug/sequence. Both sides join bundle data on these keys.
 | character | `char-<slug>` | `char-oguri-cap` |
 | support | `support-<id>-<slug>` | `support-10001-special-week` |
 | trainee | `trainee-<id>-<slug>` | `trainee-100101-special-week` |
+| race | `race-<id>` | `race-1023` |
+| course | `course-<id>` | `course-10506` |
+| racetrack | `racetrack-<slug>` | `racetrack-nakayama` |
 | banner | `banner-<id>` | `banner-30003` |
 | scenario | `scenario-<nn>` | `scenario-01` |
 | story | `story-<nnn>` | `story-001` |
@@ -92,6 +96,25 @@ invented slug/sequence. Both sides join bundle data on these keys.
 | holiday | `holiday-<kind>-<year>` / `holiday-marketing-<slug>` | `holiday-golden-week-2026`, `holiday-marketing-starhorse-4` |
 | anniversary | `anniversary-<version>` | `anniversary-3_0` |
 | item | `item-<id>` | `item-00043` |
+
+Race records carry their career availability inline as `occurrences`; an
+occurrence is not independently keyed because it has no identity outside its
+owning fixture:
+
+```json
+{
+  "name": "Arima Kinen",
+  "occurrences": [
+    {"course": "course-10506", "career_class": "classic", "month": 12, "half": "late"},
+    {"course": "course-10506", "career_class": "senior", "month": 12, "half": "late"}
+  ]
+}
+```
+
+`course` is nullable only for adaptive named fixtures whose venue/distance is
+generated from the trainee's career. `career_class` is `junior` | `classic` |
+`senior`; `half` is `early` | `late`. Debut, Maiden, and EX are generated
+pseudo-races and therefore are not nested occurrences of a named race.
 
 **Reward keys are not stable keys.** Rewards are a fixed serialisation vocab
 bundled under an event's `rewards` object (`{"free_carats": 2160, "support_tickets": 2,

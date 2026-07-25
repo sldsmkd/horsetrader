@@ -19,6 +19,8 @@ event record instead of sitting mid-object; JSON key order is not significant,
 so the bundles are otherwise byte-comparable.
 """
 
+from typing import Annotated, Literal
+
 import msgspec
 from msgspec import UNSET, UnsetType
 
@@ -188,6 +190,16 @@ class CourseRecord(msgspec.Struct):
 
 
 @eishin
+class RaceOccurrenceRecord(msgspec.Struct):
+    """One fixed appearance of a named race in the career calendar."""
+
+    course: str | None
+    career_class: Literal["junior", "classic", "senior"]
+    month: Annotated[int, msgspec.Meta(ge=1, le=12)]
+    half: Literal["early", "late"]
+
+
+@eishin
 class RaceRecord(msgspec.Struct):
     name: str | None
     grade: str
@@ -196,6 +208,7 @@ class RaceRecord(msgspec.Struct):
     distance: int | None
     racetrack: str | None
     banner: str | None
+    occurrences: list[RaceOccurrenceRecord]
 
 
 @eishin

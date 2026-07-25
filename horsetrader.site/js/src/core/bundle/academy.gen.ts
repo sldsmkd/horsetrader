@@ -73,6 +73,16 @@ export interface RaceRecord {
   distance: number | null;
   racetrack: string | null;
   banner: string | null;
+  occurrences: RaceOccurrenceRecord[];
+}
+/**
+ * One fixed appearance of a named race in the career calendar.
+ */
+export interface RaceOccurrenceRecord {
+  course: string | null;
+  career_class: "classic" | "junior" | "senior";
+  month: number;
+  half: "early" | "late";
 }
 export interface RacetrackRecord {
   name: string | null;
