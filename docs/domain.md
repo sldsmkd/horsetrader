@@ -126,10 +126,11 @@ disagree on a CM's span *by design*, because they describe different things:
 
 - **JP (Gametora scrape) = the competition core, always exactly 6 days.**
   Gametora records *only* competitive play — the qualifier→finals span (e.g.
-  `14日 4:00 – 20日 3:59`); the pre-registration days 0–3 aren't in it. This is
-  invariant: all 45 scraped CMs are 6 days at date level (the start hour varies
-  3:00/4:00 JST, but the span doesn't). So the **JP `Period` is always the
-  6-day core.**
+  `14日 12:00 – 20日 11:59` JST); the pre-registration days 0–3 aren't in it. This is
+  invariant: all scraped CMs are 6 days at date level (the start hour varies
+  neither by occurrence nor daylight saving). Gametora's current index exposes
+  only the calendar dates, so the extractor stamps the official 12:00–11:59
+  JST boundary. The **JP `Period` is always the 6-day core.**
 - **EN (Cygames announcement) = the full availability window (usually 10 days,
   occasionally 9).** The monthly release-schedule announcement gives the *whole*
   event including the lead-in (drop **22:00 UTC**), aligned to the concurrent

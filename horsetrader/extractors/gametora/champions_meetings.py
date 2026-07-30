@@ -11,29 +11,42 @@ from horsetrader.info import Logger
 from horsetrader.semantics import transcend
 from horsetrader.transport import UmaClient
 
+from .dates import parse_date
+
 logger = Logger.get(__name__)
 
 # Champions Meetings live on two Gametora surfaces that share one ordinal
 # keyspace (Gametora's chronological CM occurrence number, 1-based):
 #
-#   * the JA index renders the JP-server schedule (dates + tracks) in the old
-#     `YYYY年M月D日 H:MM` layout — our source for the JP `Period`.
-#   * the locale-less (EN) index renders a `<select>` cup catalogue,
-#     `<option value="N">N - Name</option>` — our source for the EN name.
+#   * the JA index renders a multi-server schedule whose `日本版` row supplies
+#     the JP calendar dates.
+#   * the locale-less (EN) index renders the same schedule with `JP` rows plus
+#     a `<select>` cup catalogue, `<option value="N">N - Name</option>`.
 #
-# We join the two by that ordinal. Gametora is mid-migration to a globally
-# aware layout, so both surfaces may shift under us; we scrape what is live
-# today and fail loud (or warn-and-degrade on the optional name) when the
-# shapes disagree. Track metadata on the JA page is deliberately out of scope.
+# We join the JP periods and EN names by that ordinal. Track metadata is
+# deliberately out of scope.
 _CM_JA_URL = "https://gametora.com/ja/umamusume/events/champions-meeting"
 _CM_EN_URL = "https://gametora.com/umamusume/events/champions-meeting"
 
-# A date div carries two <span>s: one with the year kanji, one with the time.
-_CM_DATE_DIV_EXPR = '//main//div[span[contains(., "年")] and span[contains(., ":")]]'
+# New multi-server rows are date-only; the alternatives retain support for the
+# preceding explicit-time layouts.
+_CM_JA_DATE_DIV_EXPR = (
+    '//main//div[(b[normalize-space(.)="日本版"] and count(span) = 2)'
+    ' or (span[contains(., "年")] and span[contains(., ":")])]'
+)
+_CM_EN_DATE_DIV_EXPR = (
+    '//main//div[(b[normalize-space(.)="JP"] and count(span) = 2)'
+    ' or (count(span) = 2 and span[contains(., ":")])]'
+)
 # The EN catalogue is a <select> of numbered options.
 _CM_OPTION_EXPR = "//main//select/option[@value]"
 
 _JP_DT_PATTERN = re.compile(r"(\d{4})年(\d{1,2})月(\d{1,2})日\s*(\d{1,2}):(\d{2})")
+_JP_DATE_PATTERN = re.compile(r"(\d{4})年(\d{1,2})月(\d{1,2})日")
+_EN_DT_PATTERN = re.compile(
+    r"(\d{1,2})\s+([A-Za-z]{3,9})\s+(\d{4}),?\s*(\d{1,2}):(\d{2})"
+)
+_EN_DATE_PATTERN = re.compile(r"(\d{1,2})\s+([A-Za-z]{3,9})\s+(\d{4})")
 _OPTION_NAME_PATTERN = re.compile(r"^\s*\d+\s*-\s*(?P<name>.+?)\s*$")
 
 
@@ -50,20 +63,51 @@ class GametoraChampionsMeetings(metaclass=SingletonMeta):
 
     @staticmethod
     def _parse_jp_period(text: str) -> Period | None:
-        """Parse a JA date div ("2021年5月14日 4:00 – 2021年5月20日 3:59").
+        """Parse a JP schedule row from either Gametora locale.
 
-        Stamps the JST instant Gametora actually lists (CM rounds open at the
-        in-game hour, not the generic 12:00 banner drop), so it is parsed
-        here rather than via the prose `dates.parse_period` helper.
+        Current rows supply calendar dates only, so stamp the official
+        competition boundary: 12:00 through 11:59 JST.
         """
-        matches = _JP_DT_PATTERN.findall(" ".join(text.replace("\xa0", " ").split()))
-        if len(matches) < 2:
-            return None
+        collapsed = " ".join(text.replace("\xa0", " ").split())
+        jp_matches = _JP_DT_PATTERN.findall(collapsed)
+        en_matches = _EN_DT_PATTERN.findall(collapsed)
         try:
-            start, end = (
-                datetime(int(y), int(mo), int(d), int(h), int(mi), tzinfo=JST)
-                for y, mo, d, h, mi in matches[:2]
-            )
+            if len(jp_matches) >= 2:
+                start, end = (
+                    datetime(int(y), int(mo), int(d), int(h), int(mi), tzinfo=JST)
+                    for y, mo, d, h, mi in jp_matches[:2]
+                )
+            elif len(en_matches) >= 2:
+                start, end = (
+                    parse_date(f"{d} {mo} {y}").replace(
+                        hour=int(h),
+                        minute=int(mi),
+                    )
+                    for d, mo, y, h, mi in en_matches[:2]
+                )
+            else:
+                jp_dates = _JP_DATE_PATTERN.findall(collapsed)
+                if len(jp_dates) >= 2:
+                    start = datetime(
+                        *(int(part) for part in jp_dates[0]),
+                        hour=12,
+                        tzinfo=JST,
+                    )
+                    end = datetime(
+                        *(int(part) for part in jp_dates[1]),
+                        hour=11,
+                        minute=59,
+                        tzinfo=JST,
+                    )
+                else:
+                    en_dates = _EN_DATE_PATTERN.findall(collapsed)
+                    if len(en_dates) < 2:
+                        return None
+                    start = parse_date(" ".join(en_dates[0]))
+                    end = parse_date(" ".join(en_dates[1])).replace(
+                        hour=11,
+                        minute=59,
+                    )
         except ValueError:
             return None
         if end < start:
@@ -74,9 +118,17 @@ class GametoraChampionsMeetings(metaclass=SingletonMeta):
         tree = html.fromstring(
             self._uc.get(_CM_JA_URL, chrome=True, cache=CacheTime.INDEX)
         )
-        divs = xpath_all(tree, _CM_DATE_DIV_EXPR)
+        divs = xpath_all(tree, _CM_JA_DATE_DIV_EXPR)
         if not divs:
-            raise ValueError("Gametora CM: no date blocks on JA index page")
+            logger.info(
+                "Gametora CM: JA index has no JP rows; using locale-less index"
+            )
+            tree = html.fromstring(
+                self._uc.get(_CM_EN_URL, chrome=True, cache=CacheTime.INDEX)
+            )
+            divs = xpath_all(tree, _CM_EN_DATE_DIV_EXPR)
+        if not divs:
+            raise ValueError("Gametora CM: no JP date blocks")
         periods: list[Period] = []
         for div in divs:
             period = self._parse_jp_period(div.text_content())

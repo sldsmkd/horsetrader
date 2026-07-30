@@ -32,7 +32,7 @@ Consequences you must hold onto:
   inverted. If you catch yourself starting from the EN file, **stop and go back
   to the JP scrape.** The YAML is the tail; JP is the dog.
 
-For CM this is literal: the 45 occurrences, their `cm-NNN` keys, and their dates
+For CM this is literal: the occurrences, their `cm-NNN` keys, and their dates
 all come from the JP Gametora index. The EN YAML covers only the ~14 that have
 reached Global, and the other 31 ship fine as predictions — *because they exist
 in JP*.
@@ -137,8 +137,9 @@ primitives** (`Period`, etc.) — never model instances; entity construction is
 the model layer's job. Mirror the analog you found in Step 0.
 
 Worked example: [`extractors/gametora/champions_meetings.py`](../../horsetrader/extractors/gametora/champions_meetings.py)
-scrapes both pages, parses the JP `Period` from the `/ja/` date-divs, parses the
-EN `{ordinal: name}` map from the `<select>`, sorts JP occurrences by start,
+scrapes both pages, parses the JP `Period` from the `日本版` calendar-date rows
+(falling back to the locale-less page's `JP` rows), parses the EN
+`{ordinal: name}` map from the `<select>`, sorts JP occurrences by start,
 assigns `cm-{n:03d}`, and joins the name by ordinal. Notes:
 
 - **`@transcend`, `SingletonMeta`, holds `UmaClient`.** Same skeleton as
@@ -146,9 +147,10 @@ assigns `cm-{n:03d}`, and joins the name by ordinal. Notes:
 - **Scraped data is warn-and-skip**, not fail-loud: a malformed row logs a
   warning and is dropped; only a wholesale failure (no rows at all) raises.
   (Curated YAML is the opposite — see Step 4.)
-- **Parse what's listed, don't normalise to a convention you assume.** CM rounds
-  open at the in-game hour (`4:00`/`3:00` JST), not the generic 12:00 banner
-  drop, so CM keeps its own JP parser rather than reusing `dates.parse_period`.
+- **Preserve the domain boundary the source no longer renders.** The current
+  rows list dates but omit times; CM's JP competition core officially runs
+  12:00–11:59 JST, so its parser stamps that boundary explicitly rather than
+  treating the range as midnight-to-midnight.
 
 Then expose it on the **facade** (`Gametora` in
 [`extractors/gametora/__init__.py`](../../horsetrader/extractors/gametora/__init__.py)):

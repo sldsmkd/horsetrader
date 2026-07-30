@@ -21,7 +21,7 @@ _COSTUME_VARIANT_EN_MAP = {
     "DESERTED_ISLAND": "Deserted Island",
     "FANTASY": "Fantasy",
     "FULL_ARMOR": "Full Armor",
-    "GRAND_LIVE": "Grand Live",
+    "GRAND_LIVE": "Grand Concert",
     "GREAT_HARVEST_FESTIVAL": "Great Food Festival",
     "HALLOWEEN": "Halloween",
     "HOT_SPRING": "Onsen",
@@ -137,6 +137,10 @@ class CostumeVariants(Enum):
     @classmethod
     def from_en(cls, text: str) -> "CostumeVariants | None":
         """Resolve an EN descriptor string (e.g. "Christmas") to its variant."""
+        text = {
+            "BLAZE": "Blaze",
+            "Grand Live": "Grand Concert",
+        }.get(text, text)
         return _EN_TO_VARIANT.get(text)
 
     def match(self, query: str) -> bool:

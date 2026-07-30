@@ -40,6 +40,11 @@ class GametoraTrainees(metaclass=SingletonMeta):
     @staticmethod
     def _variant_from_badge(badge: str) -> tuple[str, int]:
         _badge = badge.strip()
+        _badge = {
+            "ウェディング": "ウエディング",
+            "無人島": "無人島へ",
+            "BLAZE": "Blaze",
+        }.get(_badge, _badge)
         if _badge in ("⭐", "⭐⭐", "⭐⭐⭐"):
             return "DEFAULT", len(_badge)
         if _badge:
