@@ -31,6 +31,15 @@ class LegendRacePredictor(Predictor):
     mean would freeze the old ~10d era onto the 2-leg (6d) races. The confirmed
     pairs show EN span == ceil(JP span) exactly (8d16:59→9d, 11d16:59→12d), so a
     2-leg 5d16:59 JP window yields the correct 6d EN window.
+
+    Cadence/holiday watch: before `legendrace-014` was confirmed, tail
+    extrapolation mapped its 2022-09-23 JP start to 2026-08-09 UTC; Cygames
+    announced 2026-08-13 UTC, four days later. Mountain Day fell between the
+    two dates, but the all-event JST→UTC correlation also shows recent EN dates
+    running later than its full-history line. Treat this primarily as possible
+    global cadence drift, with holiday adjacency only a confounder; do not add
+    Legend-specific holiday snapping from one occurrence. Frozen figures and
+    source links live in `docs/references/predictions/2026-08.md`.
     """
 
     def predict(self, timeline: Timeline) -> int:

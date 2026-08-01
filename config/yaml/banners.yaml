@@ -608,6 +608,46 @@ banner-30113:
     end: 2026-08-10T22:00:00+00:00
   rewards:
     pulls: 40  # Tokai Teio / Twin Turbo (SSR) - source HH.5.16
+banner-30114:
+  # Yukino Bijin trainee banner
+  en:
+    start: 2026-08-05T22:00:00+00:00
+    end: 2026-08-13T22:00:00+00:00
+banner-30115:
+  # Silence Suzuka and Smart Falcon support rerun
+  en:
+    start: 2026-08-05T22:00:00+00:00
+    end: 2026-08-13T22:00:00+00:00
+banner-30116:
+  # Seeking the Pearl trainee banner
+  en:
+    start: 2026-08-12T22:00:00+00:00
+    end: 2026-08-21T22:00:00+00:00
+banner-30117:
+  # K.S.Miracle and Daiichi Ruby support banner
+  en:
+    start: 2026-08-12T22:00:00+00:00
+    end: 2026-08-21T22:00:00+00:00
+banner-30118:
+  # Agnes Digital and Meisho Doto trainee banner, co-released with story-018
+  en:
+    start: 2026-08-18T22:00:00+00:00
+    end: 2026-08-30T22:00:00+00:00
+banner-30119:
+  # Mejiro Palmer and Daitaku Helios support banner, co-released with story-018
+  en:
+    start: 2026-08-18T22:00:00+00:00
+    end: 2026-08-30T22:00:00+00:00
+banner-30120:
+  # Aston Machan trainee banner
+  en:
+    start: 2026-08-25T22:00:00+00:00
+    end: 2026-09-02T22:00:00+00:00
+banner-30121:
+  # Fine Motion and Maruzensky support rerun
+  en:
+    start: 2026-08-25T22:00:00+00:00
+    end: 2026-09-02T22:00:00+00:00
 
 # NY 2023
 banner-30138:
