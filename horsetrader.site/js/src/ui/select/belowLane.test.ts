@@ -57,6 +57,28 @@ test("a reward-less below-lane event still gets a card, with an empty reward", (
   assert.deepEqual(card!.reward, {}); // no payout, but present
 });
 
+test("completion is offered only while an explicitly rushable event is active", () => {
+  const events: EventsBundle = {
+    events: [
+      { type: "story", title: "Past", contents: [], image: null, banner: null, art: null, era: "1m", start: "2026-05-01", end: "2026-05-10", predicted: false, key: "story-past", rushable: true },
+      { type: "story", title: "Active", contents: [], image: null, banner: null, art: null, era: "1m", start: "2026-06-01", end: "2026-06-08", predicted: false, key: "story-active", rushable: true },
+      { type: "story", title: "Future", contents: [], image: null, banner: null, art: null, era: "1m", start: "2026-06-09", end: "2026-06-20", predicted: false, key: "story-future", rushable: true },
+      { type: "story", title: "Not rushable", contents: [], image: null, banner: null, art: null, era: "1m", start: "2026-06-01", end: "2026-06-10", predicted: false, key: "story-ordinary" },
+    ],
+  };
+
+  const cards = belowLaneCards(settled(events), BUNDLE, AXIS, NOW);
+  assert.deepEqual(
+    cards.map((card) => [card.key, card.rushable]),
+    [
+      ["story-past", false],
+      ["story-active", true],
+      ["story-ordinary", false],
+      ["story-future", false],
+    ],
+  );
+});
+
 test("an invisible scenario launch is left to the scenario wallpaper", () => {
   const events: EventsBundle = {
     events: [

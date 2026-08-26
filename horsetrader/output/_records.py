@@ -411,9 +411,9 @@ class LegendRaceRecord(EventRecord, tag="legendrace"):
 class MissionRecord(EventRecord, tag="mission"):
     # A limited-mission campaign window carrying its scraped reward subset (via
     # the shared envelope). `name` is the EN title when the campaign has reached
-    # Global, else the JP title. Not rushable — a mission set is farmed over its
-    # window, there's no post-at-start choice. `image` is the scraped Gametora
-    # mission logo, processed into the static image bundle.
+    # Global, else the JP title. Rushable — its fixed mission set can be completed
+    # before the window closes. `image` is the scraped Gametora mission logo,
+    # processed into the static image bundle.
     name: str | None
     image: str | None
 

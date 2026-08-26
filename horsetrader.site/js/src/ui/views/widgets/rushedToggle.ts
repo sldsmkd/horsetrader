@@ -23,31 +23,31 @@ export function rushedToggleFor(rush: RushBinding, eventKey: string): HTMLElemen
 }
 
 export function rushedToggle({ pressed = false, onChange }: RushedToggleOptions = {}): HTMLElement {
-  const pill = h("span", { class: "rushed-toggle__pill", attr: { "aria-hidden": "true" } }, "RUSHED");
-
   const btn = h(
     "button",
     {
       class: "rushed-toggle",
-      attr: { type: "button", "aria-pressed": pressed, "aria-label": "Rushed" },
+      attr: {
+        type: "button",
+        role: "checkbox",
+        "aria-checked": pressed,
+        "aria-label": "Completed",
+        title: "Completed",
+      },
       on: {
         // The button lives inside the timeline, which captures the pointer on
         // pointerdown to pan — that capture would retarget the click to the
         // timeline and the toggle would never fire. Keep the press local.
         pointerdown: (ev) => ev.stopPropagation(),
         click: () => {
-          const next = btn.getAttribute("aria-pressed") !== "true";
-          btn.setAttribute("aria-pressed", String(next));
+          const next = btn.getAttribute("aria-checked") !== "true";
+          btn.setAttribute("aria-checked", String(next));
           btn.classList.toggle("rushed-toggle--on", next);
           onChange?.(next);
         },
       },
     },
-    h("img", {
-      class: "rushed-toggle__icon",
-      attr: { src: "/icons/kale_juice.png", alt: "", width: 24, height: 24, loading: "lazy", decoding: "async" },
-    }),
-    pill,
+    h("span", { class: "rushed-toggle__box", attr: { "aria-hidden": "true" } }),
   );
 
   if (pressed) btn.classList.add("rushed-toggle--on");

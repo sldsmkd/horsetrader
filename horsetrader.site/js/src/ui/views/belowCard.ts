@@ -50,8 +50,8 @@ function missionBody(card: BelowCard, rush: RushBinding): HTMLElement {
           "div",
           { class: "card__mission-copy" },
           h("span", { class: "card__label", attr: { title: card.fullLabel } }, card.label),
-          card.rushable ? rushedToggleFor(rush, card.key) : null,
         ),
+    card.rushable ? rushedToggleFor(rush, card.key) : null,
     rewardStrip(card.reward),
   );
 }
@@ -112,21 +112,8 @@ function bannerCarriesLabel(card: BelowCard): boolean {
   );
 }
 
-function bannerCarriesRushControl(card: BelowCard): boolean {
-  return card.banner !== null && (
-    card.kind === "story" ||
-    card.kind === "strongestteam" ||
-    card.kind === "factorstudies" ||
-    card.kind === "masterschallenge" ||
-    card.kind === "skilltest" ||
-    card.kind === "racingcarnival" ||
-    card.kind === "leagueofheroes"
-  );
-}
-
 export function belowCard(card: BelowCard, rush: RushBinding, fav: FavouriteBinding, inspect: InspectBinding): HTMLElement {
   const hideLabel = bannerCarriesLabel(card);
-  const hideRush = bannerCarriesRushControl(card);
   const cls = `card card--below card--${card.kind}${card.banner ? " card--bannered" : ""}${hideLabel ? " card--banner-label-art" : ""}${card.image && !card.banner ? " card--mission-art" : ""}${card.compact ? " card--compact" : ""}${card.past ? " card--past" : ""}`;
   const body = card.image && !card.banner
     ? h("div", { class: "card__body" }, missionBody(card, rush), atomList(card, fav, inspect))
@@ -135,7 +122,7 @@ export function belowCard(card: BelowCard, rush: RushBinding, fav: FavouriteBind
         { class: "card__body" },
         rectangularMedia(card),
         hideLabel ? null : h("span", { class: "card__label", attr: { title: card.fullLabel } }, card.label),
-        card.rushable && !hideRush ? rushedToggleFor(rush, card.key) : null,
+        card.rushable ? rushedToggleFor(rush, card.key) : null,
         atomList(card, fav, inspect),
         rewardStrip(card.reward),
       );

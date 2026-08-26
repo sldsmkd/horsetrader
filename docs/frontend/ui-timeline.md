@@ -132,8 +132,12 @@ lever. Some events are **rushable**, some aren't (a per-event property). The mar
 is an *optional* flag: read it `ev.rushable === true`, absence means not rushable
 (the [contract's optional-flag convention](../contract.md#optional-flags-presence-encoded-absence-defaulted)).
 **Banners are not rushable** (stripped in the ETL) — a banner is
-pulls/commitment, not a collect-the-payout moment, so the toggle lives only on
-**non-banner** below-lane cards (stories, scenarios, …).
+pulls/commitment, not a collect-the-payout moment, so the control lives only on
+**non-banner** below-lane event cards (stories, limited missions, scenario
+missions, …). The compact checkbox is shown only while an eligible event is
+active, in the card's top-right, labelled `Completed` for assistive technology
+and the native hover tooltip. The card gains no persistent status pill; its art
+remains the visual subject.
 
 Toggling a rushable event into a **rushed** state **moves its discrete rewards** from
 the `end` to the `start` — *when the player actually grabbed them*. That is the whole

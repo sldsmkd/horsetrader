@@ -40,6 +40,7 @@
    genuinely power/skill gated. Compete is the three-axis PvP family. */
 .card--below .card__body {
   --card-accent: var(--ht-colour-card-accent-default);
+  position: relative;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;

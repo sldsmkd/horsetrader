@@ -17,7 +17,7 @@ from horsetrader.semantics import daitaku
 from horsetrader.services import Translate
 
 from .anniversary import classify_anniversary_mission
-from .event import Event
+from .event import Event, Rushable
 from .events import Events
 from .scenario import classify_scenario_mission
 
@@ -163,7 +163,7 @@ def scraped_missions() -> list[dict]:
 
 @daitaku
 @dataclass
-class Mission(Event):
+class Mission(Rushable, Event):
     """A limited-mission campaign — a dated window granting a fixed reward set.
 
     The JP `Period` + reward subset come from the Gametora JA history (the
@@ -171,10 +171,12 @@ class Mission(Event):
     reached Global, joined on the shared logo-id key. `title` is JP-by-default
     with the EN slot filled when known.
 
-    Not `Rushable`: a mission set is farmed across its window, there's no
-    post-at-start choice. Rewards are the scraped carat-economy subset (the long
-    tail — manie, friend points — is dropped by the `reward_for_gametora_icon`
-    allowlist, same as story events), not a heuristic.
+    Rushable: the player can finish the fixed mission set before its availability
+    window closes. Rewards are the scraped carat-economy subset (the long tail —
+    manie, friend points — is dropped by the `reward_for_gametora_icon` allowlist,
+    same as story events), not a heuristic. Any sequence reward carried by a
+    specialised mission remains date-pinned in the client; only its discrete
+    completion rewards move.
     """
 
     title: Japlish | None = None

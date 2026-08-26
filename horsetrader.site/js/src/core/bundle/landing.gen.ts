@@ -11,7 +11,7 @@ import type { CalendarDate } from "../projection/dates.ts";
 
 export const BAKED_EXTENT: { readonly start: CalendarDate; readonly end: CalendarDate } = {
   start: "2025-06-26" as CalendarDate,
-  end: "2029-05-26" as CalendarDate,
+  end: "2029-06-21" as CalendarDate,
 };
 
 export const BAKED_SCENARIOS: readonly { readonly start: CalendarDate; readonly image: string }[] = [

@@ -28,10 +28,9 @@ class Showtime(Rushable, Event):
     are confirmed, so there is no predictor: a Showtime with no EN block simply
     wouldn't reach the baked timeline.
 
-    Rushable: the player can post it at its start for an efficiency penalty
-    rather than farming to the last day, the same capability banners and stories
-    carry. (The series was never repeated — it was unpopular — which is what
-    makes it the finite curated case it is.)
+    Rushable: the player can complete it before the last day, the same capability
+    stories and limited missions carry. (The series was never repeated — it was
+    unpopular — which is what makes it the finite curated case it is.)
     """
 
     name: str | None = None

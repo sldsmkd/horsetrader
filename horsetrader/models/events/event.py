@@ -94,8 +94,8 @@ class Rushable:
     Composition is the authoring-side capability declaration. On the wire the
     flag is presence-encoded: `rushable: true` appears only for events that can
     be rushed, while absence means the shared contract default (`false`). The
-    rushed-state *modelling* — the penalty, the start-post reschedule — is the
-    client's projection job.
+    rushed-state *modelling* — the persisted choice and start-post reschedule —
+    is the client's projection job.
     """
 
     @property

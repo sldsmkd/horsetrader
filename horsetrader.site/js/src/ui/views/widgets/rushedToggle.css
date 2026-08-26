@@ -1,51 +1,60 @@
 .rushed-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: calc(0.5 * var(--glass-u));
-  padding: calc(0.31 * var(--glass-u)) calc(0.44 * var(--glass-u));
-  border: 1px solid color-mix(in srgb, currentColor 22%, transparent);
-  border-radius: 0.45rem;
-  background: none;
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+  z-index: 3;
+  display: grid;
+  width: calc(1.75 * var(--glass-u));
+  aspect-ratio: 1;
+  place-items: center;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, CanvasText 28%, transparent);
+  border-radius: 0.3rem;
+  background: color-mix(in srgb, Canvas 88%, transparent);
+  color: CanvasText;
   cursor: pointer;
-  color: inherit;
-  font: inherit;
-  transition: border-color 0.1s, background 0.1s;
   pointer-events: auto;
+  box-shadow: 0 0.18rem 0.45rem color-mix(in srgb, var(--ht-colour-shadow) 40%, transparent);
+  transition: border-color 0.1s, background 0.1s;
 }
 
 .rushed-toggle:hover {
-  background: color-mix(in srgb, currentColor 8%, transparent);
+  border-color: color-mix(in srgb, var(--ht-colour-interactive) 65%, CanvasText 18%);
+  background: color-mix(in srgb, var(--ht-colour-interactive) 12%, Canvas 88%);
 }
 
-.rushed-toggle__icon {
-  display: block;
-  width: calc(1.88 * var(--glass-u));
-  height: calc(1.88 * var(--glass-u));
-  object-fit: contain;
+.rushed-toggle:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--ht-colour-interactive) 70%, CanvasText 18%);
+  outline-offset: 2px;
 }
 
-.rushed-toggle__pill {
-  display: none;
-  padding: 0.1em 0.45em;
-  border-radius: 0.3rem;
-  background: var(--ht-colour-card-accent-compete-pvp);
-  color: var(--ht-colour-text-on-accent);
-  font-size: var(--ht-type-micro-size);
-  font-weight: var(--ht-type-label-weight);
-  letter-spacing: var(--ht-type-label-spacing);
-  text-transform: uppercase;
-  line-height: var(--ht-type-micro-line);
+.rushed-toggle__box {
+  position: relative;
+  width: calc(0.88 * var(--glass-u));
+  aspect-ratio: 1;
+  border: 2px solid color-mix(in srgb, currentColor 48%, transparent);
+  border-radius: 0.18rem;
+  background: color-mix(in srgb, Canvas 72%, transparent);
 }
 
-.rushed-toggle--on .rushed-toggle__pill {
-  display: inline;
+.rushed-toggle--on .rushed-toggle__box {
+  border-color: color-mix(in srgb, var(--ht-colour-interactive) 65%, currentColor 18%);
+  background: color-mix(in srgb, var(--ht-colour-interactive) 38%, Canvas 58%);
+}
+
+.rushed-toggle--on .rushed-toggle__box::after {
+  content: "";
+  position: absolute;
+  top: -0.02rem;
+  left: 0.24rem;
+  width: 0.24rem;
+  height: 0.5rem;
+  border: solid currentColor;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
 }
 
 .rushed-toggle--on {
-  border-color: var(--ht-colour-card-accent-compete-pvp);
-  background: color-mix(in srgb, var(--ht-colour-card-accent-compete-pvp) 10%, transparent);
-}
-
-.rushed-toggle--on:hover {
-  background: color-mix(in srgb, var(--ht-colour-card-accent-compete-pvp) 16%, transparent);
+  border-color: color-mix(in srgb, var(--ht-colour-interactive) 65%, CanvasText 18%);
+  background: color-mix(in srgb, var(--ht-colour-interactive) 14%, Canvas 86%);
 }
