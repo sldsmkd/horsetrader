@@ -3,7 +3,8 @@
 Where the ETL gets its inputs, which sources feed which collections, and
 which files are hand-curated vs. scraped vs. auto-generated. The transport
 layer ([`horsetrader/transport/`](../../horsetrader/transport/)) is the only
-place that talks to the network — everything else routes through `UmaClient`.
+place that retrieves upstream bytes: network sources route through `UmaClient`,
+and installed-client files route through `SteamFile`.
 
 ## Sources at a glance
 
@@ -12,6 +13,7 @@ place that talks to the network — everything else routes through `UmaClient`.
 | Gametora | HTTP + Selenium (some pages are JS-rendered) | Characters, Trainees, Supports, Races, Courses, Racetracks, Banners, Stories, JP event dates | `@transcend` (uses `@shakur`) |
 | Umapyoi | HTTP | Character / Trainee enrichment | `@transcend` (uses `@shakur`) |
 | Wikiru | HTTP | JP event dates for the event types Gametora doesn't cover (Showtime, …) | `@transcend` |
+| Umamusume Global client | Steam/Proton files + SQLite | Skill definitions and official EN text (spike) | `@transcend` (uses `@shakur`) |
 | `config/*.yaml` | Local YAML | Consolidated per-event corpora (JP + EN dates, names, overrides); JP scenarios corpus | `@transcend` (`extractors/static/`) |
 | `references/announcements/*.jpg` | Local images | Human-eye source for `config/en.*.yaml` updates | (manual) |
 | `config/img/stories/*.png` | Local images | Story event banners, consumed by ETL via `extractors/static/stories.py` | (manual) |
@@ -19,6 +21,31 @@ place that talks to the network — everything else routes through `UmaClient`.
 Cache lives at the repo root `.cache/` (resolved from the repo root, not
 `HORSETRADER_TARGET`). Binary assets and index pages have separate TTLs
 (see [`horsetrader/enums/CacheTime`](../../horsetrader/enums/)).
+
+Installed client databases are copied into `.cache/databases/<client>/`;
+extractors never open the live game files. Global (`3224770`) and JP (`3564400`)
+Steam app ids and the shared library roots live in
+[`config/system/system.ini`](../../config/system/system.ini). A cached database
+younger than 24 hours is used directly. Older copies are MD5-compared with the
+installed file, then touched when unchanged or atomically replaced when changed.
+
+## Umamusume Global client
+
+The initial client-database spike lives in
+[`horsetrader/extractors/umamusume/`](../../horsetrader/extractors/umamusume/).
+The physical catalog and evidence-backed relationship maps live in
+[`docs/database/`](../database/).
+`Umamusume.skills()` reads `skill_data` from `master/master.mdb` and joins the
+Global English name and description from `text_data` categories 47 and 48. It
+returns the complete client row plus `skill-<id>` identity and Cygames
+correlation; no skill model or baked contract is established by this spike.
+
+The skill extractor selects the Global client explicitly. The JP client is
+configured as a separate source and cache namespace, but extraction requires it
+to have completed its first content sync and populated the same game-data path.
+
+The second cached database, `meta`, is an encrypted asset catalogue. The
+transport copies it losslessly but the skill extractor does not need to open it.
 
 ## Stable-key scheme
 

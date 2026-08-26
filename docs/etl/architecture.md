@@ -165,7 +165,7 @@ Optional-vs-null is deliberate: a field that's legitimately absent (`rewards`) i
 **omitted** (msgspec `UNSET`), while a field that's always present but unknown
 (`cm.name`, `scenario.title`) is emitted as `null`.
 
-### Transport stays behind `UmaClient`
+### Source transport stays behind Shakur
 
 Network I/O, cache lookups, robots.txt parsing, sentinel/404 negative-cache
 logic — all of it lives in [`horsetrader/transport/`](../../horsetrader/transport/)
@@ -173,6 +173,11 @@ behind `UmaClient`. Other modules use `try_get` (tolerant) or `get` (strict)
 and never touch `UmaClientCache` directly, never string-match on transport
 errors. If a request fails in a way callers should react to, expose it via
 the client's API; don't leak `requests` exceptions upward.
+
+Installed game files follow the same boundary through `SteamFile`. It discovers
+the configured Steam/Proton installation and gives extractors validated private
+copies under `.cache/databases/<client>`; extractors never open the live client
+database. Global and JP client IDs are separate configured sources.
 
 ### Fail loud
 
@@ -191,7 +196,7 @@ surface it, not paper over it with defaults or `try/except: pass`. See
 | An extractor for an entity or event | `extractors/<source>/<thing>.py` | `@transcend` (uses `@shakur` for the wire) |
 | A predictor for an unscheduled-EN type | `timeline/predictors/<thing>.py` | `@matikanefukukitaru` |
 | The baked wire shape (a new field/record on the JSON) | `output/_records.py` (the `msgspec.Struct` DTOs) + the model's `bake()` / `output/_mappers.py` | `@eishin` |
-| HTTP / cache / robots.txt | `transport/` | `@shakur` only |
+| HTTP / installed-client files / cache / robots.txt | `transport/` | `@shakur` only |
 | A new YAML-curated dataset | `config/yaml/<name>.yaml` (follow the [consolidated yaml shape](data-sources.md#consolidated-yaml-shape); the store auto-loads it, no whitelist) + an extractor in `extractors/static/` driving `store.py` primitives | dataset is hand-curated; extractor follows `@transcend` |
 
 If you can't pick a character, push back rather than guess — that

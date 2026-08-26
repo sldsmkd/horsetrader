@@ -75,11 +75,11 @@ cross one, it's usually a sign the work needs splitting.
   assemble `Character` / `Trainee` / `Support` objects, attach
   correlations / references / keys. Don't return entity objects from an
   extractor.
-- **Shakur is the only module that touches the wire.** Network I/O,
-  `UmaClientCache`, robots.txt parsing, sentinel/404 negative-cache
-  handling all live behind `UmaClient`. Use `try_get` (tolerant) or
-  `get` (strict). Don't string-match on transport errors elsewhere; if
-  callers need to react, expose it on the client.
+- **Shakur is the only module that retrieves upstream bytes.** Network I/O,
+  installed-client file discovery, cache handling, robots.txt parsing, and
+  sentinel/404 negative caching all live in `transport/`. HTTP callers use
+  `UmaClient`; local client-database extractors use `SteamFile`. Don't leak
+  transport mechanics into extractors or models.
 - **Daitaku is timezone-agnostic.** She owns `Period` and `Periods` as
   date primitives — they store whatever `tzinfo` you give them and
   enforce one Period per zone. Cross-zone reasoning (JST → predicted

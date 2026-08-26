@@ -30,7 +30,7 @@ The horsetrader ETL doesn't use functional module names (`scrapers/`, `predictor
 | --- | --- |
 | **Rudolf** | Orchestration — the conductor at the top of the call stack |
 | **Transcend** | Ingest / scraping — the informant who knows what to gather and parses it (stamps both JP and confirmed-UTC Periods) |
-| **Shakur** | Transit / web transport — actual HTTP, cache I/O, robots.txt, headless sessions |
+| **Shakur** | Source transport — actual HTTP, installed-client files, cache I/O, robots.txt, headless sessions |
 | **Digitan** | Domain knowledge — the *who* and *what* (characters, supports, trainees) |
 | **Daitaku** | Calendar primitives — Period, Periods, date math (timezone-agnostic; doesn't reason about JST↔UTC) |
 | **Yayoi** | Rewards — what an event hands out (currencies, tickets, and sequence-shaped handouts) |
@@ -42,7 +42,7 @@ The horsetrader ETL doesn't use functional module names (`scrapers/`, `predictor
 | **Tazuna** | Early-load + grab-bag utilities (cross-cutting) |
 | **Spechan** | Observability — letters home about what's happening (logs) and how much/many/long (metrics), cross-cutting |
 
-Dataflow: **Rudolf** conducts → **Transcend** scrapes (using **Shakur** for the wire/cache) and stamps both JP and any confirmed UTC Periods at extraction time → **Digitan** + **Daitaku** + **Yayoi** supply entity facts, date primitives, and event rewards → **Matikanefukukitaru** fills in predicted Global dates for what's still unscheduled → **Eishin** bakes the JSON, **Curren Chan** polishes the media. **Rob Roy** keeps the news-corpus library: a queryable read model over the archive Transcend caches, consulted for enrichment/correlation. **Tazuna** and **Spechan** sit alongside, called from anywhere.
+Dataflow: **Rudolf** conducts → **Transcend** extracts (using **Shakur** for source transport/cache) and stamps both JP and any confirmed UTC Periods at extraction time → **Digitan** + **Daitaku** + **Yayoi** supply entity facts, date primitives, and event rewards → **Matikanefukukitaru** fills in predicted Global dates for what's still unscheduled → **Eishin** bakes the JSON, **Curren Chan** polishes the media. **Rob Roy** keeps the news-corpus library: a queryable read model over the archive Transcend caches, consulted for enrichment/correlation. **Tazuna** and **Spechan** sit alongside, called from anywhere.
 
 ---
 
@@ -59,7 +59,7 @@ Role text lives in each decorator's docstring (see `<character>.py`); the per-ch
 | [`@matikanefukukitaru`](matikanefukukitaru.py) | Prediction oracle | [matikanefukukitaru.md](matikanefukukitaru.md) |
 | [`@robroy`](robroy.py) | The librarian — news corpus read model | [robroy.md](robroy.md) |
 | [`@rudolf`](rudolf.py) | Pipeline orchestration | [rudolf.md](rudolf.md) |
-| [`@shakur`](shakur.py) | Transit / web transport | [shakur.md](shakur.md) |
+| [`@shakur`](shakur.py) | Source transport | [shakur.md](shakur.md) |
 | [`@shuttle`](shuttle.py) | Japlish / translations — JP↔EN language seam | [shuttle.md](shuttle.md) |
 | [`@spechan`](spechan.py) | Observability — logging + metrics (cross-cutting) | [spechan.md](spechan.md) |
 | [`@tazuna`](tazuna.py) | Early-load + utilities (cross-cutting) | [tazuna.md](tazuna.md) |

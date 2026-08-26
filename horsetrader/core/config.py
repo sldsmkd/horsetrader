@@ -98,6 +98,11 @@ class Config(metaclass=SingletonMeta):
         return self.curated / "yaml"
 
     @property
+    def system(self) -> Path:
+        """Path to tracked machine/source configuration (``config/system/``)."""
+        return self.curated / "system"
+
+    @property
     def schema(self) -> Path:
         """Path to the generated JSON-schema dir (``config/schema/``), creating it if missing.
 
