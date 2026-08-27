@@ -72,7 +72,7 @@ function sortResults(a: { entry: SearchEntry; rank: number }, b: { entry: Search
   );
 }
 
-// Stories and anniversary missions carry support contents too (their welfare grant),
+// Stories, marketing holidays, and anniversary missions carry support contents too,
 // so a welfare card that never appears on a support banner is still searchable, and
 // warps to the event that grants it.
 function searchableEvents(bundle: Bundle, now: string): readonly EventRecord[] {
@@ -80,7 +80,7 @@ function searchableEvents(bundle: Bundle, now: string): readonly EventRecord[] {
     .all()
     .filter(
       (event) =>
-        (event.type === "support" || event.type === "trainee" || event.type === "story" || event.type === "anniversarymission" || event.type === "mainstory") &&
+        (event.type === "support" || event.type === "trainee" || event.type === "story" || event.type === "holiday" || event.type === "anniversarymission" || event.type === "mainstory") &&
         event.end >= now,
     );
 }
@@ -95,6 +95,8 @@ function appearanceMap(events: readonly EventRecord[]): Map<string, { date: Cale
   for (const event of events) {
     if (event.type === "support" || event.type === "trainee" || event.type === "story" || event.type === "anniversarymission" || event.type === "mainstory") {
       for (const id of event.contents) noteAppearance(id, event);
+    } else if (event.type === "holiday") {
+      for (const id of event.contents ?? []) noteAppearance(id, event);
     }
   }
   return firstAppearance;
@@ -152,6 +154,8 @@ export function createSearchIndex(bundle: Bundle, now: string): SearchIndex {
   for (const event of events) {
     if (event.type === "support" || event.type === "story" || event.type === "anniversarymission") {
       for (const id of event.contents) addSupportEntry(id);
+    } else if (event.type === "holiday") {
+      for (const id of event.contents ?? []) addSupportEntry(id);
     } else if (event.type === "trainee") {
       for (const id of event.contents) addTraineeEntry(id);
     } else if (event.type === "mainstory") {

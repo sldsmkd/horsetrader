@@ -2,8 +2,10 @@
 # https://umamusume.wikiru.jp/index.php?%E3%82%A4%E3%83%99%E3%83%B3%E3%83%88%E4%B8%80%E8%A6%A7
 #
 # These bake as `holiday` records, same as Golden Week / New Year. Use
-# `holiday-marketing-<slug>` keys, region-agnostic `name` / `rewards` / `banner`,
-# a required JP block, and an EN block only once Global has shipped it.
+# `holiday-marketing-<slug>` keys, region-agnostic `name` / reward contents /
+# `banner`, a required JP block, and an EN block only once Global has shipped it.
+# A sparse sequence may use the confirmed Global payout dates because Global is
+# the planner's output region; preserve the shared count/value, not JP's spacing.
 
 holiday-marketing-starhorse-4:
   name: Star Horse 4
@@ -17,3 +19,42 @@ holiday-marketing-starhorse-4:
   en:
     start: 2026-06-25T22:00:00+00:00
   banner: https://prd-info-umamusume.akamaized.net/announce/860/Thumbnail/banner_25300001.png
+
+# JP announcement 994: "Umayuru Live Stream Commemoration Campaign".
+# Global preserved announcement 994 and localised it as "A special Umayuru
+# Celebration". Each non-null sequence entry is the opening day of one Global
+# 150-carats claim period; this is an episodic stream, not 22 consecutive days.
+holiday-marketing-umayuru:
+  name: Umayuru Celebration
+  contents: [support-30145-tanino-gimlet]
+  rewards:
+    sequence:
+      type: free_carats
+      sequence: [
+        # Weeks anchored at 2026-08-26; Null means no new episode drop that day.
+        150, Null, Null, Null, 150, Null, Null,
+        Null, Null, Null, Null, 150, Null, Null,
+        Null, 150, Null, Null, Null, Null, Null,
+        Null, 150, Null, Null, Null, Null, Null,
+        150, Null, Null, Null, 150, Null, Null,
+        Null, Null, Null, Null, 150, Null, Null,
+        Null, 150, Null, Null, Null, Null, Null,
+        Null, 150, Null, Null, Null, 150, Null,
+        Null, Null, Null, Null, Null, 150, Null,
+        Null, Null, Null, Null, Null, Null, Null,
+        Null, 150, Null, Null, 150, Null, Null,
+        Null, Null, Null, Null, 150, Null, Null,
+        150, Null, Null, Null, Null, Null, Null,
+        150, Null, Null, Null, 150, Null, Null,
+        Null, Null, Null, Null, 150, Null, Null,
+        Null, Null, Null, Null, 150, Null, Null,
+        150, Null, Null, Null, Null, Null, Null,
+        150,
+      ]
+  jp:
+    start: 2022-10-17T12:00:00+09:00
+    duration: P167DT17H
+  en:
+    start: 2026-08-26T22:00:00+00:00
+    duration: P125DT17H
+  banner: umayaru-login.png

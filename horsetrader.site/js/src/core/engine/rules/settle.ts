@@ -12,10 +12,9 @@
  *
  * This dissolves the old generator/sequence channels: the expansion is
  * stream-private business logic applied by whichever stream owns the record,
- * never a separate stream. Children before `after` aren't minted (their income
- * is already in the snapshot reading); a straddling cadence keeps its later
- * days because the recurrence is computed from the event's start, not the
- * snapshot (the anchor-boundary rule, docs/frontend/projection.md).
+ * never a separate stream. The complete cadence is retained in the settled
+ * world so the lane can show the event's gross payout; the fold applies the
+ * snapshot boundary when deriving the forward projection.
  */
 
 import type { ResourceVector } from "../../projection/ledger.ts";
@@ -51,7 +50,6 @@ function children(record: BakedEvent, ctx: StreamCtx): SettledEvent[] {
     if (Object.keys(payload).length) {
       for (let day = 0; day < generator["repeat"]; day++) {
         const date = addDays(start, day);
-        if (date <= ctx.after) continue; // already in the snapshot reading
         out.push({ key: `${record.key}-${date}`, type: record.type, start: date, end: date, rewards: { ...payload }, visible: false, record: null });
       }
     }
@@ -63,7 +61,6 @@ function children(record: BakedEvent, ctx: StreamCtx): SettledEvent[] {
     sequence["sequence"].forEach((amount, day) => {
       if (typeof amount !== "number") return; // null = unpaid that day (absence, not zero)
       const date = addDays(start, day);
-      if (date <= ctx.after) return;
       out.push({ key: `${record.key}-${date}`, type: record.type, start: date, end: date, rewards: { [resource]: amount }, visible: false, record: null });
     });
   }

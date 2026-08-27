@@ -7,6 +7,7 @@ from horsetrader.core import Config, Period, Periods, SingletonMeta, StableKey
 from horsetrader.extractors.static import Static
 from horsetrader.info import Logger
 from horsetrader.models.core import References
+from horsetrader.models.entities import Support, Supports
 from horsetrader.models.media import CurrenChan, Image, ImageRequest
 from horsetrader.models.rewards import (
     FreeCarats,
@@ -47,6 +48,7 @@ class Holiday(Event):
 
     name: str = field(kw_only=True)
     banner: Image | None = field(default=None, kw_only=True)
+    contents: list[Support] = field(default_factory=list, kw_only=True)
 
     @property
     def is_countdown(self) -> bool:
@@ -69,7 +71,11 @@ class Holiday(Event):
         return body
 
     def match(self, query: str) -> bool:
-        return super().match(query) or query.lower() in self.name.lower()
+        return (
+            super().match(query)
+            or query.lower() in self.name.lower()
+            or any(content.match(query) for content in self.contents)
+        )
 
     def bake(self, period: Period) -> HolidayRecord:
         # A scenario-style record: the shared envelope (dates, predicted flag,
@@ -78,6 +84,7 @@ class Holiday(Event):
             **self._envelope(period),
             name=self.name,
             banner=str(self.banner.url) if self.banner else UNSET,
+            contents=[content.key for content in self.contents] or UNSET,
         )
 
 
@@ -104,6 +111,7 @@ class Holidays(Events[Holiday], metaclass=SingletonMeta):
         holidays: list[Holiday] = []
         baked_reward_records = Static().golden_weeks() + Static().marketing_holidays()
         banner_images = self._process_banners(baked_reward_records)
+        supports = Supports()
         for record in baked_reward_records:
             raw = record.get("rewards")
             holidays.append(
@@ -111,6 +119,7 @@ class Holidays(Events[Holiday], metaclass=SingletonMeta):
                     record,
                     rewards_from_baked(raw) if raw else None,
                     banner_images.get(record.get("banner_url")),
+                    supports,
                 )
             )
         for record in Static().new_years():
@@ -124,6 +133,7 @@ class Holidays(Events[Holiday], metaclass=SingletonMeta):
         record: dict,
         rewards: Rewards | None,
         banner: Image | None = None,
+        supports: Supports | None = None,
     ) -> Holiday:
         periods = Periods([record["period"]])
         references = References([record["source"]])
@@ -134,6 +144,16 @@ class Holidays(Events[Holiday], metaclass=SingletonMeta):
         if banner is not None:
             references.add(banner.references)
 
+        contents: list[Support] = []
+        for raw_key in record.get("contents", []):
+            support = supports.get(StableKey(raw_key)) if supports is not None else None
+            if support is None:
+                raise ValueError(
+                    f"{record['source']}: holiday {record['key']}: "
+                    f"unknown support content {raw_key!r}"
+                )
+            contents.append(support)
+
         holiday = Holiday(
             key=StableKey(str(record["key"])),
             periods=periods,
@@ -141,6 +161,7 @@ class Holidays(Events[Holiday], metaclass=SingletonMeta):
             name=record["name"],
             rewards=rewards,
             banner=banner,
+            contents=contents,
         )
         if (visible := record.get("visible")) is not None:
             holiday.apply_flags({"visible": visible})
@@ -148,16 +169,43 @@ class Holidays(Events[Holiday], metaclass=SingletonMeta):
 
     @staticmethod
     def _process_banners(records: list[dict]) -> dict[str, Image | None]:
+        """Publish remote or curated local campaign art as holiday WebP.
+
+        A filename is resolved under `config/img/holidays/`; HTTP(S) values keep
+        the usual remote-image path. The result remains keyed by the authored
+        value so the caller does not need to know which transport was used.
+        """
         outdir = Config().static / "img" / "holidays"
+        local_dir = Config().curated / "img" / "holidays"
         requests: ResourceList[ImageRequest] = ResourceList()
+        pairs: list[tuple[str, str]] = []
         for record in records:
             if banner_url := record.get("banner_url"):
+                outfile = outdir / f"{record['key']}-banner.webp"
+                if banner_url.startswith("http://") or banner_url.startswith("https://"):
+                    url = Url(banner_url)
+                else:
+                    path = local_dir / banner_url
+                    if not path.exists():
+                        logger.warning(
+                            "Holiday %s: local banner %s not found",
+                            record["key"],
+                            path,
+                        )
+                        continue
+                    url = Url(path.as_uri())
+                    # This WebP is derived from an authored local file, so each
+                    # bake must see manual edits instead of trusting yesterday's
+                    # generated outfile as Curren Chan's remote-fetch cache.
+                    outfile.unlink(missing_ok=True)
                 requests.append(
                     ImageRequest(
-                        url=Url(banner_url),
-                        outfile=outdir / f"{record['key']}-banner.webp",
+                        url=url,
+                        outfile=outfile,
                     )
                 )
+                pairs.append((banner_url, str(url)))
         if not requests:
             return {}
-        return CurrenChan().process(requests)
+        images = CurrenChan().process(requests)
+        return {authored: images.get(source) for authored, source in pairs}

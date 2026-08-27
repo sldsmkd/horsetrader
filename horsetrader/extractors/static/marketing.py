@@ -57,6 +57,13 @@ def load() -> list[dict]:
         rewards = top.get("rewards")
         if rewards is not None and not isinstance(rewards, dict):
             raise ValueError(f"{where}: rewards must be a mapping")
+        contents = top.get("contents", [])
+        if not isinstance(contents, list) or not all(
+            isinstance(item, str) and item.startswith("support-") for item in contents
+        ):
+            raise ValueError(
+                f"{where}: contents must be a list of support-* stable keys"
+            )
         banner = top.get("banner")
         banner_url = str(banner).strip() if banner else None
 
@@ -67,6 +74,7 @@ def load() -> list[dict]:
             "source": source,
             "banner_url": banner_url,
             "rewards": rewards,
+            "contents": contents,
             "visible": visible,
             "en": en,
         })

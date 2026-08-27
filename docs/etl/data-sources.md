@@ -322,20 +322,23 @@ Screenshots of the irregular gifts Cygames drops into the in-game Presents box,
 named by date (`DD-MM-YYYY.png`). Contents vary — carats plus assorted items
 (Alarm Clocks, Training Boosters, etc.) — under various reasons ("…Giveaway",
 maintenance compensation, bug fixes). *"Apologems"* is just the community
-nickname for the whole catch-all. **Not consumed by the ETL** — these drops are
-discretionary and have no predictable cadence, so there's nothing to model
-today. Kept as a timestamped archive in case a pattern ever emerges worth
-analysing.
+nickname for the whole catch-all. **Not consumed directly by the ETL**: a
+capture is evidence, not a recurring rule. Once a campaign and its Global reward
+are identified, author the confirmed record in `marketing.yaml` instead.
 
-Suspected pattern (unconfirmed, not yet traced): these may track **JP marketing
-beats** that don't map onto global's smaller numbers, so global rebrands them as
-generic "…Giveaway" presents that turn up whenever the JP beat lands — which is
-why they look random here. The triggers look eclectic, though: some are
-systematic and calendar-traceable (download-count milestones — "7 million
-downloads!"), others are essentially unpredictable real-world one-offs (e.g. the
-Cygames president's racehorse winning a major race). So expect *partial*
-correlation against the JP milestone/announcement calendar at best, not a clean
-curve — and a low-priority, low-volume source either way.
+Confirmed partial pattern: some of these track **JP marketing beats** and Global
+rebrands them as generic “...Giveaway” presents. The clearest case is numeric
+announcement `813`: JP's 15-million-download milestone and Global's Training
+Booster Giveaway both grant 1,500 carats. Star Horse 4 (`860`) and Umayuru
+(`994`) then preserved their announcement IDs and reward totals across regions.
+The JP gaps compress to about 70% on Global across those three anchors.
+
+Use the JP announcement/event tables as a discovery index, then require a
+Global announcement or capture before booking income. The archive remains
+non-input because the class is heterogeneous: download milestones, media
+campaigns, collaborations, and unpredictable one-offs do not share one reward
+shape or a safe automatic cadence. Confirmed campaign-shaped records belong in
+`marketing.yaml`; unexplained screenshots stay here.
 
 ## `config/img/stories/`
 

@@ -406,6 +406,7 @@ export interface HolidayRecord {
   type: "holiday";
   name: string;
   banner?: string | null;
+  contents?: string[];
   start: string;
   end: string;
   predicted: boolean;

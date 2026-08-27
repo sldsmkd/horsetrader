@@ -473,6 +473,9 @@ class HolidayRecord(EventRecord, tag="holiday"):
     # point) plus the themed display `name`.
     name: str
     banner: str | None | UnsetType = UNSET
+    # Distinct welfare support cards granted by the campaign; copy timing/count
+    # stays with the source campaign rather than pretending cards are currency.
+    contents: list[str] | UnsetType = UNSET
 
 
 # Concrete event records, discriminated on ``type``. ``EventsBundle.events`` is

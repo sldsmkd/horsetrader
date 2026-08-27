@@ -99,23 +99,22 @@ export interface BelowCard {
   compact: boolean;
   /** This event's resolved reward face (its height/breakdown signal). */
   reward: ResourceVector;
-  /** Resolved content atoms — a story's distinct welfare support grant (the same
-   *  pill grammar as banner contents). Empty for every other below-lane kind. */
+  /** Resolved content atoms — a story/campaign's distinct welfare support grant
+   *  (the same pill grammar as banner contents). */
   contents: BannerAtom[];
 }
 
-/** A below-lane event's welfare grant resolved to display atoms. Stories grant their
- *  Event Support Cards and anniversary missions their Part-2 anniversary card (all
- *  supports); a main-story chapter grants a support/trainee MIX (the finale ★3), so
- *  each id is resolved by its own `support-`/`trainee-` prefix. R/empty atoms cull. */
+/** A below-lane event's welfare grant resolved to display atoms. Stories, marketing
+ *  holidays, and anniversary missions grant supports; a main-story chapter grants
+ *  a support/trainee MIX, so each id is resolved by prefix. R/empty atoms cull. */
 function contentsOf(record: NonNullable<SettledEvent["record"]>, bundle: Bundle): BannerAtom[] {
   if (record.type === "mainstory") {
     return record.contents
       .map((id) => atomOf(bundle, id.startsWith("trainee-") ? "trainee" : "support", id))
       .filter((a): a is BannerAtom => a !== null);
   }
-  if (record.type !== "story" && record.type !== "anniversarymission") return [];
-  return record.contents
+  if (record.type !== "story" && record.type !== "anniversarymission" && record.type !== "holiday") return [];
+  return (record.contents ?? [])
     .map((id) => atomOf(bundle, "support", id))
     .filter((a): a is BannerAtom => a !== null);
 }

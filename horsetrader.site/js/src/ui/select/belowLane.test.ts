@@ -172,6 +172,34 @@ test("holiday cards carry baked banner art when present", () => {
   assert.equal(cards[0]!.banner, "/img/holidays/holiday-golden-week-2023-banner.webp");
 });
 
+test("marketing holiday cards expose their welfare support", () => {
+  const events: EventsBundle = {
+    events: [{
+      type: "holiday",
+      name: "Umayuru Celebration",
+      contents: ["support-umayuru-gimlet"],
+      start: "2026-08-26",
+      end: "2026-12-30",
+      predicted: false,
+      key: "holiday-marketing-umayuru",
+    }],
+  };
+  const academy: Academy = {
+    characters: {}, trainees: {}, courses: {}, races: {}, racetracks: {}, selectors: {},
+    supports: {
+      "support-umayuru-gimlet": {
+        character: null, display: "Tanino Gimlet", type: "power", rarity: "ssr",
+        title: "Welcome to Umayuru", release: "2022-10-17", thumbnail: null,
+        art: null, aliases: [], source: null,
+      },
+    },
+  };
+  const bundle = createBundle(events, academy, TEST_CONFIG);
+
+  const cards = belowLaneCards(settled(events), bundle, AXIS, NOW);
+  assert.deepEqual(cards[0]!.contents.map((content) => content.id), ["support-umayuru-gimlet"]);
+});
+
 test("skill test cards carry baked misc banner art", () => {
   const events: EventsBundle = {
     events: [
@@ -313,7 +341,7 @@ test("x is true-to-date off the axis (arrival date = start) and reward is the re
   assert.deepEqual(byKey.get("holiday-1")!.reward, { free_carats: 50 });
 });
 
-test("an anniversary mission's card combines its flat face and its minted daily sequence", () => {
+test("an historical anniversary mission's card shows its complete daily sequence", () => {
   // The flat reward is the parent's face; the per-day sequence becomes minted
   // `visible:false` children under the parent key (rules/settle.ts). The card
   // folds the children back so the whole grant reads as one signal.
@@ -335,13 +363,33 @@ test("an anniversary mission's card combines its flat face and its minted daily 
       } as EventsBundle["events"][number],
     ],
   };
-  const cards = belowLaneCards(settled(events), BUNDLE, AXIS, NOW);
+  // The account snapshot is after the entire event. The fold will not project
+  // these payouts again, but the historical card must still show the gross grant.
+  const cards = belowLaneCards(settled(events, cal("2026-07-20")), BUNDLE, AXIS, NOW);
 
   assert.deepEqual(cards.map((c) => c.kind), ["anniversarymission"]);
   assert.equal(cards[0]!.label, "1st Anniversary Part 1");
   assert.equal(cards[0]!.fullLabel, "1st Anniversary Missions Part 1");
   // free_carats: 500 (flat) + 150 + 150 (sequence); trainee_tickets: 3 (flat).
   assert.deepEqual(cards[0]!.reward, { trainee_tickets: 3, free_carats: 800 });
+});
+
+test("an historical generator card shows its complete repeated payout", () => {
+  const events: EventsBundle = {
+    events: [{
+      type: "holiday",
+      name: "StarHorse Collaboration",
+      start: "2026-06-01",
+      end: "2026-06-10",
+      predicted: false,
+      key: "holiday-starhorse",
+      rewards: { generator: { free_carats: 150, repeat: 10 } },
+    } as EventsBundle["events"][number]],
+  };
+
+  const cards = belowLaneCards(settled(events, cal("2026-07-20")), BUNDLE, AXIS, NOW);
+
+  assert.deepEqual(cards[0]!.reward, { free_carats: 1500 });
 });
 
 test("mission-shaped cards use compact display labels without losing the source label", () => {
