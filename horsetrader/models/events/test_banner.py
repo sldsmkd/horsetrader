@@ -2,9 +2,10 @@ from datetime import datetime, timezone
 from types import SimpleNamespace
 from unittest.mock import patch
 
+from horsetrader.core import Periods, StableKey
 from horsetrader.enums import SupportRarity, SupportType
 
-from .banner import Banners
+from .banner import Banners, TraineeBanner
 
 
 def _support(key: str, release: datetime):
@@ -55,3 +56,17 @@ def test_support_rerun_excludes_main_story_welfare():
 
     assert resolved is not None
     assert str(resolved.key) == "support-30002-silence-suzuka"
+
+
+def test_documented_jp_only_banner_is_not_predictable():
+    banner = TraineeBanner(key=StableKey("banner-30130"), periods=Periods())
+    static = SimpleNamespace(
+        banner_period=lambda key: None,
+        event_flags=lambda key: {"predictable": False},
+    )
+
+    with patch("horsetrader.models.events.banner.Static", return_value=static):
+        enricher = next(iter(Banners._enrichers(None)))
+        enricher(banner)
+
+    assert not banner.predictable

@@ -86,6 +86,8 @@ class FallthroughPredictor(Predictor):
 
         count = 0
         for event in self._timeline:
+            if not event.predictable:
+                continue
             if any(p.tzinfo == UTC for p in event.periods):
                 continue
             jp = next((p for p in event.periods if p.tzinfo == JST), None)

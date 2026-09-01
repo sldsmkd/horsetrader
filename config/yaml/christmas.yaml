@@ -1,0 +1,19 @@
+## Christmas campaigns with modellable hard-currency rewards.
+#
+# This is deliberately Part 2 only. The preceding 2022 Part 1 campaign had no
+# Jewel rewards, so it does not need a planner event. Part 2 gave 150 Jewels on
+# its opening login day and a separate 500-Jewel Christmas present 12 days
+# later. Keep that spacing in the sparse sequence so a predicted Global run
+# projects the two claims onto the corresponding days.
+# JP source: https://umapyoi.net/news/1093
+
+holiday-christmas-2022:
+  name: Holiday Celebration Part 2
+  rewards:
+    sequence:
+      type: free_carats
+      sequence: [150, Null, Null, Null, Null, Null, Null, Null, Null, Null, Null, Null, 500]
+  jp:
+    start: 2022-12-12T12:00:00+09:00
+    duration: P17D
+  banner: https://prd-info-umamusume.akamaized.net/announce/1093/Thumbnail/banner_26800001.png

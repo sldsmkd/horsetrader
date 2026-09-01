@@ -24,8 +24,6 @@ _TRAINEE_INDEX_URL = "https://gametora.com/ja/umamusume/characters"
 _TRAINEE_INDEX_MAIN_BLOCK_EXPR = "//main"
 _TRAINEE_HREF_PREFIX = "/ja/umamusume/characters/"
 _TRAINEE_ANCHOR_EXPR = f'.//a[starts-with(@href, "{_TRAINEE_HREF_PREFIX}")]'
-_TRAINEE_NAME_EXPR = './/div[contains(@class,"juvrzR")]//span[1]'
-_TRAINEE_BADGE_EXPR = './/div[contains(@class,"juvrUN")]//span[1]'
 _TRAINEE_SLUG_PATTERN = re.compile(r"^(?P<trainee_id>\d{6})-(?P<slug>.+)$")
 
 
@@ -56,6 +54,36 @@ class GametoraTrainees(metaclass=SingletonMeta):
                 )
             return variant.name, 3
         return "DEFAULT", 3
+
+    @staticmethod
+    def _name_and_badge(anchor: html.HtmlElement) -> tuple[str, str]:
+        """Read the visible name and costume badge without site CSS classes.
+
+        Gametora has changed its generated class names more than once. A card has
+        one outer content cell: its first child is the image and its next two
+        children are, in order, the name and rarity/costume badge. Do not scan
+        arbitrary descendant spans: unrelated card text must not become a badge.
+        """
+        cells = xpath_all(anchor, "./div[1]/div")
+        if len(cells) != 3 or not xpath_all(cells[0], "./span/img"):
+            raise ValueError("Gametora trainee card does not have image, name, and badge cells")
+
+        texts: list[str] = []
+        for cell in cells[1:]:
+            labels = xpath_all(cell, ".//span[normalize-space()]")
+            if len(labels) != 1:
+                raise ValueError(
+                    "Gametora trainee card must have one label in each name and badge cell; "
+                    f"found {len(labels)}"
+                )
+            texts.append(" ".join(labels[0].text_content().split()))
+
+        if len(texts) != 2:
+            raise ValueError(
+                "Gametora trainee card must have exactly name and badge labels; "
+                f"found {len(texts)}"
+            )
+        return texts[0], texts[1]
 
     def trainees(self) -> Sequence[dict]:
         _tree = html.fromstring(
@@ -89,11 +117,7 @@ class GametoraTrainees(metaclass=SingletonMeta):
             trainee_id = int(slug_match.group("trainee_id"))
             character_gametora_id = trainee_id // 100
 
-            name_node = xpath_first(anchor, _TRAINEE_NAME_EXPR)
-            badge_node = xpath_first(anchor, _TRAINEE_BADGE_EXPR)
-            badge = (
-                badge_node.text_content().strip() if badge_node is not None else ""
-            )
+            name_jp, badge = self._name_and_badge(anchor)
             variant_name, rarity = self._variant_from_badge(badge)
 
             thumbnail_path = (
@@ -106,11 +130,7 @@ class GametoraTrainees(metaclass=SingletonMeta):
                 "slug": slug,
                 "trainee_id": trainee_id,
                 "character_gametora_id": character_gametora_id,
-                "name_jp": (
-                    name_node.text_content().strip()
-                    if name_node is not None
-                    else ""
-                ),
+                "name_jp": name_jp,
                 "badge": badge,
                 "variant_name": variant_name,
                 "rarity": rarity,

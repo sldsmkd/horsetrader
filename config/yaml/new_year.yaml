@@ -26,44 +26,60 @@ holiday-new-year-2022:
 
 holiday-new-year-2023:
   name: New Year 2023
+  # Umapyoi announcement 1122: お正月特別ログインボーナス.
+  banner: https://prd-info-umamusume.akamaized.net/announce/1122/Header/header_26400003.png
   jp:
     start: 2023-01-01T05:00:00+09:00
     duration: P30D
   login: [1500, 300, 300, 300, 300, 300, 300, 300, 300, 300]   # 4,200
   countdown:
+    # Umapyoi announcement 1122: 年末カウントダウンログインボーナス.
+    banner: https://prd-info-umamusume.akamaized.net/announce/1122/Header/header_26400001.png
     jp:
       start: 2022-12-29T12:00:00+09:00
     login: [150, 150, 150]
 
 holiday-new-year-2024:
   name: New Year 2024
+  # Umapyoi announcement 1690: お正月特別ログインボーナス.
+  banner: https://prd-info-umamusume.akamaized.net/announce/1690/Header/header_29300003.png
   jp:
     start: 2024-01-01T05:00:00+09:00
     duration: P30D
   login: [1650, 300, 300, 300, 300, 300, 300, 300, 300, 300]   # day-0 = 1500 + 150 present; 4,350
   countdown:
+    # Umapyoi announcement 1690: 年末カウントダウンログインボーナス.
+    banner: https://prd-info-umamusume.akamaized.net/announce/1690/Header/header_29300001.png
     jp:
       start: 2023-12-28T12:00:00+09:00
     login: [150, 150, 150, 150]
 
 holiday-new-year-2025:
   name: New Year 2025
+  # Umapyoi announcement 2314: お正月特別ログインボーナス.
+  banner: https://prd-info-umamusume.akamaized.net/announce/2314/Header/header_212000003.png
   jp:
     start: 2025-01-01T05:00:00+09:00
     duration: P30D
   login: [1500, 300, 300, 300, 300, 300, 300, 300, 300, 300]   # 4,200
   countdown:
+    # Umapyoi announcement 2314: 年末カウントダウンログインボーナス.
+    banner: https://prd-info-umamusume.akamaized.net/announce/2314/Header/header_212000001.png
     jp:
       start: 2024-12-27T12:00:00+09:00
     login: [150, 150, 150, 150, 150]
 
 holiday-new-year-2026:
   name: New Year 2026
+  # Umapyoi announcement 2984: お正月特別ログインボーナス.
+  banner: https://prd-info-umamusume.akamaized.net/announce/2984/Header/header_215200003.png
   jp:
     start: 2026-01-01T05:00:00+09:00
     duration: P29D
   login: [2000, 300, 300, 300, 300, 300, 300, 300, 300, 300]   # day-0 = 1500 + 500 present; 4,700
   countdown:
+    # Umapyoi announcement 2984: 年末カウントダウンログインボーナス.
+    banner: https://prd-info-umamusume.akamaized.net/announce/2984/Header/header_215200002.png
     jp:
       start: 2025-12-26T12:00:00+09:00
     login: [150, 150, 150, 150, 150, 150]

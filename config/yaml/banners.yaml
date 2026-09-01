@@ -648,6 +648,60 @@ banner-30121:
   en:
     start: 2026-08-25T22:00:00+00:00
     end: 2026-09-02T22:00:00+00:00
+banner-30130:
+  # JP-only Seeking the Pearl rerun after the original Global release; Google
+  # Play billing compensation, not part of the Global banner cadence.
+  predictable: false
+banner-30131:
+  # JP-only K.S.Miracle / Daiichi Ruby rerun paired with banner-30130.
+  predictable: false
+
+# September 2026 release schedule
+banner-30122:
+  # Yamanin Zephyr trainee banner
+  en:
+    start: 2026-09-01T22:00:00+00:00
+    end: 2026-09-10T21:59:00+00:00
+banner-30123:
+  # Tsurumaru Tsuyoshi and Symboli Kris S support banner
+  en:
+    start: 2026-09-01T22:00:00+00:00
+    end: 2026-09-10T21:59:00+00:00
+banner-30124:
+  # Tamamo Cross and Inari One trainee banner, co-released with story-019
+  en:
+    start: 2026-09-07T22:00:00+00:00
+    end: 2026-09-19T21:59:00+00:00
+banner-30125:
+  # Oguri Cap and Yaeno Muteki support banner, co-released with story-019
+  en:
+    start: 2026-09-07T22:00:00+00:00
+    end: 2026-09-19T21:59:00+00:00
+banner-30126:
+  # Nakayama Festa trainee banner
+  en:
+    start: 2026-09-15T22:00:00+00:00
+    end: 2026-09-23T21:59:00+00:00
+banner-30128:
+  # Wonder Acute trainee banner
+  en:
+    start: 2026-09-23T22:00:00+00:00
+    end: 2026-10-04T21:59:00+00:00
+banner-30129:
+  # Narita Top Road and Eishin Flash support banner
+  en:
+    start: 2026-09-23T22:00:00+00:00
+    end: 2026-10-04T21:59:00+00:00
+banner-30132:
+  # Vodka and Daiwa Scarlet trainee banner, co-released with story-020
+  en:
+    start: 2026-09-28T22:00:00+00:00
+    end: 2026-10-12T21:59:00+00:00
+banner-30133:
+  # Narita Brian and Air Groove support banner, co-released with story-020
+  en:
+    start: 2026-09-28T22:00:00+00:00
+    end: 2026-10-12T21:59:00+00:00
 
 # NY 2023
 banner-30138:

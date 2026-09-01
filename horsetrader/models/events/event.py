@@ -82,6 +82,16 @@ class Event(TracenModel):
     def rushable(self) -> bool:
         return self._flag("rushable", False)
 
+    @property
+    def predictable(self) -> bool:
+        """Whether a JP occurrence may be projected onto the EN timeline.
+
+        The default is deliberately permissive: the sparse curated override is
+        for documented JP-only occurrences, not for merely unconfirmed EN ones.
+        This is model-only curation and never crosses the bake contract.
+        """
+        return self._flag("predictable", True)
+
     def apply_flags(self, flags: dict[str, bool]) -> None:
         """Apply curated optional event flags to this model."""
         self._flag_overrides.update(flags)

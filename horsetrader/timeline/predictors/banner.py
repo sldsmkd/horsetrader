@@ -55,7 +55,11 @@ class BannerPredictor(Predictor):
 
         count = 0
         for event in self._timeline:
-            if isinstance(event, Banner) and not any(p.tzinfo == UTC for p in event.periods):
+            if (
+                isinstance(event, Banner)
+                and event.predictable
+                and not any(p.tzinfo == UTC for p in event.periods)
+            ):
                 jp = next((p for p in event.periods if p.tzinfo == JST), None)
                 if jp is not None:
                     anchor = anchor_en_by_jp_date.get(jp.start.date())
@@ -81,7 +85,7 @@ class BannerPredictor(Predictor):
 
         count = 0
         for event in self._timeline:
-            if not isinstance(event, Banner) or not event.contents:
+            if not isinstance(event, Banner) or not event.predictable or not event.contents:
                 continue
             if any(p.tzinfo == UTC for p in event.periods):
                 continue
@@ -117,6 +121,7 @@ class BannerPredictor(Predictor):
                 (e, jp)
                 for e in self._timeline
                 if isinstance(e, Banner)
+                and e.predictable
                 and (jp := next((p for p in e.periods if p.tzinfo == JST), None))
             ),
             key=lambda pair: pair[1].start,
@@ -179,7 +184,7 @@ class BannerPredictor(Predictor):
 
         scheduled: list[tuple[datetime, datetime]] = []
         for event in self._timeline:
-            if not isinstance(event, Banner):
+            if not isinstance(event, Banner) or not event.predictable:
                 continue
             jp = next((p for p in event.periods if p.tzinfo == JST), None)
             en = next((p for p in event.periods if p.tzinfo == UTC), None)
@@ -191,7 +196,11 @@ class BannerPredictor(Predictor):
 
         count = 0
         for event in self._timeline:
-            if not isinstance(event, Banner) or any(p.tzinfo == UTC for p in event.periods):
+            if (
+                not isinstance(event, Banner)
+                or not event.predictable
+                or any(p.tzinfo == UTC for p in event.periods)
+            ):
                 continue
             jp = next((p for p in event.periods if p.tzinfo == JST), None)
             # Tail only — anything at or before the anchor is a pass-3 concern, not

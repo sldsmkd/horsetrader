@@ -67,12 +67,12 @@ Predicts EN dates for `anniversary-*` records with no confirmed UTC period.
 
 ### `HolidayPredictor`
 
-Covers the holiday flavours `golden-week` and `new-year`. Marketing tie-ins
-remain confirmed-overlay only until they have enough repeat evidence for a
-cadence. Anniversaries predict on their own cadence via `AnniversaryPredictor`;
-this predictor filters on `Holiday.kind`.
+Covers the holiday flavours `golden-week`, `christmas`, and `new-year`.
+Marketing tie-ins remain confirmed-overlay only until they have enough repeat
+evidence for a cadence. Anniversaries predict on their own cadence via
+`AnniversaryPredictor`; this predictor filters on `Holiday.kind`.
 
-Weekday signal is merged across both flavours (any weekday with a confirmed
+Weekday signal is merged across all three flavours (any weekday with a confirmed
 EN drop counts as valid). For each unscheduled holiday, project its JP
 start via `Timeline.predict(jp_start, UTC)`, snap to the nearest valid
 weekday, and stamp `Period(start=<snapped at 22:00 UTC>, predicted=True)`.
@@ -276,11 +276,10 @@ period after the chain:
 }
 ```
 
-`unpredicted` is currently 0: passes 1–3 cover anchored, story-tied and
-bracketed banners, and pass 4 extrapolates the tail. A non-zero value isn't
-a failure — it just means some event carries a JP period the chain couldn't
-route (e.g. a banner with no JP period at all, or a future event type with
-no predictor) — but banners no longer contribute to it.
+`unpredicted` is not a failure — a documented JP-only occurrence marked
+`predictable: false` deliberately contributes to it. Other non-zero entries
+mean an event carries a JP period that the chain could not route, such as a
+banner with no JP period at all or a future event type with no predictor.
 
 ## Deferred / future work
 

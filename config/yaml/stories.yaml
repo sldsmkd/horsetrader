@@ -114,3 +114,15 @@ story-018:
     start: 2026-08-18T22:00:00+00:00
     end: 2026-08-30T22:00:00+00:00
     name: "Days Flying By"
+
+story-019:
+  en:
+    start: 2026-09-07T22:00:00+00:00
+    end: 2026-09-19T21:59:00+00:00
+    name: "Hark Back, Run Forward!"
+
+story-020:
+  en:
+    start: 2026-09-28T22:00:00+00:00
+    end: 2026-10-12T21:59:00+00:00
+    name: "Illuminate the Heart"

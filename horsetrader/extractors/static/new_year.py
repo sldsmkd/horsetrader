@@ -64,6 +64,7 @@ def load() -> list[dict]:
             "name": name,
             "period": Period(start=jp_start, span=span),
             "login": _login(top.get("login"), where),
+            "banner_url": str(top["banner"]).strip() if top.get("banner") else None,
             "en": en,
             "source": source,
         })
@@ -83,6 +84,11 @@ def load() -> list[dict]:
                 "name": "New Year Countdown",
                 "period": Period(start=cd_start, span=jp_start - cd_start),
                 "login": _login(countdown.get("login"), cd_where),
+                "banner_url": (
+                    str(countdown["banner"]).strip()
+                    if countdown.get("banner")
+                    else None
+                ),
                 "en": None,  # derived from the main's EN by the predictor
                 "source": source,
             })

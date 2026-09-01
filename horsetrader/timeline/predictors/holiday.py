@@ -15,22 +15,34 @@ def _is_golden_week(event) -> bool:
 
 
 def _is_new_year_main(event) -> bool:
-    return isinstance(event, Holiday) and event.kind == "new-year" and not event.is_countdown
+    return (
+        isinstance(event, Holiday)
+        and event.kind == "new-year"
+        and not event.is_countdown
+    )
+
+
+def _is_christmas(event) -> bool:
+    return isinstance(event, Holiday) and event.kind == "christmas"
 
 
 def _is_main(event) -> bool:
-    """A main holiday launch we place on the seasonal weekday cadence (Golden
-    Week or New Year — the countdown lead-ins derive off their parent instead).
+    """A holiday launch we place on the seasonal weekday cadence (Golden Week,
+    Christmas, or New Year — countdown lead-ins derive off their parent).
 
     Marketing tie-ins are intentionally excluded for now. They have confirmed EN
     overlays once observed, but no proven repeat cadence to extrapolate.
     """
-    return _is_golden_week(event) or _is_new_year_main(event)
+    return (
+        _is_golden_week(event)
+        or _is_christmas(event)
+        or _is_new_year_main(event)
+    )
 
 
 @matikanefukukitaru
 class HolidayPredictor(Predictor):
-    """Predict EN release dates for Golden Week and New Year launches.
+    """Predict EN release dates for Golden Week, Christmas and New Year launches.
 
     The main launches snap to the seasonal weekday cadence (each kind votes its
     own confirmed-EN weekdays). New Year's countdown lead-ins don't predict
@@ -40,6 +52,8 @@ class HolidayPredictor(Predictor):
     def predict(self, timeline: Timeline) -> int:
         valid_weekdays = {
             d for d, n in self.weekday(_is_golden_week, UTC).items() if n > 0
+        } | {
+            d for d, n in self.weekday(_is_christmas, UTC).items() if n > 0
         } | {
             d for d, n in self.weekday(_is_new_year_main, UTC).items() if n > 0
         }

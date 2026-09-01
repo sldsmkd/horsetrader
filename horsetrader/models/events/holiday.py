@@ -109,8 +109,15 @@ class Holidays(Events[Holiday], metaclass=SingletonMeta):
 
     def _fetch_primary(self) -> list[Holiday]:
         holidays: list[Holiday] = []
-        baked_reward_records = Static().golden_weeks() + Static().marketing_holidays()
-        banner_images = self._process_banners(baked_reward_records)
+        new_year_records = Static().new_years()
+        baked_reward_records = (
+            Static().golden_weeks()
+            + Static().christmas_holidays()
+            + Static().marketing_holidays()
+        )
+        banner_images = self._process_banners(
+            baked_reward_records + new_year_records
+        )
         supports = Supports()
         for record in baked_reward_records:
             raw = record.get("rewards")
@@ -122,10 +129,16 @@ class Holidays(Events[Holiday], metaclass=SingletonMeta):
                     supports,
                 )
             )
-        for record in Static().new_years():
+        for record in new_year_records:
             login = record["login"]
             rewards = Rewards([SequenceReward(reward_type=FreeCarats, sequence=tuple(login))])
-            holidays.append(self._build(record, rewards))
+            holidays.append(
+                self._build(
+                    record,
+                    rewards,
+                    banner_images.get(record.get("banner_url")),
+                )
+            )
         return holidays
 
     @staticmethod

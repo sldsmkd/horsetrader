@@ -10,6 +10,7 @@ if TYPE_CHECKING:
 _COSTUME_VARIANT_EN_MAP = {
     "DEFAULT": "Original",
     "ANIME_COLLAB": "Anime Collab",
+    "ANNIVERSARY_5_5": "5.5th Anni",
     "AUTUMN_FESTIVAL": "Festival",
     "AUTUMN": "Autumn",
     "BEYOND_DREAMS": "Beyond Dreams",
@@ -19,6 +20,7 @@ _COSTUME_VARIANT_EN_MAP = {
     "CHEERLEADER": "Cheerleader",
     "CHRISTMAS": "Christmas",
     "DESERTED_ISLAND": "Deserted Island",
+    "FAIRY_TALE": "Fairy Tale",
     "FANTASY": "Fantasy",
     "FULL_ARMOR": "Full Armor",
     "GRAND_LIVE": "Grand Concert",
@@ -55,10 +57,12 @@ _COSTUME_VARIANT_JP_MAP = {
     "AUTUMN_FESTIVAL": "秋祭り",
     "CHEERLEADER": "応援団",
     "ANIME_COLLAB": "アニメコラボ",
+    "ANNIVERSARY_5_5": "5.5周年",
     "NEW_OUTFIT": "新衣装",
     "SUMMER_WALK": "サマーウォーク",
     "HOT_SPRING": "温泉",
     "DESERTED_ISLAND": "無人島へ",
+    "FAIRY_TALE": "おとぎ話",
     "PARADE": "パレード",
     "MECHA": "メカ",
     "AUTUMN": "秋",
@@ -92,10 +96,12 @@ class CostumeVariants(Enum):
     AUTUMN_FESTIVAL = "autumn-festival"
     CHEERLEADER = "cheerleader"
     ANIME_COLLAB = "anime-collab"
+    ANNIVERSARY_5_5 = "5-5th-anniversary"
     NEW_OUTFIT = "new-outfit"
     SUMMER_WALK = "summer-walk"
     HOT_SPRING = "hot-spring"
     DESERTED_ISLAND = "deserted-island"
+    FAIRY_TALE = "fairy-tale"
     PARADE = "parade"
     MECHA = "mecha"
     AUTUMN = "autumn"

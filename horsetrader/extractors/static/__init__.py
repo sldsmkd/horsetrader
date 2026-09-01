@@ -7,6 +7,7 @@ from . import aliases as _aliases
 from . import anniversaries as _anniversaries
 from . import banners as _banners
 from . import champions_meetings as _champions_meetings
+from . import christmas as _christmas
 from . import golden_week as _golden_week
 from . import main_story as _main_story
 from . import marketing as _marketing
@@ -81,6 +82,14 @@ class Static(metaclass=SingletonMeta):
         """
         return _golden_week.load()
 
+    def christmas_holidays(self) -> list[dict]:
+        """Reward-bearing Christmas campaigns (`holiday-christmas-*`).
+
+        Same holiday record shape as Star Horse: a required JP period, shared
+        rewards and banner, and an optional confirmed EN overlay.
+        """
+        return _christmas.load()
+
     def marketing_holidays(self) -> list[dict]:
         """Marketing tie-in launches (`holiday-marketing-*`), consolidated JP + EN.
 
@@ -114,15 +123,16 @@ class Static(metaclass=SingletonMeta):
     def event_flags(self, key: str) -> dict[str, bool]:
         """Curated optional event flags for ``key``.
 
-        Flags are region-agnostic and presence-encoded at bake time. Returning
-        only authored booleans lets model defaults keep doing the right thing
-        when a key has no static overlay.
+        Flags are region-agnostic. ``visible`` and ``rushable`` are
+        presence-encoded at bake time; ``predictable`` is model-only curation.
+        Returning only authored booleans lets model defaults keep doing the
+        right thing when a key has no static overlay.
         """
         fields = store.shared(str(key))
         label = f"{store.source()}: event {key!r}"
         return {
             name: value
-            for name in ("visible", "rushable")
+            for name in ("visible", "rushable", "predictable")
             if (value := store.optional_bool(fields, name, label)) is not None
         }
 
