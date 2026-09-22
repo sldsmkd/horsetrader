@@ -31,7 +31,8 @@ replace, pause, or tear down the timeline. The user can always grab the world an
 move it.
 
 - **No router / screen-swap model.** One canvas, always present. Overlays don't
-  own or block it.
+  own or block it. `/predict` is a deep entry point, not a second screen: it
+  mounts this same canvas and opens the predicted-schedule Beta surface.
 - **"Focus" elsewhere is signified softly** (a dim/blur of the canvas is the
   candidate), never a modal lock that captures input. The blur is a *derived
   view of one UI-state flag* (`overlayOpen → canvas dimmed`), flowing one way —

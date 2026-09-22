@@ -33,6 +33,7 @@ import type { OnboardingHandle } from "./views/onboarding/onboarding.ts";
 import { perfInstrument } from "./perf.ts";
 import type { BakeStats } from "../core/bundle/stats.gen.ts";
 import { belowCard } from "./views/belowCard.ts";
+import { socialCard } from "./views/socialCard.ts";
 import { bannerGroup } from "./views/bannerGroup.ts";
 import type { RushBinding } from "./views/widgets/rushedToggle.ts";
 import type { FavouriteBinding, InspectBinding } from "./views/widgets/atomChip.ts";
@@ -96,7 +97,7 @@ function timelinePxVar(name: string, fallback: number): number {
  * room it occupies; heights are per-card body heights. Shallower cards sit on top.
  * Returns how far the deepest card reaches below the line (px) — the lane's floor.
  */
-function packBelowLane(cards: readonly BelowCard[], els: readonly HTMLElement[]): number {
+function packBelowLane(cards: readonly Pick<BelowCard, "x">[], els: readonly HTMLElement[]): number {
   if (els.length === 0) return 0;
   const stems = els.map((el) => el.querySelector(".card__stem") as HTMLElement);
   const bodies = els.map((el) => el.querySelector(".card__body") as HTMLElement);
@@ -160,21 +161,23 @@ function packAboveLane(groups: readonly BannerGroup[], els: readonly HTMLElement
 
 /**
  * The displayed-card date range: earliest to latest arrival across the settled
- * world's lane events, or null when none. The timeline spans all known time —
- * start of history to the last scheduled event — not the balance-series/
- * projection horizon (you scroll back into the past too). Cards anchor at
- * `start`, so both ends measure `start`: the latest *end* would trail dead time
- * past the final card.
+ * world's lane events plus today's permanent community card. The timeline spans
+ * all known time — start of history to the last scheduled event — not the
+ * balance-series/projection horizon (you scroll back into the past too). Cards
+ * anchor at `start`, so both ends measure `start`: the latest *end* would trail
+ * dead time past the final card.
  */
-function displayExtent(world: readonly SettledEvent[]): readonly [CalendarDate, CalendarDate] | null {
-  let lo: CalendarDate | null = null;
-  let hi: CalendarDate | null = null;
+function displayExtent(world: readonly SettledEvent[], today: CalendarDate): readonly [CalendarDate, CalendarDate] {
+  // The community card is a permanent today marker, so it also makes an empty
+  // world navigable and keeps the axis valid if every game event lies to one side.
+  let lo: CalendarDate = today;
+  let hi: CalendarDate = today;
   for (const ev of world) {
     if (!ev.visible) continue; // ledger-only cadence never widens the canvas
-    if (lo === null || ev.start < lo) lo = ev.start;
-    if (hi === null || ev.start > hi) hi = ev.start;
+    if (ev.start < lo) lo = ev.start;
+    if (ev.start > hi) hi = ev.start;
   }
-  return lo === null ? null : [lo, hi as CalendarDate];
+  return [lo, hi];
 }
 
 export function mountApp(
@@ -184,8 +187,10 @@ export function mountApp(
   strings: UiStrings,
   bakeStats: BakeStats,
   root: HTMLElement = qs("#app"),
+  entry: "predict" | null = null,
 ): void {
-  const view = createViewStore();
+  const directPredict = entry === "predict";
+  const view = createViewStore(directPredict ? { right: "beta" } : {});
   // The Beta chamber (it hosts UmaMark's launcher — grand-masters/umamark.md) is now gated
   // on the supporter entitlement, watched off every cloud pull. Its menubar entry is driven
   // by `menu.setBetaAvailable` below; no construction-time flag.
@@ -314,12 +319,14 @@ export function mountApp(
     // (e.g. missions) contributes no settled events, so its cards leave the
     // timeline with the income — no kind-hiding re-derivation here.
     const below = belowLaneCards(world, bundle, axis, now);
+    const social = socialCard({ x: axis.xForDate(now) });
     const above = aboveLaneGroups(world, bundle, axis, now, {
       balanceAt: (date) => coord.balanceAt(date),
       availableFor: (key) => coord.availableFor(key),
       commitmentStatuses: statuses,
     });
-    const belowEls = below.map((card) => belowCard(card, rush, fav, inspect));
+    const belowEls = [...below.map((card) => belowCard(card, rush, fav, inspect)), social];
+    const belowPacked = [...below, { x: axis.xForDate(now) }];
     const aboveEls = above.map((group) => bannerGroup(group, fav, commit, inspect));
     cardStats = {
       cards: belowEls.length + aboveEls.length,
@@ -331,7 +338,7 @@ export function mountApp(
     // Mounted now → heights are measurable. Pack each lane (below returns its
     // floor depth, above its roof height); the timeline turns these into its
     // dynamic vertical roof/floor.
-    const belowDepth = packBelowLane(below, belowEls);
+    const belowDepth = packBelowLane(belowPacked, belowEls);
     const aboveDepth = packAboveLane(above, aboveEls);
     tl.setContentDepth(aboveDepth, belowDepth);
     // Arm spatial culling: hand the substrate every card's id + element so it can
@@ -340,6 +347,7 @@ export function mountApp(
     // above group key (a bare date) can never collide in the live-set membership.
     tl.setScene([
       ...below.map((card, i) => ({ id: `below:${card.key}`, el: belowEls[i] })),
+      { id: "below:social", el: social },
       ...above.map((group, i) => ({ id: `above:${group.key}`, el: aboveEls[i] })),
     ]);
     // Raise the stage lighting — the cards (the lead) are built, packed and culled, so spotlight
@@ -355,7 +363,7 @@ export function mountApp(
     // lane; faces arrive resolved, so the cards never join back to the bundle.
     const world = coord.settledEvents();
     const projection = coord.projection();
-    const extent = displayExtent(world);
+    const extent = displayExtent(world, now);
     cardStats.timelineGolshis = extent ? timelineLengthGolshis(daysBetween(extent[0], extent[1])) : 0;
     // The minimap is another view over the same projection. Repaint it *before*
     // the timeline lays out: `tl.layout` emits the initial view-centre date
@@ -715,6 +723,8 @@ export function mountApp(
         body: betaSurface({
           onClose: () => view.set({ right: null }),
           onRunUmaMark: launchUmaMark,
+          bundle,
+          today: now,
           firstrun: coord.firstrun(),
           onSetFirstrun: (stage) => {
             coord.setFirstrun(stage);
@@ -892,8 +902,10 @@ export function mountApp(
   coord.subscribe(renderSurfaces);
   // Supporter entitlement flips asynchronously on cloud pulls — re-render so the Beta
   // door appears/disappears, and shut the chamber if it's open when entitlement drops.
+  // `/predict` is an explicit public entry, so its already-open prediction chamber
+  // remains usable without a supporter entitlement.
   onSupporterChange((on) => {
-    if (!on && view.get().right === "beta") view.set({ right: null });
+    if (!on && !directPredict && view.get().right === "beta") view.set({ right: null });
     renderSurfaces();
   });
 

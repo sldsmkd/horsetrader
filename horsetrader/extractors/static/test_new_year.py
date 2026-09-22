@@ -23,3 +23,10 @@ def test_new_year_uses_phase_specific_archive_banners():
     # Umapyoi's archive does not carry the 2021-22 campaign notice.
     assert records["holiday-new-year-2022"]["banner_url"] is None
     assert records["holiday-new-year-2022-countdown"]["banner_url"] is None
+
+
+def test_new_year_uses_the_global_campaign_name_without_the_jp_year():
+    records = {record["key"]: record for record in load()}
+
+    for year in range(2022, 2027):
+        assert records[f"holiday-new-year-{year}"]["name"] == "New Beginnings Part 1"

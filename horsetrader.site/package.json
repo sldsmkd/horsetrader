@@ -9,8 +9,8 @@
     "check": "tsc --noEmit",
     "test": "node --test \"js/src/**/*.test.ts\"",
     "security:audit": "npm audit --omit=dev --audit-level=high",
-    "dev": "cp index.html ../static/ && esbuild js/src/main.ts --bundle --sourcemap --outfile=../static/js/app.js --serve=0.0.0.0:3000 --servedir=../static",
-    "build": "cp index.html ../static/ && esbuild js/src/main.ts --bundle --minify --outfile=../static/js/app.js",
+    "dev": "node scripts/copy-shell.mjs && esbuild js/src/main.ts --bundle --sourcemap --outfile=../static/js/app.js --serve=0.0.0.0:3000 --servedir=../static --serve-fallback=../static/index.html",
+    "build": "node scripts/copy-shell.mjs && esbuild js/src/main.ts --bundle --minify --outfile=../static/js/app.js",
     "deploy": "wrangler pages deploy ../static --project-name ${CLOUDFLARE_PAGES_PROJECT_NAME:-horsetrader-site}"
   },
   "devDependencies": {

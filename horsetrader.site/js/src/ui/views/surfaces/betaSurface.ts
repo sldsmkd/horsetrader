@@ -20,6 +20,9 @@ import { h } from "../../h.ts";
 import { surfaceActions } from "./surfaceActions.ts";
 import { surfaceCancel } from "./surface.ts";
 import { ONBOARDING_STAGE_COUNT } from "../onboarding/onboarding.ts";
+import type { Bundle } from "../../bundle/access.ts";
+import type { CalendarDate } from "../../../core/projection/dates.ts";
+import { downloadPredictedSchedule, predictedSchedule } from "./predictedSchedule.ts";
 
 export interface BetaSurfaceOptions {
   onClose: () => void;
@@ -29,9 +32,12 @@ export interface BetaSurfaceOptions {
   firstrun: number;
   /** Set the watermark and re-arm the tour from there (the app re-runs it inline). */
   onSetFirstrun: (stage: number) => void;
+  /** Current bake plus UTC today: the preview renders only from these local facts. */
+  bundle: Bundle;
+  today: CalendarDate;
 }
 
-export function betaSurface({ onClose, onRunUmaMark, firstrun, onSetFirstrun }: BetaSurfaceOptions): HTMLElement {
+export function betaSurface({ onClose, onRunUmaMark, firstrun, onSetFirstrun, bundle, today }: BetaSurfaceOptions): HTMLElement {
   // One jump per stage: stage k becomes the next shown by setting the watermark to k-1.
   const jumps = Array.from({ length: ONBOARDING_STAGE_COUNT }, (_, k) =>
     h(
@@ -40,11 +46,33 @@ export function betaSurface({ onClose, onRunUmaMark, firstrun, onSetFirstrun }: 
       `Stage ${k + 1}`,
     ),
   );
+  const schedule = predictedSchedule(bundle, today);
+  const poster = h(
+    "button",
+    {
+      class: "beta-surface__run",
+      attr: { type: "button" },
+      on: {
+        click: () => {
+          poster.disabled = true;
+          poster.textContent = "Generating PNG…";
+          void downloadPredictedSchedule(bundle, today).then(
+            () => { poster.textContent = "Download predicted-schedule PNG"; poster.disabled = false; },
+            () => { poster.textContent = "Could not generate PNG — retry"; poster.disabled = false; },
+          );
+        },
+      },
+    },
+    "Download predicted-schedule PNG",
+  );
 
   return h(
     "section",
     { class: "beta-surface" },
     h("h3", { class: "beta-surface__group" }, "Beta chamber"),
+    h("h3", { class: "beta-surface__group" }, `${schedule.month} ${schedule.year} forecast`),
+    h("p", { class: "beta-surface__note" }, `${schedule.events.length} predicted releases. Generates a local, unofficial PNG poster.`),
+    poster,
     h(
       "p",
       { class: "beta-surface__note" },

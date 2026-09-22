@@ -31,6 +31,7 @@ import type { BakeStats } from "./core/bundle/stats.gen.ts";
 import type { ImagesBundle } from "./core/bundle/images.gen.ts";
 import { initImages } from "./ui/image.ts";
 import { installEditControlBehavior } from "./ui/editControl.ts";
+import { entryRoute } from "./ui/route.ts";
 
 installEditControlBehavior();
 
@@ -70,7 +71,15 @@ async function bootstrap(): Promise<void> {
   initImages(images.dims);
 
   const coordinator = createCoordinator({ bundle: events, config, now, timeZone });
-  mountApp(coordinator, createBundle(events, academy, config, timeZone), now, UI_STRINGS, bakeStats);
+  mountApp(
+    coordinator,
+    createBundle(events, academy, config, timeZone),
+    now,
+    UI_STRINGS,
+    bakeStats,
+    undefined,
+    entryRoute(window.location.pathname),
+  );
 }
 
 bootstrap().catch((err) => {

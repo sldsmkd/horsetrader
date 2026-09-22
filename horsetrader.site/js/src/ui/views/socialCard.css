@@ -1,0 +1,76 @@
+/* A non-game card at today's tick: small, quiet, and still part of the timeline's
+   true-date geometry. */
+.card--social {
+  width: calc(var(--timeline-card-w) * 0.72);
+  color: color-mix(in srgb, CanvasText 78%, var(--ht-colour-card-accent-participate-story));
+}
+
+.card--social .card__body {
+  gap: 0.2rem;
+  padding: 0.5rem 0.55rem 0.6rem;
+  border-left-color: var(--ht-colour-card-accent-participate-story);
+  background: color-mix(in srgb, Canvas 94%, var(--ht-colour-card-accent-participate-story));
+}
+
+.social-card__eyebrow {
+  color: color-mix(in srgb, currentColor 64%, Canvas);
+  font-size: var(--ht-type-micro-size);
+  font-weight: var(--ht-type-micro-weight);
+  letter-spacing: 0.07em;
+  line-height: var(--ht-type-micro-line);
+  text-transform: uppercase;
+}
+
+.social-card__title {
+  font-weight: 700;
+  line-height: var(--ht-type-caption-line);
+}
+
+.social-card__links {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.45rem;
+  margin-top: 0.3rem;
+}
+
+.social-card__link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.18rem;
+  min-height: 4rem;
+  padding: 0.38rem 0.3rem 0.3rem;
+  border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
+  border-radius: 0.45rem;
+  color: inherit;
+  font-size: var(--ht-type-micro-size);
+  line-height: var(--ht-type-micro-line);
+  text-decoration: none;
+  pointer-events: auto;
+}
+
+.social-card__link--discord {
+  color: #8b95ff;
+}
+
+.social-card__link--github {
+  color: color-mix(in srgb, CanvasText 88%, Canvas);
+}
+
+.social-card__mark {
+  display: block;
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.social-card__link-label {
+  color: CanvasText;
+  font-weight: 650;
+}
+
+.social-card__link:hover,
+.social-card__link:focus-visible {
+  border-color: currentColor;
+  background: color-mix(in srgb, currentColor 12%, transparent);
+}

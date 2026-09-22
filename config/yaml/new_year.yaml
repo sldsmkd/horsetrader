@@ -10,9 +10,13 @@
 #                      STREAM PRESENT folds into day-0 too (gift frontloaded), one
 #                      sequence per event. Claim window ~30 days; sequence is 10.
 # `year` = the January year (the 2021–22 winter cycle is `holiday-new-year-2022`).
+# The year remains machine identity only. Global localised the first shipped main
+# launch as "New Beginnings Part 1" (January 2026 schedule); Part 2 began later
+# and is not this countdown record. Reuse that EN campaign title for forecasts
+# instead of leaking the historical JP year into player-facing copy.
 
 holiday-new-year-2022:
-  name: New Year 2022
+  name: New Beginnings Part 1
   jp:
     start: 2022-01-01T05:00:00+09:00
     duration: P27D
@@ -25,7 +29,7 @@ holiday-new-year-2022:
     login: [150, 150, 150, 150, 150]
 
 holiday-new-year-2023:
-  name: New Year 2023
+  name: New Beginnings Part 1
   # Umapyoi announcement 1122: お正月特別ログインボーナス.
   banner: https://prd-info-umamusume.akamaized.net/announce/1122/Header/header_26400003.png
   jp:
@@ -40,7 +44,7 @@ holiday-new-year-2023:
     login: [150, 150, 150]
 
 holiday-new-year-2024:
-  name: New Year 2024
+  name: New Beginnings Part 1
   # Umapyoi announcement 1690: お正月特別ログインボーナス.
   banner: https://prd-info-umamusume.akamaized.net/announce/1690/Header/header_29300003.png
   jp:
@@ -55,7 +59,7 @@ holiday-new-year-2024:
     login: [150, 150, 150, 150]
 
 holiday-new-year-2025:
-  name: New Year 2025
+  name: New Beginnings Part 1
   # Umapyoi announcement 2314: お正月特別ログインボーナス.
   banner: https://prd-info-umamusume.akamaized.net/announce/2314/Header/header_212000003.png
   jp:
@@ -70,7 +74,7 @@ holiday-new-year-2025:
     login: [150, 150, 150, 150, 150]
 
 holiday-new-year-2026:
-  name: New Year 2026
+  name: New Beginnings Part 1
   # Umapyoi announcement 2984: お正月特別ログインボーナス.
   banner: https://prd-info-umamusume.akamaized.net/announce/2984/Header/header_215200003.png
   jp:
