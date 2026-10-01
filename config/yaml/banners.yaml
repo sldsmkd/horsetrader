@@ -703,13 +703,48 @@ banner-30133:
     start: 2026-09-28T22:00:00+00:00
     end: 2026-10-12T21:59:00+00:00
 
+# October 2026 release schedule
+banner-30134:
+  # Zenno Rob Roy trainee banner
+  en:
+    start: 2026-10-07T22:00:00+00:00
+    end: 2026-10-15T21:59:00+00:00
+banner-30136:
+  # Narita Brian trainee banner
+  en:
+    start: 2026-10-14T22:00:00+00:00
+    end: 2026-10-23T21:59:00+00:00
+banner-30137:
+  # T.M. Opera O and Yamanin Zephyr support banner
+  en:
+    start: 2026-10-14T22:00:00+00:00
+    end: 2026-10-23T21:59:00+00:00
+
 # NY 2023
 banner-30138:
+  # Kitasan Black and Satono Diamond trainee banner, co-released with story-021
+  en:
+    start: 2026-10-20T22:00:00+00:00
+    end: 2026-11-01T21:59:00+00:00
   rewards:
     pulls: 50  # Kitasan Black and Satono Diamond (NY) - source HH.5.16
 banner-30139:
+  # Special Week and Sweep Tosho support banner, co-released with story-021
+  en:
+    start: 2026-10-20T22:00:00+00:00
+    end: 2026-11-01T21:59:00+00:00
   rewards:
     pulls: 50  # Special Week + Sweep Tosho (SSR) - source HH.5.16
+banner-30140:
+  # Hokko Tarumae trainee banner; unusually opens at 06:00 UTC.
+  en:
+    start: 2026-10-24T06:00:00+00:00
+    end: 2026-11-06T21:59:00+00:00
+banner-30141:
+  # Agnes Tachyon and Tokai Teio support rerun
+  en:
+    start: 2026-10-27T22:00:00+00:00
+    end: 2026-11-06T21:59:00+00:00
 
 # 2.0 / Grand Masters
 banner-30146:

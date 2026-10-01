@@ -58,3 +58,23 @@ holiday-marketing-umayuru:
     start: 2026-08-26T22:00:00+00:00
     duration: P125DT17H
   banner: umayaru-login.png
+
+# JP announcements 1093/1109: the wider KIRARI MAGIC SHOW Christmas campaign
+# opens with its login bonus and contains the three-day Tokyo Mega Illumi
+# ornament event. Global localises the latter as "Sparkly Magic Skyway!". Keep
+# one artwork-backed umbrella record so the 150-Jewel login and later 500-Jewel
+# present are counted once; the narrower activity window remains source evidence.
+holiday-marketing-tokyo-mega-illumi:
+  name: Sparkly Magic Skyway!
+  rewards:
+    sequence:
+      type: free_carats
+      sequence: [150, Null, Null, Null, Null, Null, Null, Null, Null, Null, Null, Null, 500]
+  jp:
+    start: 2022-12-12T12:00:00+09:00
+    duration: P17D
+  en:
+    start: 2026-10-08T15:00:00+00:00
+    duration: P15DT23H59M
+  banner: https://prd-info-umamusume.akamaized.net/announce/1109/Thumbnail/banner_31100001.png?c=20221219164903
+  banner_version: 2

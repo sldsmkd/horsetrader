@@ -35,6 +35,10 @@ holiday-new-year-2023:
   jp:
     start: 2023-01-01T05:00:00+09:00
     duration: P30D
+  # The October schedule confirms Part 1's launch only. Part 2 begins on
+  # 2026-10-27 but is a separate, currently unmodelled campaign phase.
+  en:
+    start: 2026-10-20T22:00:00+00:00
   login: [1500, 300, 300, 300, 300, 300, 300, 300, 300, 300]   # 4,200
   countdown:
     # Umapyoi announcement 1122: 年末カウントダウンログインボーナス.

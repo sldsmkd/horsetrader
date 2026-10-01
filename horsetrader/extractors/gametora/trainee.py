@@ -29,6 +29,9 @@ _TRAINEE_BADGE_EXPR = (
     '| //main//span[contains(normalize-space(.), "⭐")][1])[1]'
 )
 _TRAINEE_INFOBOX_ROWS_EXPR = '//div[contains(@class, "characters_infobox_row")]'
+_TRAINEE_RELEASE_VALUES_EXPR = (
+    '//dt[normalize-space(.)="実装日"]/following-sibling::dd[1]'
+)
 
 # Aptitude block. Each grade is a letter-icon (rank/simple/NN.png) sitting in a
 # cell next to its JP label (芝, 短距離, 逃げ, …). We key off the label so the
@@ -72,10 +75,18 @@ class GametoraTrainee(metaclass=SingletonMeta):
 
     @staticmethod
     def _extract_release_date(tree: html.HtmlElement) -> Period:
-        for row in tree.xpath(_TRAINEE_INFOBOX_ROWS_EXPR):
-            text = row.text_content()
-            if "実装日" not in text:
-                continue
+        # Current pages use a semantic ``dt``/``dd`` pair; retain the old
+        # generated-class row as a fallback for cached pages from the previous
+        # layout. Some current pages repeat the release date in two infoboxes,
+        # so the first parseable value wins.
+        values = list(tree.xpath(_TRAINEE_RELEASE_VALUES_EXPR))
+        values.extend(
+            row
+            for row in tree.xpath(_TRAINEE_INFOBOX_ROWS_EXPR)
+            if "実装日" in row.text_content()
+        )
+        for value in values:
+            text = value.text_content()
             match = _RELEASE_DATE_PATTERN.search(text)
             if match:
                 return Period(
@@ -115,7 +126,14 @@ class GametoraTrainee(metaclass=SingletonMeta):
             return None
 
         for icon in icons:
-            label = icon.xpath("./../../div[1]")[0].text_content().strip()
+            # The current layout uses ``<div><dt>芝</dt><dd><img>…``. Fall
+            # back to the previous sibling-cell shape for cached old pages.
+            labels = icon.xpath("ancestor::*[dt][1]/dt[1]")
+            if not labels:
+                labels = icon.xpath("./../../div[1]")
+            if not labels:
+                raise ValueError("Could not resolve aptitude label on trainee page")
+            label = labels[0].text_content().strip()
             slot = _APTITUDE_LABELS.get(label)
             if slot is None:
                 raise ValueError(f"Unknown aptitude label '{label}' on trainee page")

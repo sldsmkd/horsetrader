@@ -194,7 +194,9 @@ class Holidays(Events[Holiday], metaclass=SingletonMeta):
         pairs: list[tuple[str, str]] = []
         for record in records:
             if banner_url := record.get("banner_url"):
-                outfile = outdir / f"{record['key']}-banner.webp"
+                version = record.get("banner_version", 0)
+                suffix = f"-v{version}" if version else ""
+                outfile = outdir / f"{record['key']}-banner{suffix}.webp"
                 if banner_url.startswith("http://") or banner_url.startswith("https://"):
                     url = Url(banner_url)
                 else:

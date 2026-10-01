@@ -47,6 +47,7 @@ as JP-only if the JP substrate itself is useful but Global is unconfirmed.
 | Rewards | Put confirmed rewards in top-level `rewards:` using the baked reward shape. Use a sparse `sequence` for irregular episode drops; never turn one into a consecutive-day `generator`. |
 | Welfare contents | Put distinct granted support cards in top-level `contents:` using `support-*` stable keys. Copy timing/count is source evidence, not currency. |
 | Banner | Put the remote announcement thumbnail/header URL in top-level `banner:` when one exists. |
+| Banner cache | When replacing already-published art without changing the stable key, increment optional `banner_version`; the public filename gains `-vN`. |
 
 ## ETL Implementation
 
@@ -70,6 +71,8 @@ as JP-only if the JP substrate itself is useful but Global is unconfirmed.
 - [ ] For episodic campaigns, copy the confirmed Global payout dates into a
   sparse daily `sequence`; `generator` means consecutive days.
 - [ ] Add `banner:` if announcement art is available.
+- [ ] If that stable key already shipped with different art, set or increment
+  `banner_version:` so CDN and browser caches receive a new public path.
 - [ ] Add `en.start` once Global confirms the campaign.
 - [ ] If Global changes the run length, add `en.duration`; otherwise let EN
   inherit the JP span.

@@ -66,6 +66,7 @@ def load() -> list[dict]:
             )
         banner = top.get("banner")
         banner_url = str(banner).strip() if banner else None
+        banner_version = store.optional_int(top, "banner_version", where)
 
         records.append({
             "key": str(key),
@@ -73,6 +74,7 @@ def load() -> list[dict]:
             "period": jp_period,
             "source": source,
             "banner_url": banner_url,
+            "banner_version": banner_version,
             "rewards": rewards,
             "contents": contents,
             "visible": visible,
