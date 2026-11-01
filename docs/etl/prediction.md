@@ -58,10 +58,16 @@ confirmed for routing purposes.
 
 Predicts EN dates for `anniversary-*` records with no confirmed UTC period.
 
-1. Collect confirmed JP+UTC pairs from anniversary records. If none exist, return 0.
+0. **Confirmed part:** if one of the anniversary's celebration missions carries
+   a confirmed EN start (curated `en.start` in `anniversaries.yaml`), place the
+   anniversary at that start shifted by the part's JP day-offset from the
+   anniversary, `predicted=True`. Monthly schedules announce Part 1 (the
+   countdown) before the anniversary date; this is the inverse of
+   `AnniversaryMissionPredictor`.
+1. Collect confirmed JP+UTC pairs from anniversary records. If none exist, stop.
 2. Build a **weekday signal** from those same confirmed pairs.
 3. Compute the global `Timeline.acceleration(JST, UTC)` slope. If it can't
-   fit, return 0.
+   fit, stop.
 4. For each unscheduled anniversary: project through the acceleration and
    snap to the nearest valid weekday at 22:00 UTC, `predicted=True`.
 

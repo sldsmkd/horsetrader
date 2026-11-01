@@ -20,6 +20,8 @@
 ##             ends on the last login day. EN-only — it overrides the predicted/scraped EN span
 ##             (the generous claim window); the JP period keeps its scraped span (substrate). So
 ##             the EN parts flow on their real cadence and no reward is shown crediting a month late.
+##   en.start: optional confirmed EN start for one part, when a monthly schedule announces the
+##             part before the anniversary date. The anniversary and other parts stay predicted.
 ##   login:   per-day login bonus. Shapes (all 150/day except main):
 ##              p1 countdown  150 ×10  — len = anniversary-date − p1-start gap (halves
 ##                                       that open Aug16 run ×8 = 1200)
@@ -97,7 +99,8 @@ anniversary-2_0:
   paid_ssr_selectors: 2     # whale (escalation) pack added — 2 of each type from here on
   paid_trainee_selectors: 2
 mission-00301:                                   # p1 countdown 第1弾
-  en: {name: "2nd Anniversary Celebration Part 1", duration: P10D}
+  # November 2026 schedule: Part 1 begins Nov 21; the anniversary date is unannounced.
+  en: {name: "2nd Anniversary Celebration Part 1", duration: P10D, start: 2026-11-21T22:00:00+00:00}
   login: [150, 150, 150, 150, 150, 150, 150, 150, 150, 150]
 mission-00302:                                   # p2 main 第2弾
   en: {name: "2nd Anniversary Celebration Part 2", duration: P10D}

@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 
 from ethicrawl import ResourceList, Url
 
-from horsetrader.core import Config, Period, SingletonMeta, StableKey
+from horsetrader.core import UTC, Config, Period, Periods, SingletonMeta, StableKey
 from horsetrader.extractors.static import store
 from horsetrader.info import Logger
 from horsetrader.models.entities import Support
@@ -40,6 +40,23 @@ def _celebration_rewards(key: StableKey) -> Rewards:
             )
         rewards.append(FreeCarats(present))
     return rewards
+
+
+def _confirmed_en_period(key: StableKey) -> Period | None:
+    """The curated EN start for this part, when Global announced the part itself.
+
+    A monthly schedule can confirm a part (e.g. "Part 1 begins …") before it
+    confirms the anniversary date it hangs off, so the part is pinned directly
+    rather than back-filling an unannounced anniversary. The span is a
+    placeholder; `shape_anniversary_mission_windows` applies `en.duration`.
+    """
+    en = store.overlay(str(key), "en")
+    if en is None or "start" not in en:
+        return None
+    start = store.require_zone(
+        en["start"], UTC, f"{store.source()}: event {key!s} en.start"
+    )
+    return Period(start=start)
 
 
 def _selector_rewards(key: StableKey) -> SsrSelector | None:
@@ -126,9 +143,15 @@ class AnniversaryMissions(Events[AnniversaryMission], metaclass=SingletonMeta):
             selector = _selector_rewards(r["key"])
             if selector is not None:
                 rewards.append(selector)
+            periods = r["periods"]
+            confirmed = _confirmed_en_period(r["key"])
+            if confirmed is not None:
+                # The curated announcement wins over any scraped EN window.
+                periods = Periods([p for p in periods if p.tzinfo != UTC])
+                periods.append(confirmed)
             mission = AnniversaryMission(
                 key=r["key"],
-                periods=r["periods"],
+                periods=periods,
                 title=r["title"],
                 rewards=rewards or None,
                 references=r["references"],

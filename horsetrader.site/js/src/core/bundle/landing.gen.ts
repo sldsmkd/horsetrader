@@ -19,7 +19,7 @@ export const BAKED_SCENARIOS: readonly { readonly start: CalendarDate; readonly 
   { start: "2025-11-06" as CalendarDate, image: "/img/scenarios/scenario-02.webp" },
   { start: "2026-03-12" as CalendarDate, image: "/img/scenarios/scenario-03.webp" },
   { start: "2026-07-22" as CalendarDate, image: "/img/scenarios/scenario-04.webp" },
-  { start: "2026-11-30" as CalendarDate, image: "/img/scenarios/scenario-05.webp" },
+  { start: "2026-12-01" as CalendarDate, image: "/img/scenarios/scenario-05.webp" },
   { start: "2027-04-07" as CalendarDate, image: "/img/scenarios/scenario-06.webp" },
   { start: "2027-08-16" as CalendarDate, image: "/img/scenarios/scenario-07.webp" },
   { start: "2027-11-10" as CalendarDate, image: "/img/scenarios/scenario-08.webp" },
