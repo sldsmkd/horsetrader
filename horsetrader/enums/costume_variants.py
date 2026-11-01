@@ -33,6 +33,7 @@ _COSTUME_VARIANT_EN_MAP = {
     "NEW_YEAR": "New Year",
     "PARADE": "Parade",
     "PROJECT_LARC": "Project L'Arc",
+    "SHUNDAISAI": "Shuntaisai",
     "SPORTS_FESTIVAL": "Sports Festival",
     "STEAMPUNK": "Steampunk",
     "SUMMER_WALK": "Summer Trip",
@@ -81,6 +82,7 @@ _COSTUME_VARIANT_JP_MAP = {
     "GRAND_LIVE": "グランドライブ",
     "SUPREME_COMMANDER": "総大将",
     "FULL_ARMOR": "フルアーマー",
+    "SHUNDAISAI": "駿大祭",
 }
 
 @shuttle
@@ -120,6 +122,7 @@ class CostumeVariants(Enum):
     GRAND_LIVE = "grand-live"
     SUPREME_COMMANDER = "supreme-commander"
     FULL_ARMOR = "full-armor"
+    SHUNDAISAI = "shundaisai"
 
     @property
     def en(self) -> "Japlish":

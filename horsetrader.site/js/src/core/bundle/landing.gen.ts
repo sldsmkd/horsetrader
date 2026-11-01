@@ -11,7 +11,7 @@ import type { CalendarDate } from "../projection/dates.ts";
 
 export const BAKED_EXTENT: { readonly start: CalendarDate; readonly end: CalendarDate } = {
   start: "2025-06-26" as CalendarDate,
-  end: "2029-06-23" as CalendarDate,
+  end: "2029-07-10" as CalendarDate,
 };
 
 export const BAKED_SCENARIOS: readonly { readonly start: CalendarDate; readonly image: string }[] = [
@@ -24,9 +24,9 @@ export const BAKED_SCENARIOS: readonly { readonly start: CalendarDate; readonly 
   { start: "2027-08-16" as CalendarDate, image: "/img/scenarios/scenario-07.webp" },
   { start: "2027-11-10" as CalendarDate, image: "/img/scenarios/scenario-08.webp" },
   { start: "2028-02-09" as CalendarDate, image: "/img/scenarios/scenario-09.webp" },
-  { start: "2028-05-01" as CalendarDate, image: "/img/scenarios/scenario-10.webp" },
-  { start: "2028-07-26" as CalendarDate, image: "/img/scenarios/scenario-11.webp" },
+  { start: "2028-05-03" as CalendarDate, image: "/img/scenarios/scenario-10.webp" },
+  { start: "2028-07-27" as CalendarDate, image: "/img/scenarios/scenario-11.webp" },
   { start: "2028-10-25" as CalendarDate, image: "/img/scenarios/scenario-12.webp" },
   { start: "2029-01-17" as CalendarDate, image: "/img/scenarios/scenario-13.webp" },
-  { start: "2029-04-12" as CalendarDate, image: "/img/scenarios/scenario-14.webp" },
+  { start: "2029-04-18" as CalendarDate, image: "/img/scenarios/scenario-14.webp" },
 ];

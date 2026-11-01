@@ -171,6 +171,10 @@ Rules of thumb:
 - Keep `en.end` greater than `en.start`.
 - Put confirmed dates in `en:` blocks. If an event is still unannounced, leave
   it for prediction.
+- Read the inset card art, not just the row title. A "New Trainee!" row can
+  carry a support rerun's art (November 2026: Shinko Windy with the Nishino
+  Flower + Maruzensky rerun); confirm that rerun with the row's window. Reruns
+  with no row or inset art stay predicted from historical cadence.
 - Keep comments that explain one-off corrections, renamed events, typo fixes,
   or source-image ambiguity.
 
