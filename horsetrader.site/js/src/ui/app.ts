@@ -101,7 +101,7 @@ function packBelowLane(cards: readonly Pick<BelowCard, "x">[], els: readonly HTM
   if (els.length === 0) return 0;
   const stems = els.map((el) => el.querySelector(".card__stem") as HTMLElement);
   const bodies = els.map((el) => el.querySelector(".card__body") as HTMLElement);
-  // Camera-measurement invariant C-B6 (grand-masters/contracts.md, guarded by
+  // Camera-measurement invariant C-B6 (docs/frontend/glass.md, guarded by
   // cameraMeasure.test.ts): measure with offsetWidth/offsetHeight, NOT getBoundingClientRect.
   // The packer's boxes live in the unscaled content-axis space (card.x), but
   // getBoundingClientRect returns the camera-transformed (`scale(z)`) rect. The timeline
@@ -191,7 +191,7 @@ export function mountApp(
 ): void {
   const directPredict = entry === "predict";
   const view = createViewStore(directPredict ? { right: "beta" } : {});
-  // The Beta chamber (it hosts UmaMark's launcher — grand-masters/umamark.md) is now gated
+  // The Beta chamber (it hosts UmaMark's launcher — docs/projects/grand-masters/umamark.md) is now gated
   // on the supporter entitlement, watched off every cloud pull. Its menubar entry is driven
   // by `menu.setBetaAvailable` below; no construction-time flag.
   const search = createSearchIndex(bundle, now);
@@ -478,7 +478,7 @@ export function mountApp(
     target.click();
   });
 
-  // UmaMark — the deterministic benchmark (grand-masters/umamark.md). It scripts the camera
+  // UmaMark — the deterministic benchmark (docs/projects/grand-masters/umamark.md). It scripts the camera
   // (tl.bench) and reads Darley's perf instrument; for the run it hides all chrome so the
   // world is the only thing stressed, then restores it. Constructed here, once every chrome
   // element it suppresses exists. Reachable only under `?umamark`, via the Beta chamber.
@@ -762,7 +762,7 @@ export function mountApp(
       );
     }
 
-    // The Plan — the Desk (twinkle-monthly/cover.md): the whole-plan reading surface,
+    // The Plan — the Desk (docs/projects/twinkle-monthly/desk.md): the whole-plan reading surface,
     // spawned from the menubar's tablet button. Pushed FIRST among the modals so it sits
     // at the BOTTOM of the stack — the dossier and card surfaces it spawns stack above it
     // (push order = paint order) and return focus to it on close. The timeline behind
@@ -867,7 +867,7 @@ export function mountApp(
       children.push(detailCard);
     }
 
-    // MODALITY — the lock fan-out, declared once (grand-masters/byerley-turk.md). A
+    // MODALITY — the lock fan-out, declared once (docs/frontend/glass.md C-B3). A
     // surface that demands exclusivity (the `surface--modal` marker = the *modal*
     // trait + centred *placement*) locks the menubar — the spawn-tree root —
     // (menu.setLocked above) and suspends every other surface here, so no in-card

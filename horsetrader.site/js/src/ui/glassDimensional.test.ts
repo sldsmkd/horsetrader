@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 /**
- * C-B4 guard — glass resizes dimensionally, never by transform (contracts.md).
+ * C-B4 guard — glass resizes dimensionally, never by transform (docs/frontend/glass.md).
  *
  * In a parallel projection size IS dimension, so `transform: scale` / `zoom` on a glass
  * element lies about its own size; `scale` is the camera's privilege, world plane only.

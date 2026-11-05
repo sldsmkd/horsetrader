@@ -3,7 +3,7 @@ import type { Capabilities } from "./capabilities.ts";
 /**
  * Device form — the one policy derivation the presentation policies share.
  *
- * contracts.md anticipated this seam: "device class falls out of CSS-px viewport extent +
+ * docs/frontend/glass.md anticipated this seam: "device class falls out of CSS-px viewport extent +
  * pointer". During the Godolphin build the derivation was smeared as a copy-pasted
  * `touchFirst && ≤600` predicate across every policy; this module is the integration-phase
  * extraction. It composes Godolphin's *qualitative* capabilities with Darley's *quantitative*
@@ -19,7 +19,7 @@ export type DeviceForm = "phone-portrait" | "phone-landscape" | "spacious";
 /**
  * The phone cutoff: a viewport whose short edge is at or under this many CSS px, on a
  * touch-first device, gets the phone representations. CSS px are angular-normalised, so this
- * is a physical-size proxy that holds across DPRs (see contracts.md "Physical device size is
+ * is a physical-size proxy that holds across DPRs (see docs/frontend/glass.md "Physical device size is
  * NOT derivable — and not needed").
  */
 export const PHONE_SHORT_EDGE_MAX_PX = 600;

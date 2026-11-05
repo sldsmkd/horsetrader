@@ -12,36 +12,29 @@ the ETL is in [`../etl/`](../etl/) and the shared interface in
 [`../contract.md`](../contract.md). Editing ETL *code* from a site session is
 still a boundary crossing — but the docs are shared.
 
-## Status: engine + view layer built (`core/engine/` + `ui/`)
+## Status
 
-As of **2026-06-12** both pillars and the view layer are complete and
-headless-tested (`npm test`):
+Built and live. `npm test` covers the headless core and the pure `ui/select/`
+view-models.
 
-- **Persistence** (pillar 1) — the four-section document, storage module, and
-  validation/recovery. See [persistence.md](persistence.md).
-- **Projection / Engine** (pillar 2) — the stream model, the fold, the
-  reconciliation pass, and the dense balance-series scrub cache. Lives at
-  `core/engine/`. See [projection.md](projection.md) and [engine.md](engine.md).
-- **The coordinator** — the headless seam joining the two: it holds the settled
-  world, both projections (P_income, P_final), and the full public write/read API.
-  See [engine.md](engine.md).
-- **The view layer** — `ui/` is written. The intent-first design captured in
-  [ui.md](ui.md), [ui-timeline.md](ui-timeline.md), and
-  [ui-surfaces.md](ui-surfaces.md) is now code.
+- **Persistence** (pillar 1) — the versioned `PlanDocument` (snapshot, config,
+  commitments, favourites, rushed, notes), storage, validation/recovery, and
+  optional Unity cloud sync. See [persistence.md](persistence.md).
+- **Projection / Engine** (pillar 2) — the stream model, the fold, reconciliation,
+  and the balance-series scrub cache, at `core/engine/`. See
+  [projection.md](projection.md) and [engine.md](engine.md).
+- **The coordinator** — the headless seam joining the two. See [engine.md](engine.md).
+- **The view layer** — `ui/`: the timeline, menubar, minimap, film strip, and the
+  spawnable surfaces, all on the glass/world plane contracts in
+  [glass.md](glass.md), with phone-specific representations chosen by `ui/caps/`.
 
-A small supporting seam is **planned** (not a pillar):
+The **entity query broker** (`ui/query/`) consolidates bundle lookups — see
+[catalog.md](catalog.md) (#35). Cross-side
+asks (free pulls, baked drop rates) are on the GitHub tracker
+(`sldsmkd/horsetrader`).
 
-- **Entity query broker** — a thin `core/` query layer over the bundle so
-  components ask for intent (search, label, image, events featuring a card)
-  instead of reaching into raw records. Mostly a consolidation of lookups that
-  already live in `ui/search` and `ui/oshi`. See [catalog.md](catalog.md);
-  tracked as **#35**.
-
-### ETL cross-side blockers: resolved / tracked
-
-The remaining cross-side asks — **free pulls** and **baked drop rates** — are
-tracked on the live tracker (GitHub issues / board on `sldsmkd/horsetrader`);
-the contract is settled in [`../contract.md`](../contract.md).
+How the site got here — Eclipse, Trackblazer, Unity, Debut, Grand Masters,
+Twinkle Monthly — is in [`../projects/`](../projects/README.md).
 
 ## Start here
 
@@ -54,8 +47,10 @@ the contract is settled in [`../contract.md`](../contract.md).
 | Understand the entity query broker (search/label seam over the bundle) | [catalog.md](catalog.md) |
 | Understand the ten UI principles | [ui.md](ui.md) |
 | Understand the timeline substrate, lanes, minimap, and rushable events | [ui-timeline.md](ui-timeline.md) |
-| Understand the banner card, bookmarks, menubar, plan, and other surfaces | [ui-surfaces.md](ui-surfaces.md) |
-| Understand the menubar, Identity, Resources, and Tazuna in detail | [menu.md](menu.md) |
+| Understand the banner card, film strip, card detail, the Desk, and other surfaces | [ui-surfaces.md](ui-surfaces.md) |
+| Understand the menubar, Trainer, Resources, and the first-run tour | [menu.md](menu.md) |
+| Know the glass/world planes, units, modality lock, and phone representations | [glass.md](glass.md) |
+| Know how type sizes are chosen across the two planes | [typography.md](typography.md) |
 | Track Identity Play Style preset UX and semantics | [identity-presets.md](identity-presets.md) |
 | Know how the interactive `ui/` layer is wired (implementation) | [interaction.md](interaction.md) |
 | Know the language, layering, and DOM patterns | [conventions.md](conventions.md) |
@@ -65,7 +60,8 @@ the contract is settled in [`../contract.md`](../contract.md).
 
 The ETL does all the heavy lifting and bakes a static bundle; the site is hosted
 as static files on a CDN and **all runtime compute happens on the user's device**
-— no server, no bill. The site has two core pillars. **Persistence** stores a
+— no compute server, no bill (the only server is the tiny optional cloud-save
+blob store). The site has two core pillars. **Persistence** stores a
 *minimal set of user inputs* (a dated resource snapshot, configuration,
 per-banner commitments, favourites). **Projection** folds those inputs plus the
 baked bundle into a **ledger** — a list of attributed, dated, signed

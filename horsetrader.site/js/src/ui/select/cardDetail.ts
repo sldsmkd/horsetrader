@@ -1,7 +1,7 @@
 /**
  * The card-detail view-model: `(bundle, kind, id) → CardDetails`. Pure and
  * DOM-free — it resolves one trainee/support atom to the identity facets the card
- * surface renders (twinkle-monthly/step-1-card-surface.md). The kind-branch
+ * surface renders (docs/projects/twinkle-monthly/README.md). The kind-branch
  * (trainee vs support differ only in which record they resolve and which facets
  * read) lives here, so the surface itself is a flat render.
  *

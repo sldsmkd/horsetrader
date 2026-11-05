@@ -1,10 +1,10 @@
 /**
- * The Desk — the plan surface (The Cover, phase 3; twinkle-monthly/cover.md). A
+ * The Desk — the plan surface (The Cover, phase 3; docs/projects/twinkle-monthly/desk.md). A
  * centred modal spawned from the menubar's tablet button, the readable rendering of
  * the whole plan: one row per committed banner, sorted along the time spine.
  *
  * This is the discovery-phase *shell* — deliberately minimal (twinkle-monthly/
- * desk-discovery.md): kind, window, the banner's handle, pity, and the affordability
+ * docs/projects/twinkle-monthly/desk.md): kind, window, the banner's handle, pity, and the affordability
  * band, the same grey/green/purple/red the strip + badge carry. The row will grow
  * what the IA work turns out to need (totals, grouping, in-row detail); for now it
  * stands up the surface + the menubar door + the modal lock, with real rows to react
@@ -31,7 +31,7 @@ export interface PlanSurfaceOpts {
   fav: FavouriteBinding;
   inspect: InspectBinding;
   /** Open the commit dossier for a banner (the Desk swaps itself out for it — the
-   *  dossier stays the pity writer; see desk-discovery.md writer/viewer boundary). */
+   *  dossier stays the pity writer; see docs/projects/twinkle-monthly/desk.md writer/viewer boundary). */
   onEditPity: (key: string) => void;
   /** Commit a banner's note (the *why*), keyed by the banner's stable id; "" clears it.
    *  Called once per changed row on Update — the Desk is a staged editor, so editing a note

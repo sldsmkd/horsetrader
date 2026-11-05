@@ -2,19 +2,17 @@
 
 A thin **query seam** over the bundle so UI components ask for *what they want*
 (search results, a label, an image, the events featuring a card) instead of
-reaching into raw records and re-deriving joins themselves. Pure `core/`, no DOM.
-Tracked as **#35**.
+reaching into raw records and re-deriving joins themselves. Pure, no DOM; it
+landed at `ui/query/` rather than `core/`. Tracked as **#35**.
 
-> Status: **small, mostly a consolidation.** Not a new pillar — a seam one notch
-> above the `Bundle` loader. The work is moving logic that already exists (in
-> `ui/search` and `ui/oshi`) behind one intent-named surface.
+> Status: **built (consolidation done)** — see [Build](#build). Not a new pillar —
+> a seam one notch above the `Bundle` loader.
 
 ## The actual problem (and the one it is *not*)
 
-The smell is **components own query logic and know the bundle's shape.**
-[../../horsetrader.site/js/src/ui/search/index.ts](../../horsetrader.site/js/src/ui/search/index.ts)
-and [../../horsetrader.site/js/src/ui/oshi/index.ts](../../horsetrader.site/js/src/ui/oshi/index.ts)
-each reach into `Bundle`, then independently re-implement `normalize()`
+The smell was **components own query logic and know the bundle's shape.** The
+former `ui/search/` and `ui/oshi/` modules each reached into `Bundle`, then
+independently re-implemented `normalize()`
 (byte-identical), a prefix-word ranking, a support/trainee → character join, and
 label construction. A future banner card and an account-config surface will reach
 for the same joins. A component that does `bundle.support(id)` +
@@ -42,7 +40,7 @@ graph: a seam, not a domain model.
 ## Worked example: favouriting a card
 
 "Star the summer Maruzensky SSR support, and every banner containing *that exact
-card* (not other Maruzensky cards) shows up on the bookmark axis" is, in full:
+card* (not other Maruzensky cards) shows up on the film strip" is, in full:
 
 ```ts
 bundle.all().filter(e => e.contents?.includes(key))
@@ -102,8 +100,10 @@ testable against a fixture bundle.
   search), and an `index.ts` barrel. The former `ui/search` and `ui/oshi`
   lookups moved behind it, the duplicated `normalize`/ranking collapsed onto the
   shared primitives, and their tests relocated alongside. Behaviour-preserving.
-- **When favouriting lands:** add `eventsFeaturing(key)` (the filter above) — it
-  slots into the existing seam rather than reaching into the bundle again.
+- **Favourites → banners:** the "every banner featuring this atom" filter shipped
+  as `favouriteBannerAppearances` in `ui/select/favourites.ts` (a view concern —
+  future-only), consumed by the film strip and minimap. If a non-view consumer
+  needs it, lift it into `ui/query/` rather than re-deriving it.
 - **If search ever needs more reach:** denormalise onto the baked records
   (haystack terms, first-appearance) rather than building client-side relationship
   machinery. That is an ETL/contract change — a separate, single-purpose session;
