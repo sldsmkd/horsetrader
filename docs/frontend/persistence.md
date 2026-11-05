@@ -55,31 +55,30 @@ The stored artifact wraps the plan in a thin envelope that separates **what
 syncs** from **what never leaves the device**:
 
 ```
-{ local: { username? }, remote: <the versioned PlanDocument> }
+{ local: { sync?: { etag, dirty } }, remote: <the versioned PlanDocument> }
 ```
 
-- **`remote`** is the versioned `PlanDocument` above — the versioned,
-  migratable unit, and the *exact* blob Unity (cloud sync) GET/PUTs to R2. The
+- **`remote`** is the versioned `PlanDocument` above — the migratable unit, and
+  the *exact* blob cloud sync GET/PUTs ([cloud-sync.md](cloud-sync.md)). It
+  includes the trainer's display name (`config.identity.trainerName`): a name that
+  reappears on a second device is the human-legible "sync worked" signal. The
   coordinator, projection, and every downstream consumer read `remote` as "the
   plan"; the envelope is invisible to them (`coordinator.document()` returns it).
-- **`local`** holds never-synced device state. Today that's just the trainer
-  **username** (a display name — PII-minimisation keeps it off the cloud, so the
-  cloud copy is identity-anonymous). The Unity sync layer adds its bookkeeping
-  here next (`sync?: { etag, dirty }`).
+- **`local`** holds never-synced device state: only the sync bookkeeping (the
+  last-synced ETag and the `dirty` flag), which is meaningless on another device.
 
-This **structural** split is what makes cloud sync trivial: there is exactly one
-thing to sync (`remote`), with no per-push "strip the username / re-decorate on
-pull" masking. The cloud holds *what you're planning*, never *who you are*. The
-seam lives only at the persistence boundary (`core/persistence/index.ts`
-`load`/`save`); `local` is read/written through dedicated coordinator methods
-(`username()` / `setUsername()`), which persist + notify but never re-derive
-(local state is fold-inert).
+This **structural** split is what makes cloud sync simple: there is exactly one
+thing to sync (`remote`), with no per-push masking or allowlist. The cloud holds
+*what you're planning* and the handle you chose — never account identity (email,
+provider id stay with the OAuth provider and the session). The seam lives only at
+the persistence boundary (`core/persistence/index.ts` `load`/`save`).
 
-> The old 12-digit **Trainer ID** (a feature-gating hook + its supporter
-> detection) was deleted here entirely — the `v1 → v2` migration strips both
-> `trainerName` and `trainerId` from the plan's `config.identity` (lifting the
-> name to `local.username`). Auth identity supersedes it; any future gating goes
-> server-side (a Patreon integration), never a client-side allowlist.
+> History: the old 12-digit **Trainer ID** (a feature-gating hook) was deleted by
+> the `v1 → v2` migration. For a brief period the display name was kept
+> device-local in `local.username`; that was reversed, and `load` folds any legacy
+> `local.username` back into `remote`. Feature gating is server-side now — the
+> Worker stamps a supporter flag onto the pulled plan
+> ([Unity](../projects/unity/README.md)); the client never persists it.
 
 ## Principles
 
@@ -173,8 +172,8 @@ seam is designed once, not three times:
 - **App-meta** — small app-tracked values that are **not** plan input (e.g. the
   what's-new "last seen version"). Kept **distinct from the input sections**
   and outside the migratable plan shape — its natural home is the envelope's
-  `local` tree (beside the username + sync metadata), since none of it should
-  ride to the cloud.
+  `local` tree (beside the sync metadata), since none of it should ride to the
+  cloud.
 
 The exception is a mark that is about the *person*, not the device: the
 onboarding `firstrun` watermark lives in `remote.config` precisely so a second

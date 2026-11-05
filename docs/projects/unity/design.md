@@ -1,8 +1,10 @@
 # Unity — design
 
-The detailed design, distilled from the capture session (2026-06-18). For goals,
-scope, and the decisions-at-a-glance see [unity.md](unity.md) (framing). Findings
-that *back* these decisions are in the appendices at the foot.
+The detailed design, distilled from the capture session (2026-06-18), kept for its
+rationale. **Shipped** — for what was actually built and where it diverged, see
+[README.md](README.md); the living sync semantics are in
+[frontend/cloud-sync.md](../../frontend/cloud-sync.md). Inline **As built** notes
+mark the sections the build changed.
 
 ---
 
@@ -20,13 +22,13 @@ exact mechanics — they're well-understood and battle-tested:
   since the last common point, surface a choice; never silently pick a winner.
 
 **Local-first is the spine.** The bedrock persistence
-([persistence.md](../docs/frontend/persistence.md)) got right — synchronous single
+([persistence.md](../../frontend/persistence.md)) got right — synchronous single
 storage module, "no async ceremony" — stays untouched. Cloud sync is a **new layer
 beside it**, async by nature, that never forces the local store async.
 
 **Seams already designed for this** (build *into* them):
 - **The single storage module is the named swap point**
-  ([storage.ts](../horsetrader.site/js/src/core/persistence/storage.ts)). Its
+  ([storage.ts](../../../horsetrader.site/js/src/core/persistence/storage.ts)). Its
   `KeyValueStore` is **synchronous** — fine: local stays the sync store, the async
   cloud layer sits *above* it. We do **not** async-ify `KeyValueStore`.
 - **The serialise boundary is the transport unit.** The serialised `PlanDocument` is
@@ -37,7 +39,7 @@ beside it**, async by nature, that never forces the local store async.
 
 ## 2. The trust-model flip — Unity's defining change
 
-[trust-and-failure.md](../docs/frontend/trust-and-failure.md) explicitly parks this:
+[trust-and-failure.md](../../frontend/trust-and-failure.md) explicitly parked this:
 *"…no servers, no external comms, no other users' data, nothing secret… (If servers,
 sync, or sharing ever land, revisit this.)"* **Unity is that moment.** Every clause
 flips: a **server** (first), **external comms** (auth + sync), **other users' data**
@@ -107,7 +109,7 @@ favourites — see [appendix.md](appendix.md) §A). Consequences:
   cleverness costs more than it saves. Dumb whole-object PUT/GET — which is exactly
   what the ETag CAS wants.
 - **Wire compression optional** (~2.4×) and not worth bothering at this size.
-- **The blob is literally the existing serialised `PlanDocument`** (version + four
+- **The blob is literally the existing serialised `PlanDocument`** (version + its
   sections). Nothing new to design for the transport unit.
 - **Size cap = anti-forgery only.** The local copy lives in localStorage (~5 MB cap),
   so a legitimate client *physically cannot* push more than ~5 MB; real saves sit
@@ -252,6 +254,10 @@ provenance):**
 - **Leaning combo:** `@badgateway/oauth2-client` + `jose`. Fallback if (b) fails:
   `panva/openid-client` (full OIDC RP, same trusted author as jose).
 
+> **As built:** only **`jose`** (pinned `6.2.3`) shipped. The auth-code exchange is a
+> handful of `fetch` calls, so the OAuth helper wasn't worth a dependency. Discord is
+> plain OAuth2 (`users/@me` → `id`); Google verifies its `id_token` with `jose`.
+
 ---
 
 ## 7. PII posture — the cloud holds plans, not people
@@ -298,6 +304,15 @@ gone → re-home the gate. But:
 
 ---
 
+> **As built (§8):** gating was *not* left to Patreon. A server-side supporter
+> allowlist shipped — an entitlements object in R2, administered with
+> `horsetrader.cloud/tools/supporters.py`; the Worker stamps `plan.supporter = true` on
+> pull for entitled accounts and strips it on push. That satisfies this section's own
+> constraint (server-side enforcement, no client-distributable hashes). Patreon remains
+> the intended future source of truth.
+
+---
+
 ## 9. Beta page — staging ground (general-use)
 
 A button next to Tazuna (→ right surface group, `view.right`) opens a **"beta page"**
@@ -318,18 +333,24 @@ is weeds.)
 
 ---
 
+> **As built (§9):** the chamber did its job and Unity graduated out of it — Cloud Save
+> now lives on the Trainer page and the conflict dialog is app-level. The chamber (the
+> 🔨 button; Tazuna's menubar button was retired) is supporter-gated and hosts other WIP.
+
+---
+
 ## 10. Cost — the $0 keystone
 
 **$0/month is the existing architecture keystone, not a Unity preference.**
-[architecture.md](../docs/frontend/architecture.md): *"…push all runtime compute onto
+[architecture.md](../../frontend/architecture.md): *"…push all runtime compute onto
 the client. The player pays their own compute; the dev never gets a server/compute
 bill."* Two clauses: (1) "no backend/server/API — and no plans for one"; (2) "the dev
 never gets a bill."
 
 **Unity RELAXES clause 1** (adds the Worker — first server) **but is absolutely BOUND
 by clause 2.** $0 is the **price of admission for adding a server at all** —
-non-negotiable. (*Doc-update owed at integration:* clause 1's "no plans for one" is
-now false.)
+non-negotiable. (That doc update has been made: architecture.md now names the Worker as the one
+server.)
 
 **What's protected = the dev's wallet, not revenue-purity** ([[feedback_zero_cost_principle]]).
 Hobby project, dev unemployed → no *unfunded* out-of-pocket bill (concrete fear ~$800/yr).
@@ -348,6 +369,9 @@ user-initiated/push-on-close (§5). Full cost model + sizing: [appendix.md](appe
 ---
 
 ## Loose ends (not yet placed)
+*(As built: sign-out keeps the local copy; disconnect deletes the cloud save. The
+rest remain unneeded so far.)*
+
 - **Offline edit queue** → flush on reconnect (a push with the stored ETag; may
   conflict → dialog).
 - **Multi-tab same device** — BroadcastChannel / storage events so tabs don't fight.

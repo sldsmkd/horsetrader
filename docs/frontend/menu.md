@@ -83,8 +83,8 @@ stable before exposing spreadsheet-like controls.
 
 ### Trainer name and oshi
 
-- **Trainer name** edits in place (hover-to-edit, no pencil). It is device-local
-  (`local.username`) and never syncs — see [persistence.md](persistence.md).
+- **Trainer name** edits in place (hover-to-edit, no pencil). It is part of the
+  synced plan (`config.identity.trainerName`) — see [persistence.md](persistence.md).
 - **Oshi** — the horse who represents the stable, picked from the circular Uma
   icons. It supplies the menubar avatar, is the player's "this is me" signal, and
   has **no gameplay impact**. Close to the game's "Star Umamusume": not
@@ -112,8 +112,10 @@ controls as editable. The semantics of each preset are in
 ### Cloud save
 
 The Trainer page also hosts **Cloud Save** (Unity): sign in with Google or Discord
-to back up the plan and pick it up on any device. Optional; the planner is fully
-usable signed-out.
+to back up the plan and pick it up on any device, with a manual **Sync** button.
+Use the same provider everywhere — there is no account linking. Disconnect deletes
+the cloud save (after a confirm) and keeps the local copy. Optional; the planner is
+fully usable signed-out. Semantics: [cloud-sync.md](cloud-sync.md).
 
 > The old 12-digit **Trainer ID** was deleted; auth identity superseded it.
 

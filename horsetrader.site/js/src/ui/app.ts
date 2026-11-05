@@ -948,7 +948,7 @@ export function mountApp(
     renderSurfaces();
   })();
 
-  // Load-time cloud reconcile (design.md §5) — non-blocking + fail-soft: the UI is
+  // Load-time cloud reconcile (docs/projects/unity/design.md §5) — non-blocking + fail-soft: the UI is
   // already live off localStorage, and a signed-out 401 / network failure just leaves the
   // local plan in place. One bounded "free credit" reconcile per load (push-on-open).
   void (async () => {

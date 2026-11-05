@@ -48,7 +48,7 @@ break the app** (Bobby-Tables-proofing their *local* account). It is **not** a
 threat model. Don't gold-plate it. Cloud sync (Unity) did land: the server side
 carries a real security obligation (auth, per-account isolation, dependency and
 SAST gates — see [`horsetrader.cloud/`](../../horsetrader.cloud/README.md) and
-[`unity/design.md`](../../unity/design.md)), and a pulled cloud blob passes the
+[Unity design §2](../projects/unity/design.md)), and a pulled cloud blob passes the
 same ingress validation as a local one. A shared plan link, if it lands, is
 untrusted ingress too.
 

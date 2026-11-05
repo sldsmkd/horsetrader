@@ -18,8 +18,9 @@ Built and live. `npm test` covers the headless core and the pure `ui/select/`
 view-models.
 
 - **Persistence** (pillar 1) — the versioned `PlanDocument` (snapshot, config,
-  commitments, favourites, rushed, notes), storage, validation/recovery, and
-  optional Unity cloud sync. See [persistence.md](persistence.md).
+  commitments, favourites, rushed, notes), storage, validation/recovery. See
+  [persistence.md](persistence.md). Optional cloud sync (Unity) mirrors it — see
+  [cloud-sync.md](cloud-sync.md).
 - **Projection / Engine** (pillar 2) — the stream model, the fold, reconciliation,
   and the balance-series scrub cache, at `core/engine/`. See
   [projection.md](projection.md) and [engine.md](engine.md).
@@ -51,6 +52,7 @@ Twinkle Monthly — is in [`../projects/`](../projects/README.md).
 | Understand the menubar, Trainer, Resources, and the first-run tour | [menu.md](menu.md) |
 | Know the glass/world planes, units, modality lock, and phone representations | [glass.md](glass.md) |
 | Know how type sizes are chosen across the two planes | [typography.md](typography.md) |
+| Know how cloud sync reconciles local vs cloud, and resolves conflicts | [cloud-sync.md](cloud-sync.md) |
 | Track Identity Play Style preset UX and semantics | [identity-presets.md](identity-presets.md) |
 | Know how the interactive `ui/` layer is wired (implementation) | [interaction.md](interaction.md) |
 | Know the language, layering, and DOM patterns | [conventions.md](conventions.md) |

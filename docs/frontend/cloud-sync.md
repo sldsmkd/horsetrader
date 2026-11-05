@@ -1,14 +1,16 @@
-# Unity — sync resolution (single client)
+# Cloud sync — resolution semantics
 
-The detail under `design.md §5` (Sync triggers + conflict), scoped to **one
-client performing one sync action**. §5 fixes the high-level rule — *conflict =
-cloud moved AND local dirty; everything else is a no-op, a fast-forward, or a
-normal push* — and defers the row-by-row "which-is-right" logic to the weeds.
-This is the weeds: every reachable state of a single client, reasoned to its
-correct action, so the pull guard and the push skip have a settled table to
-implement against. Transport is `design.md §3` (R2 + ETag CAS) and `§4` (the
-`{ local, remote }` save unit); resolution *mechanism* (the pick-a-side dialog,
-its metadata) stays deferred — this settles *when* it fires, not how it looks.
+How a single client reconciles its local plan with the cloud copy: every reachable
+state, the action it takes, and how conflicts resolve. This is the living
+reference for `core/cloud/` (`client.ts` transport, `sync.ts` reconcile,
+`index.ts` facade) and the `unity-sync` Worker's `/api/sync`.
+
+Context: cloud save is optional and local-first — localStorage is the synchronous
+working copy and the cloud is a mirror ([persistence.md](persistence.md)). The
+transport is one R2 object per account whose **ETag is the sync rev**, written
+with conditional PUTs (`If-None-Match: *` to create, `If-Match: <etag>` to
+fast-forward); a `412` is the conflict signal. Rationale and history:
+[Unity](../projects/unity/README.md) ([design.md](../projects/unity/design.md) §3–§5).
 
 ## The only inputs
 
@@ -16,7 +18,7 @@ A single client's sync decision reads exactly four things:
 
 - **local content** — `∅` (fresh/empty plan) or **populated**.
 - **`dirty`** — has `remote` changed since the last successful sync. Durable
-  (persisted in `local.sync`), survives reload.
+  (persisted in the envelope's `local` sync meta), survives reload.
 - **held base** (`lastSyncedEtag`) — `ø` (never synced) or `E` (a known rev).
   The CAS base for the next push.
 - **cloud** — learned *only by doing the GET*: `∅` (404) or **present@etag**,
@@ -32,7 +34,7 @@ is `ø` there is **no synced baseline to be clean against** — so a *populated*
 local plan with a null base is **logically dirty**, whatever the persisted flag
 says (a fresh-empty plan is the only legitimately-clean null-base state).
 
-This is the hinge that makes the §5 migration matrix fall out of the same table
+This is the hinge that makes the first-sign-in migration matrix fall out of the same table
 instead of being a hand-coded special case: "both populated → conflict on first
 link" is just **populated-local (∴ dirty) + base ø + cloud present** landing in
 the conflict row, rather than being mistaken for a silent fast-forward.
@@ -63,12 +65,12 @@ clean push will land), P6 is a genuine fork that needs a human choice.
 
 | # | dirty? | base | cloud | sends | server | action |
 |---|--------|------|-------|-------|--------|--------|
-| **U0** | clean | any | — | — | — | **skip.** Nothing to push; spending a Worker request on a no-op violates the $0 keystone (§10). |
+| **U0** | clean | any | — | — | — | **skip.** Nothing to push; spending a Worker request on a no-op violates the $0 keystone. |
 | **U1** | dirty | `ø` | `∅` | `INM:*` | 200 | **created.** `markSynced(newEtag)`, clear dirty. (Migration "push up".) |
 | **U2** | dirty | `ø` | present | `INM:*` | **412** | **conflict.** Something exists where we expected emptiness — another device created it; first-link both-populated. → P6 dialog. |
 | **U3** | dirty | `E` | `== E` | `IM:E` | 200 | **fast-forward.** `markSynced(newEtag)`. The happy mid-session save. |
 | **U4** | dirty | `E` | `≠ E` | `IM:E` | **412** | **conflict.** Cloud moved under us. → P6 dialog. |
-| **U5** | dirty | `E` | `∅` (deleted) | `IM:E` | **412** | **recreate (vanished base).** Our base is gone — a disconnect deleted the blob (here or another device; disconnect now *deletes* the cloud save, design.md §7). An empty cloud has no other side to pick against, so re-push from local (base ø → `INM:*`) = the migration "local plan + cloud∅ → push up" row. Only a *racing* create turns it into a real P6 fork. |
+| **U5** | dirty | `E` | `∅` (deleted) | `IM:E` | **412** | **recreate (vanished base).** Our base is gone — a disconnect deleted the blob (here or another device; disconnect *deletes* the cloud save). An empty cloud has no other side to pick against, so re-push from local (base ø → `INM:*`) = the migration "local plan + cloud∅ → push up" row. Only a *racing* create turns it into a real P6 fork. |
 
 The CAS is the whole point: the client doesn't pre-check the cloud etag for a
 push — it *asserts* its expected base in the conditional and lets R2's HTTP
@@ -81,7 +83,7 @@ P4/P5 are not conflicts — they're "you meant to push": resolve by offering the
 Push action, no dialog. U5 (vanished base) is not a fork either — the cloud is
 empty, so it re-creates from local (no dialog); only a racing create demotes it
 into one. P6 / U2 / U4 (and U5's race) are the real fork, and resolve
-**pick-a-side** (§5, Steam-style — merge stays off the table):
+**pick-a-side** (Steam-style — merge stays off the table):
 
 (Local disconnect short-circuits U5 entirely: deleting our own cloud save also
 calls `coord.forgetCloud()`, dropping the held etag to `ø`, so the reconnect
@@ -92,14 +94,15 @@ Worker request, not three. U5 only fires when the delete happened *elsewhere*.)
   cloud's *current* etag (the one fetched during detection), local wins.
 - **Take cloud** → force-pull (`keepCloud`): adopt the cloud plan, discard local.
 
-BUILT (in the beta chamber): `syncNow` detects the fork (dirty push → 412 → GET the
+As built: `syncNow` detects the fork (dirty push → 412 → GET the
 cloud side) and returns a `conflict` carrying both sides' **value-summary facts**
 (trainer name, banner/favourite/rushed counts, snapshot date+carats — our answer to
 Steam's "modified at", which we lack a plan-level timestamp for). The Steam-style
-**`cloudConflictDialog`** (`ui/views/cloudConflict.ts`) presents the two, requires a
+**conflict dialog** (`ui/views/surfaces/cloudConflict.ts`, an app-level modal raised
+from both the load reconcile and the Sync button) presents the two, requires a
 conscious pick (Continue disabled until chosen — no one-click clobber), shows a live
-consequence line, and calls `keepLocal`/`keepCloud`. Deferred polish: device labels,
-a real plan-mtime, and graduating the dialog from the chamber to an app-level modal.
+consequence line, and calls `keepLocal`/`keepCloud`. Deferred polish: device labels
+and a real plan modified-time.
 
 ## Why pick-a-side, and not a merge (closed)
 
@@ -112,7 +115,7 @@ cleverness**:
 - **Op-log / commit stream — wrong workload.** Commit logs and CRDTs earn their
   complexity under concurrent *multi-writer* load, where silently merging disjoint
   edits *is* the product. Unity is **one human, occasionally on a second device**,
-  ~1–2 KB of plan. They also fight `§3`/`§10`: R2 has no append primitive, so a log
+  ~1–2 KB of plan. They also fight the transport and the $0 budget: R2 has no append primitive, so a log
   is either one-object-per-commit (request fan-out vs the 100k/day cap, plus
   compaction) or a growing object you rewrite (back to whole-object CAS, *plus*
   client-side replay). And we already chose snapshot-not-log for persistence one
@@ -131,7 +134,7 @@ stale-device LWW would nuke the other device's edits with no trace, whereas a
 pick-a-side prompt with real metadata (banner count, snapshot date, device, when)
 is *clearer* than any merge the user can't inspect. One blob, one CAS, one dialog.
 
-## Delta vs. today's code
+## How the code implements it
 
 - **Push** implements U1–U5 (conditional PUT, 412-as-data); U5 recreates from local
   on an empty cloud (`syncNow`), with a racing create falling through to a P6 fork.
@@ -139,19 +142,20 @@ is *clearer* than any merge the user can't inspect. One blob, one CAS, one dialo
   moved cloud (P3) and returns `noop` when unchanged. The "skip the wasteful push" intent
   is met (the GET is the deliberate fast-forward opportunity, not a no-op write).
 - **Load-time reconcile** (`cloud/index.ts` `reconcileOnLoad` → `syncNow`, fired from
-  `app.ts`, design §5). Every load runs the full reconcile once: clean + cloud-moved →
+  `app.ts`). Every load runs the full reconcile once: clean + cloud-moved →
   fast-forward (P3); **dirty + cloud-moved → CONFLICT, dialog raised right on load**;
-  clean dirty + cloud-unchanged → a bounded **free-credit push-on-open** (§5). The cap is
+  clean dirty + cloud-unchanged → a bounded **free-credit push-on-open**. The cap is
   structural (one reconcile per load) so it never broadens into always-push; client egress
-  is further choked to one sync / 5s. Non-blocking + fail-soft: a signed-out 401 or network
+  is further choked to one sync / 5s (`SYNC_MIN_INTERVAL_MS`; extra calls return
+  `throttled`). Every push first passes `assertPlausiblePlan`. Non-blocking + fail-soft: a signed-out 401 or network
   failure falls through to local.
-- **Connect** (design §5, first-auth migration). The OAuth callback redirects to a clean
+- **Connect** (first-auth migration). The OAuth callback redirects to a clean
   `/` (the old one-shot `?unity=connected` marker is gone — every load runs `syncNow`
   anyway, so the first-auth migration just rides the post-redirect reload): local plan +
   cloud∅ → create (push-up); cloud present + clean → pull down; both moved → conflict.
-- **Manual reconcile** (`syncNow`, the trainer card's Sync button) implements the full
+- **Manual reconcile** (`syncNow`, the Trainer page's Sync button) implements the full
   table: clean → fast-forward; dirty → conditional push (CAS), and a 412 (P6) → fetch the
   cloud side and raise the **pick-a-side dialog**. The grading P4/P5-vs-P6 falls out:
   a clean push succeeds (no dialog); only a 412 forks.
-- **Resolution** (`keepCloud`/`keepLocal` + `ui/views/cloudConflict.ts`
+- **Resolution** (`keepCloud`/`keepLocal` + `ui/views/surfaces/cloudConflict.ts`
   `presentCloudConflict`) is the shared mounting + pick-a-side glue both paths call.

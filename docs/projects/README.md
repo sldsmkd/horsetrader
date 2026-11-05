@@ -14,16 +14,14 @@ history once shipped.
 | --- | --- | --- | --- |
 | **Eclipse** | the economy engine as a pure core | shipped | [engine.md](../frontend/engine.md), [projection.md](../frontend/projection.md) |
 | [**Trackblazer**](trackblazer/trackblazer.md) | the timeline renderer scales (scene model → cull → zoom) | shipped | [ui-timeline.md](../frontend/ui-timeline.md) |
-| [**Unity**](../../unity/unity.md) | one account, one save — cloud sync | shipped | [persistence.md](../frontend/persistence.md), [`horsetrader.cloud/`](../../horsetrader.cloud/README.md) |
+| [**Unity**](unity/README.md) | one account, one save — cloud sync | shipped 2026-06-19 | [cloud-sync.md](../frontend/cloud-sync.md), [persistence.md](../frontend/persistence.md), [`horsetrader.cloud/`](../../horsetrader.cloud/README.md) |
 | [**Debut**](debut/README.md) | readiness pass for being seen | launched 2026-06-20 | [ui-surfaces.md](../frontend/ui-surfaces.md) |
 | [**Grand Masters**](grand-masters/README.md) | glass HUD discipline + real devices + phones | shipped 2026-07-03 | [glass.md](../frontend/glass.md), [typography.md](../frontend/typography.md) |
 | [**Twinkle Monthly**](twinkle-monthly/README.md) | the trainer's intent is the story — notes, film strip, the Desk | Desk in discovery | [persistence.md](../frontend/persistence.md), [ui-surfaces.md](../frontend/ui-surfaces.md) |
 | [**Special Week**](special-week.md) | the first day — Tazuna's one-shot tour | shipped 2026-06-24 | [menu.md](../frontend/menu.md#first-run-tazunas-tour) |
 | [**12 Billion Yen Incident**](12-billion-yen-incident.md) | the start — get out of the gate clean | done 2026-06-24 | [architecture.md](../frontend/architecture.md#startup-the-landing-sequence) |
 
-Eclipse predates this folder and has no arc doc of its own. Unity's design still
-lives at the repo root in [`unity/`](../../unity/) alongside the cloud service it
-specifies.
+Eclipse predates this folder and has no arc doc of its own.
 
 ## Starting a new arc
 

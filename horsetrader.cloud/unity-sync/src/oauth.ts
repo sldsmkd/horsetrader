@@ -1,7 +1,7 @@
 /**
  * Google's OAuth2 primitives — the OIDC half of the provider registry
  * (providers.ts; Discord's plain-OAuth2 identify lives there too). Deliberately
- * built from `fetch` (auth-code "is just fetch calls" — design.md §6), so the only
+ * built from `fetch` (auth-code "is just fetch calls" — docs/projects/unity/design.md §6), so the only
  * auth dependency is `jose`, used to verify the returned id_token's signature
  * against Google's JWKS. Auth-code (not the GIS id_token shortcut) is the ONE
  * mechanism that also covers Discord — see [[project_unity_save_load]].

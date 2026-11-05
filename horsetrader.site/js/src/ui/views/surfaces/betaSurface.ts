@@ -1,5 +1,5 @@
 /**
- * The beta surface — Unity's in-app isolation chamber (design.md §9): where a WIP
+ * The beta surface — Unity's in-app isolation chamber (docs/projects/unity/design.md §9): where a WIP
  * feature proves out before graduating to the main UI.
  *
  * Its current tenant is **UmaMark** (docs/projects/grand-masters/umamark.md) — the deterministic
