@@ -53,11 +53,11 @@ export interface MenubarOpts {
   onIdentity: () => void;
   onResources: () => void;
   /** The Plan (Desk) spawn seam — the tablet button left of the carat balance. A modal
-   *  like the commit dossier (twinkle-monthly/cover.md). Shown only once `setPlanAvailable`
+   *  like the commit dossier (docs/projects/twinkle-monthly/desk.md). Shown only once `setPlanAvailable`
    *  reveals it (a commitment exists). */
   onPlan: () => void;
   /** The beta chamber's spawn seam — the gold-hammer button between Plan and the carat
-   *  balance, revealing the chamber that hosts UmaMark (grand-masters/umamark.md). Gated
+   *  balance, revealing the chamber that hosts UmaMark (docs/projects/grand-masters/umamark.md). Gated
    *  on the supporter entitlement via `setBetaAvailable`, so it's hidden by default. */
   onBeta: () => void;
   search: SearchIndex;
@@ -81,7 +81,7 @@ export function menubar(opts: MenubarOpts): Menubar {
   );
   // The Plan (Desk) door — a tablet button immediately left of the carat balance.
   // Hidden until a commitment exists (`setPlanAvailable`); the Desk has nothing to
-  // render over an empty plan (twinkle-monthly/cover.md).
+  // render over an empty plan (docs/projects/twinkle-monthly/desk.md).
   const plan = h(
     "button",
     {
@@ -113,7 +113,7 @@ export function menubar(opts: MenubarOpts): Menubar {
     identityIcon,
     identityName,
   );
-  // Beta (🔨): the WIP isolation chamber that hosts UmaMark (grand-masters/umamark.md).
+  // Beta (🔨): the WIP isolation chamber that hosts UmaMark (docs/projects/grand-masters/umamark.md).
   // The gold-hammer button sits between Plan and the carat balance, hidden until
   // `setBetaAvailable` reveals it — gated on the supporter entitlement, which the app
   // watches off every cloud pull, so the button comes and goes at runtime (like Plan).

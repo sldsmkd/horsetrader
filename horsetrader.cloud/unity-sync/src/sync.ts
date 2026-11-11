@@ -2,7 +2,7 @@
  * sync — Unity's R2 plan-sync, the second half of the Worker (auth is the first).
  *
  * One R2 object per account holds the serialised PlanDocument blob; the object's
- * ETag IS the sync rev (design.md §3 — no hand-rolled counter). The mechanism is
+ * ETag IS the sync rev (docs/projects/unity/design.md §3 — no hand-rolled counter). The mechanism is
  * `git push` optimistic concurrency, expressed in plain HTTP conditionals that the
  * client speaks and we translate to R2 `onlyIf`:
  *
@@ -21,7 +21,7 @@
  *
  * The Worker is a thin authenticated proxy over a PRIVATE bucket (R2 is never
  * browser-facing). The blob is opaque to us — username masking and serialisation
- * are the client's concern (design.md §4); we store bytes and arbitrate revs.
+ * are the client's concern (docs/projects/unity/design.md §4); we store bytes and arbitrate revs.
  */
 import type { Session } from "./session.ts";
 
@@ -31,14 +31,14 @@ export interface SyncEnv {
 
 // Anti-forgery ceiling only: a real save is ~1–2 KB and the local store caps at
 // ~5 MB, so this never touches a legitimate client — it's a one-`if` reject for a
-// hand-crafted request that bypasses localStorage (design.md §4).
+// hand-crafted request that bypasses localStorage (docs/projects/unity/design.md §4).
 const MAX_BLOB_BYTES = 5 * 1024 * 1024;
 const ENTITLEMENTS_KEY = "entitlements.json";
 
 /**
  * Cheap plausibility sniff — the ingress twin of the client's `assertPlausiblePlan`
  * (defence in depth, TODO §ingress). NOT validation: the blob is opaque to us by design
- * (design.md §4), and fully parsing a multi-MB JSON tree at the edge to vet an opaque
+ * (docs/projects/unity/design.md §4), and fully parsing a multi-MB JSON tree at the edge to vet an opaque
  * payload is overkill. We only confirm the body is plausibly one of *our* saves so R2
  * stores plans, not a PDF / random junk someone POSTs to burn storage: it must open as a
  * JSON object and carry `"version"` — the one always-present PlanDocument key. The size
@@ -68,7 +68,7 @@ function planBytes(plan: Record<string, unknown>): Uint8Array {
   return new TextEncoder().encode(JSON.stringify(plan));
 }
 
-/** The R2 key for an account — one object holds the whole save. Identity = (provider, sub), no linking (design.md §6). */
+/** The R2 key for an account — one object holds the whole save. Identity = (provider, sub), no linking (docs/projects/unity/design.md §6). */
 const saveKey = (s: Session): string => `${s.provider}:${s.sub}`;
 
 async function isSupporter(env: SyncEnv, key: string): Promise<boolean> {
@@ -202,7 +202,7 @@ export async function handleSync(request: Request, env: SyncEnv, session: Sessio
       onlyIf,
       httpMetadata: { contentType: "application/json" },
     });
-    // Precondition failed → the rev moved under us. CAS reject = conflict (design.md §5).
+    // Precondition failed → the rev moved under us. CAS reject = conflict (docs/projects/unity/design.md §5).
     if (!result) return json({ error: "conflict" }, { status: 412 });
 
     // Bare etag in the body (same reason as pull) — never the CDN-transformable header.
@@ -211,7 +211,7 @@ export async function handleSync(request: Request, env: SyncEnv, session: Sessio
 
   // ── delete ────────────────────────────────────────────────────────────────
   // Disconnect destroys the account's cloud save outright, so a reconnect starts
-  // clean — no half-remembered state (design.md §7 / the disconnect brain-dump).
+  // clean — no half-remembered state (docs/projects/unity/design.md §7 / the disconnect brain-dump).
   // Unconditional + idempotent: deleting a missing key is a no-op, so a double
   // disconnect or a delete-after-conflict both settle to "gone". Session-clearing
   // stays the auth layer's job (index.ts) — this only owns the bytes.

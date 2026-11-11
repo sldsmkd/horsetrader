@@ -71,7 +71,7 @@ export function createCulling(): Culling {
       host.replaceChildren(...elements);
     },
     arm(cards, contentLeft) {
-      // CONTAINED EXCEPTION to camera-measurement invariant C-B6 (grand-masters/contracts.md):
+      // CONTAINED EXCEPTION to camera-measurement invariant C-B6 (docs/frontend/glass.md):
       // this still reads getBoundingClientRect because it measures content-space *position*
       // (left/right), not size — the offset-based equivalent depends on the offsetParent frame,
       // and the failure (mis-windowed cull → wrong pop-in/out) is unobserved to date. Named here

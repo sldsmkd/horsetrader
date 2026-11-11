@@ -1,9 +1,9 @@
 # UmaMark — the deterministic benchmark (Darley's perf, part 2 of 2)
 
 > The 3DMark to MangoHorse's Afterburner. A separate session, broken out of Darley
-> ([darley-arabian.md](darley-arabian.md)) once the perf **instrument** landed.
+> ([Darley Arabian](README.md#darley-arabian--grounding-on-real-hardware)) once the perf **instrument** landed.
 
-Project frame: [grand-masters.md](grand-masters.md). Builds directly on the perf
+Project frame: [README.md](README.md). Builds directly on the perf
 instrument shipped in Darley (`horsetrader.site/js/src/ui/perf.ts`).
 
 ## Where this came from

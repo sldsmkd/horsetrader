@@ -6,11 +6,11 @@ founding principles in dependency order. The per-surface detail lives next door:
 
 - [ui-timeline.md](ui-timeline.md) — the timeline substrate, the two lanes,
   transaction timing, rushable events, the minimap
-- [ui-surfaces.md](ui-surfaces.md) — banner card, bookmarks, menubar, search,
+- [ui-surfaces.md](ui-surfaces.md) — banner card, film strip, menubar, search,
   the menu surfaces, the dev panel, the plan, layout edge cases
 
 Pair with [conventions.md](conventions.md) (language, layering, DOM patterns),
-[architecture.md](architecture.md) (the no-server driver and the layering rule),
+[architecture.md](architecture.md) (the static/client-compute driver and the layering rule),
 and [engine.md](engine.md) (the coordinator API: `settledEvents`,
 `projection`, `balanceAt`, `availableFor`, typed mutators, `subscribe`).
 
@@ -25,33 +25,37 @@ Ten principles, in dependency order. Everything else hangs off these.
 There is **one canvas, always mounted, always interactive** — a horizontal,
 grabbable, inertial time-as-x world. It is the core representation *and* the
 primary navigation of the whole site. Everything else (search, menu surfaces, the
-plan, a card lightbox) is a **non-blocking overlay floating over a still-live canvas**:
-overlays are fixed-position siblings, mounted/unmounted independently; they never
-replace, pause, or tear down the timeline. The user can always grab the world and
-move it.
+Desk, card detail) is a **glass surface floating over a still-live canvas**:
+surfaces are fixed-position siblings of the world, mounted/unmounted independently;
+they never replace, pause, or tear down the timeline. The user can always grab the
+world and move it.
 
-- **No router / screen-swap model.** One canvas, always present. Overlays don't
+- **No router / screen-swap model.** One canvas, always present. Surfaces don't
   own or block it. `/predict` is a deep entry point, not a second screen: it
   mounts this same canvas and opens the predicted-schedule Beta surface.
-- **"Focus" elsewhere is signified softly** (a dim/blur of the canvas is the
-  candidate), never a modal lock that captures input. The blur is a *derived
-  view of one UI-state flag* (`overlayOpen → canvas dimmed`), flowing one way —
-  not something each overlay imperatively imposes.
-- **The invariant is absolute: nothing ever captures the timeline's scroll.** No
-  overlay — not even the most deliberate announcement — takes over the user's
-  ability to grab and move the world; overlays **float in front until dismissed**,
-  full stop. The most assertive thing we allow is the **version / "what's new"
+- **"Modal" means modal against peer surfaces, never against the world.** A
+  surface that demands exclusivity (the commit dossier, card detail, the Desk)
+  locks the *other surfaces* — the menubar's surface buttons go inert — via the
+  spawn-tree lock in [glass.md](glass.md) C-B3. Navigation (home, search, minimap,
+  film strip) and the timeline are never locked.
+- **The invariant: nothing ever captures the timeline's scroll.** No surface —
+  not even the most deliberate announcement — takes over the user's ability to
+  grab and move the world; surfaces **float in front until dismissed**. The most assertive thing we allow is the **version / "what's new"
   announcement** (front-and-centre, once per app version — a stored "last seen
   version" vs current, reusing the persistence machinery), and **even it does not
   lock scrolling**: you can grab the world behind it. There is **no** focus-taking
   exception — the earlier "may take focus with a backdrop" framing was wrong (see
-  [ui-surfaces.md](ui-surfaces.md#the-whats-new--changelog-overlay)). The single
-  tolerated breach anywhere is the dev panel's native `alert()` — an **intentional,
-  dev-only** break of this contract, never on a product surface.
+  [ui-surfaces.md](ui-surfaces.md#the-whats-new--changelog-surface)). Native
+  `alert()`/`confirm()` are never used on product surfaces.
+- **The one device exception: phone takeovers.** On a coarse-pointer phone, the
+  Trainer, Desk, Resources, Record Balance and commit dossier take the full
+  viewport above all chrome — on a ~390px screen there is no canvas left to peek
+  at, and a back-mast returns you to it. Desktop keeps them floating. See
+  [glass.md](glass.md) (Godolphin substrate).
   - *Where this came from:* the old **plan screen** sat front-and-centre, yet the
     player would still want to **jink the timeline** — nudge it to peek at something
-    behind the plan without dismissing it. If even the most front-and-centre overlay
-    must keep the world live-scrollable behind it, **every** overlay must. The
+    behind the plan without dismissing it. If even the most front-and-centre surface
+    must keep the world live-scrollable behind it, **every** surface must. The
     invariant is the generalisation of that one concrete need.
 
 > Cost to decide with a measurement, not up front: blurring a large scrollable
@@ -164,10 +168,9 @@ player decodes a control *pre-verbally*, no legend. **Where the game already
 speaks a symbol — colour *or* icon — we speak it back.**
 
 And it reaches one axis further still — past colour and icon to **persona**. The
-Help affordance wears **Tazuna**, the game's own guide-NPC (see
-[ui-surfaces.md](ui-surfaces.md#the-menubar-persistent-chrome-over-the-canvas)):
-players reach for the character who *shows them the ropes* in-game to be shown
-them here. Same rule, one more axis.
+first-run tour is fronted by **Tazuna**, the game's own guide-NPC (see
+[menu.md](menu.md#first-run-tazunas-tour)): players already associate the character
+who *shows them the ropes* in-game with being shown them. Same rule, one more axis.
 
 ### 6. Informs, never enforces — down to the chrome
 
@@ -180,7 +183,7 @@ view layer:
 - The staleness desaturation is an **ambient nudge** to re-anchor, not a blocking
   prompt: the world quietly dims and you update when it bothers you.
 - Even the app's own chrome doesn't seize control — the world stays grabbable
-  while overlays are open (principle 1).
+  while surfaces are open (principle 1).
 
 ### 7. State flows one way; the DOM is never the source of truth
 
@@ -258,8 +261,8 @@ and it is the unit that the plan, the minimap, and the banner all share.
 - **Winning early closes the loop.** If the copy drops before pity is reached, the
   player updates account state (re-anchors the snapshot) and **unfavourites the
   target — done**. The favourite is the standing "I still need this"; acquisition
-  retires it. (This is why bookmarks are future-only and scarcity-legible — the
-  list *is* the set of open acquisition targets.)
+  retires it. (This is why the film strip is future-only and scarcity-legible — it
+  *is* the set of open acquisition targets.)
 
 > Open (from user testing): pity vs pulls as the *input granularity* — a clubmate
 > found the pity/pull distinction unclear at first but liked the pity mechanism
@@ -281,17 +284,22 @@ and it is the unit that the plan, the minimap, and the banner all share.
 - **Cross-side ETL dependencies** (search, free pulls) — tracked on the GitHub
   board (`sldsmkd/horsetrader`). Frontend consumes; don't action from a frontend
   session.
-- **Parked features** — PvP income wiring (#61); bookmarks name disambiguation
-  (#46); the "now" panel (#20); Tazuna / help surface (#29).
+- **Parked features** — PvP income wiring (#61); favourites name disambiguation
+  (#46); the "now" panel (#20); a persistent help surface (#29 — Tazuna shipped as
+  the one-shot first-run tour instead).
+- **Live discovery** — the Desk's row shape and plan-level rollups
+  ([desk.md](../projects/twinkle-monthly/desk.md)).
 
 ## See also
 
 - [ui-timeline.md](ui-timeline.md) — timeline, lanes, minimap, rushable events.
-- [ui-surfaces.md](ui-surfaces.md) — banner card, bookmarks, menubar, search,
-  menu surfaces, dev panel, plan, layout edge cases.
+- [ui-surfaces.md](ui-surfaces.md) — banner card, film strip, menubar, search,
+  menu surfaces, beta chamber, commit dossier, card detail, the Desk, layout edge
+  cases.
 - [engine.md](engine.md) — the coordinator API (the seam this layer consumes).
-- [architecture.md](architecture.md) — the no-server driver, the layering rule.
-- [menu.md](menu.md) — the menubar, Identity, Resources, and Tazuna in detail.
+- [architecture.md](architecture.md) — the static/client-compute driver, the layering rule.
+- [menu.md](menu.md) — the menubar, Trainer, Resources, and the first-run tour.
+- [glass.md](glass.md) — glass/world planes, units, modality, phone representations.
 - [projection.md](projection.md) — the ledger and fold every view renders.
 - [persistence.md](persistence.md) — the inputs the input surfaces collect.
 - [conventions.md](conventions.md) — `h()` helper, unidirectional flow, typed

@@ -2,7 +2,7 @@
  * The plan selector (view-model): `(bundle, statuses, isFavourited) → PlanRow[]`.
  *
  * The Desk's row source — the readable whole-plan rendering The Cover is about
- * (twinkle-monthly/cover.md). Where the film strip compresses every favourite +
+ * (docs/projects/twinkle-monthly/desk.md). Where the film strip compresses every favourite +
  * commitment into ordinal squares, the plan is the **committed set only**, one row
  * per banner, sorted along the time spine. It reads the coordinator's cached
  * `commitmentStatuses` (the same funding fact the strip + badge read) so a row can
@@ -11,7 +11,7 @@
  * Pure and CSS-free: the row carries the raw affordability inputs (pity / unfundable /
  * wasteAbove) and the view derives the colour through the shared `commitmentBadge`
  * (the same box + `pityBand` rule the banners use). This is the discovery-phase floor —
- * see twinkle-monthly/desk-discovery.md; the row will grow what it turns out to need.
+ * see docs/projects/twinkle-monthly/desk.md; the row will grow what it turns out to need.
  */
 
 import type { Bundle } from "../bundle/access.ts";

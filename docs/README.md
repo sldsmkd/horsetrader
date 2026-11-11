@@ -5,9 +5,10 @@ pipeline) and the **site** (web planner), plus the contract between them. If
 something here contradicts a stale comment, an old branch, or an LLM's memory,
 **this folder wins**.
 
-The project is two code repos side by side under one tree — `horsetrader/` (the
-ETL, this repo's root) and `horsetrader.site/` (the planner, its own repo). Their
-docs are consolidated here so the shared contract has one home.
+The project is one monorepo: `horsetrader/` (the ETL, Python, at the repo root),
+`horsetrader.site/` (the planner, TypeScript), and `horsetrader.cloud/` (the small
+Unity sync service). Their docs are consolidated here so the shared contract has
+one home.
 
 ## Layout
 
@@ -16,6 +17,7 @@ docs are consolidated here so the shared contract has one home.
 | [`etl/`](etl/) | the Python pipeline: scrape → normalise → predict → bake |
 | [`frontend/`](frontend/) | the raw-DOM TypeScript planner that consumes the bake |
 | [`design/`](design/) | agreed crosscutting design notes that are not specific to only ETL or frontend |
+| [`projects/`](projects/) | the named arcs (Trackblazer, Debut, Grand Masters, Twinkle Monthly, …) — project records: thesis, decisions, what shipped, what was deliberately not done |
 | [`database/`](database/) | official client database catalog and evidence-backed semantic maps |
 | [`trainernet/`](trainernet/) | numbered QA runbooks that thread operational discoveries through the full product |
 | [`ideas/`](ideas/) | exploration backlog — uncommitted design ideas, not yet code or agreed design |
@@ -33,8 +35,11 @@ docs are consolidated here so the shared contract has one home.
 
 - **ETL** — start at [etl/README.md](etl/README.md): setup, pipeline stages, data
   sources, prediction, code standards, the character-module naming convention.
-- **Site** — start at [frontend/README.md](frontend/README.md): design-ahead-of-code
-  — the two `core/` pillars (persistence, projection), trust & failure.
+- **Site** — start at [frontend/README.md](frontend/README.md): the two `core/`
+  pillars (persistence, projection), the view layer, the glass/world contracts,
+  trust & failure.
+- **History** — [projects/README.md](projects/README.md) lists every named arc and
+  which living doc it graduated into. Living docs beat arc docs.
 
 ## Keeping docs honest
 

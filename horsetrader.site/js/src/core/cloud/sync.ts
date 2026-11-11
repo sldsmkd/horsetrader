@@ -12,7 +12,7 @@
  *
  * Named `syncNow` (not `reconcile`) so it doesn't collide with the engine's
  * commitments `reconcile`. Conflict RESOLUTION is pick-a-side (Steam-style); merge
- * stays off the table (see unity/resolution.md). Both detect paths surface the same
+ * stays off the table (see docs/frontend/cloud-sync.md). Both detect paths surface the same
  * `CloudConflict` payload, mounted by `ui/views/surfaces/cloudConflict.ts`.
  */
 import { pullSave, pushSave } from "./client.ts";
@@ -98,7 +98,7 @@ export async function syncNow(coord: Coordinator): Promise<SyncResult> {
       const doc = coord.document();
       assertPlausiblePlan(doc);
       // Assert our base in the conditional PUT and let R2 arbitrate — no pre-GET; the
-      // 412 IS the conflict signal (resolution.md push table).
+      // 412 IS the conflict signal (docs/frontend/cloud-sync.md push table).
       const push = await pushSave(doc, base);
       if (push.ok) {
         coord.markSynced(push.etag);

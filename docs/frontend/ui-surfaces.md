@@ -146,54 +146,43 @@ simple signal**: *good place to pull.*
 
 ---
 
-## Bookmarks (favourites as navigation)
+## The film strip (favourites as navigation)
 
-The bookmark list is what **favouriting feeds**, and it serves *two* purposes —
-one convenience, one strategic:
+Favouriting feeds a navigation view, and it serves *two* purposes — one
+convenience, one strategic:
 
 1. **Navigation** — the answer to principle 2's parked problem (long empty runs ⇒
    lots of panning; *the fix is navigation, never compressing the axis*).
-2. **Scarcity legibility — "do I only have one shot at this?"** Listing *every*
-   future instance of a favourited atom tells the player whether this is a
-   now-or-never spend or whether the card comes back. One future occurrence on the
-   horizon vs five completely changes the spend *urgency* — this is the biggest
-   single input to "commit now or wait," and it's principle 3's P&L reasoning made
-   navigable (and principle 6: it *surfaces* the scarcity, it doesn't nag you to
-   act).
+2. **Scarcity legibility — "do I only have one shot at this?"** Showing *every*
+   future appearance of a favourited atom tells the player whether this is a
+   now-or-never spend or whether the card comes back — the biggest single input to
+   "commit now or wait" (principle 6: it *surfaces* the scarcity, never nags).
 
-It is a **derived view, not a managed list** — the favourite is the single source
-of intent, bookmarks are a pure function of it (principle 7; the same
-derive-the-rollup move as "banner value is derived").
+That view is the **film strip** (`views/filmstrip.ts`, pure logic in
+`select/filmstrip.ts`): a row of frames sliding past a fixed **read-head**, the
+**ordinal twin of the minimap**. The minimap places favourited content (empty
+square) and committed banners (filled square) by calendar distance; the strip lays
+the same items out by *sequence* — equidistant, earliest to latest — so dead
+stretches collapse out and you read "where am I in my list", not "when".
 
-- **Star → it and all its *future* instances** on the timeline join the list;
-  unstar → they all leave. You never edit a bookmark entry directly; the atom's
-  star is the only control. One input, fanned out across the timeline.
-- **Future-only, by design.** Past instances are dropped from the *view* — "it's
-  gone; the player doesn't care about the past." This is a **navigation-list
-  filter, not data culling**: the engine still holds past events (see the
-  don't-prematurely-cull stance in [projection.md](projection.md)); the nav
-  surface simply won't point backwards.
-- **Each row is a warp control** — click to jump the timeline view to that exact
-  instance. This is the **list-twin of the minimap's favourite pips**: the same
-  favourite intent rendered as two views (scrollable list + pips), both over the
-  one timeline ("one ledger → many views").
-- **Co-occurring favourites combine into one row** with a shared date range (two
-  starred atoms landing on the same beat → a single entry) — the **marketing-beat
-  grouping** (principle 3) showing through. Row dates carry the **grey
-  trust-language** when predicted (principle 5).
+- **A derived view, not a managed list.** The favourite (and the commitment) is
+  the single source of intent; the strip is a pure function of it (principle 7).
+  Star an atom and its future appearances join; unstar and they leave.
+- **Future-only (plus still-open banners), by design.** This is a navigation
+  filter, not data culling — the engine still holds past events
+  ([projection.md](projection.md)). There is no "expired favourite" state: if a
+  card never reruns there is nothing to navigate to, so it silently leaves.
+- **Every frame is a warp control.** Tap a frame to warp there, or drag the
+  ordinal track and release the chosen frame under the read-head. The strip
+  follows the timeline on every pan (no broadcast — the cheap path).
+- **Committed frames carry the pity band** (grey/green/purple/red, `pityBand`), the
+  same rule as the timeline badge and the Desk, so they cannot disagree.
 
-Together with the minimap, bookmarks are *how you traverse a true-to-date axis*
-without ever compressing it — navigation does the work the axis refuses to.
-
-**Panel chrome.** The list lives in a **collapsible docked drawer** — an
-expand/collapse **tab** (chevron) summons and dismisses it. It is a non-blocking
-overlay (principle 1): collapsed, it keeps the canvas clear; it never owns the
-screen. **Empty state:** with no favourites the drawer collapses to a *greyed-out*
-expand tab — empty is a **quiet inactive state, not an error** (principle 6); with
-nothing to navigate to, the surface simply recedes. (That grey is *inactive
-chrome* — the universal disabled-control convention, on the tab not on data — a
-distinct channel from grey-as-trust in principle 5; named here so the grey grammar
-stays honest.)
+Together with the minimap, the strip is *how you traverse a true-to-date axis*
+without compressing it. It replaced the earlier docked Favourites/Plan drawer
+([Twinkle Monthly](../projects/twinkle-monthly/README.md) "The Filing"): favourites
+became the strip, the plan became [the Desk](#the-desk-the-plan). On a portrait
+phone the strip is the only timeline chrome (the minimap is suppressed).
 
 ---
 
@@ -208,20 +197,21 @@ summary/navigation. The detailed menubar design and terminology live in
 [menu.md](menu.md); this section pins the timeline-level intent. Left → right:
 
 - **Home — a warp to *today*.** It is **the one permanent
-  [bookmark](#bookmarks-favourites-as-navigation)**: the same accelerated-but-
-  smoothed inertial scroll a bookmark row fires, with `today` as a fixed target
+  [navigation target](#the-film-strip-favourites-as-navigation)**: the same accelerated-but-
+  smoothed inertial scroll a film-strip frame fires, with `today` as a fixed target
   that exists even at zero favourites. The world *travels* there (you see what you
   fly past) — never a teleport, never a screen-swap (principle 1). It's the
   always-available answer to principle 2's parked panning problem.
 - **The date chip — the date you are currently viewing.** A live readout of the
   view-centre, updating as you pan/scrub.
-- **Representative Uma — Identity.** Opens the lightweight Stable Card surface:
-  representative Uma, club, play style, and optional Trainer ID. This is "who is
-  looking at the timeline?", not the forecasting spreadsheet.
+- **Oshi — the Trainer.** The player's oshi avatar + name opens the Trainer page:
+  name, oshi, club, play style, cloud save. This is "who is looking at the
+  timeline?", not the forecasting spreadsheet.
 - **Search — a find-and-warp lens** (its own section below).
-- **The plan item — pending UX.** Opens/closes the [plan](#the-plan) overlay, but
-  the exact affordance and icon are not settled. *(The old alarm-clock glyph is
-  not semantic; see the icon-sourcing note under principle 5 in [ui.md](ui.md).)*
+- **Plan (tablet).** Opens [the Desk](#the-desk-the-plan). Hidden until the plan has
+  at least one commitment — an empty Desk has nothing to show.
+- **🔨 Beta.** Opens the [beta chamber](#the-beta-chamber); revealed only for the
+  supporter cohort.
 - **The Balance item — `balanceAt(dateChip)`.** A carat readout for projected
   carats **at the date you're viewing**, **linked to the date chip** so scrubbing
   the timeline moves both together. It reads in **carats — the substrate**
@@ -236,18 +226,10 @@ summary/navigation. The detailed menubar design and terminology live in
   the saved snapshot, and withdraws it as the projection runs into prediction.
   **Clicking it opens Resources** — the number you read is the door to the input
   that sets it (display and its own editing surface, one control).
-- **The avatar (Tazuna) — Help / onboarding** (hover: "Help"; *not wired in
-  yet*). It wears **Tazuna**, the game's in-game secretary-guide — the NPC players
-  already associate with *being shown the ropes*: she welcomes new trainers, coaches
-  them (often uselessly — "skill issue") after a lost race, and hypes the gacha
-  reveal. Making her the Help affordance is principle 5's borrowed grammar at its
-  limit — **persona**, past colour and icon: players reach for the guide-character
-  to be guided, no legend needed. She is the persistent answer to "what does this
-  mean?", including first-run onboarding and the recurring info-circle ask from
-  user testing. The wink (her in-game pointers are famously unhelpful) is an
-  in-joke, not the reason; recognition is.
+There is **no help avatar.** Tazuna appears once, as the first-run tour, and never
+as persistent chrome — see [menu.md](menu.md#first-run-tazunas-tour).
 
-The unifying thread: **Home, bookmarks, and search are all the same warp
+The unifying thread: **Home, the film strip, and search are all the same warp
 primitive** — one accelerated inertial scroll to a target x — surfaced three ways.
 And the menubar is another **"one ledger → many views"** instance: the carat
 readout is the [fold](projection.md) sampled at the view date, the same fold the
@@ -279,7 +261,7 @@ is a primary verb, not an overlay tucked behind an icon. It is deliberately
   reruns.**
 - **Reruns are the star's job, not search's.** The moment the question shifts from
   *navigate* to *how scarce is this* — does it come back? how many future shots? —
-  you **favourite** it, and the favourite→[bookmark](#bookmarks-favourites-as-navigation)
+  you **favourite** it, and the favourite→[film strip](#the-film-strip-favourites-as-navigation)
   derivation fans out every future instance. Rerun-enumeration lives in exactly
   **one** place (principle 7); search composes with it instead of duplicating it.
 
@@ -287,22 +269,19 @@ is a primary verb, not an overlay tucked behind an icon. It is deliberately
 
 ## The menu surfaces
 
-The old account overlay split into three menu-attached surfaces. The detailed
-design lives in [menu.md](menu.md); the view-layer invariant is that all three
-are **non-blocking overlays** over the still-live canvas.
+The old account overlay split into menu-attached surfaces. The detailed design
+lives in [menu.md](menu.md); the view-layer invariant is that they are
+**non-modal surfaces** hanging off the menubar's dropdown rail over the still-live
+canvas (on phones: full-viewport takeovers).
 
-### Identity
+### Trainer (Identity)
 
-Identity answers **"who is looking at this timeline?"** It contains the
-representative Uma, club affiliation, play style, and optional Trainer ID. It is
-closer to a Trainer Card or Stable Card than account settings.
+Identity answers **"who is looking at this timeline?"** — trainer name, oshi,
+club, play style, and cloud save, on one scrolling page.
 
-The representative Uma is distinct from Tazuna. The representative says "this is
-me"; Tazuna says "what does this mean?"
-
-Play Style is the friendly front door to forecast assumptions. It can seed the
+Play Style is the friendly front door to forecast assumptions. It seeds the
 stored configuration without making first-run users understand every income
-stream up front.
+stream up front ([identity-presets.md](identity-presets.md)).
 
 ### Resources
 
@@ -344,7 +323,7 @@ preferences such as theme or animation, and do not describe the stable.
 These are **stored config inputs** ([persistence.md](persistence.md)); saving
 Resources or advanced configuration commits the relevant input changes and fires
 **one** recompute (principle 7), after which every view re-derives. Save must give
-visible feedback, and Tazuna should explain the first successful save.
+visible feedback.
 
 > Leans resolved — principle 3's open question. Income config is **parametric and
 > global** (presets/ranks, a login cadence), *not* a set of per-event below-lane
@@ -360,142 +339,108 @@ visible feedback, and Tazuna should explain the first successful save.
 
 ---
 
-## The dev / debug panel ("Developer Tools")
+## The beta chamber
 
-A **grab-bag of developer/debug utilities**, deliberately held to a *lower bar*
-than the product surfaces — where ephemeral switches live, not a designed
-experience. Reached via the **hammer icon** (the Resources / Advanced Configuration
-door); there's an in-game hammer/tool asset to source for it (principle 5), not
-the placeholder. Like everything else it's a non-blocking overlay (principle 1).
-What's in the bag today:
+The 🔨 surface is an **isolation chamber** for work-in-progress features, gated on
+the supporter entitlement that the app re-reads on every cloud pull (supporters
+are the beta cohort). It is held to a lower bar than product surfaces — a utility
+belt, free to churn. Current tenants:
 
-- **Daily P&L dots** — toggles the devdots (see
-  [ui-timeline.md](ui-timeline.md#the-line-is-an-instrument)), the
-  per-transaction-day dots on the line. This is the home of that
-  graduation-undecided debug surface; the toggle is **ephemeral** (a view switch,
-  not persisted state). *(Stream toggles — the coordinator's `setEnabled` channels
-  — belong here too.)*
-- **Force date** — override "today" to an arbitrary date, to test the projection /
-  prediction at any point. **Interlock: while a forced date is set, Resources saving
-  is disabled** — a debug clock must never be able to **poison the real snapshot**
-  (you would re-anchor against a fake today). The amber warning *informs*
-  (principle 6); the interlock makes the unsafe action *impossible*, not merely
-  discouraged. Clearable back to the real clock.
-- **Data — Export / (Import) / Reset.** Export dumps the persisted state **as
-  JSON**, primarily a **support affordance**: a user who hits a problem exports it
-  and sends it over for the author to inspect. A matching **Import** (restore from
-  JSON) probably wants to exist for the round-trip. It doubles as the user's **own
-  backup**: a no-account/no-server app has no cloud save, so export-to-keep /
-  re-import is the only safety net — left entirely to the player's discretion, never
-  nagged (principle 6). Reset wipes — the destructive inverse of snapshot entry.
-  (Export likely shares a serialise primitive with the [plan's](#the-plan)
-  shareable link, but its *purpose* is diagnosis, not sharing.)
-- **Apply** commits the panel's changes (one recompute, principle 7).
+- **UmaMark** — the deterministic renderer benchmark
+  ([umamark.md](../projects/grand-masters/umamark.md)).
+- **Onboarding knob** — replay the first-run tour, or jump to a single stage, by
+  rewriting the `firstrun` watermark.
+- **Predicted schedule preview** — the predicted EN schedule rendered from the
+  local bake; `/predict` is a deep link that opens the chamber on it.
 
-> Low-rigor by design: this surface is a utility belt, not a captured product
-> intent — the contents are free to churn, and the data tools **pop browser-native
-> alerts**, tolerated *only here*. A native `alert()` is a **blocking modal** —
-> against principle 1's "no modal lock, the canvas stays live" — so it is the named
-> dev-only exception, **never** acceptable on a product surface. The one
-> *load-bearing* rule is the **force-date ↔ saving interlock**: debug state must
-> not be able to corrupt real persisted state.
+> Not built (earlier design, kept as intent): a developer panel with a
+> **force-date** override — which must disable Resources saving while set, so a
+> debug clock can never poison the real snapshot — and **JSON export / import /
+> reset** of the persisted plan for support diagnosis. If they land, they land
+> here, and the force-date ↔ saving interlock is the load-bearing rule.
 
 ---
 
-## The what's-new / changelog overlay
+## The what's-new / changelog surface
 
-**No real design yet — deliberately minimal.** The current lean is a **popover that
-does *not* steal focus**, containing release notes / a bug-and-feedback funnel —
-consistent with every other overlay (non-blocking, the canvas stays live, principle
-1). Contents and trigger cadence are unsettled; the only decision so far is *don't
+**Not built; no real design yet.** The lean is a **popover that does *not* steal
+focus**, containing release notes / a bug-and-feedback funnel, with the canvas
+staying live (principle 1). The `firstrun` watermark ([menu.md](menu.md#first-run-tazunas-tour))
+already provides a show-once-per-player mechanism it could ride. Contents and trigger cadence are unsettled; the only decision so far is *don't
 make it a modal*. Its persistence hook (a stored "last seen version" vs current) is
 the same machinery the state export and the plan's shareable link reuse.
 
-> Resolved: the focus-taking exception is **retired**. Nothing takes over the user's
-> ability to scroll the timeline — what's-new **floats in front until dismissed**
-> like every other overlay; it may be front-and-centre (and dim the canvas) but it
-> never locks the scroll. The no-modal rule is now **absolute** (the only tolerated
-> breach anywhere is the dev panel's native `alert()`s, and those are dev-only).
+> Resolved: nothing takes over the user's ability to scroll the timeline —
+> what's-new **floats in front until dismissed**; it may be front-and-centre but it
+> never locks the scroll.
 
 ---
 
-## The plan
+## The commit dossier (writing a commitment)
 
-Despite the prototype's "PLANNER" header, **this surface does not plan — it is the
-*materialised plan*, read-only.** *(Terminology: **the whole application is "the
-planner"** — principle 2's "we're a planner, not a browser"; **this surface is "the
-plan"**, its read-only materialised output. The doc uses the two senses
-deliberately.)* The post-prototype lesson pulls the **act of
-committing out of it entirely**: **you don't edit here.** Commitment is entered **at
-source** — on the banner, alongside the favourite star (the "intent lives on the
-atom" move) — and this surface is purely the **rendered confirmation** of what that
-built. The data path stays fixed (persist intent → re-resolve each recompute,
-[projection.md](projection.md)); commitment is denominated in **pities** (principle
-10). Its job is twofold: **let the player fully confirm what they've built**, and
-**jump back to any piece to change its commitment level** (you alter it at source,
-not here).
+Commitment is entered **at source**: clicking a banner's pity number opens the
+**commit dossier** (`views/surfaces/commitDossier.ts`), a centred modal that reads
+top-down in the player's order of questions:
 
-### Commitment-scoped, and a derived view
+1. *What am I pulling for?* — banner art and the featured-card grid (the hero).
+   Each card opens its [card detail](#the-card-detail-surface).
+2. *What am I planning, and what does it buy?* — the **pity** stepper (principle
+   10: you budget in guarantees) beside the **forecast** chart (expected copies,
+   None → MLB, redrawn as the stepper moves). The forecast informs the odds; it
+   never promises.
+3. *What will it cost?* — **Resource impact**: predicted-available →
+   after-commitment, a worst-case reservation. Informational, never a validator:
+   over-committing is allowed and simply runs free carats negative (red). The model
+   reserves the pity from the banner's first day, so later banners can't spend the
+   same resources twice.
 
-- **It shows only what you've *committed* to** — not every favourite, not every
-  banner. No commitment, no row. This is the sharp line between it and the
-  [bookmark drawer](#bookmarks-favourites-as-navigation): the drawer lists **all
-  favourites** (navigation + scarcity); the plan lists **only commitments**
-  (confirmation). Same derive-from-intent DNA, different scope.
-- **Each row is a warp control** (bookmark DNA) — selecting one **jumps the timeline
-  to that banner**, which is *how you go alter* the commitment at its source. But the
-  plan sits **front-and-centre**, so the target lands **behind** it — precisely why
-  you **jink** (principle 1). **The plan is the concrete origin of the scroll
-  invariant**: it warps the very timeline it covers, and you peek without dismissing
-  it.
+An opt-in **"Spend paid carats at full price"** checkbox (off by default) lets the
+spend waterfall use owned paid carats after the discount window (#65). The stepper
+box uses the timeline badge's exact pity-band rule. The dossier holds its draft in
+a closure and writes only on Save — it is the **only pity writer**.
 
-### What each row shows
+## The card detail surface
 
-- **The source breakdown of your pulls** — per committed banner, the **four streams
-  itemised**: TOTAL and its GIFT / DAILY / TICKET / CARAT decomposition (an empty
-  stream greys to inactive — e.g. no tickets → grey "0"). This is where the
-  [banner readout's](#the-resource-readout-projected-total-sources-as-density)
-  "reflect the density, don't flatten to a scalar" open question gets **answered**:
-  the plan is the surface that lays the four streams out in full.
-- **Expected-copies stats** — *"how many copies should I expect?"*: a probability
-  distribution over outcomes (None / 0LB / 1LB / 2LB / 3LB / **MLB**) for the
-  committed pulls. This is the **one place the gamble surfaces**, and it stays honest
-  to principles 10 + 6: you commit in **pities** (guarantees), and the stats show the
-  *probabilistic upside* (the limit-breaks those pulls might also yield). It
-  **informs the odds; it never promises** the gamble pays off.
+An art-forward peek at one trainee or support (`views/surfaces/cardSurface.ts`,
+view-model `select/cardDetail.ts`): art at size, name and rarity, kind facets
+(support type/title; trainee variant, aptitude ladder, bio), release date, the
+player's **note** on that atom, and — where the bake carries a `source` URL — a
+quiet **"full stats ↗"** link to the live database.
 
-### The plan is a shareable artifact
+It is deliberately **not a stat browser** — that would make us a browser, not a
+planner. We bake identity facets only; the deep effect/skill tables stay at their
+source. Spawned from atom chips anywhere (banner card, dossier, Desk); modal.
 
-Read-only output built **to be shared for feedback** — *"here's my plan, is this
-good?"* — which is also the growth loop. Two channels, and they want different things
-from the layout:
+## The Desk (the plan)
 
-- **A serialised link** — commitments + favourites encoded into a URL: clickable,
-  re-openable, and the actual growth driver (it brings the viewer *back into the
-  app*). For a no-account app this is a **new persistence requirement**, reusing the
-  same serialise machinery as the dev export and the what's-new last-seen-version.
-- **A plain screenshot** pasted into Discord — the **low-friction, dominant**
-  real-world path (no feature needed; players already do this). Its implication is
-  load-bearing: **the plan must read as a *static image*** — the headline
-  (commitments, source breakdown, expected copies) legible in **one shot**, not
-  hidden behind hover/scroll/interactivity. If the essentials need a pointer to
-  reveal them, the screenshot is useless.
+*(Terminology: **the whole application is "the planner"**; **this surface is "the
+plan"**, also called the Desk.)* A centred modal from the menubar's Plan button:
+**one row per committed banner**, along the time spine. Commitments only — no
+commitment, no row; favourites are the film strip's job. It answers *"what is my
+whole plan, readably?"* — the job a planning spreadsheet did, but legible.
 
-So the link is the richer/clickable channel and the screenshot is the default; both
-point at the same read-only artifact — **design it screenshot-first.**
+A row (`select/plan.ts` → `views/surfaces/planSurface.ts`) is assembled from facts
+already cached for the strip and badge — `coordinator.commitmentStatuses()` and
+`pityBand` — so it agrees with them by construction:
 
-> Resolved (lean): the plan and the
-> [bookmark drawer](#bookmarks-favourites-as-navigation) are **two distinct sibling
-> views**, not one. They share derive-from-intent + warp-on-select, but differ in
-> **scope** (all favourites vs commitments-only) and **payload** (navigation/scarcity
-> vs source-breakdown + copy-stats + confirmation). The clean way to hold it:
-> **favourites are the *who & what*** (which atoms I want); **the plan is the *when &
-> how*** (when they land, how I fund and commit to them) — the plan is the
-> **banner-corollary of a favourite**.
+- **Commit cell** — the shared commitment badge (band fill + pity) with the start
+  date beneath. Clicking it opens the commit dossier: the Desk is a *viewer* of
+  pity, never a second writer.
+- **Content chips** — up to four icon-only atom chips (favourites first); each
+  favourites or opens card detail.
+- **Banner note** — the *why* for this banner ("stop at 200 if I can, 400 if I can
+  afford it"). Atom notes live on card detail; banner notes live here.
+- **Compact forecast** — expected copies.
 
-> Open: the input-granularity *label* (pities vs pulls) from principle 10 in
-> [ui.md](ui.md) — a row displays both a pull figure and a pity figure; which unit
-> the player *commits in* (at source) is still the open presentation call.
+Notes on the Desk are a **staged edit**: drafts stay in their textareas until an
+explicit **Update** (the dismiss button reads "Close" until the first edit, then
+"Cancel" / "Update").
+
+> Open: row shape, grouping, plan-level rollups (total spend, whole-plan
+> affordability), and the one-second gestalt are live IA work in
+> [desk.md](../projects/twinkle-monthly/desk.md). Sharing the plan (a link or a
+> screenshot-ready layout — "**To Press**") is parked; the Desk is designed to be
+> legible as a static image so sharing can fall out of it.
 
 ---
 
@@ -567,6 +512,7 @@ top) is left **open**.
 
 - [ui.md](ui.md) — the ten principles these surfaces hang off.
 - [ui-timeline.md](ui-timeline.md) — the timeline substrate and lane mechanics.
-- [menu.md](menu.md) — the menubar, Identity, Resources, and Tazuna in detail.
+- [menu.md](menu.md) — the menubar, Trainer, Resources, and the first-run tour in detail.
+- [glass.md](glass.md) — the plane, modality and phone-representation contracts.
 - [engine.md](engine.md) — the coordinator API.
 - [persistence.md](persistence.md) — the inputs the input surfaces collect.

@@ -1,8 +1,9 @@
-# Grand Masters — typography architecture
+# Typography architecture
 
-> Working contract, started 2026-06-26. This records the type architecture
-> discovered during the first serious mobile presentation pass. It is ready to
-> guide implementation, but not yet a numbered invariant in [contracts.md](contracts.md).
+> Working contract, started 2026-06-26 during the
+> [Grand Masters](../projects/grand-masters/README.md) mobile presentation pass.
+> It guides implementation but is not yet a numbered invariant in
+> [glass.md](glass.md). The token layer lives in `css/typography.css`.
 
 ## Thesis
 

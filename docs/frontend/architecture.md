@@ -5,7 +5,7 @@ pillars, how data flows between them, and the contract with the ETL. Pair this
 with [persistence.md](persistence.md) and [projection.md](projection.md) for the
 pillars in detail.
 
-## The driver: static data, client compute, no server
+## The driver: static data, client compute, no compute server
 
 Every structural decision serves one principle:
 
@@ -13,8 +13,11 @@ Every structural decision serves one principle:
 > a CDN**, and push **all runtime compute onto the client**. The player pays
 > their own compute; the dev never gets a server/compute bill.
 
-There is **no backend, no server-side compute, no API** — and no plans for one.
-Consequences that should guide every choice:
+There is **no server-side compute**. The one server is Unity's cloud-save worker
+([`horsetrader.cloud/unity-sync`](../../horsetrader.cloud/README.md)): an
+authenticated blob store that GETs/PUTs the player's plan document and nothing
+else — it computes nothing and the planner works fully without it. Consequences
+that should guide every choice:
 
 - Anything expensive that *can* be precomputed belongs in the ETL bake, not the
   browser (reward tables, the timeline, EN-date predictions).
@@ -23,7 +26,8 @@ Consequences that should guide every choice:
 - **The performance budget is the user's device.** This is *why* the projection
   engine caches and separates expensive recompute from cheap queries.
 - If a feature seems to need a server, rethink it as "bake it upstream" or
-  "compute it client-side" before adding infrastructure.
+  "compute it client-side" before adding infrastructure. Cloud save cleared that
+  bar only because sync across devices genuinely can't be done otherwise.
 
 ## The shape
 
@@ -39,8 +43,8 @@ Consequences that should guide every choice:
                                                                             + js/ into the same static/
 ```
 
-The two repos sit side by side under one tree (`horsetrader/` ETL and
-`horsetrader.site/` planner) but stay independent. **`static/`** is the deploy root:
+The ETL (`horsetrader/`) and the planner (`horsetrader.site/`) sit side by side in
+one monorepo but stay independent. **`static/`** is the deploy root:
 the ETL bakes data (`json/`) + images (`img/`) there directly, and the site's build
 writes `index.html` + `js/app.js` into the same tree; together they form the
 deployable web root that ships to Cloudflare. There is no cross-repo handoff
@@ -121,6 +125,35 @@ core/ ──never imports──▶ ui/   (and never touches the DOM)
 projection engine. `ui/` is raw-DOM rendering and event wiring. Keep the arrow
 one-directional and the ball of mud can't form. See
 [conventions.md](conventions.md).
+
+## Startup: the landing sequence
+
+The first paint is staged so the player sees a live, dressed app immediately while
+the expensive card build happens unseen. (Origin and rejected alternatives:
+[12 Billion Yen Incident](../projects/12-billion-yen-incident.md).)
+
+1. **Parse time, no network.** An inline `<head>` script preloads the saved oshi's
+   icon (read from localStorage); the Plan/beta icons and today's scenario splash
+   are preloaded too.
+2. **Scaffold** (`ui/scaffold.ts`, from `main.ts` before the bundle fetch). Mounts
+   the real timeline + minimap over the prebaked `BAKED_EXTENT` with no cards and a
+   flat 0-balance line. Fail-soft. The extent and scenario schedule come from
+   `core/bundle/landing.gen.ts`, generated from the bake by
+   `scripts/gen-landing.mjs` in the Makefile `types` stage (which `build` depends
+   on, so it can't ship stale).
+3. **`mountApp`** replaces the scaffold. `refresh()` paints the cheap chrome —
+   menubar, minimap balance line, axis — synchronously, and defers only
+   `buildCards()` one frame (first mount only; later refreshes build inline).
+4. **Reveal.** Cards build, pack and cull under a dark card layer
+   (`timeline__cards--dark`; opacity doesn't affect geometry), then
+   `Timeline.reveal()` fades them up over 150ms. Film-strip portraits fade in on
+   image load.
+5. **First-run tour**, a frame later, if the `firstrun` watermark is behind
+   ([menu.md](menu.md#first-run-tazunas-tour)).
+
+The ~0.5s card build is still one long task (TBT ~518ms); the sequence beats
+*perception*, not the metric. Don't "fix" it by arming the cull earlier or baking
+card heights without reading the project record first.
 
 ## The ETL contract
 

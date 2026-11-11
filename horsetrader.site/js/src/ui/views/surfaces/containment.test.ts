@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 /**
- * Containment invariant (C-B5, grand-masters/contracts.md — Byerley).
+ * Containment invariant (C-B5, docs/frontend/glass.md — Byerley).
  *
  * Both planes clip to the viewport box so overflow can NEVER become a pan region: a modal
  * wider than the viewport is clipped, not allowed to turn the document into a pannable

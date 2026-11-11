@@ -1,6 +1,6 @@
 /**
  * The card detail surface — an art-forward peek at one trainee/support atom (the
- * vessel for the note layer to come, twinkle-monthly/step-1-card-surface.md). It
+ * vessel for the note layer to come, docs/projects/twinkle-monthly/README.md). It
  * is **not** a stat browser: we bake only identity facets, so the surface shows
  * the art at size, the name + rarity, the kind-appropriate facets, the release
  * date, and — where the bake carries it — a quiet outbound "full stats" link to

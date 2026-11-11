@@ -1,5 +1,5 @@
 /**
- * The Cloud Conflict dialog — Unity's pick-a-side resolution (resolution.md P6),
+ * The Cloud Conflict dialog — Unity's pick-a-side resolution (docs/frontend/cloud-sync.md P6),
  * modelled on Steam Cloud's conflict prompt. Both local and cloud diverged since the
  * last sync; the user keeps one whole plan and the other is overwritten. No merge.
  *

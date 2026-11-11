@@ -41,12 +41,16 @@ app version* (the persistence migration ladder, see
 
 ### Calibration: integrity, not security
 
-This is a single-user, local-only gacha planner — no servers, no external comms,
-no other users' data, nothing secret. "Validate at ingress" means a user typing
+This is a single-user gacha planner — no other users' data and nothing secret on
+the client. "Validate at ingress" means a user typing
 garbage or a corrupt/stale `localStorage` blob can't **brick their own save or
 break the app** (Bobby-Tables-proofing their *local* account). It is **not** a
-threat model. Don't gold-plate it. (If servers, sync, or sharing ever land,
-revisit this.)
+threat model. Don't gold-plate it. Cloud sync (Unity) did land: the server side
+carries a real security obligation (auth, per-account isolation, dependency and
+SAST gates — see [`horsetrader.cloud/`](../../horsetrader.cloud/README.md) and
+[Unity design §2](../projects/unity/design.md)), and a pulled cloud blob passes the
+same ingress validation as a local one. A shared plan link, if it lands, is
+untrusted ingress too.
 
 ## The three-tier failure model
 
@@ -79,10 +83,10 @@ Key points:
   failures self-heal on reload) and `console.error` the detail. Never a blank
   page.
 - **Persistence fails soft and preserves** — see [persistence.md](persistence.md);
-  a user's plan is precious local-only data and is never silently discarded.
+  a user's plan is precious and is never silently discarded.
 
 ## See also
 
 - [persistence.md](persistence.md) — the user-input ingress in practice.
-- [architecture.md](architecture.md) — the ETL contract and the static/no-server
+- [architecture.md](architecture.md) — the ETL contract and the static/client-compute
   driver behind "data validity is the ETL's job".

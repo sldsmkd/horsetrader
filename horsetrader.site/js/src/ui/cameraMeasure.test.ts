@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 /**
- * Camera-measurement invariant (C-B6, grand-masters/contracts.md — Byerley).
+ * Camera-measurement invariant (C-B6, docs/frontend/glass.md — Byerley).
  *
  * World content is camera-`scale(z)`-transformed, so any measurement feeding *content-space*
  * layout must use transform-independent dimensions (`offsetWidth`/`offsetHeight`), never
@@ -14,7 +14,7 @@ import { fileURLToPath } from "node:url";
  * (Godolphin F10).
  *
  * This guards the packer (the enforced site). `culling.arm` is the documented, contained
- * exception (it measures position, not size — see contracts.md C-B6); it is intentionally
+ * exception (it measures position, not size — see docs/frontend/glass.md C-B6); it is intentionally
  * out of scope here.
  */
 const app = readFileSync(fileURLToPath(new URL("./app.ts", import.meta.url)), "utf8");

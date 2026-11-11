@@ -1,15 +1,15 @@
 /**
- * The beta surface — Unity's in-app isolation chamber (design.md §9): where a WIP
+ * The beta surface — Unity's in-app isolation chamber (docs/projects/unity/design.md §9): where a WIP
  * feature proves out before graduating to the main UI.
  *
- * Its current tenant is **UmaMark** (grand-masters/umamark.md) — the deterministic
+ * Its current tenant is **UmaMark** (docs/projects/grand-masters/umamark.md) — the deterministic
  * benchmark. The chamber is reachable only by the **supporter cohort**: the menubar 🔨
  * is revealed by `setBetaAvailable`, driven off the supporter entitlement the app watches
  * on every cloud pull (supporters-as-beta-flag), so this surface assumes that context and
  * just hosts the launcher. The plumbing (`RightSurface "beta"`, the `onBeta` seam, the
  * `renderSurfaces` branch) has always been here.
  *
- * It also carries the **Special Week onboarding dev knob** (special-week/spec.md): the
+ * It also carries the **Special Week onboarding dev knob** (docs/projects/special-week.md): the
  * `firstrun` watermark is sticky-by-design (each tour shows once, ever), so the only place
  * to replay it is here, behind the supporter gate — never a real-user surface.
  */

@@ -81,7 +81,7 @@
 html {
   background: var(--ht-colour-surface-page);
   color: var(--ht-colour-text-primary);
-  /* Containment invariant C-B5 (grand-masters/contracts.md): the planes clip to the
+  /* Containment invariant C-B5 (docs/frontend/glass.md): the planes clip to the
      viewport box so overflow can never become a pan region. At the document root because
      on iOS Safari `body`'s overflow:hidden does NOT stop a too-wide descendant making the
      whole page pannable, which drags the viewport-pinned chrome off-screen (provenance:
@@ -115,7 +115,7 @@ p {
   position: fixed;
   inset: 0;
   isolation: isolate;
-  /* Containment invariant C-B5 (grand-masters/contracts.md): hard-clip the world plane to
+  /* Containment invariant C-B5 (docs/frontend/glass.md): hard-clip the world plane to
      the viewport box. The timeline pans via its own internal transform + culling (nothing
      beyond the box is meant to be seen), so clipping costs nothing here but denies any
      overflowing chrome/modal a pannable region — the structural cause of the "stranded,

@@ -1,7 +1,7 @@
 # Godolphin inputs — responsive surface migration notebook
 
 > **SUPERSEDED 2026-07-03** — historical design/worklog record from the Grand Masters build.
-> Living contracts: [contracts.md](contracts.md) · as-built ledger: [grand-masters-summary.md](grand-masters-summary.md).
+> Living contracts: [frontend/glass.md](../../frontend/glass.md) · project record: [README.md](README.md).
 
 > Working field log, started 2026-06-25. This records what we learn while
 > converting existing desktop-native glass surfaces into intentional responsive
@@ -10,8 +10,8 @@
 >
 > Related:
 > [godolphin-findings.md](godolphin-findings.md) holds the original device study;
-> [glass-interaction-targets.md](glass-interaction-targets.md) holds the target
-> sizing migration; [contracts.md](contracts.md) is where stable rules eventually
+> [frontend/glass.md](../../frontend/glass.md) holds the glass target
+> sizing rule; [frontend/glass.md](../../frontend/glass.md) is where stable rules eventually
 > graduate.
 
 ## Why this notebook exists

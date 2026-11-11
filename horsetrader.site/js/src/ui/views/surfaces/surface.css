@@ -12,7 +12,7 @@
   position: fixed;
   inset: 0;
   pointer-events: none;
-  /* Containment invariant C-B5 (grand-masters/contracts.md): the glass surface layer clips
+  /* Containment invariant C-B5 (docs/frontend/glass.md): the glass surface layer clips
      separately because it is `position: fixed`, so #app's clip doesn't reach it (clip is not
      a containing block for fixed). A centred modal wider than the viewport can never spill
      into a pannable region and strand the user (provenance: Godolphin F7/F8). Modals sized to
