@@ -44,7 +44,7 @@ export interface PerfInstrumentOptions {
 }
 
 /**
- * The aggregate of one captured run (UmaMark, grand-masters/umamark.md). Per-run, NOT
+ * The aggregate of one captured run (UmaMark, docs/projects/grand-masters/umamark.md). Per-run, NOT
  * rolling: the score the deterministic benchmark compares across a code change or a device.
  * Frame-ms is the universal spine (works everywhere incl. iOS); LoAF + heap are opportunistic
  * progressive enhancement — present on Chrome/Android, silently absent on iOS Safari, never

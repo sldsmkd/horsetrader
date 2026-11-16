@@ -2,8 +2,9 @@
 
 Status: **delivered** — optical-scale camera shipped in `timeline.ts`
 (`scale(z)` + conversion spine + counter-scaled terrain), wheel + pinch inputs
-wired. zMin/zMax are constants (eye-tuned, narrow range); fit-to-height floor not
-yet derived. The scope below is the as-built design.
+wired. `zMax` is an eye-tuned constant; the fit-to-height `zMin` floor was later
+derived from the viewport aperture in Grand Masters (see
+[glass.md](../../frontend/glass.md) C-D3). The scope below is the as-built design.
 
 Zoom is the scaling lever the culling spine left open (see [design.md](design.md)
 Zoom + Outcome). It is **optical scale**: an aerial map where the user changes

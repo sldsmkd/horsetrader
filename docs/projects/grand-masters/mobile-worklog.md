@@ -1,7 +1,7 @@
 # Mobile worklog
 
 > **SUPERSEDED 2026-07-03** — historical design/worklog record from the Grand Masters build.
-> Living contracts: [contracts.md](contracts.md) · as-built ledger: [grand-masters-summary.md](grand-masters-summary.md).
+> Living contracts: [frontend/glass.md](../../frontend/glass.md) · project record: [README.md](README.md).
 
 > Field notebook for the first Godolphin alternate surface: a standalone portrait
 > Trainer page built alongside the existing desktop-first Trainer Card. This is
@@ -263,7 +263,7 @@ selector. It measures the browser's painted geometry:
 The readout uses Darley's existing CSS→device bridge (`glassUnitPx` /
 `resolveLengthPx`) rather than parsing the unresolved custom-property expression.
 This is precisely the legitimate seam described in
-[darley-arabian.md](darley-arabian.md): CSS owns the mapping, while JS observes
+[Darley Arabian](README.md#darley-arabian--grounding-on-real-hardware): CSS owns the mapping, while JS observes
 the physical quantity the browser actually resolved.
 
 ### Expected phone inference

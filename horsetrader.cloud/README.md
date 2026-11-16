@@ -13,7 +13,7 @@ horsetrader.cloud/
 ```
 
 This is the **untrusted-ingress boundary** Unity introduces — the one place in the
-repo that carries a real security obligation (see [unity/design.md §2](../unity/design.md)).
+repo that carries a real security obligation (see [Unity design §2](../docs/projects/unity/design.md)).
 Scope of hardening: these services **only** — not the site bundle (supply-chain
 `audit` aside), not the Python ETL.
 
@@ -30,7 +30,7 @@ gate (loudly, by design):
 
 Secret scanning (gitleaks) is repo-wide — no per-service config needed.
 
-## Dependency policy (design.md §6)
+## Dependency policy (docs/projects/unity/design.md §6)
 
 The "no external deps" rule breaks here, under audit: **pin exact versions** (no
 `^`/`~`), minimise the transitive tree, vet provenance, prefer native Web Crypto.

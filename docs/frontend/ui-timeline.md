@@ -3,7 +3,7 @@
 The timeline substrate, the two lanes, transaction timing, and the minimap.
 These are the **mechanics** of the main canvas — how it works and why. The
 principles that govern it live in [ui.md](ui.md). The per-surface chrome
-(banner card, bookmarks, menubar, plan) lives in [ui-surfaces.md](ui-surfaces.md).
+(banner card, film strip, menubar, the Desk) lives in [ui-surfaces.md](ui-surfaces.md).
 
 ---
 
@@ -56,13 +56,14 @@ and pressure*.** (Principle 1 — the timeline is the primary navigation; princi
   bounded to **±3 pity (±90k)** — the community's guaranteed-MLB envelope — and
   **caps beyond that** to stay readable (clamp, don't run off). Frets quantise the
   balance the way frets quantise a fingerboard.
-- **Dots are favourited banner appearances.** **Green** mirrors trainee-card green,
-  **blue** mirrors support-card blue; a dot is placed where a favourited banner
-  **appears** (its start — the appearance-dot, per last-day posting) and shows only
-  **favourited** content. **The dots mirror the bookmarks exactly** — the same
-  banners-with-favourites, appearing/disappearing the same way (future-only,
-  favourite-derived). Minimap pips and the bookmark list are the *same* view in two
-  forms.
+- **Markers are favourited and committed banner appearances.** **Green** mirrors
+  trainee-card green, **blue** mirrors support-card blue; a marker sits where the
+  banner **appears** (its start — per last-day posting). An **empty square** is a
+  banner carrying a favourited atom; a **filled square** is a committed banner
+  (commitment wins when both apply). **The markers mirror the
+  [film strip](ui-surfaces.md#the-film-strip-favourites-as-navigation) exactly** —
+  same items, future-only, intent-derived — laid out by calendar distance here and
+  by sequence there: the *same* view in two forms.
 - **The window is centred, not screen-width-derived.** The highlighted slice (the
   current canvas view) is **centred on the cursor/view**, and its width is **picked
   to be a comfortable interaction target** — *not* a literal projection of screen
@@ -167,8 +168,9 @@ schedule.
 ## See also
 
 - [ui.md](ui.md) — the ten principles this detail hangs off.
-- [ui-surfaces.md](ui-surfaces.md) — banner card, bookmarks, minimap as
-  navigation (bookmarks section), and the rest of the chrome.
+- [ui-surfaces.md](ui-surfaces.md) — banner card, the film strip (the minimap's
+  ordinal twin), and the rest of the chrome.
+- [glass.md](glass.md) — the world plane, the camera, Golshi, and the rail seam.
 - [projection.md](projection.md) — the ledger and fold every timeline view renders.
 - [engine.md](engine.md) — the coordinator API (`settledEvents`, `balanceAt`, etc.).
 - [interaction.md](interaction.md) — how the view layer is wired (two-tier change

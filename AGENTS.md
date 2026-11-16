@@ -11,6 +11,8 @@ truth for the project. Quick links:
 - [`docs/etl/README.md`](docs/etl/README.md) — the ETL: setup, pipeline, data
   sources, prediction, standards.
 - [`docs/frontend/README.md`](docs/frontend/README.md) — the planner design.
+- [`docs/projects/README.md`](docs/projects/README.md) — the named project arcs
+  (history; living docs win over them).
 
 This file is intentionally short. When something in the docs is wrong,
 fix the doc — don't add corrections here.

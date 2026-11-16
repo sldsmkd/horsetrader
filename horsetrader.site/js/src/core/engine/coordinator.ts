@@ -445,7 +445,7 @@ export function createCoordinator(options: CoordinatorOptions): Coordinator {
     forgetCloud() {
       // Disconnect deleted the cloud blob; the held etag is now a dangling rev. Drop it
       // so the next connect pushes a fresh create (base ø) rather than a doomed If-Match.
-      // Logically dirty whenever local still has content (resolution.md null-base rule).
+      // Logically dirty whenever local still has content (docs/frontend/cloud-sync.md null-base rule).
       local = { ...local, sync: { etag: null, dirty: planHasContent(doc) } };
       persist();
       notify();

@@ -108,7 +108,7 @@ export interface Timeline {
    */
   drainChurn(): number;
   /**
-   * The benchmark drive seam (UmaMark, grand-masters/umamark.md) — dev-only, gated
+   * The benchmark drive seam (UmaMark, docs/projects/grand-masters/umamark.md) — dev-only, gated
    * behind the `?umamark` flag at the call site. UmaMark scripts the camera directly,
    * frame by frame, instead of through `warpTo` (whose glide physics would make the
    * motion non-deterministic). It owns no loop of its own — UmaMark's rAF drives it.

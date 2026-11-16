@@ -37,6 +37,12 @@ All build-order steps 1–3 and 4a–4f are done. The full view layer is built:
 The **Eclipse** rearchitecture (merged main 2026-06-12) replaced the old
 coordinator and stream files with `core/engine/`. See [engine.md](engine.md).
 
+The build-order list above is history: several step-3 scaffolds have since been
+replaced (`views/overlay.ts` became `views/surfaces/surface.ts` in Grand Masters;
+`views/cursorBalance.ts` is gone — the menubar Balance item samples the view date instead). Later arcs —
+Trackblazer culling, the film strip, the Desk, phone representations — are in
+[`../projects/`](../projects/README.md).
+
 ## The layer cake
 
 Four layers; each depends only on the ones below it, nothing reaches back up
@@ -75,7 +81,7 @@ app shell      wires it together; owns the render loop & the subscriptions
   fetching, no cross-view reach, no state. Given props, return nodes.
 
 - **app shell** — the *only* place that knows about wiring: it owns the render
-  loop, subscribes to the stores, and mounts/unmounts overlays over the always-live
+  loop, subscribes to the stores, and mounts/unmounts surfaces over the always-live
   timeline (principle 1, [ui.md](ui.md)).
 
 **What you do NOT build:** a domain adapter. The coordinator already *is* the
@@ -119,7 +125,7 @@ store, and conflating it is exactly how a scrub gets accidentally routed through
 rendering. Split it by *update frequency*, because that maps one-to-one onto the
 two-tier change model below:
 
-- **Discrete view-state** — `overlayOpen`, current selection, the search query.
+- **Discrete view-state** — which surface is open, current selection, the search query.
   Changes are **rare** and **many views care**, so this gets a small store with a
   render-triggering `subscribe`, the **same pattern** as the coordinator. A change
   here drives a re-render of the affected views.
@@ -136,7 +142,7 @@ between them; plus transient interaction-state that is *not* a broadcast store b
 design. The split is the guarantee — not call-site discipline you have to remember
 six months from now. (The shared rule across all three: never read state back out
 of the DOM — principle 7 — and never persist any of it; cursor position or
-open-overlay in the plan would be the denormalisation smell
+open-surface state in the plan would be the denormalisation smell
 [persistence.md](persistence.md) warns against.)
 
 > The one shared consumer to keep straight: the **balance readout** is updated by
@@ -154,7 +160,7 @@ the fold, make the query cheap"). Not all changes are equal:
 | | Trigger | Path | Frequency |
 | --- | --- | --- | --- |
 | **Domain mutation** | commit a pity, edit the snapshot, toggle a channel | typed mutator (e.g. `commit`, `saveSnapshot`) → recompute → notify → **re-render dependent views** | rare |
-| **Discrete view change** | open an overlay, run a search, change selection | discrete view-state store → notify → **re-render dependent views** | rare |
+| **Discrete view change** | open a surface, run a search, change selection | discrete view-state store → notify → **re-render dependent views** | rare |
 | **Continuous interaction** | pan the timeline, drag the scrub cursor, hover | transient interaction-state → **direct targeted cheap DOM write** (no broadcast) | many/second |
 
 Scrubbing must **never refold and never re-render**: it reads `balanceAt(date)`
@@ -191,16 +197,22 @@ Not prescriptive at field level (settled in code), but the layering above sugges
 
 ```
 js/src/ui/
-  h.ts              the element helper
-  format.ts         the one signed-resource formatter
-  bundle/access.ts  id-keyed Maps + getX(id) queries  (or fold into core/bundle)
-  state/viewState.ts   discrete view-state store (overlay/search/selection) + subscribe
-  interact/*.ts        pan/scrub/hover handlers: own transient state, write directly (no broadcast)
-  search/*.ts       pure find-and-warp indexes; no DOM, no UI behavior
-  select/*.ts       pure view-models (+ *.test.ts beside them)
-  pack/pack.ts      the pure packer (+ pack.test.ts)
-  views/*.ts        (props) → HTMLElement
-  app.ts            the shell: render loop, subscriptions, overlay mounting
+  h.ts, format.ts      the element helper; the one signed-resource formatter
+  app.ts               the shell: render loop, subscriptions, surface mounting + modality lock
+  scaffold.ts          pre-fetch landing scaffold (see architecture.md "Startup")
+  bundle/access.ts     id-keyed Maps + getX(id) queries
+  query/*.ts           search index + entity queries (the catalog broker's start)
+  state/viewState.ts   discrete view-state store (open surface/search/selection) + subscribe
+  select/*.ts          pure view-models (+ *.test.ts beside them) — no CSS imports
+  pack/pack.ts         the pure packer (+ pack.test.ts)
+  caps/*.ts            capability store + device-form presentation policies
+  glassUnit.ts         the glass-u → px bridge
+  views/*.ts           timeline, menubar, minimap, filmstrip, scenario art
+  views/timeline/      camera, culling, motion
+  views/surfaces/*.ts  spawnable glass surfaces (surface(), dossier, Desk, card detail, …)
+  views/widgets/*.ts   reusable controls (atomChip, pityBand, forecast, …)
+  views/trainer/       the Trainer page
+  views/onboarding/    the first-run tour
 ```
 
 `main.ts` stays the entry point ([main.ts](../../horsetrader.site/js/src/main.ts)):
@@ -270,12 +282,12 @@ after.
 - [ui-timeline.md](ui-timeline.md) — timeline surfaces (built).
 - [ui-surfaces.md](ui-surfaces.md) — the rest of the surfaces (built).
 - [engine.md](engine.md) — the full coordinator API this layer consumes.
-- [menu.md](menu.md) — the menubar-specific Identity, Resources, and Tazuna design.
+- [menu.md](menu.md) — the menubar-specific Trainer, Resources, and first-run tour design.
 - [projection.md](projection.md) — the ledger/fold every view reads, and the
   cache/query split the two-tier change model mirrors.
 - [persistence.md](persistence.md) — the plan the coordinator persists; why
   ephemeral view-state must stay out of it.
 - [conventions.md](conventions.md) — `h()`, unidirectional flow, typed
   data-access, the no-framework discipline this doc makes concrete.
-- [architecture.md](architecture.md) — the no-server / user's-device driver behind
+- [architecture.md](architecture.md) — the static / user's-device driver behind
   the two-tier change model.

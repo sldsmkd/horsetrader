@@ -6,7 +6,7 @@ headless-testable. Lives at `horsetrader.site/js/src/core/engine/`. See also
 performance principles; [architecture.md](architecture.md) for the system-level
 picture.
 
-**The loop:** shields write account state → streams read it into events → the
+**The loop:** surfaces write account state → streams read it into events → the
 fold reads events into money → surfaces read both → repeat. Nothing else moves.
 
 ---

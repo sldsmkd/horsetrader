@@ -2,7 +2,7 @@
 
 Reference only. These findings **proved the assumptions** the design rests on (the
 $0 keystone and the user-base sizing); they're kept for provenance, not for
-re-reading. See [design.md](design.md) §10 (cost) and [unity.md](unity.md) (scope)
+re-reading. See [design.md](design.md) §10 (cost) and [README.md](README.md) (scope)
 for the decisions they back. All data 2026-06-18.
 
 ---

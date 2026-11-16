@@ -1,6 +1,6 @@
 /**
  * Stateless signed tokens: `base64url(json).base64url(hmac)`. Web Crypto
- * HMAC-SHA256, no dependency (design.md §6 — "session signing is native on
+ * HMAC-SHA256, no dependency (docs/projects/unity/design.md §6 — "session signing is native on
  * Workers"). Used for both the session cookie and the short-lived OAuth
  * transaction cookie (state/nonce/PKCE verifier carried across the redirect).
  *
@@ -40,7 +40,7 @@ export async function verify<T>(token: string, secret: string): Promise<T | null
   }
 }
 
-/** The signed session payload — identity only, no PII (design.md §7). `provider`
+/** The signed session payload — identity only, no PII (docs/projects/unity/design.md §7). `provider`
  *  is a registry key (providers.ts): `google`, `discord`, … */
 export interface Session {
   provider: string;

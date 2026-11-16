@@ -1,7 +1,8 @@
 # Debut - done
 
 Completed items from the Debut readiness pass. This is the little receipt pile:
-`polish.md` should stay focused on work that still wants attention.
+the open board in [README.md](README.md) stays focused on work that still wants
+attention.
 
 ## 2026-06-20
 
@@ -42,8 +43,8 @@ into floating glass-table chrome over the live timeline. The shared knobs live i
 `css/base.css`: width, max-width, top offset, bottom offset, height, radius,
 background, border, and shadow. Initial values are 80vw width, 5vh from the top
 for the menu, and 5vh from the bottom for the minimap. This is not closed until
-the layout blast damage is contained; the follow-up project is active in
-polish.md.
+the layout blast damage is contained; that follow-up graduated to
+[Grand Masters](../grand-masters/README.md).
 
 ### Menubar dropdowns re-anchored to the floating bar
 
@@ -57,8 +58,8 @@ rail, viewport-centred shields stay in the overlay layer. Cards carry a
 `--chrome-dropdown-scale` knob (0.8) and scale from the edge they're pinned to, so
 they shrink inward instead of colliding. Bar width went to 85vw with the max-width
 cap lifted to 160rem (ultrawide guard only). Known jank: `transform: scale` shrinks
-the render but not the layout box, so card spacing reads slightly off — left in
-polish.md for a later trim-vs-scale decision.
+the render but not the layout box, so card spacing reads slightly off — resolved in
+Grand Masters (glass resizes dimensionally, never by `scale`).
 
 ### Phone containment for Debut (contained, usable)
 
@@ -258,7 +259,7 @@ The repeated patterns were factored out so surfaces import rather than re-copy:
   and a one-line explainer added under CLOUD SAVE ("Sign in to back up your plan
   and pick it up on any device.").
 
-Also: the Debut metaphor in [debut.md](debut.md) was sharpened — the debut race is
+Also: the Debut metaphor in [README.md](README.md) was sharpened — the debut race is
 already won; *Make Debut!* is the winners' **concert** song, so Debut is the
 backstage moment before the concert (makeup, pinning the costume), ready to be seen.
 
@@ -269,8 +270,8 @@ the live dev server.
 
 Created the Debut notes and board:
 
-- [debut.md](debut.md) holds the backstage / readiness thesis.
-- [polish.md](polish.md) holds the active loose-end board.
+- [README.md](README.md) holds the backstage / readiness thesis.
+- the open board (now in [README.md](README.md)) holds the active loose ends.
 
 Debut is now framed as the moment before being seen: feature-complete after
 Eclipse, with the timeline as the product and every surface as glass-table chrome
@@ -283,7 +284,8 @@ Removed the dead top-level menu entries:
 - Plan is still available as the second face of the Favourites drawer.
 - Tazuna is no longer persistent chrome.
 - The future Tazuna shape is parked as a first-run / announcement shield sequence
-  in [polish.md](polish.md), not as a menu button.
+  on the board, not as a menu button (it later shipped as
+[Special Week](../special-week.md)).
 
 Verification at the time: `npm run check` and `npm test` passed.
 

@@ -74,7 +74,7 @@ dev serve:
 	npm --prefix $(SITE) run dev
 
 # Security stage (Unity). The trust-model flip — first server, first secrets,
-# first external deps (unity/design.md §2) — earns the project's first security
+# first external deps (docs/projects/unity/design.md §2) — earns the project's first security
 # gate. Three legs, scoped to the new public boundary (NOT the local Python ETL):
 #   deps    — npm audit on RUNTIME/shipped deps (--omit=dev). Today the site has
 #             no runtime deps (0 vulns); the future Worker's vetted deps land
@@ -95,7 +95,7 @@ security-deps:
 	done
 
 # sast — code-smell scan of the untrusted-ingress surface = the cloud services
-# ONLY (design.md §2: harden the new public boundary, don't retrofit the site or
+# ONLY (docs/projects/unity/design.md §2: harden the new public boundary, don't retrofit the site or
 # the Python ETL). Empty until the first service lands.
 security-sast:
 	@for svc in $(CLOUD_SERVICES); do \

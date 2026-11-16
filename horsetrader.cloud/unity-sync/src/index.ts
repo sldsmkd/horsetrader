@@ -15,7 +15,7 @@
  *
  * No state is stored server-side: the OAuth transaction (provider + state/nonce/PKCE
  * verifier) rides a short-lived signed cookie across the redirect; the session
- * is a signed cookie holding identity only (no PII — design.md §7).
+ * is a signed cookie holding identity only (no PII — docs/projects/unity/design.md §7).
  */
 import { pkceChallenge } from "./oauth.ts";
 import { getProvider } from "./providers.ts";
@@ -108,7 +108,7 @@ export default {
       }
       const session: Session = { provider: providerId, sub, exp: Math.floor(Date.now() / 1000) + SESSION_TTL };
       // Land back on the site clean — no connect marker. The FE runs a full sync on EVERY
-      // load (design.md §5: the bounded free-credit reconcile), so first-auth migration
+      // load (docs/projects/unity/design.md §5: the bounded free-credit reconcile), so first-auth migration
       // (push a local plan up / pull a cloud one down) just happens on this reload like any
       // other; auth is read from `/api/me`. No state needs to ride in the URL.
       const headers = new Headers({ location: `${origin}/` });

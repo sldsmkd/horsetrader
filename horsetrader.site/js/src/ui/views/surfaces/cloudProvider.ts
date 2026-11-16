@@ -8,11 +8,11 @@
  * One radio-style toggle list, one row per {@link CLOUD_PROVIDERS} entry (Google now,
  * Discord later — list-driven, so a new provider is a registry line). At most one is ON
  * (= the connected provider, pushed-in/highlighted), matching the no-account-linking,
- * one-provider-at-a-time rule (design.md §6). Three click paths:
+ * one-provider-at-a-time rule (docs/projects/unity/design.md §6). Three click paths:
  *   - none connected → click any → plain connect (full-page OAuth redirect; the
  *     navigation tears the page down, so no self-close needed).
  *   - click the ON row → toggle off = DISCONNECT (destructive — deletes the cloud save,
- *     design.md §7) → confirm modal-of-a-modal first.
+ *     docs/projects/unity/design.md §7) → confirm modal-of-a-modal first.
  *   - one connected → click a DIFFERENT row → SWITCH: disconnect the current (same
  *     destructive confirm) then redirect to the new provider's OAuth. No linking, so a
  *     switch is a clean break, not a merge.

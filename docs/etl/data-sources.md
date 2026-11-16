@@ -15,7 +15,7 @@ and installed-client files route through `SteamFile`.
 | Wikiru | HTTP | JP event dates for the event types Gametora doesn't cover (Showtime, …) | `@transcend` |
 | Umamusume Global client | Steam/Proton files + SQLite | Skill definitions and official EN text (spike) | `@transcend` (uses `@shakur`) |
 | `config/*.yaml` | Local YAML | Consolidated per-event corpora (JP + EN dates, names, overrides); JP scenarios corpus | `@transcend` (`extractors/static/`) |
-| `references/announcements/*.jpg` | Local images | Human-eye source for `config/en.*.yaml` updates | (manual) |
+| `references/announcements/*.jpg` | Local images | Human-eye source for EN overlay updates in `config/yaml/` | (manual) |
 | `config/img/stories/*.png` | Local images | Story event banners, consumed by ETL via `extractors/static/stories.py` | (manual) |
 
 Cache lives at the repo root `.cache/` (resolved from the repo root, not
@@ -50,7 +50,7 @@ transport copies it losslessly but the skill extractor does not need to open it.
 ## Stable-key scheme
 
 The key vocabulary (`<type>-<body>`, the full namespace table) is the **etl↔site
-contract** — canonical home in [../contract.md](../contract.md#stable-key-scheme).
+contract** — canonical home in [../contract.md](../contract.md#stable-key-scheme-shared-id-vocabulary).
 Every model id is a [`StableKey`](../../horsetrader/core/stable_key.py). What
 follows are the ETL-side rules for *assigning* those keys.
 
@@ -180,7 +180,6 @@ outside the loaded set.
 | [`config/yaml/scenarios.yaml`](../../config/yaml/scenarios.yaml) | **Consolidated.** | Full JP scenarios corpus + EN overlay, keyed by zero-padded stable key (`scenario-NN`, release order). Each entry has a `jp:` block (`name`, JP `start` 12:00 JST), an `en:` block (`name` = EN title; `start` 22:00 UTC, present only once it's on Global), and a region-agnostic `art:` URL. Read by `extractors/static/scenarios.py`. Used directly because Gametora's scenarios page is JS-rendered, brittle, and not worth scraping. |
 | [`config/yaml/anniversaries.yaml`](../../config/yaml/anniversaries.yaml) | **Consolidated.** | JP anniversary corpus + EN overlay, keyed `anniversary-N_M` (e.g. `anniversary-1_0`, `anniversary-0_5`). Dates-only ground truth (verified vs wikiru + umamusume.com): each entry has a `jp:` block (`start` 12:00 JST) and an optional `en:` block (`start` 22:00 UTC, present only once on Global). Read by `extractors/static/anniversaries.py` into the `Anniversaries` collection — a scenario-shaped point launch, no longer an `Anchor`. Anniversary reward streams are co-located under their mission keys in the same file. |
 | [`config/yaml/showtimes.yaml`](../../config/yaml/showtimes.yaml) | **Consolidated.** | EN overlay + region-agnostic `rewards` for the finite Fuji Kiseki Showtime series, keyed `showtime-NNN`. JP runs are scraped from Wikiru; the `en:` block carries the UTC window + EN `name`. Both occurrences are confirmed (the series was never repeated), so there is **no predictor**. Read by `extractors/static/showtimes.py`. |
-| [`config/pending/_en.schedule.yaml`](../../config/pending/_en.schedule.yaml) | **Reference only — out of scope.** | Mainline EN event + CM dates from the Cygames monthly announcements (image archive in [`references/`](../references/)). Lives in `config/pending/`, which is what keeps it out of scope — reference documentation, not pipeline input, not consumed by any loader. |
 
 ### Consolidated yaml shape
 
@@ -223,9 +222,8 @@ Rules:
   scenarios' `art:` URL) sit at the top level alongside the region blocks.
   Loaders pull these via `store.shared()`.
 - **Scope is the directory, not the filename.** Everything in `config/yaml/`
-  loads — no whitelist, no per-file marking. Out-of-scope files live elsewhere:
-  `config/pending/` (not-yet-wired) and `references/import/` (pre-split YAML
-  scraps kept for reference).
+  loads — no whitelist, no per-file marking. Out-of-scope files live elsewhere,
+  in `config/pending/` (not yet wired).
 - **Fail loud**: curated YAML is hand-typed. Validation failures raise
   `ValueError` with `<path>: <entity> '<key>' <field> ...` so the
   editor sees the error on the next pipeline run while the YAML is
@@ -268,19 +266,12 @@ The philosophy is **work from the back**: the merge lifted itself into
 - Banner keys (`banners.yaml`): `<gametora-id>-banner` (e.g.
   `30002-banner`).
 
-### Out-of-scope holding pens
+### Out-of-scope holding pen
 
-Two homes for YAML the ETL doesn't read:
-
-- [`config/pending/`](../../config/pending/) — reference docs and anything staged
-  for a near-term port (e.g. `_en.schedule.yaml`).
-- [`references/import/`](../references/import/) — loose scraps of pre-split
-  YAML (`missions.yaml`, `login_bonus.yaml`, `cm_tracks.yaml`, `schedule.yaml`):
-  documentation / reference the maintainer will draw on as scope expands, not a
-  structured port-queue. Lives under `references/` (the human-eye grab bag), not
-  `config/`. (`search_aliases.yaml` and `free_pulls.yaml` have been reintegrated
-  — aliases as their own `config/yaml/` corpus, pull counts folded onto
-  `banner-<id>` entries — so they're no longer staged here.)
+[`config/pending/`](../../config/pending/) holds YAML the ETL doesn't read yet —
+reference data and anything staged for a near-term port (today: discovered
+trainer-card backgrounds, anniversary reward drafts). Loose reference scraps
+belong in [`../references/`](../references/), not `config/`.
 
 When wiring one in, move it into `config/yaml/` (where the store auto-picks it
 up), give it the region-namespace shape, and add a row above describing it.
@@ -293,7 +284,7 @@ represent.
 
 Archive of the monthly schedule images Cygames publishes in their
 announcements. **Not consumed by the ETL** — they're for the maintainer to
-eyeball when updating `config/yaml/banners.yaml` and `config/pending/_en.schedule.yaml`.
+eyeball when updating `config/yaml/banners.yaml` and the other EN overlays.
 Naming convention: `YYYY_MM.jpg`, with named variants for special posts
 (e.g. `2025_06_extra_banners.jpg`, `2026_04_golshi_week.jpg`). Don't
 delete them after a YAML update — having the source-of-truth screenshot

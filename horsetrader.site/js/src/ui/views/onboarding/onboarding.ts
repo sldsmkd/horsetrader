@@ -2,7 +2,7 @@
  * Special Week — the first-run onboarding tour. Tazuna pops up once, walks a
  * brand-new trainer through the two inputs that make the forecast theirs (Trainer,
  * then Resources), names the payoff (banner numbers), and is gone for good. See
- * `special-week/spec.md`.
+ * `docs/projects/special-week.md`.
  *
  * Mechanism: a synced `firstrun` watermark (the highest stage seen). We run every
  * stage whose index exceeds it, in order, persisting per-stage so a mid-tour reload

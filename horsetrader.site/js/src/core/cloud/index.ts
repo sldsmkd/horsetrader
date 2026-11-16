@@ -8,7 +8,7 @@
  * Three layers, this file being the top:
  *   transport ([client.ts](client.ts)) — the raw `/api/*` endpoints (auth, pull, push,
  *                                         delete) + the OAuth redirect.
- *   reconcile ([sync.ts](sync.ts))      — the resolution.md state table (syncNow,
+ *   reconcile ([sync.ts](sync.ts))      — the docs/frontend/cloud-sync.md state table (syncNow,
  *                                         keep-local/keep-cloud).
  *   service (here)                      — account lifecycle that composes the two with
  *                                         browser navigation (the connect marker).
@@ -44,7 +44,7 @@ export async function disconnect(coord: Coordinator): Promise<void> {
   coord.forgetCloud();
 }
 
-/** Switch providers = a clean break (no account-linking, design.md §6): fully disconnect
+/** Switch providers = a clean break (no account-linking, docs/projects/unity/design.md §6): fully disconnect
  *  the current one, then redirect to the new one's OAuth. Disconnecting first means an
  *  abandoned OAuth lands back signed-out and clean, never half-switched. */
 export async function switchProvider(coord: Coordinator, toProviderId: string): Promise<void> {
@@ -55,7 +55,7 @@ export async function switchProvider(coord: Coordinator, toProviderId: string): 
 // ── sync ────────────────────────────────────────────────────────────────────
 
 /**
- * Load-time reconcile (design.md §5) — runs the full `syncNow` once per app load.
+ * Load-time reconcile (docs/projects/unity/design.md §5) — runs the full `syncNow` once per app load.
  *
  * This is the bounded push-on-OPEN compromise (a variant of §5's push-on-close): an
  * ordinary connected load spends a single "free credit" — if local is dirty it pushes

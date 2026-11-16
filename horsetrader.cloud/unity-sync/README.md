@@ -3,7 +3,9 @@
 Unity's cloud Worker: **auth + plan sync**. Two halves in one Worker — multi-provider
 OAuth2 authorization-code round-trip with a stateless signed-cookie session, and
 ETag-CAS plan sync over a private R2 bucket (`/api/sync`). See
-[unity/design.md](../../unity/design.md).
+[docs/projects/unity/design.md](../../docs/projects/unity/design.md); the sync
+semantics the client implements are in
+[docs/frontend/cloud-sync.md](../../docs/frontend/cloud-sync.md).
 
 ## Endpoints
 
@@ -24,20 +26,20 @@ The auth routes are provider-generic — `:provider` is a key in the registry
 ### Plan sync (`/api/sync`)
 
 One R2 object per account (`{provider}:{sub}`) holds the serialised PlanDocument blob;
-the object's **ETag is the sync rev** — no hand-rolled counter (design.md §3). Pushes are
+the object's **ETag is the sync rev** — no hand-rolled counter (docs/projects/unity/design.md §3). Pushes are
 plain HTTP conditionals the client speaks, translated to R2 `onlyIf`, so concurrency is
 `git push`-style optimistic CAS: a `412` is the conflict signal, surfaced as data. The rev
 travels in the response **body**, never the `ETag` header — a CDN in front (Cloudflare) may
 rewrite the header to a weak validator (`W/"…"`) that never matches R2's strong etag,
 deadlocking the next push. The blob is **opaque** to the Worker (username masking +
-serialisation are the client's job, design.md §4); two cheap ingress gates guard it without
+serialisation are the client's job, docs/projects/unity/design.md §4); two cheap ingress gates guard it without
 ever fully parsing it: a `MAX_BLOB_BYTES` size cap (reject oversize without reading) and a
 bounded "looks like one of our plans" sniff (must open as a JSON object and carry
 `"version"`) — sanity, not a schema.
 
 No server-side state: the OAuth transaction (provider + state/nonce/PKCE verifier)
 rides a short-lived signed cookie across the redirect; the session is a signed
-cookie holding **identity only** — `{ provider, sub }`, no PII (design.md §7).
+cookie holding **identity only** — `{ provider, sub }`, no PII (docs/projects/unity/design.md §7).
 Signing is Web Crypto HMAC-SHA256 (no dep); the only dependency is `jose`, used to
 verify Google's id_token. The two providers diverge only at *identify*: Google is
 OIDC (verify the `id_token` JWT against the JWKS), Discord is plain OAuth2 (exchange

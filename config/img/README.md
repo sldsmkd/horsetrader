@@ -2,9 +2,9 @@
 
 Image assets that are **pipeline input** — read by the ETL during a run, not
 just kept for a human to eyeball. That's the line between this directory and
-[`references/`](../../references/): anything a loader opens lives here under
+[`docs/references/`](../../docs/references/): anything a loader opens lives here under
 `config/`; anything that only exists so a maintainer can check a date stays in
-`references/`.
+`docs/references/`.
 
 ## `misc/`
 

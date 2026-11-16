@@ -1,16 +1,16 @@
 # Identity presets
 
-Status: **draft design**. This note captures the Identity page Play Style presets:
+Status: **built** (presets live on the Trainer page). This note captures the Play Style presets:
 what they mean to players, which game activity streams they imply, and how the
 locked companion surface should explain those assumptions.
 
-Identity presets live on the Trainer Card because they answer "who is this
+Identity presets live on the Trainer page because they answer "who is this
 stable?" before they answer "what exact reward tuple should the planner use?"
 They are self-location first and planner configuration second.
 
 ## Surface
 
-The Identity page currently presents Play Style as:
+The Trainer page presents Play Style as:
 
 | Key | Label | Current caption | State |
 | --- | --- | --- | --- |
@@ -94,7 +94,7 @@ not infer device class independently.
 - Curated preset controls remain visible and read-only; Custom uses the same
   expanded form with editable controls.
 - Apply and Discard remain pinned at the bottom of the page.
-- Oshi, Club, and Cloud keep their existing small overlay/modal flows. The
+- Oshi, Club, and Cloud keep their existing small modal surfaces. The
   portrait proof point does not redesign them.
 
 The old two-window `playStyleMachine.ts`, Trainer Card, drawer surface, and
@@ -215,7 +215,7 @@ legend-race event (`rewards.sequence`, one 250 per leg) and fold as ground-truth
 income for every account. A slider could only have *down-graded* a low-engagement
 plan, and the repeat-entry "daily" rewards aren't in the bake to begin with — so
 the setting was removed rather than reshape a baked reward (see
-[glue.md](glue.md), the `legend-races` audit verdict). Planners are engaged players
+the `legend-races` audit verdict in the retired `glue.md`, in git history). Planners are engaged players
 who collect the full reward anyway.
 
 ### Missions
@@ -243,7 +243,7 @@ event type, folded as **always-on ground-truth income** (you don't toggle whethe
 the anniversary missions happen). The only other event-mission format (Gold Ship
 Week 1 & 2) was retired by Cygames and lives only in the past, so there is no live
 source for a separate gradable slider. The slider never earned its place and was
-deleted; see glue.md (the mission model, Axis 1).
+deleted (the mission-model audit in the retired `glue.md`, in git history).
 
 ### Story events
 

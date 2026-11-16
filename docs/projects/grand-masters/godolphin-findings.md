@@ -1,12 +1,12 @@
 # Godolphin — field findings (portrait phone)
 
 > **SUPERSEDED 2026-07-03** — historical design/worklog record from the Grand Masters build.
-> Living contracts: [contracts.md](contracts.md) · as-built ledger: [grand-masters-summary.md](grand-masters-summary.md).
+> Living contracts: [frontend/glass.md](../../frontend/glass.md) · project record: [README.md](README.md).
 > The "Design direction" (rotation) herein was RETIRED 2026-07-03; kept as banked research.
 
 > Live field study on iPhone (1170×2532, real device over LAN). Capture raw
 > observations + commentary here as we browse; derive the plan from the patterns,
-> not reactively. See [godolphin-barb.md](godolphin-barb.md) for thesis/deliverables.
+> not reactively. See [README.md](README.md) for the project thesis.
 
 ## Device
 
@@ -376,7 +376,7 @@ we work. So nothing below is settled:
 User call: the sire metaphors were a reasoning scaffold that landed the right SHAPE; now the
 shape/boundaries/contracts are known, harden the scaffold into explicit, contained contracts
 before Godolphin builds on them. Done:
-- **`grand-masters/contracts.md`** — the concrete registry: membership spine + Byerley
+- **`grand-masters/contracts.md`** (now [`docs/frontend/glass.md`](../../frontend/glass.md)) — the concrete registry: membership spine + Byerley
   C-B1..C-B6, Darley C-D1..C-D5, the feel axis (owned by none), and the Godolphin seam. Each
   contract = statement + owner + enforcement site (real tokens/files) + guard status. The
   discovery occasion (an F-finding) is now PROVENANCE, not the rule.

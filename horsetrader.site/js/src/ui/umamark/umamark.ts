@@ -1,5 +1,5 @@
 /**
- * UmaMark — the deterministic benchmark harness (grand-masters/umamark.md, Satano Group's
+ * UmaMark — the deterministic benchmark harness (docs/projects/grand-masters/umamark.md, Satano Group's
  * "3DMark" to MangoHorse's "Afterburner").
  *
  * MangoHorse passively observes the real session; UmaMark *drives* one. It scripts the

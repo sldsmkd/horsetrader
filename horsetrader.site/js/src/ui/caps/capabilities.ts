@@ -14,7 +14,7 @@
  *
  * Deliberately NOT here yet: safe-area presence (needs a layout-forcing `env()` probe and
  * reads 0/0/0/0 until index.html gains `viewport-fit=cover`, an app-wide change — see the
- * Godolphin seam in contracts.md), and device *class* (phone/tablet/desktop), which is a
+ * Godolphin seam in docs/frontend/glass.md), and device *class* (phone/tablet/desktop), which is a
  * policy derivation over these capabilities plus Darley's viewport extent. Keep this module
  * to the cheap, synchronous, reactive reads; let policy compose them.
  */

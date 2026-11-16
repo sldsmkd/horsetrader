@@ -14,7 +14,7 @@ routes = [
 ]
 
 # The plan store: one PRIVATE R2 bucket, never browser-facing — reached only
-# through this Worker's `env.BUCKET` binding (design.md §3). No public bucket/domain.
+# through this Worker's `env.BUCKET` binding (docs/projects/unity/design.md §3). No public bucket/domain.
 # Create once with `wrangler r2 bucket create unity-saves`.
 [[r2_buckets]]
 binding = "BUCKET"

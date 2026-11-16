@@ -93,7 +93,7 @@ export function suspendSurface(card: HTMLElement): HTMLElement {
   return card;
 }
 
-/** Suspend a surface for the modality lock (grand-masters/byerley-turk.md). A composite
+/** Suspend a surface for the modality lock (docs/frontend/glass.md C-B3). A composite
  *  surface wrapper may contain multiple direct cards; otherwise suspend the node itself. */
 export function lockSurface(node: HTMLElement): void {
   const inner = node.querySelectorAll<HTMLElement>(":scope > .surface");

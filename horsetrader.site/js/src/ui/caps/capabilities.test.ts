@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { readCapabilities, glassPointer, CAP_QUERIES } from "./capabilities.ts";
 
 /**
- * Capability mapping (Godolphin substrate — grand-masters/contracts.md, the Godolphin seam).
+ * Capability mapping (Godolphin substrate — docs/frontend/glass.md, the Godolphin seam).
  *
  * The reliable half: qualitative `matchMedia` answers → a capability snapshot. This guards
  * the pure mapping against the two profiles measured on real hardware in F11

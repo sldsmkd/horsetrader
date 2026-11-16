@@ -1,4 +1,4 @@
-# Secret-scan leg of the security stage (Unity, unity/design.md §2).
+# Secret-scan leg of the security stage (Unity, docs/projects/unity/design.md §2).
 #
 # Unlike audit/SAST (scoped to the JS/Worker surface), secret scanning runs over
 # the WHOLE tree on purpose: a leaked OAuth client secret or session-signing key

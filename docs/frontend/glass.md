@@ -1,15 +1,21 @@
-# Grand Masters — contracts and boundaries
+# Glass, world & camera — contracts and boundaries
 
-> The sire metaphors (Byerley / Darley / Godolphin) were a **reasoning scaffold**: a set
-> of higher-order concepts that let us shape this layer without low-level expertise. They
-> did their job — they landed the right shape. This document is the scaffold **hardened
-> into contracts**: each boundary stated concretely, assigned an owner, pointed at the code
-> that enforces it, and (where it matters) backed by an executable guard so a later "tidy"
-> can't quietly dissolve it. Read this before touching the glass/world/camera layer; extend
-> it when a new invariant is discovered.
->
-> The discovery occasion (a Godolphin field finding, a perf pass) is **provenance**, not the
-> rule. A contract holds on every device, including the one where it never visibly bit.
+The rules for the two visual planes (orthographic **glass** chrome and the
+camera-projected **world** timeline), the units each measures in, and how the
+layout meets real hardware. Each boundary is stated concretely, assigned an owner,
+pointed at the code that enforces it, and — where it matters — backed by an
+executable guard so a later "tidy" can't quietly dissolve it. **Read this before
+touching the glass/world/camera layer; extend it when a new invariant is
+discovered.**
+
+These contracts came out of the [Grand Masters](../projects/grand-masters/README.md)
+project. Its three phases (Byerley Turk = abstract glass discipline, Darley
+Arabian = mapping to real pixels, Godolphin Barb = device-specific
+representations) survive only as the `C-B*` / `C-D*` numbering. The discovery
+occasion (a field finding, a perf pass) is **provenance**, not the rule: a
+contract holds on every device, including the one where it never visibly bit.
+
+Type follows the same two-plane model — see [typography.md](typography.md).
 
 ## The spine: membership (Byerley)
 
@@ -97,15 +103,31 @@ modal 1000 · alert 1100`). The world plane has its own single declared stacking
 other magic z-index may exist.
 
 **C-B3 · Modality is a lock on the spawn tree; there is no "shield" type.** One `surface()`
-type wears orthogonal traits — *modal-demand* (emits the lock up its spawn lineage to the
-menubar, which fans it down its subtree) and *placement* (centred/anchored/placed).
-Navigation is exempt by sibling geometry, not special-case. Visibility ≠ interactivity. See
-[byerley-turk.md](byerley-turk.md) "Modality is the third axis".
+type wears two orthogonal traits — *modal-demand* and *placement* (centred / anchored to
+its spawner / placed). Membership ⊥ depth ⊥ modality: a modal never changes paint order,
+and a locked surface stays **visible** but inert (visibility ≠ interactivity).
+
+```
+glass plane            ← mount root (never participates in the lock)
+├── menubar            ← root of the SPAWN lineage
+│   ├── trainer page → oshi picker (modal) → [confirm (modal)]
+│   └── resources
+└── navigation/minimap ← SIBLING of the menubar; spawns nothing
+```
+
+A modal surface emits the lock **up** its spawn lineage; it stops at the menubar and fans
+**down** the menubar's subtree, so a modal born at any leaf locks the whole surface plane.
+Navigation (home, search, minimap, film strip) and the timeline are exempt by sibling
+geometry, not special-case. Each node owns its lock state, so nested modals unlock
+correctly. Vocabulary: a former "shield" is surface · modal · centred; an "alert" is the
+same spawned by a modal; a dropdown is surface · non-modal · anchored. Design heuristic:
+split a read surface from a write surface only when display ≠ edit. *Enforced:*
+`modalOpen/anyModal/setLocked` in `app.ts` + `menubar.ts`.
 
 **C-B4 · Glass resizes dimensionally, never by transform.** Glass surfaces are `N ×
 --glass-u`; `transform: scale`/`zoom` on glass is a projection violation (parallel ⇒ size is
-dimension). `scale` is the camera's privilege, world plane only.
-*Guard:* none yet (candidate — assert no `scale(`/`zoom` under glass CSS).
+dimension). `scale` is the camera's privilege, world plane only. Keyframed motion is exempt
+(it is animation, not steady-state size). *Guard:* `glassDimensional.test.ts`.
 
 **C-B5 · Containment — the planes clip to the viewport box; overflow is never a pan region.**
 Both the world (`#app`) and the glass surface layer (`.surface-layer`), plus the document
@@ -195,7 +217,7 @@ The **only** place feel touches screen-space is the rail extent (C-D4).
 
 ---
 
-## The Godolphin substrate — as built
+## The Godolphin substrate — capability + policy
 
 Godolphin's shipped shape is **capability + policy**, not rotation:
 
@@ -212,7 +234,7 @@ Godolphin's shipped shape is **capability + policy**, not rotation:
 - **Phone takeover surfaces** — Trainer, Plan, Record Balance, Resources, commit dossier
   each own the full viewport above all chrome on a phone form, with back-mast + sticky
   actions; desktop keeps the rail/modal representations
-  ([mobile-worklog.md](mobile-worklog.md)).
+  ([mobile-worklog.md](../projects/grand-masters/mobile-worklog.md)).
 
 **Dormant seam — accessibility capabilities.** `reducedMotion`, `reducedTransparency`,
 `contrast`, and `forcedColors` are detected and tested in `capabilities.ts` but consumed by
@@ -237,7 +259,7 @@ is ever attempted:
   orientation state and call `focus()` in the same synchronous tap handler; rotation and
   keyboard co-animate. `visualViewport.height` is the separate cross-engine keyboard-size
   detector. Motion sensors stay dropped. Full direction:
-  [godolphin-findings.md](godolphin-findings.md) "Design direction".
+  [godolphin-findings.md](../projects/grand-masters/godolphin-findings.md) "Design direction".
 
 **Touch ergonomics — a capability axis orthogonal to the orientation cutoff** (Godolphin,
 2026-06-24). Making icons hittable with fat thumbs keys off `coarse pointer` (+ `maxTouchPoints`,
@@ -266,7 +288,7 @@ viewport reads out of the sizing unit. `--glass-u` stays `svh` — stable, delib
 reflowing as toolbars/keyboard slide. If keyboard-aware reflow is ever built, `visualViewport`
 is a *separate dynamic consumer*; its dynamism must not leak into the unit. (The full
 rotation/keyboard design record lives under RETIRED above and in
-[godolphin-findings.md](godolphin-findings.md) "Design direction".)
+[godolphin-findings.md](../projects/grand-masters/godolphin-findings.md) "Design direction".)
 
 ---
 
