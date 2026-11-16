@@ -2,7 +2,7 @@ from lxml import html
 
 from horsetrader.core import Japlish, SingletonMeta
 from horsetrader.enums import CacheTime
-from horsetrader.extractors.helpers import xpath_attr, xpath_first
+from horsetrader.extractors.helpers import xpath_first
 from horsetrader.info import Logger
 from horsetrader.transport import UmaClient
 
@@ -12,16 +12,29 @@ _CHAR_INDEX_ICON_SUFFIX = ".png"
 
 _CHAR_OVERVIEW_BLOCK_EXPR = (
     '//div[contains(@class, "characters_infobox_top__") and '
-    './/div[contains(@class, "characters_infobox_character_name__")] and '
-    './/img[contains(@src, "/umamusume/characters/profile/")]]'
+    './/div[contains(@class, "characters_infobox_character_name__")]]'
 )
 _CHAR_OVERVIEW_NAME_EXPR = (
     './/div[contains(@class, "characters_infobox_character_name__")][1]'
 )
-_CHAR_OVERVIEW_IMAGE_EXPR = (
-    './/img[contains(@src, "/umamusume/characters/profile/")][1]'
-)
+
 _CHAR_OVERVIEW_TAGLINE_EXPR = ".//i[1]"
+
+# Profile portraits are 512px busts on the media CDN, keyed by character id. Built
+# from the id rather than scraped: the detail page's markup churns (the 2026
+# redesign dropped the portrait link and shows the gym outfit by default), the CDN
+# paths do not. First match wins:
+#   1. `portrait/profile/{id}_000002` — school uniform, the art the planner has
+#      always shown (pixel-equivalent to the legacy file).
+#   2. `portrait/profile/{id}_000001` — gym outfit; new characters get this first.
+#   3. `profile/{id}` — the legacy path. Frozen (no new characters), but the only
+#      home of the staff NPCs' portraits (Tazuna, Yayoi, …) that the site uses.
+# Characters with none of these (most background NPCs) stay portrait-less.
+_PORTRAIT_URL_TEMPLATES = (
+    "https://media.gametora.com/umamusume/characters/portrait/profile/{id}_000002.png",
+    "https://media.gametora.com/umamusume/characters/portrait/profile/{id}_000001.png",
+    "https://media.gametora.com/umamusume/characters/profile/{id}.png",
+)
 _CHAR_QUOTE_ICON_PREFIX = "/images/umamusume/characters/icons/chr_icon_"
 
 
@@ -44,12 +57,15 @@ class GametoraCharacter(metaclass=SingletonMeta):
             "tagline": (
                 _tagline.text_content().strip() if _tagline is not None else None
             ),
-            "profile_image_url": xpath_attr(
-                _overview_block,
-                _CHAR_OVERVIEW_IMAGE_EXPR,
-                "src",
-            ),
         }
+
+    def _portrait_url(self, char_id: str) -> str | None:
+        """The first profile-portrait path the CDN actually serves, else None."""
+        for template in _PORTRAIT_URL_TEMPLATES:
+            url = template.format(id=char_id)
+            if self._uc.try_get(url) is not None:
+                return url
+        return None
 
     def _pullquote(self, tree: html.HtmlElement, char_id: str) -> Japlish | None:
         _icon_src = f"{_CHAR_QUOTE_ICON_PREFIX}{char_id}{_CHAR_INDEX_ICON_SUFFIX}"
@@ -97,7 +113,7 @@ class GametoraCharacter(metaclass=SingletonMeta):
 
         _overview = self._overview(_tree)
         _name = _overview.get("name") or record.get("name") or "Unknown"
-        _portrait_url = _overview.get("profile_image_url")
+        _portrait_url = self._portrait_url(char_id)
         _tagline = _overview.get("tagline")
         _en_quote = self._pullquote(_tree, char_id)
 

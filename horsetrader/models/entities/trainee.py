@@ -149,6 +149,19 @@ class Trainees(Entities[Trainee], metaclass=SingletonMeta):
                 f"Trainee {item.key} is incomplete; missing: {', '.join(missing)}"
             )
 
+    def _validate_collection(self) -> None:
+        """Every playable character (one with a trainee) should carry a portrait.
+
+        The site's oshi picker only offers characters with icon + portrait, and a
+        saved oshi without one falls back to the default — so a portrait gap is
+        user-visible. Characters validate this at debug (NPCs legitimately lack
+        one); the playable set is only known here. Scraped data, so warn, not raise.
+        """
+        playable = {t.character.key: t.character for t in self.values() if t.character}
+        for key in sorted(playable):
+            if playable[key].portrait is None:
+                logger.warning(f"Playable character {key} has no portrait")
+
     def _fetch_primary(self) -> list[Trainee]:
         records = list(Gametora().trainees())
         characters_by_gametora_id = {
