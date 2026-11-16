@@ -1,17 +1,18 @@
 from enum import Enum
 
-# Gametora keys a race's grade as a ribbon image (utx_txt_grade_ribbon_NN.png)
-# with no decodable alt text, so the number → grade map is derived empirically
-# from known races (Tokyo Daishoten = G1, Hanshin Cup = G2, …).
-_RIBBON_TO_GRADE = {
-    0: "debut",
-    1: "maiden",
-    2: "open",
-    3: "g3",
-    4: "g2",
-    5: "g1",
-    6: "pre-open",
-    7: "exhibition",
+# Gametora keys a race's grade as a per-locale badge image
+# (`/races/grades/<locale>/<slug>.png`). The alt text is the display label but is
+# sometimes empty, so the filename slug is the signal. Gametora abbreviates
+# (op / preop / ex); ours are the full words.
+_BADGE_TO_GRADE = {
+    "debut": "debut",
+    "maiden": "maiden",
+    "preop": "pre-open",
+    "op": "open",
+    "g3": "g3",
+    "g2": "g2",
+    "g1": "g1",
+    "ex": "exhibition",
 }
 
 
@@ -34,9 +35,9 @@ class RaceGrade(Enum):
     EXHIBITION = "exhibition"
 
     @classmethod
-    def from_ribbon(cls, ribbon: int) -> "RaceGrade | None":
-        """Resolve a Gametora grade-ribbon image number (0–7)."""
-        slug = _RIBBON_TO_GRADE.get(ribbon)
+    def from_badge(cls, badge: str) -> "RaceGrade | None":
+        """Resolve a Gametora grade-badge image slug (`g1`, `preop`, …)."""
+        slug = _BADGE_TO_GRADE.get(badge)
         return cls(slug) if slug is not None else None
 
     @property

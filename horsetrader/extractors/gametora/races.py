@@ -26,9 +26,9 @@ _RACES_URL_JP = "https://gametora.com/ja/umamusume/races"
 _RACES_URL_EN = "https://gametora.com/umamusume/races"
 
 _RACE_BANNER_EXPR = '//main//img[contains(@src, "/races/banners/")]'
-_RACE_RIBBON_EXPR = './/img[contains(@src, "race_ribbons")]'
+_RACE_GRADE_EXPR = './/img[contains(@src, "/races/grades/")]'
 _BANNER_ID_PATTERN = re.compile(r"/races/banners/(?:en/)?(\d+)\.png")
-_RIBBON_NUM_PATTERN = re.compile(r"grade_ribbon_(\d+)\.png")
+_GRADE_BADGE_PATTERN = re.compile(r"/races/grades/[a-z]+/([a-z0-9]+)\.png")
 _VARIES = "多様"  # Gametora's JP "varies" marker for randomly-generated fields
 _CAREER_CLASSES = {
     "ジュニア級": "junior",
@@ -52,13 +52,13 @@ class GametoraRaces(metaclass=SingletonMeta):
 
     @staticmethod
     def _row_of(banner):
-        """The race row owning `banner` — nearest ancestor carrying a grade ribbon."""
+        """The race row owning `banner` — nearest ancestor carrying a grade badge."""
         node = banner
         for _ in range(8):
             node = node.getparent()
             if node is None:
                 return None
-            if node.xpath('.//img[contains(@src, "race_ribbons")]'):
+            if node.xpath(_RACE_GRADE_EXPR):
                 return node
         return None
 
@@ -80,21 +80,21 @@ class GametoraRaces(metaclass=SingletonMeta):
             row = self._row_of(banner)
             if row is None:
                 continue
-            ribbon = xpath_first(row, _RACE_RIBBON_EXPR)
-            ribbon_match = (
-                _RIBBON_NUM_PATTERN.search(ribbon.get("src") or "")
-                if ribbon is not None
+            badge = xpath_first(row, _RACE_GRADE_EXPR)
+            badge_match = (
+                _GRADE_BADGE_PATTERN.search(badge.get("src") or "")
+                if badge is not None
                 else None
             )
             tokens = [t.strip() for t in row.itertext() if t.strip()]
-            if not ribbon_match or not tokens:
+            if not badge_match or not tokens:
                 continue
 
             out.append(
                 {
                     "banner_id": banner_id,
                     "banner_url": src,
-                    "grade": RaceGrade.from_ribbon(int(ribbon_match.group(1))),
+                    "grade": RaceGrade.from_badge(badge_match.group(1)),
                     "tokens": tokens,
                 }
             )

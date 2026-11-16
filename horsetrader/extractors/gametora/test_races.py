@@ -1,5 +1,7 @@
 import pytest
 
+from horsetrader.enums import RaceGrade
+
 from .races import GametoraRaces
 
 
@@ -20,3 +22,20 @@ def test_occurrence_rejects_non_calendar_slot():
             ["URAファイナルズ決勝", "ファイナルズ", "???"],
             "9001",
         )
+
+
+@pytest.mark.parametrize(
+    ("badge", "grade"),
+    [
+        ("debut", RaceGrade.DEBUT),
+        ("maiden", RaceGrade.MAIDEN),
+        ("preop", RaceGrade.PRE_OPEN),
+        ("op", RaceGrade.OPEN),
+        ("g3", RaceGrade.G3),
+        ("g2", RaceGrade.G2),
+        ("g1", RaceGrade.G1),
+        ("ex", RaceGrade.EXHIBITION),
+    ],
+)
+def test_grade_badge_slugs_resolve(badge, grade):
+    assert RaceGrade.from_badge(badge) is grade
