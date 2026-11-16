@@ -1,18 +1,24 @@
 import re
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from horsetrader.core import JST, Period
+from horsetrader.transport import CHROME_TIMEZONE
 
 # Gametora renders dates as English prose ("1 Jan 2021 – 15 Jan 2021") rather
 # than a machine-readable format. These helpers centralise the parsing so every
 # banner/event extractor can import them instead of duplicating the month dict.
 #
-# Current callers (banner pages) source JP-side schedule data, so dates are
-# stamped as the JP-server content-drop instant: 12:00 JST on the listed
-# calendar day (= reset 00:00 JST + 12h drop interval). Not every Gametora
-# surface is JST — notably missions are sourced in both JP and EN flavors —
-# so when those land, factor the tz/hour stamping out of `parse_date` rather
-# than assuming JST.
+# Two kinds of Gametora date, which must not be confused:
+#
+# - **Static calendar dates** (banner pages, release dates) are plain strings in
+#   the HTML. `parse_date` stamps them as the JP-server content-drop instant:
+#   12:00 JST on the listed calendar day (= reset 00:00 JST + 12h drop interval).
+# - **Rendered datetimes** (missions, Champions Meeting, Legend Races, story
+#   events) are formatted client-side from an instant, in the *browser's*
+#   timezone — never JST/UTC by page locale. `UmaClient` pins Chrome to
+#   `CHROME_TIMEZONE`, and `rendered_instant` is the one place that reads a
+#   rendered wall-clock back into an aware instant.
 
 _MONTHS: dict[str, int] = {
     "jan": 1, "january": 1,
@@ -52,6 +58,18 @@ def parse_date(value: str) -> datetime:
         hour=12,
         tzinfo=JST,
     )
+
+
+def rendered_instant(wall_clock: datetime) -> datetime:
+    """The aware instant behind a naive wall-clock Gametora rendered in Chrome.
+
+    Callers convert to the zone their model wants (JST for the JP substrate,
+    UTC for the EN overlay) with `.astimezone()` — never `.replace(tzinfo=…)`,
+    which would relabel the browser's wall-clock as a different zone.
+    """
+    if wall_clock.tzinfo is not None:
+        raise ValueError("rendered wall-clock must be naive")
+    return wall_clock.replace(tzinfo=ZoneInfo(CHROME_TIMEZONE))
 
 
 def parse_period(raw_text: str) -> Period:

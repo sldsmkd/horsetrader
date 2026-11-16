@@ -106,6 +106,16 @@ What recon settled for CM, none of which was guessable from the code:
 `chrome=True` opens a **visible** browser window (`with_chrome(headless=False)`);
 that's expected.
 
+**Rendered datetimes are in the browser's zone, not the page's locale.** Gametora
+formats instants client-side, so a `/ja/` page does *not* show JST. `UmaClient`
+pins Chrome to UTC (`CHROME_TIMEZONE`); read any rendered wall-clock through
+`dates.rendered_instant(...)` and `.astimezone(JST)` / `.astimezone(UTC)` — never
+`.replace(tzinfo=JST)`. Recon tell: if a JP event "starts" at 3:00 / 20:00, that's
+12:00 / 05:00 JST rendered in UTC. (Before the pin, these pages rendered in the
+host's Europe/London zone and were mislabelled as JST, 8–9h early.) Static date
+strings — banner history, release dates — are unaffected and go through
+`parse_date`.
+
 ## Step 1 — Settle the stable key (explicitly)
 
 The stable key is the spine of the whole record. Decide it deliberately and

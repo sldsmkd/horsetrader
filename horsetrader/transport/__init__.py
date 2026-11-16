@@ -1,4 +1,5 @@
 from .uma_client import (
+    CHROME_TIMEZONE,
     CacheTimeResolver,
     CacheTimeSpec,
     HttpError,
@@ -9,6 +10,7 @@ from .uma_client_cache import UmaClientCache
 from .steam_file import SteamFile
 
 __all__ = [
+    "CHROME_TIMEZONE",
     "CacheTimeResolver",
     "CacheTimeSpec",
     "HttpError",

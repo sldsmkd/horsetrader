@@ -22,6 +22,12 @@ Gametora stamps event dates at **12:00 JST** (noon local). The
 parser preserves this — date-only truncation belongs at the presentation
 layer, not in transit.
 
+Where Gametora shows a *time* (missions, Legend Races, story events, legacy CM
+rows) it renders an instant in the **browser's** timezone — the page locale says
+nothing about the zone. The ETL pins Chrome to UTC and converts, so these land on
+the real in-game instants (JP 05:00 / 12:00 JST, Global 15:00 UTC); see
+[data-sources.md](etl/data-sources.md#the-transport-boundary).
+
 ### Server reset and content drop windows
 
 | Region | Daily reset | Next content drop |

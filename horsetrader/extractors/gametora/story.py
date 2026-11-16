@@ -11,6 +11,8 @@ from horsetrader.info import Logger
 from horsetrader.semantics import transcend
 from horsetrader.transport import UmaClient
 
+from .dates import rendered_instant
+
 logger = Logger.get(__name__)
 
 _GAMETORA_BASE_URL = "https://gametora.com"
@@ -159,8 +161,8 @@ class GametoraStory(metaclass=SingletonMeta):
         matches = _JP_DATETIME_PATTERN.findall(collapsed)
         if len(matches) < 2:
             raise ValueError("Could not extract story date range from detail page")
-        start = datetime.strptime(matches[0], "%Y年%m月%d日 %H:%M").replace(tzinfo=JST)
-        end = datetime.strptime(matches[1], "%Y年%m月%d日 %H:%M").replace(tzinfo=JST)
+        start = rendered_instant(datetime.strptime(matches[0], "%Y年%m月%d日 %H:%M")).astimezone(JST)
+        end = rendered_instant(datetime.strptime(matches[1], "%Y年%m月%d日 %H:%M")).astimezone(JST)
         if end < start:
             raise ValueError("Story date range end is before start")
         return Period(start=start, span=end - start)

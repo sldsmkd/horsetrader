@@ -11,6 +11,8 @@ from horsetrader.info import Logger
 from horsetrader.semantics import transcend
 from horsetrader.transport import UmaClient
 
+from .dates import rendered_instant
+
 logger = Logger.get(__name__)
 
 # Legend Races live on two Gametora surfaces sharing one chronological ordinal:
@@ -74,8 +76,8 @@ class GametoraLegendRaces(metaclass=SingletonMeta):
             end = datetime.strptime(matches[1].strip(), "%Y年%m月%d日 %H:%M")
         except ValueError:
             return None
-        start = start.replace(tzinfo=JST)
-        end = end.replace(tzinfo=JST)
+        start = rendered_instant(start).astimezone(JST)
+        end = rendered_instant(end).astimezone(JST)
         if end < start:
             return None
         return Period(start=start, span=end - start)

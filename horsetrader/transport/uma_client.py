@@ -12,6 +12,11 @@ from .uma_client_cache import CacheEntry, UmaClientCache
 
 logger = Logger.get(__name__)
 
+# JS-rendered pages (Gametora) format datetimes in the *browser's* timezone, so
+# an unpinned Chrome bakes the host machine's zone (and its DST) into the cached
+# HTML. Pin it: every Chrome-rendered datetime is UTC wall-clock, on any machine.
+CHROME_TIMEZONE = "UTC"
+
 CacheTimeResolver = Callable[[str | bytes, datetime], CacheTime | timedelta]
 CacheTimeSpec = CacheTime | timedelta | CacheTimeResolver | None
 
@@ -84,6 +89,16 @@ class UmaClient(metaclass=SingletonMeta):
         self._bound_domains: dict[str, HttpClient] = {}
 
     @staticmethod
+    def _new_chrome_client() -> HttpClient:
+        """A Chrome-backed client with its rendering timezone pinned (see `CHROME_TIMEZONE`)."""
+        client = HttpClient().with_chrome(headless=False)
+        # The override lives on the tab and persists across navigations.
+        client.transport.driver.execute_cdp_cmd(
+            "Emulation.setTimezoneOverride", {"timezoneId": CHROME_TIMEZONE}
+        )
+        return client
+
+    @staticmethod
     def _is_stale_chrome_session_error(exc: Exception) -> bool:
         message = str(exc).lower()
         return (
@@ -128,7 +143,7 @@ class UmaClient(metaclass=SingletonMeta):
             _client = self._http_client
         else:
             if self._chrome_client is None:
-                self._chrome_client = HttpClient().with_chrome(headless=False)
+                self._chrome_client = self._new_chrome_client()
             _client = self._chrome_client
 
         _domain = (
@@ -150,7 +165,7 @@ class UmaClient(metaclass=SingletonMeta):
             ):
                 # Chrome session can expire if the browser process is closed — a
                 # fresh session and one more wire call, not a failed fetch.
-                self._chrome_client = HttpClient().with_chrome(headless=False)
+                self._chrome_client = self._new_chrome_client()
                 _client = self._chrome_client
                 self._ec.bind(resource.url, client=_client)
                 self._bound_domains[_domain] = _client

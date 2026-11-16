@@ -11,7 +11,7 @@ from horsetrader.info import Logger
 from horsetrader.semantics import transcend
 from horsetrader.transport import UmaClient
 
-from .dates import parse_date
+from .dates import parse_date, rendered_instant
 
 logger = Logger.get(__name__)
 
@@ -66,7 +66,10 @@ class GametoraChampionsMeetings(metaclass=SingletonMeta):
         """Parse a JP schedule row from either Gametora locale.
 
         Current rows supply calendar dates only, so stamp the official
-        competition boundary: 12:00 through 11:59 JST.
+        competition boundary: 12:00 through 11:59 JST. (Those dates are
+        rendered from an instant in the pinned Chrome zone; a 12:00 JST start
+        lands on the same calendar day in UTC.) The legacy explicit-time
+        layouts are rendered wall-clocks, read back via `rendered_instant`.
         """
         collapsed = " ".join(text.replace("\xa0", " ").split())
         jp_matches = _JP_DT_PATTERN.findall(collapsed)
@@ -74,15 +77,20 @@ class GametoraChampionsMeetings(metaclass=SingletonMeta):
         try:
             if len(jp_matches) >= 2:
                 start, end = (
-                    datetime(int(y), int(mo), int(d), int(h), int(mi), tzinfo=JST)
+                    rendered_instant(
+                        datetime(int(y), int(mo), int(d), int(h), int(mi))
+                    ).astimezone(JST)
                     for y, mo, d, h, mi in jp_matches[:2]
                 )
             elif len(en_matches) >= 2:
                 start, end = (
-                    parse_date(f"{d} {mo} {y}").replace(
-                        hour=int(h),
-                        minute=int(mi),
-                    )
+                    rendered_instant(
+                        parse_date(f"{d} {mo} {y}").replace(
+                            hour=int(h),
+                            minute=int(mi),
+                            tzinfo=None,
+                        )
+                    ).astimezone(JST)
                     for d, mo, y, h, mi in en_matches[:2]
                 )
             else:

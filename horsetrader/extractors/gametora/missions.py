@@ -11,6 +11,8 @@ from horsetrader.info import Logger
 from horsetrader.semantics import transcend
 from horsetrader.transport import UmaClient
 
+from .dates import rendered_instant
+
 logger = Logger.get(__name__)
 
 _GAMETORA_BASE_URL = "https://gametora.com"
@@ -122,8 +124,8 @@ class GametoraMissions(metaclass=SingletonMeta):
         if len(matches) < 2:
             return None
         try:
-            start = datetime.strptime(matches[0], "%Y年%m月%d日 %H:%M").replace(tzinfo=JST)
-            end = datetime.strptime(matches[1], "%Y年%m月%d日 %H:%M").replace(tzinfo=JST)
+            start = rendered_instant(datetime.strptime(matches[0], "%Y年%m月%d日 %H:%M")).astimezone(JST)
+            end = rendered_instant(datetime.strptime(matches[1], "%Y年%m月%d日 %H:%M")).astimezone(JST)
         except ValueError:
             return None
         if end < start:
@@ -137,8 +139,8 @@ class GametoraMissions(metaclass=SingletonMeta):
         if len(matches) < 2:
             return None
         try:
-            start = datetime.strptime(f"{matches[0][0]} {matches[0][1]}", _EN_DATETIME_FMT).replace(tzinfo=UTC)
-            end = datetime.strptime(f"{matches[1][0]} {matches[1][1]}", _EN_DATETIME_FMT).replace(tzinfo=UTC)
+            start = rendered_instant(datetime.strptime(f"{matches[0][0]} {matches[0][1]}", _EN_DATETIME_FMT)).astimezone(UTC)
+            end = rendered_instant(datetime.strptime(f"{matches[1][0]} {matches[1][1]}", _EN_DATETIME_FMT)).astimezone(UTC)
         except ValueError:
             return None
         if end < start:

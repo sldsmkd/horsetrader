@@ -377,6 +377,13 @@ The Chrome session is lazily created on first JS-rendered fetch and
 re-used. A stale-session error transparently triggers re-creation
 inside `UmaClient` — callers don't see it.
 
+Chrome's **rendering timezone is pinned to UTC** (`CHROME_TIMEZONE`, applied via
+the DevTools `Emulation.setTimezoneOverride` on every new session). Gametora
+formats datetimes client-side in the browser's zone, so an unpinned browser bakes
+the host machine's zone and DST into the cached HTML. Extractors read rendered
+wall-clocks back through `gametora.dates.rendered_instant`. Changing the pin
+invalidates every cached Chrome-rendered page that carries a time.
+
 ## Banner contents matching
 
 When a `Banner` payload lists pickup characters / trainees / supports,
