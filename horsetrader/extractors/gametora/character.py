@@ -8,17 +8,19 @@ from horsetrader.transport import UmaClient
 
 logger = Logger.get(__name__)
 
-_CHAR_INDEX_ICON_SUFFIX = ".png"
 
-_CHAR_OVERVIEW_BLOCK_EXPR = (
-    '//div[contains(@class, "characters_infobox_top__") and '
-    './/div[contains(@class, "characters_infobox_character_name__")]]'
-)
-_CHAR_OVERVIEW_NAME_EXPR = (
-    './/div[contains(@class, "characters_infobox_character_name__")][1]'
-)
-
-_CHAR_OVERVIEW_TAGLINE_EXPR = ".//i[1]"
+# The detail-page header (2026 redesign): a <section> holding the render, a heading
+# (name <div> + optional tagline <i>) and a facts list of <dl><dt>label</dt><dd>…
+# Class names are hashed styled-components (`sc-8a147672-N`) that churn per build,
+# so everything anchors on structure: the heading is the sibling just before the
+# facts container. Taglines are absent for background characters.
+_CHAR_OVERVIEW_BLOCK_EXPR = "(//main//section[.//dl[dt]])[1]"
+_CHAR_OVERVIEW_HEADING_EXPR = ".//div[dl][1]/preceding-sibling::div[1]"
+_CHAR_OVERVIEW_NAME_EXPR = "./div[1]"
+_CHAR_OVERVIEW_TAGLINE_EXPR = "./i[1]"
+# 欧字名 = the official romanised name; present for every character, including the
+# background ones Umapyoi doesn't carry.
+_CHAR_OVERVIEW_ROMAJI_EXPR = './/dl[dt[normalize-space(.)="欧字名"]]/dd[1]'
 
 # Profile portraits are 512px busts on the media CDN, keyed by character id. Built
 # from the id rather than scraped: the detail page's markup churns (the 2026
@@ -35,7 +37,6 @@ _PORTRAIT_URL_TEMPLATES = (
     "https://media.gametora.com/umamusume/characters/portrait/profile/{id}_000001.png",
     "https://media.gametora.com/umamusume/characters/profile/{id}.png",
 )
-_CHAR_QUOTE_ICON_PREFIX = "/images/umamusume/characters/icons/chr_icon_"
 
 
 class GametoraCharacter(metaclass=SingletonMeta):
@@ -49,14 +50,17 @@ class GametoraCharacter(metaclass=SingletonMeta):
         if _overview_block is None:
             return {}
 
-        _name = xpath_first(_overview_block, _CHAR_OVERVIEW_NAME_EXPR)
-        _tagline = xpath_first(_overview_block, _CHAR_OVERVIEW_TAGLINE_EXPR)
+        _heading = xpath_first(_overview_block, _CHAR_OVERVIEW_HEADING_EXPR)
+        _name = xpath_first(_heading, _CHAR_OVERVIEW_NAME_EXPR) if _heading is not None else None
+        _tagline = xpath_first(_heading, _CHAR_OVERVIEW_TAGLINE_EXPR) if _heading is not None else None
+        _romaji = xpath_first(_overview_block, _CHAR_OVERVIEW_ROMAJI_EXPR)
 
         return {
             "name": _name.text_content().strip() if _name is not None else None,
             "tagline": (
                 _tagline.text_content().strip() if _tagline is not None else None
             ),
+            "romaji": _romaji.text_content().strip() if _romaji is not None else None,
         }
 
     def _portrait_url(self, char_id: str) -> str | None:
@@ -66,35 +70,6 @@ class GametoraCharacter(metaclass=SingletonMeta):
             if self._uc.try_get(url) is not None:
                 return url
         return None
-
-    def _pullquote(self, tree: html.HtmlElement, char_id: str) -> Japlish | None:
-        _icon_src = f"{_CHAR_QUOTE_ICON_PREFIX}{char_id}{_CHAR_INDEX_ICON_SUFFIX}"
-        _quote_text_predicate = (
-            "string-length(normalize-space(.)) > 8 and "
-            'not(contains(normalize-space(.), "プロフィール"))'
-        )
-        _quote_expr = (
-            f'//div[.//img[contains(@src, "{_icon_src}")] and '
-            f".//div/span[{_quote_text_predicate}]]"
-            f"//div/span[{_quote_text_predicate}][1]"
-        )
-        _quote = xpath_first(tree, _quote_expr)
-
-        if _quote is None:
-            _icon = xpath_first(tree, f'//img[contains(@src, "{_icon_src}")][1]')
-            if _icon is not None:
-                _quote = xpath_first(
-                    _icon,
-                    f"../../following-sibling::div[1]//span[{_quote_text_predicate}][1]",
-                )
-
-        if _quote is None:
-            return None
-
-        _text = _quote.text_content()
-        if not _text:
-            return None
-        return Japlish(_text)
 
     def _biography(self) -> dict:
         return {}
@@ -113,21 +88,26 @@ class GametoraCharacter(metaclass=SingletonMeta):
 
         _overview = self._overview(_tree)
         _name = _overview.get("name") or record.get("name") or "Unknown"
+        _romaji = _overview.get("romaji")
         _portrait_url = self._portrait_url(char_id)
         _tagline = _overview.get("tagline")
-        _en_quote = self._pullquote(_tree, char_id)
-
-        if _tagline:
-            _quote = Japlish(_tagline)
-            if _en_quote is not None and _en_quote.encoding.value == "en":
-                _quote.en = str(_en_quote)
-        else:
-            _quote = _en_quote
+        # The header tagline is the page's only quote (the 2026 redesign dropped the
+        # profile speech bubble; the character icon now also sits in the pedigree
+        # tree, so an icon-anchored heuristic would read sire names). JP only — the
+        # Umapyoi enricher backfills the EN side, or supplies the whole quote for
+        # characters without a tagline.
+        _quote = Japlish(_tagline) if _tagline else None
 
         logger.info(f"Fetching character details for {char_id} from Gametora")
 
+        # JP name with the official romanisation as its EN side. Umapyoi's name
+        # (source of truth) replaces this wholesale where it has the character.
+        _name_jl = Japlish(_name)
+        if _romaji and _name_jl.encoding.value == "jp":
+            _name_jl.en = _romaji
+
         return {
-            "name": Japlish(_name),
+            "name": _name_jl,
             "quote": _quote,
             "source_url": detail_url,
             "portrait_url": _portrait_url,
